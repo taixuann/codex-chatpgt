@@ -1,5 +1,4 @@
 name = "franky"
-version = "1.0.0"
 description = "Low-cost AI Labs control-plane operator for deterministic audits, package maintenance, and bounded promotion handoffs."
 model = "gpt-5.4-nano"
 model_reasoning_effort = "xhigh"

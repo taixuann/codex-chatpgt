@@ -7,12 +7,10 @@ import argparse
 from pathlib import Path
 import sys
 import tomllib
-import re
 
 
 REQUIRED = {
     "name",
-    "version",
     "description",
     "model",
     "model_reasoning_effort",
@@ -33,8 +31,6 @@ def main() -> int:
             raise ValueError(f"missing fields: {', '.join(sorted(missing))}")
         if data["sandbox_mode"] not in ALLOWED_SANDBOX:
             raise ValueError(f"unsupported sandbox_mode: {data['sandbox_mode']}")
-        if not isinstance(data["version"], str) or not re.fullmatch(r"\d+\.\d+\.\d+", data["version"]):
-            raise ValueError("version must use SemVer MAJOR.MINOR.PATCH")
         if not data["developer_instructions"].strip():
             raise ValueError("developer_instructions must not be empty")
         if data["name"] != args.agent.stem:

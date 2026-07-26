@@ -1,5 +1,4 @@
 name = "code_mapper"
-version = "1.0.0"
 description = "Read-only codebase explorer for locating the relevant frontend and backend code paths."
 model = "gpt-5.4-mini"
 model_reasoning_effort = "medium"
