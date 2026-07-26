@@ -8,8 +8,13 @@ from pathlib import Path
 import re
 import sys
 
+try:
+    import yaml
+except ImportError as exc:  # pragma: no cover
+    raise SystemExit("PyYAML is required to validate goal packages") from exc
 
-REQUIRED = ("GOAL.md", "PLAN.md", "TASKS.md", "PROMOTION.yaml")
+
+REQUIRED = ("GOAL.md", "PLAN.md", "TASKS.md")
 
 
 def frontmatter(path: Path) -> str:
@@ -45,15 +50,38 @@ def main() -> int:
         tasks = (package / "TASKS.md").read_text(encoding="utf-8")
         if goal_id not in tasks:
             raise ValueError("TASKS.md does not reference the goal id")
-        promotion = (package / "PROMOTION.yaml").read_text(encoding="utf-8")
-        if f"goal_id: {goal_id}" not in promotion:
-            raise ValueError("PROMOTION.yaml does not reference the goal id")
-        if "source_root: /Users/tai/.codex" not in promotion:
-            raise ValueError("PROMOTION.yaml must use the Codex source root")
+        promotion_path = package / "PROMOTION.yaml"
+        if promotion_path.is_file():
+            promotion = promotion_path.read_text(encoding="utf-8")
+            if f"goal_id: {goal_id}" not in promotion:
+                raise ValueError("PROMOTION.yaml does not reference the goal id")
+            if "source_root: /Users/tai/.codex" not in promotion:
+                raise ValueError("PROMOTION.yaml must use the Codex source root")
+        elif not (package / "context.md").is_file():
+            raise ValueError("legacy package without PROMOTION.yaml must retain context.md")
+        goal_text = (package / "GOAL.md").read_text(encoding="utf-8")
+        if "revision:" in goal_text and "current_pointer:" not in goal_text:
+            raise ValueError("GOAL.md revision metadata must declare current_pointer")
+        session = package / "SESSION.yaml"
+        if session.is_file():
+            session_data = yaml.safe_load(session.read_text(encoding="utf-8"))
+            if not isinstance(session_data, dict) or session_data.get("goal_id") != goal_id:
+                raise ValueError("SESSION.yaml goal_id does not match GOAL.md")
+            if session_data.get("lifecycle") != ["qualify", "select_role", "load_role_ontology", "draft", "validate", "human_review", "materialize", "execute", "revise"]:
+                raise ValueError("SESSION.yaml lifecycle does not match the Franky contract")
+        revisions = package / "revisions"
+        if revisions.exists():
+            current = revisions / "current.yaml"
+            if not current.is_file():
+                raise ValueError("revisions directory requires current.yaml")
+            pointer = yaml.safe_load(current.read_text(encoding="utf-8"))
+            if not isinstance(pointer, dict) or not all(pointer.get(key) for key in ("revision_id", "snapshot", "sha256")):
+                raise ValueError("current pointer requires revision_id, snapshot, and sha256")
     except (OSError, ValueError) as exc:
         print(f"FAIL {package}: {exc}")
         return 1
-    print(f"OK {package}: {goal_id}")
+    mode = "canonical" if (package / "PROMOTION.yaml").is_file() else "legacy compatibility"
+    print(f"OK {package}: {goal_id} ({mode})")
     return 0
 
 
