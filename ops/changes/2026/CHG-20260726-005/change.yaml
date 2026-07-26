@@ -1,0 +1,39 @@
+change_id: CHG-20260726-005
+operation: shared_codex_role_guidance_and_ai_labs_promotion_preparation
+component: codex_ai_labs_role_integration
+scope:
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260726-005/change.yaml
+preview:
+  summary: Replace Franky-only Codex guidance with shared Feynman/Prometheus/Franky boundaries and prepare a proposed selective promotion package.
+  digest: sha256:shared-role-integration-20260726
+approval:
+  granted: true
+  authority: user-approved implementation request
+  preview_digest: sha256:shared-role-integration-20260726
+changed_paths:
+  - /Users/tai/.codex/AGENTS.md
+validation:
+  status: passed
+  commands:
+    - validate_goal_package.py GOAL-20260726-003
+    - validate_metadata.py with shared ontology and three roles
+    - validate_revisions.py GOAL-20260726-003
+    - validate_promotion_manifest.py PROMOTION.yaml
+    - validate_skill_interfaces.py skills
+    - quick_validate.py for all 11 Franky skills
+    - validate_workflow.py for both canonical workflows
+    - validate_git_allowlist.py .
+    - git diff --check
+  promotion: GOAL-20260726-003/PROMOTION.yaml is proposed only; no AI Labs runtime paths changed
+rollback:
+  method: restore /Users/tai/.codex/AGENTS.md from the prior local Git commit; remove only the proposed goal package if explicitly requested
+  destructive: false
+git:
+  mode: local
+  commit: pending
+  push: false
+promotion:
+  automatic: false
+  status: proposed
+  goal_id: GOAL-20260726-003
