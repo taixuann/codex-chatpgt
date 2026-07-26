@@ -8,7 +8,7 @@ steps:
   - id: audit
     skill: franky-maintenance
     operation: audit_workflows
-    inputs: [workflow findings, selected workflow paths]
+    inputs: [approved change context, selected workflow paths]
     outputs: [workflow layout report, dependency map]
     validation: [only two top-level workflow entrypoints are present]
     approval_gate: {required: false, reason: read_only_audit}
@@ -16,15 +16,15 @@ steps:
   - id: update
     skill: franky-workflow-organizer
     operation: update_approved_workflows
-    inputs: [workflow layout report, dependency map, approved workflow proposal]
+    inputs: [workflow layout report, dependency map, approved change context]
     outputs: [updated workflow pipelines, workflow version report]
     validation: [branch, step, artifact, and forbidden-key checks pass]
-    approval_gate: {required: true, reason: workflow_write}
+    approval_gate: {required: false, reason: approved_context}
     on_failure: return_to_human
   - id: validate
     skill: franky-maintenance
     operation: validate_workflows
-    inputs: [updated workflow pipelines, workflow version report]
+    inputs: [updated workflow pipelines, change.yaml]
     outputs: [workflow validation report]
     validation: [entrypoint and all nested pipeline validators pass]
     approval_gate: {required: false, reason: validation_only}

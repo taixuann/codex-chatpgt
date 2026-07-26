@@ -1,0 +1,34 @@
+version: 1
+id: franky-change-record
+description: Compact evidence record for one approved local Franky change.
+required:
+  - change_id
+  - operation
+  - component
+  - scope
+  - preview
+  - approval
+  - changed_paths
+  - validation
+  - rollback
+  - git
+  - promotion
+properties:
+  change_id: {pattern: '^CHG-[0-9]{8}-[0-9]{3}$'}
+  operation: {type: string}
+  component: {type: string}
+  scope: {type: list}
+  preview: {type: mapping}
+  approval: {type: mapping}
+  changed_paths: {type: list}
+  validation: {type: mapping}
+  rollback: {type: mapping}
+  git: {type: mapping}
+  promotion: {type: mapping}
+constraints:
+  - approval.preview_digest must equal preview.digest
+  - approval.granted must be true
+  - git.mode must be local
+  - promotion.automatic must be false
+  - result.md is forbidden
+  - paths under .system, credentials, linked projects, and unrelated paths are forbidden

@@ -3,7 +3,7 @@ id: WF-FRANKY-INSTALL
 name: Franky installation entrypoint
 invocation_policy: workflow_only
 entrypoint: true
-goal: Route one approved component request to exactly one Franky installation pipeline and finalize its evidence.
+goal: Qualify, audit, preview, approve, apply, validate, record, and locally finalize one component change.
 pipelines:
   - path: franky-install/skill.yaml
     branch: {key: component_type, value: skill}
@@ -18,43 +18,67 @@ pipelines:
   - path: franky-install/project-link.yaml
     branch: {key: component_type, value: project_link}
 steps:
-  - id: create-goal-session
-    skill: franky-goal-session
-    operation: materialize
-    inputs: [operator request, qualified scope, selected role, ontology metadata]
-    outputs: [draft goal package, workflow-run envelope]
-    validation: [goal package schema, role resolution, and lifecycle state are valid]
-    approval_gate: {required: true, reason: goal_contract_approval}
-    on_failure: return_to_human
-  - id: select-component
+  - id: qualify
     skill: franky-maintenance
-    operation: route_component
-    inputs: [approved goal package, operator request, component_type, requested source and destination]
-    outputs: [selected pipeline, route artifact]
-    validation: [component_type matches exactly one declared branch]
+    operation: qualify_component
+    inputs: [operator request, component_type, requested source and destination]
+    outputs: [qualified scope, workflow-run envelope]
+    validation: [scope, role, goal ID, and workflow ID/version are explicit]
     approval_gate: {required: false, reason: read_only_routing}
     on_failure: return_to_human
-  - id: execute-selected-pipeline
-    skill: franky-external-handoff
-    operation: invoke_selected_pipeline
-    inputs: [selected pipeline, route artifact, operator request]
-    outputs: [pipeline result, changed-path manifest, validation report]
-    validation: [only the selected nested pipeline is executed]
-    approval_gate: {required: true, reason: governed_installation}
+  - id: audit
+    skill: franky-maintenance
+    operation: audit_component
+    inputs: [qualified scope, selected component branch]
+    outputs: [audit report, collision and dependency report]
+    validation: [system, credential, linked-project, and unrelated paths are excluded]
+    approval_gate: {required: false, reason: read_only_audit}
     on_failure: return_to_human
-  - id: finalize-git
+  - id: preview
+    skill: franky-maintenance
+    operation: preview_component_change
+    inputs: [audit report, requested change]
+    outputs: [exact preview, preview digest, selected pipeline]
+    validation: [exact changed paths, rollback, and one branch are deterministic]
+    approval_gate: {required: false, reason: preview_only}
+    on_failure: return_to_human
+  - id: approve
+    skill: franky-maintenance
+    operation: approve_exact_preview
+    inputs: [exact preview, preview digest, rollback plan]
+    outputs: [approval record]
+    validation: [approval binds exactly to preview digest and scope]
+    approval_gate: {required: true, reason: exact_preview_approval}
+    on_failure: return_to_human
+  - id: apply
+    skill: franky-maintenance
+    operation: invoke_selected_pipeline
+    inputs: [approved change context, selected pipeline]
+    outputs: [component result, changed paths]
+    validation: [only the selected branch executes in approved context]
+    approval_gate: {required: false, reason: approved_context}
+    on_failure: return_to_human
+  - id: validate
+    skill: franky-maintenance
+    operation: validate_component_change
+    inputs: [component result, changed paths, approved preview]
+    outputs: [validation report]
+    validation: [component, workflow, change-record, and allowlist validators pass]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: write-change-record
+    skill: franky-maintenance
+    operation: write_change_record
+    inputs: [approved preview, approval record, validation report, changed paths]
+    outputs: [change.yaml]
+    validation: [schema, exact-preview, forbidden-path, no-result.md, and no-promotion checks pass]
+    approval_gate: {required: false, reason: evidence_recording}
+    on_failure: return_to_human
+  - id: local-git-finalize
     skill: franky-maintenance
     operation: git_finalize
-    inputs: [pipeline result, changed-path manifest, validation report]
-    outputs: [local change commit, clean-tree report, optional agent changelog entry]
-    validation: [allowlist, validators, commit, changelog, and clean-tree checks pass]
-    approval_gate: {required: true, reason: local_control_plane_commit}
-    on_failure: return_to_human
-  - id: revise-goal-session
-    skill: franky-goal-session
-    operation: revise
-    inputs: [pipeline result, validation report, current goal revision]
-    outputs: [immutable goal revision snapshot, current-pointer update, walkthrough]
-    validation: [revision digest and current pointer validate; approved fields remain immutable]
-    approval_gate: {required: true, reason: goal_revision_approval}
+    inputs: [change.yaml, changed paths, validation report]
+    outputs: [local Git finalize report]
+    validation: [Git allowlist passes; local-only finalize is recorded; no push occurs]
+    approval_gate: {required: false, reason: local_finalize}
     on_failure: return_to_human

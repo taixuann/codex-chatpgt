@@ -5,21 +5,13 @@ invocation_policy: workflow_only
 branch: {key: component_type, value: workflow}
 goal: Design, validate, register, revise, and retire an executor-agnostic Franky workflow contract.
 steps:
-  - id: define-goal
-    skill: franky-goal-session
-    operation: define
-    inputs: [workflow objective, ordered capability steps, stop condition]
-    outputs: [approved goal package]
-    validation: [workflow objective, artifact contract, gates, and failure behavior are explicit]
-    approval_gate: {required: true, reason: workflow_lifecycle}
-    on_failure: return_to_human
   - id: design-workflow
     skill: franky-workflow-organizer
     operation: design
-    inputs: [approved goal package, ordered capability steps, artifact contract]
+    inputs: [approved change context, ordered capability steps, artifact contract]
     outputs: [workflow YAML proposal]
     validation: [workflow is thin, typed, executor-agnostic, and invocation_policy is workflow_only]
-    approval_gate: {required: true, reason: workflow_design}
+    approval_gate: {required: false, reason: approved_context}
     on_failure: return_to_human
   - id: validate-workflow
     skill: franky-workflow-organizer
@@ -35,13 +27,5 @@ steps:
     inputs: [validated workflow, workflow catalog proposal]
     outputs: [registered workflow proposal, registry diff]
     validation: [workflow ID is unique and catalog mapping is explicit]
-    approval_gate: {required: true, reason: workflow_registry_write}
-    on_failure: return_to_human
-  - id: record-evidence
-    skill: franky-goal-session
-    operation: record_walkthrough
-    inputs: [workflow validation report, registry diff, approved goal package]
-    outputs: [walkthrough and workflow evidence]
-    validation: [version, hash, dependencies, and rollback are recorded]
-    approval_gate: {required: false, reason: evidence_recording}
+    approval_gate: {required: false, reason: approved_context}
     on_failure: return_to_human

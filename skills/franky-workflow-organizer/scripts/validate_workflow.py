@@ -16,6 +16,12 @@ except ImportError as exc:  # pragma: no cover
 REQUIRED_STEP_FIELDS = {"id", "skill", "operation", "inputs", "outputs", "validation", "approval_gate", "on_failure"}
 FORBIDDEN_KEYS = {"model", "executor", "provider", "backend"}
 REQUIRED_APPROVAL_FIELDS = {"required", "reason"}
+TOP_LEVEL_FAMILIES = {
+    "franky-install.yaml": ("component_type", 6),
+    "franky-maintenance.yaml": ("maintenance_operation", 8),
+}
+GOVERNANCE_SEQUENCE = ("qualify", "audit", "preview", "approve", "apply", "validate", "write-change-record", "local-git-finalize")
+FORBIDDEN_NESTED_OPERATIONS = {"define", "materialize", "revise", "create-goal-session", "revise-goal-session"}
 
 
 def walk_forbidden(value: object, path: str = "workflow") -> str | None:
@@ -49,6 +55,15 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
         branch = data["branch"]
         if not isinstance(branch, dict) or not isinstance(branch.get("key"), str) or not isinstance(branch.get("value"), str):
             raise ValueError("branch requires string key and value")
+    if not nested and path.name in TOP_LEVEL_FAMILIES:
+        branch_key, branch_count = TOP_LEVEL_FAMILIES[path.name]
+        if not isinstance(data.get("pipelines"), list) or len(data["pipelines"]) != branch_count:
+            raise ValueError(f"{path.name} requires exactly {branch_count} exclusive branches")
+        if [step.get("id") for step in data["steps"]] != list(GOVERNANCE_SEQUENCE):
+            raise ValueError(f"{path.name} must use governance sequence: {' -> '.join(GOVERNANCE_SEQUENCE)}")
+        required_approvals = [step for step in data["steps"] if step.get("approval_gate", {}).get("required") is True]
+        if len(required_approvals) != 1 or required_approvals[0].get("id") != "approve":
+            raise ValueError(f"{path.name} must contain exactly one approval gate at approve")
     seen: set[str] = set()
     for step in data["steps"]:
         if not isinstance(step, dict):
@@ -65,6 +80,10 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
             raise ValueError(f"step {step['id']} skill must be a non-empty string")
         if not isinstance(step["operation"], str) or not step["operation"]:
             raise ValueError(f"step {step['id']} operation must be a non-empty string")
+        if nested and (step["operation"] in FORBIDDEN_NESTED_OPERATIONS or step["id"] in FORBIDDEN_NESTED_OPERATIONS):
+            raise ValueError(f"nested pipeline contains forbidden goal-session step: {step['id']}")
+        if nested and step["approval_gate"].get("required") is True:
+            raise ValueError(f"nested pipeline approval must be supplied by top-level approve: {step['id']}")
         for field in ("inputs", "outputs", "validation"):
             if not isinstance(step[field], list):
                 raise ValueError(f"step {step['id']} {field} must be a list")
@@ -94,6 +113,8 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
             if key_value in seen_branches:
                 raise ValueError(f"duplicate pipeline branch: {key_value}")
             seen_branches.add(key_value)
+            if path.name in TOP_LEVEL_FAMILIES and key_value[0] != TOP_LEVEL_FAMILIES[path.name][0]:
+                raise ValueError(f"branch key mismatch: expected {TOP_LEVEL_FAMILIES[path.name][0]}")
             nested_path = (path.parent / entry["path"]).resolve()
             if not nested_path.is_file():
                 raise ValueError(f"missing nested pipeline: {entry['path']}")

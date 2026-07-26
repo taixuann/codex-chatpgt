@@ -14,7 +14,9 @@ Start with a read-only inventory. Inspect only the approved control-plane scope.
 3. Run deterministic validators before model-level interpretation.
 4. Produce a report with exact paths, evidence, impact, and recommended next
    action.
-5. Apply changes only after human approval and record a walkthrough.
+5. Apply changes only after human approval. Record routine local mutations in
+   `~/.codex/ops/changes/YYYY/CHG-YYYYMMDD-NNN/change.yaml`; use AI Labs
+   walkthroughs only for full architectural goal packages.
 6. Treat promotion preparation as a separate report with source hashes,
    destination registry changes, branch/update scope, and rollback metadata.
 

@@ -1,0 +1,69 @@
+change_id: CHG-20260726-001
+operation: lightweight_governance_refactor
+component: franky_control_plane
+scope:
+  - /Users/tai/.codex/workflows/franky/
+  - /Users/tai/.codex/skills/franky-maintenance/
+  - /Users/tai/.codex/skills/franky-workflow-organizer/
+  - /Users/tai/.codex/skills/franky-agent-installer/
+  - /Users/tai/.codex/ops/schemas/
+  - /Users/tai/.codex/ops/scripts/
+  - /Users/tai/.codex/ops/changes/2026/
+preview:
+  summary: Refactor both entrypoints to one exact-preview approval envelope and add deterministic change-record validation.
+  digest: sha256:franky-governance-refactor-20260726
+approval:
+  granted: true
+  authority: user-approved implementation request
+  preview_digest: sha256:franky-governance-refactor-20260726
+changed_paths:
+  - /Users/tai/.codex/workflows/franky/franky-install.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance.yaml
+  - /Users/tai/.codex/workflows/franky/franky-install/agent.yaml
+  - /Users/tai/.codex/workflows/franky/franky-install/cron.yaml
+  - /Users/tai/.codex/workflows/franky/franky-install/guidance.yaml
+  - /Users/tai/.codex/workflows/franky/franky-install/project-link.yaml
+  - /Users/tai/.codex/workflows/franky/franky-install/skill.yaml
+  - /Users/tai/.codex/workflows/franky/franky-install/workflow.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance/git-finalize.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance/promotion.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance/update-agents.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance/update-cron.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance/update-guidance.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance/update-skills.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance/update-workflows.yaml
+  - /Users/tai/.codex/skills/franky-workflow-organizer/scripts/validate_workflow.py
+  - /Users/tai/.codex/skills/franky-maintenance/SKILL.md
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_agent_changelog.py
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_change_record.py
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/ops/schemas/change-record.schema.yaml
+  - /Users/tai/.codex/ops/scripts/validate_franky_change_record.py
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_change_record.py
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_agent_changelog.py
+  - /Users/tai/.codex/ops/changes/2026/README.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260726-001/change.yaml
+  - /Users/tai/.codex/.gitignore
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_git_allowlist.py
+validation:
+  status: passed
+  commands:
+    - validate_workflow.py (both top-level workflows)
+    - validate_workflow_layout.py
+    - validate_change_record.py
+    - validate_skill_interfaces.py
+    - validate_agent_changelog.py
+    - validate_agent_toml.py
+    - validate_franky_agent.py
+    - validate_research_os.py
+    - validate_git_allowlist.py
+rollback:
+  method: restore the listed paths from the pre-change local Git diff
+  destructive: false
+git:
+  mode: local
+  commit: not-created
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

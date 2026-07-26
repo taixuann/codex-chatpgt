@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 
-ALLOWED_PREFIXES = ("agents/", "skills/franky-", "workflows/franky/", ".github/", "manifests/")
+ALLOWED_PREFIXES = ("agents/", "skills/franky-", "workflows/franky/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/changes/")
 ALLOWED_FILES = {".gitignore", "AGENTS.md"}
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials")
 

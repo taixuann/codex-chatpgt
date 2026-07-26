@@ -3,29 +3,29 @@ id: WF-FRANKY-MAINTENANCE-UPDATE-AGENTS
 name: Franky agent maintenance pipeline
 invocation_policy: workflow_only
 branch: {key: maintenance_operation, value: update_agents}
-goal: Update approved agent adapters with SemVer, reason, changelog, and commit evidence.
+goal: Update approved versionless agent adapters with reason, change-record, and local evidence.
 steps:
   - id: audit
     skill: franky-maintenance
     operation: audit_agent
-    inputs: [agent findings, selected agent paths, canonical role registry]
+    inputs: [approved change context, selected agent paths, canonical role registry]
     outputs: [agent collision report, role-drift report]
-    validation: [scope, current version, and source-of-truth mapping are recorded]
+    validation: [scope, versionless adapter state, and source-of-truth mapping are recorded]
     approval_gate: {required: false, reason: read_only_audit}
     on_failure: return_to_human
   - id: update
     skill: franky-agent-installer
     operation: update_approved_agents
-    inputs: [agent collision report, role-drift report, approved reason, version proposal]
-    outputs: [updated agent adapters, version report]
-    validation: [TOML schema, SemVer, sandbox, instructions, and role mapping pass]
-    approval_gate: {required: true, reason: agent_write}
+    inputs: [agent collision report, role-drift report, approved change context]
+    outputs: [updated agent adapters]
+    validation: [TOML schema, versionless adapter contract, sandbox, instructions, and role mapping pass]
+    approval_gate: {required: false, reason: approved_context}
     on_failure: return_to_human
   - id: changelog
     skill: franky-maintenance
     operation: record_agent_changelog
-    inputs: [updated agent adapters, version report, goal ID, reason, validation report]
-    outputs: [agent changelog entry]
-    validation: [reason, goal ID, changed paths, validation, rollback, and pending commit reference are present]
-    approval_gate: {required: true, reason: agent_changelog_write}
+    inputs: [updated agent adapters, change.yaml, validation report]
+    outputs: [agent maintenance evidence]
+    validation: [change record carries reason, changed paths, validation, rollback, and local Git state]
+    approval_gate: {required: false, reason: approved_context}
     on_failure: return_to_human

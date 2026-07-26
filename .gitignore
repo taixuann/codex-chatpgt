@@ -21,3 +21,10 @@
 !workflows/franky/franky-maintenance/*.yaml
 !manifests/
 !manifests/**
+!ops/
+!ops/schemas/
+!ops/schemas/**
+!ops/scripts/
+!ops/scripts/**
+!ops/changes/
+!ops/changes/**

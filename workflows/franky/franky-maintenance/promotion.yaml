@@ -8,7 +8,7 @@ steps:
   - id: audit
     skill: franky-maintenance
     operation: audit_promotion_scope
-    inputs: [validated control-plane changes, clean-tree report]
+    inputs: [approved change context, validated control-plane changes, clean-tree report]
     outputs: [promotion scope, destination registry map]
     validation: [only approved Franky packages and workflow metadata are included]
     approval_gate: {required: false, reason: read_only_audit}
@@ -19,5 +19,5 @@ steps:
     inputs: [promotion scope, destination registry map, goal package, change commit]
     outputs: [proposed promotion manifest, promotion branch/update plan]
     validation: [hashes, dependencies, registries, destinations, and rollback agree]
-    approval_gate: {required: true, reason: ai_labs_promotion}
+    approval_gate: {required: false, reason: approved_context}
     on_failure: return_to_human

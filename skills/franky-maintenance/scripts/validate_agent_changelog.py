@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Validate the Franky agent README and structured changelog contract."""
+"""Validate the Franky agent README and change-evidence contract.
+
+Runtime adapters are intentionally versionless; any historical version field
+in the append-only log is evidence metadata, not an adapter requirement.
+"""
 
 from __future__ import annotations
 
@@ -25,15 +29,13 @@ def main() -> int:
         for key in REQUIRED_KEYS:
             if key not in text:
                 raise ValueError(f"changelog missing {key}")
-        versions = re.findall(r"^  version: (\d+\.\d+\.\d+)$", text, re.MULTILINE)
-        if not versions:
-            raise ValueError("changelog has no SemVer version")
         if "reason:" not in text or "goal_id:" not in text:
             raise ValueError("changelog entries require reason and goal_id")
     except (OSError, ValueError) as exc:
         print(f"FAIL {args.agents_dir}: {exc}")
         return 1
-    print(f"OK {args.agents_dir}: {len(versions)} changelog entries")
+    entries = len(re.findall(r"^(?:- )?agent: ", text, re.MULTILINE))
+    print(f"OK {args.agents_dir}: {entries} changelog entries; adapters remain versionless")
     return 0
 
 
