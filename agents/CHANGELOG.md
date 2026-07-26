@@ -39,7 +39,7 @@ Append-only record of governed agent adapter changes.
     - workflow validators
   approval:
     - implementation request approved by human
-  change_commit: pending
+  change_commit: 51ffe273c5caffc0ed22327dd9fa54327bdbd17e
   rollback:
     - Restore the previous adapter model and reasoning settings after approval.
 ```

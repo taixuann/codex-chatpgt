@@ -44,7 +44,7 @@ rollback:
   destructive: false
 git:
   mode: local
-  commit: pending
+  commit: 51ffe273c5caffc0ed22327dd9fa54327bdbd17e
   push: false
 promotion:
   automatic: false
