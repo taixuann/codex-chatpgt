@@ -13,7 +13,8 @@
 !skills/franky-*/*
 !skills/franky-*/*/*
 !skills/franky-maintenance/scripts/fixtures/
-!skills/franky-maintenance/scripts/fixtures/**
+!skills/franky-maintenance/scripts/fixtures/session-valid.jsonl
+!skills/franky-maintenance/scripts/fixtures/session-malformed.jsonl
 !workflows/
 !workflows/franky/
 !workflows/franky/*.yaml
