@@ -42,7 +42,7 @@ rollback:
   destructive: false
 git:
   mode: local
-  commit: pending
+  commit: 8818113
   push: false
 promotion:
   automatic: false
