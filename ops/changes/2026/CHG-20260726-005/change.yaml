@@ -31,7 +31,7 @@ rollback:
   destructive: false
 git:
   mode: local
-  commit: pending
+  commit: 1f96668
   push: false
 promotion:
   automatic: false
