@@ -1,0 +1,55 @@
+version: 1
+id: WF-FRANKY-SKILL-LIFECYCLE
+name: Franky skill lifecycle
+invocation_policy: workflow_only
+branch: {key: component_type, value: skill}
+goal: Govern one Franky skill from candidate capability through validation and optional promotion.
+steps:
+  - id: define-goal
+    skill: franky-goal-session
+    operation: define
+    inputs: [skill request, provenance, target scope, dependencies]
+    outputs: [approved goal package]
+    validation: [capability, trigger boundary, non-goals, and acceptance evidence are explicit]
+    approval_gate: {required: true, reason: skill_lifecycle}
+    on_failure: return_to_human
+  - id: audit-skill
+    skill: franky-maintenance
+    operation: audit_skill
+    inputs: [approved goal package, candidate source, target scope]
+    outputs: [collision report, dependency inventory, provenance report]
+    validation: [system-owned paths and unsupported sources are rejected]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: prepare-skill-change
+    skill: franky-skill-installer
+    operation: plan_change
+    inputs: [collision report, dependency inventory, candidate skill]
+    outputs: [skill package proposal, rollback plan]
+    validation: [frontmatter, interface metadata, resources, and dependencies pass]
+    approval_gate: {required: true, reason: skill_change_plan}
+    on_failure: return_to_human
+  - id: apply-skill-change
+    skill: franky-skill-installer
+    operation: apply_change
+    inputs: [approved skill package proposal, rollback plan]
+    outputs: [updated skill package]
+    validation: [package is at the approved path and .system is unchanged]
+    approval_gate: {required: true, reason: skill_write}
+    on_failure: return_to_human
+  - id: validate-skill
+    skill: franky-maintenance
+    operation: validate_skill
+    inputs: [updated skill package, dependency inventory]
+    outputs: [skill validation report, artifact hash]
+    validation: [quick_validate, interface, trigger-boundary, and dependency checks pass]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: prepare-promotion
+    skill: franky-promotion
+    operation: prepare_manifest
+    inputs: [skill validation report, artifact hash, approved goal package]
+    outputs: [proposed promotion artifact]
+    validation: [destination, dependency, hash, and rollback metadata agree]
+    approval_gate: {required: true, reason: optional_ai_labs_promotion}
+    on_failure: return_to_human

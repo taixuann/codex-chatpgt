@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goal session package"
+  short_description: "Create a measurable Franky goal."
+  default_prompt: "Create a governed Franky goal session."

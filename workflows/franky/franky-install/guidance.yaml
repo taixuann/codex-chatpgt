@@ -1,0 +1,39 @@
+version: 1
+id: WF-FRANKY-INSTALL-GUIDANCE
+name: Franky guidance installation pipeline
+invocation_policy: workflow_only
+branch: {key: component_type, value: guidance}
+goal: Install or update one scoped AGENTS.md or guidance package.
+steps:
+  - id: define-goal
+    skill: franky-goal-session
+    operation: define
+    inputs: [guidance request, target scope]
+    outputs: [approved goal package]
+    validation: [scope, reason, non-goals, and rollback are explicit]
+    approval_gate: {required: true, reason: guidance_lifecycle}
+    on_failure: return_to_human
+  - id: audit-guidance
+    skill: franky-maintenance
+    operation: audit_guidance
+    inputs: [approved goal package, target guidance path]
+    outputs: [instruction inventory, precedence report, collision report]
+    validation: [no global persona stickiness or unrelated task coupling]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: apply-guidance
+    skill: franky-guidance-manager
+    operation: install_or_update
+    inputs: [instruction inventory, approved guidance proposal, rollback plan]
+    outputs: [updated guidance, guidance diff]
+    validation: [only approved guidance paths changed]
+    approval_gate: {required: true, reason: guidance_write}
+    on_failure: return_to_human
+  - id: record-evidence
+    skill: franky-goal-session
+    operation: record_walkthrough
+    inputs: [guidance diff, precedence report, approved goal package]
+    outputs: [walkthrough and guidance evidence]
+    validation: [reason, changed paths, validation, and rollback are recorded]
+    approval_gate: {required: false, reason: evidence_recording}
+    on_failure: return_to_human

@@ -1,0 +1,55 @@
+version: 1
+id: WF-FRANKY-CRON-LIFECYCLE
+name: Franky scheduler lifecycle
+invocation_policy: workflow_only
+branch: {key: component_type, value: cron}
+goal: Audit, install, update, and retire one recurring operator job with schedule safety and rollback evidence.
+steps:
+  - id: define-goal
+    skill: franky-goal-session
+    operation: define
+    inputs: [job request, owner, scheduler scope, output destination]
+    outputs: [approved goal package]
+    validation: [job purpose, timezone, schedule, stop condition, and retention are explicit]
+    approval_gate: {required: true, reason: scheduler_lifecycle}
+    on_failure: return_to_human
+  - id: inventory-scheduler
+    skill: franky-maintenance
+    operation: inventory_scheduler
+    inputs: [approved goal package, scheduler scope]
+    outputs: [scheduler inventory, duplicate report, stale-path report]
+    validation: [inventory is read-only and identifies owner, timezone, retries, and outputs]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: plan-cron-change
+    skill: franky-cron-installer
+    operation: plan_change
+    inputs: [scheduler inventory, requested job, duplicate report, stale-path report]
+    outputs: [schedule diff, job proposal, rollback plan]
+    validation: [identifier, schedule, timezone, prompt path, output path, and retry checks pass]
+    approval_gate: {required: true, reason: scheduler_change_plan}
+    on_failure: return_to_human
+  - id: apply-cron-change
+    skill: franky-cron-installer
+    operation: apply_change
+    inputs: [approved job proposal, schedule diff, rollback plan]
+    outputs: [updated scheduler state]
+    validation: [only the approved job changed and scheduler reports the expected state]
+    approval_gate: {required: true, reason: scheduler_write}
+    on_failure: return_to_human
+  - id: validate-cron
+    skill: franky-maintenance
+    operation: validate_scheduler
+    inputs: [updated scheduler state, schedule diff]
+    outputs: [scheduler validation report]
+    validation: [no overlap, retry storm, timezone drift, stale path, or secret exposure is present]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: record-evidence
+    skill: franky-goal-session
+    operation: record_walkthrough
+    inputs: [scheduler validation report, rollback plan, approved goal package]
+    outputs: [walkthrough and scheduler evidence]
+    validation: [job identifier, changed paths, schedule diff, and rollback are recorded]
+    approval_gate: {required: false, reason: evidence_recording}
+    on_failure: return_to_human

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow organizer"
+  short_description: "Design thin skill workflows."
+  default_prompt: "Organize this request into skill steps."

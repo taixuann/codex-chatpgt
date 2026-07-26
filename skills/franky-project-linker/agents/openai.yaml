@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project linker"
+  short_description: "Link workspaces to Codex skills."
+  default_prompt: "Link this framework to approved Codex skills."

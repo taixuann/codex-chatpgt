@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Validate an AI Labs Codex custom-agent TOML adapter."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import sys
+import tomllib
+import re
+
+
+REQUIRED = {
+    "name",
+    "version",
+    "description",
+    "model",
+    "model_reasoning_effort",
+    "sandbox_mode",
+    "developer_instructions",
+}
+ALLOWED_SANDBOX = {"read-only", "workspace-write", "danger-full-access"}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("agent", type=Path)
+    args = parser.parse_args()
+    try:
+        data = tomllib.loads(args.agent.read_text(encoding="utf-8"))
+        missing = REQUIRED - data.keys()
+        if missing:
+            raise ValueError(f"missing fields: {', '.join(sorted(missing))}")
+        if data["sandbox_mode"] not in ALLOWED_SANDBOX:
+            raise ValueError(f"unsupported sandbox_mode: {data['sandbox_mode']}")
+        if not isinstance(data["version"], str) or not re.fullmatch(r"\d+\.\d+\.\d+", data["version"]):
+            raise ValueError("version must use SemVer MAJOR.MINOR.PATCH")
+        if not data["developer_instructions"].strip():
+            raise ValueError("developer_instructions must not be empty")
+        if data["name"] != args.agent.stem:
+            raise ValueError("name must match the filename stem")
+    except (OSError, tomllib.TOMLDecodeError, ValueError) as exc:
+        print(f"FAIL {args.agent}: {exc}")
+        return 1
+    print(f"OK {args.agent}: {data['name']}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

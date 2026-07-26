@@ -1,0 +1,8 @@
+workflow_id: WF-FRANKY-EXAMPLE
+workflow_version: 1
+goal_id: GOAL-YYYYMMDD-NNN
+step_id: step-id
+allowed_skill: franky-example-skill
+operation: read_only_audit
+input_artifact_ids: []
+approval_record: null

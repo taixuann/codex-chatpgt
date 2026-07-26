@@ -1,0 +1,37 @@
+name: Franky control-plane validation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install validation dependency
+        run: python -m pip install pyyaml
+      - name: Validate skill interfaces
+        run: python3 skills/franky-maintenance/scripts/validate_skill_interfaces.py skills
+      - name: Validate agent adapters
+        run: |
+          for agent in agents/*.toml; do
+            test ! -s "$agent" || python3 skills/franky-agent-installer/scripts/validate_agent_toml.py "$agent"
+          done
+      - name: Validate workflow layout
+        run: python3 skills/franky-maintenance/scripts/validate_workflow_layout.py workflows/franky
+      - name: Validate workflow contracts
+        run: |
+          for workflow in workflows/franky/*.yaml; do
+            python3 skills/franky-workflow-organizer/scripts/validate_workflow.py "$workflow"
+          done
+          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
+            python3 skills/franky-workflow-organizer/scripts/validate_workflow.py "$workflow"
+          done
+      - name: Validate agent changelog
+        run: python3 skills/franky-maintenance/scripts/validate_agent_changelog.py agents
+      - name: Validate Git allowlist
+        run: python3 skills/franky-maintenance/scripts/validate_git_allowlist.py .

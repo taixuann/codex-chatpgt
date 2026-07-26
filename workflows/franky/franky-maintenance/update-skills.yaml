@@ -1,0 +1,31 @@
+version: 1
+id: WF-FRANKY-MAINTENANCE-UPDATE-SKILLS
+name: Franky skill maintenance pipeline
+invocation_policy: workflow_only
+branch: {key: maintenance_operation, value: update_skills}
+goal: Update approved Franky skill packages and record versioned evidence.
+steps:
+  - id: audit
+    skill: franky-maintenance
+    operation: audit_skill
+    inputs: [skill findings, selected scope]
+    outputs: [skill collision report, dependency inventory]
+    validation: [system-owned and unrelated paths are excluded]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: update
+    skill: franky-skill-installer
+    operation: update_approved_skills
+    inputs: [skill collision report, dependency inventory, approved change]
+    outputs: [updated skills, skill version report]
+    validation: [quick_validate, interface, dependency, and hash checks pass]
+    approval_gate: {required: true, reason: skill_write}
+    on_failure: return_to_human
+  - id: validate
+    skill: franky-maintenance
+    operation: validate_skills
+    inputs: [updated skills, skill version report]
+    outputs: [skill validation report, changed-path manifest]
+    validation: [all selected packages pass deterministic validators]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human

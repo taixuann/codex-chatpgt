@@ -1,0 +1,40 @@
+version: 1
+id: WF-FRANKY-MAINTENANCE-GIT-FINALIZE
+name: Franky Git finalization pipeline
+invocation_policy: workflow_only
+branch: {key: maintenance_operation, value: git_finalize}
+goal: Validate, commit, log, and verify one approved Franky control-plane change.
+steps:
+  - id: validate-staged-scope
+    skill: franky-maintenance
+    operation: validate_git_allowlist
+    inputs: [changed-path manifest, staged files]
+    outputs: [allowlist report, sensitive-path report]
+    validation: [only approved control-plane paths are staged]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: commit-change
+    skill: franky-maintenance
+    operation: create_local_commit
+    inputs: [allowlist report, validation report, approved commit reason]
+    outputs: [change commit SHA]
+    validation: [local commit succeeds and no remote push is attempted]
+    approval_gate: {required: true, reason: local_git_commit}
+    on_failure: return_to_human
+  - id: record-agent-log
+    condition: changed paths include agents
+    skill: franky-maintenance
+    operation: record_agent_changelog
+    inputs: [change commit SHA, agent versions, goal ID, reason, validation report]
+    outputs: [agent changelog entry]
+    validation: [entry links the agent change to the change commit and reason]
+    approval_gate: {required: true, reason: agent_log_write}
+    on_failure: return_to_human
+  - id: verify-clean-tree
+    skill: franky-maintenance
+    operation: verify_clean_tree
+    inputs: [change commit SHA, agent changelog entry when applicable]
+    outputs: [clean-tree report]
+    validation: [tracked worktree is clean and ignored runtime files remain untracked]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human

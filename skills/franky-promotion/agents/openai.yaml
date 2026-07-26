@@ -1,0 +1,4 @@
+interface:
+  display_name: "Promotion manifest"
+  short_description: "Promote Codex packages safely."
+  default_prompt: "Prepare a reviewable AI Labs promotion."

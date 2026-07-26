@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub review"
+  short_description: "Inspect PR review comments."
+  default_prompt: "Inspect PR comments and plan approved actions."

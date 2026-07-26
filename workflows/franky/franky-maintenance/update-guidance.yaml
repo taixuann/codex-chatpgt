@@ -1,0 +1,23 @@
+version: 1
+id: WF-FRANKY-MAINTENANCE-UPDATE-GUIDANCE
+name: Franky guidance maintenance pipeline
+invocation_policy: workflow_only
+branch: {key: maintenance_operation, value: update_guidance}
+goal: Update scoped guidance and configuration without creating global instruction stickiness.
+steps:
+  - id: audit
+    skill: franky-maintenance
+    operation: audit_guidance
+    inputs: [guidance findings, selected guidance/configuration paths]
+    outputs: [instruction inventory, precedence report]
+    validation: [scope and inherited instruction chain are recorded]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: update
+    skill: franky-guidance-manager
+    operation: update_approved_guidance
+    inputs: [instruction inventory, precedence report, approved guidance change]
+    outputs: [updated guidance, guidance version report]
+    validation: [no credentials, unrelated task coupling, or global persona rules]
+    approval_gate: {required: true, reason: guidance_write}
+    on_failure: return_to_human

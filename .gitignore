@@ -1,0 +1,23 @@
+# Franky control-plane Git uses an allowlist. Runtime and personal state stay ignored.
+*
+!.gitignore
+!AGENTS.md
+!.github/
+!.github/**
+!agents/
+!agents/*.toml
+!agents/README.md
+!agents/CHANGELOG.md
+!skills/
+!skills/franky-*/
+!skills/franky-*/*
+!skills/franky-*/*/*
+!workflows/
+!workflows/franky/
+!workflows/franky/*.yaml
+!workflows/franky/franky-install/
+!workflows/franky/franky-install/*.yaml
+!workflows/franky/franky-maintenance/
+!workflows/franky/franky-maintenance/*.yaml
+!manifests/
+!manifests/**

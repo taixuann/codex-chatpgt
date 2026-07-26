@@ -1,0 +1,55 @@
+version: 1
+id: WF-FRANKY-AGENT-LIFECYCLE
+name: Franky agent lifecycle
+invocation_policy: workflow_only
+branch: {key: component_type, value: agent}
+goal: Create, audit, update, validate, and retire one Franky agent adapter without role or scope drift.
+steps:
+  - id: define-goal
+    skill: franky-goal-session
+    operation: define
+    inputs: [agent request, role, target scope]
+    outputs: [approved goal package]
+    validation: [role, scope, sandbox, acceptance criteria, and rollback are explicit]
+    approval_gate: {required: true, reason: agent_lifecycle}
+    on_failure: return_to_human
+  - id: audit-agent
+    skill: franky-maintenance
+    operation: audit_agent
+    inputs: [approved goal package, target agent path, canonical role registry]
+    outputs: [agent collision report, role-drift report, dependency inventory]
+    validation: [scope and existing adapter state are recorded]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: prepare-agent-change
+    skill: franky-agent-installer
+    operation: plan_change
+    inputs: [agent collision report, role-drift report, requested adapter change]
+    outputs: [agent TOML proposal, rollback plan]
+    validation: [TOML schema, model, sandbox, instructions, and role mapping pass]
+    approval_gate: {required: true, reason: agent_change_plan}
+    on_failure: return_to_human
+  - id: apply-agent-change
+    skill: franky-agent-installer
+    operation: apply_change
+    inputs: [approved agent TOML proposal, rollback plan]
+    outputs: [updated agent adapter]
+    validation: [adapter is at the approved path and no unrelated agents changed]
+    approval_gate: {required: true, reason: agent_write}
+    on_failure: return_to_human
+  - id: validate-agent
+    skill: franky-maintenance
+    operation: validate_agent
+    inputs: [updated agent adapter, canonical role registry]
+    outputs: [agent validation report]
+    validation: [agent validator and role consistency checks pass]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: record-evidence
+    skill: franky-goal-session
+    operation: record_walkthrough
+    inputs: [agent validation report, rollback plan, approved goal package]
+    outputs: [walkthrough and agent evidence]
+    validation: [changed paths and unresolved risks are recorded]
+    approval_gate: {required: false, reason: evidence_recording}
+    on_failure: return_to_human

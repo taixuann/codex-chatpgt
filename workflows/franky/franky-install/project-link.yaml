@@ -1,0 +1,47 @@
+version: 1
+id: WF-FRANKY-PROJECT-LINK
+name: Franky framework skill linking
+invocation_policy: workflow_only
+branch: {key: component_type, value: project_link}
+goal: Audit and create reversible links from a trusted framework workspace to selected shared Codex skills.
+steps:
+  - id: define-goal
+    skill: franky-goal-session
+    operation: define
+    inputs: [framework request, target workspace, selected skills]
+    outputs: [approved goal package]
+    validation: [target, selected sources, and link scope are explicit]
+    approval_gate: {required: true, reason: link_work}
+    on_failure: return_to_human
+  - id: audit-proposed-link
+    skill: franky-project-linker
+    operation: audit
+    inputs: [target workspace, selected Codex skills, requested link map]
+    outputs: [link audit, collision report, rollback plan]
+    validation: [proposed targets may be absent but are inside a trusted workspace; no system skills or project contents are targeted]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: apply-approved-link
+    skill: franky-project-linker
+    operation: apply
+    inputs: [approved link audit, requested link map, rollback plan]
+    outputs: [reversible framework links]
+    validation: [each target resolves to the approved source]
+    approval_gate: {required: true, reason: link_creation}
+    on_failure: return_to_human
+  - id: verify-link
+    skill: franky-maintenance
+    operation: verify_links
+    inputs: [created links, approved goal package]
+    outputs: [link verification report]
+    validation: [links are healthy and linked project contents were not traversed]
+    approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: record-evidence
+    skill: franky-goal-session
+    operation: record_walkthrough
+    inputs: [link verification report, rollback plan, approved goal package]
+    outputs: [walkthrough and link evidence]
+    validation: [source, target, operation, and rollback records resolve]
+    approval_gate: {required: false, reason: evidence_recording}
+    on_failure: return_to_human

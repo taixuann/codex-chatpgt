@@ -1,0 +1,23 @@
+version: 1
+id: WF-FRANKY-MAINTENANCE-UPDATE-CRON
+name: Franky scheduler maintenance pipeline
+invocation_policy: workflow_only
+branch: {key: maintenance_operation, value: update_cron}
+goal: Update approved scheduler definitions with collision, timezone, and rollback checks.
+steps:
+  - id: audit
+    skill: franky-maintenance
+    operation: inventory_scheduler
+    inputs: [scheduler findings, selected scheduler scope]
+    outputs: [scheduler inventory, duplicate report, stale-path report]
+    validation: [owner, timezone, retries, output destination, and current status are recorded]
+    approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: update
+    skill: franky-cron-installer
+    operation: update_approved_schedulers
+    inputs: [scheduler inventory, duplicate report, stale-path report, approved schedule diff]
+    outputs: [updated scheduler definitions, schedule version report]
+    validation: [no duplicate jobs, retry storms, timezone drift, stale paths, or secrets]
+    approval_gate: {required: true, reason: scheduler_write}
+    on_failure: return_to_human
