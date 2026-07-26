@@ -62,7 +62,7 @@ rollback:
   destructive: false
 git:
   mode: local
-  commit: not-created
+  commit: 8d86e7b011018cd0cbfaa46cbf45d9a3b25e91f6
   push: false
 promotion:
   automatic: false
