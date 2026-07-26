@@ -55,7 +55,7 @@ rollback:
   destructive: false
 git:
   mode: local
-  commit: pending
+  commit: f42d1c6
   push: false
 promotion:
   automatic: false
