@@ -1,0 +1,2 @@
+{"role":"user","content":"The workflow validation failed twice; please fix the skill trigger."}
+{"role":"assistant","content":"Using $franky-maintenance and validating the selected skill."}

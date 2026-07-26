@@ -29,3 +29,8 @@ IO/cache validator before apply.
 
 Never create a recurring job implicitly, and never use a scheduler to execute
 against linked research-project contents without an explicit approved handoff.
+
+The scheduled Franky personal-skill maintenance job is the only unattended
+exception: it may update an existing personal skill only, after deterministic
+scope and clean-tree checks. New skills and all other component types remain
+manual and approval-gated.

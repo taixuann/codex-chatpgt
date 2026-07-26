@@ -1,0 +1,62 @@
+change_id: CHG-20260726-004
+operation: franky_scheduled_personal_skill_maintenance
+component: franky_control_plane
+scope:
+  - /Users/tai/.codex/ops/schedulers/franky-personal-skill-maintenance.yaml
+  - /Users/tai/.codex/skills/franky-maintenance/
+  - /Users/tai/.codex/skills/franky-cron-installer/SKILL.md
+  - /Users/tai/.codex/skills/franky-workflow-organizer/references/run-envelope.yaml
+  - /Users/tai/.codex/skills/franky-workflow-organizer/scripts/validate_run.py
+  - /Users/tai/.codex/.github/workflows/franky-validate.yml
+  - /Users/tai/.codex/.gitignore
+  - /Users/tai/.codex/workflows/franky-maintenance/
+preview:
+  summary: Add one direct Franky scheduled maintenance definition, deterministic session inventory and safety validators, update routine envelopes to change_id, and remove the stale duplicate workflow tree.
+  digest: sha256:franky-scheduled-maintenance-20260726
+approval:
+  granted: true
+  authority: user-approved implementation request
+  preview_digest: sha256:franky-scheduled-maintenance-20260726
+changed_paths:
+  - /Users/tai/.codex/ops/schedulers/franky-personal-skill-maintenance.yaml
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/run_session_inventory.py
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_scheduler.py
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_scheduled_scope.py
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/fixtures/session-valid.jsonl
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/fixtures/session-malformed.jsonl
+  - /Users/tai/.codex/skills/franky-maintenance/SKILL.md
+  - /Users/tai/.codex/skills/franky-cron-installer/SKILL.md
+  - /Users/tai/.codex/skills/franky-workflow-organizer/references/run-envelope.yaml
+  - /Users/tai/.codex/skills/franky-workflow-organizer/scripts/validate_run.py
+  - /Users/tai/.codex/.github/workflows/franky-validate.yml
+  - /Users/tai/.codex/.gitignore
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_git_allowlist.py
+  - /Users/tai/.codex/workflows/franky-maintenance/git-finalize.yaml
+  - /Users/tai/.codex/workflows/franky-maintenance/inventory.yaml
+  - /Users/tai/.codex/workflows/franky-maintenance/promotion.yaml
+  - /Users/tai/.codex/workflows/franky-maintenance/update-agents.yaml
+  - /Users/tai/.codex/workflows/franky-maintenance/update-cron.yaml
+  - /Users/tai/.codex/workflows/franky-maintenance/update-guidance.yaml
+  - /Users/tai/.codex/workflows/franky-maintenance/update-skills.yaml
+  - /Users/tai/.codex/workflows/franky-maintenance/update-workflows.yaml
+validation:
+  status: passed
+  commands:
+    - validate_scheduler.py
+    - validate_scheduled_scope.py with allowed and forbidden paths
+    - run_session_inventory.py with empty, valid, and malformed fixtures
+    - quick_validate.py for modified Franky skills
+    - validate_workflow.py for both canonical entrypoints
+    - validate_io_cache.py for both canonical entrypoints
+    - git diff --check
+  activation: blocked because the Codex app project registry does not expose /Users/tai/.codex
+rollback:
+  method: restore the listed paths from the pre-change local Git diff; recreate the stale duplicate tree only if explicitly requested
+  destructive: false
+git:
+  mode: local
+  commit: pending
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

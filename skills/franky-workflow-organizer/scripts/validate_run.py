@@ -13,7 +13,7 @@ except ImportError as exc:  # pragma: no cover
     raise SystemExit("PyYAML is required to validate workflow runs") from exc
 
 
-REQUIRED = {"workflow_id", "workflow_version", "goal_id", "step_id", "allowed_skill", "operation", "input_artifact_ids", "approval_record"}
+REQUIRED = {"workflow_id", "workflow_version", "change_id", "step_id", "allowed_skill", "operation", "input_artifact_ids", "approval_record"}
 
 
 def main() -> int:

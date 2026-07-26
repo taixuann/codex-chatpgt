@@ -12,6 +12,8 @@
 !skills/franky-*/
 !skills/franky-*/*
 !skills/franky-*/*/*
+!skills/franky-maintenance/scripts/fixtures/
+!skills/franky-maintenance/scripts/fixtures/**
 !workflows/
 !workflows/franky/
 !workflows/franky/*.yaml
@@ -26,5 +28,7 @@
 !ops/schemas/**
 !ops/scripts/
 !ops/scripts/**
+!ops/schedulers/
+!ops/schedulers/**
 !ops/changes/
 !ops/changes/**
