@@ -1,0 +1,49 @@
+change_id: CHG-20260726-007
+operation: implement_general_workflow_factory
+component: franky_control_plane
+scope:
+  - /Users/tai/.codex/workflows/franky/general-workflow-factory.yaml
+  - /Users/tai/.codex/workflows/franky/general-workflow-factory/
+  - /Users/tai/.codex/skills/franky-workflow-factory/
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_workflow_layout.py
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/agents/franky.toml
+preview:
+  summary: Add a Franky-owned general workflow factory that stages role-aware workflow, skill, and agent proposals with deterministic flaw detection.
+  digest: sha256:general-workflow-factory-20260726
+approval:
+  granted: true
+  authority: user-approved implementation request
+  preview_digest: sha256:general-workflow-factory-20260726
+changed_paths:
+  - /Users/tai/.codex/.gitignore
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/agents/franky.toml
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_workflow_layout.py
+  - /Users/tai/.codex/skills/franky-workflow-factory/SKILL.md
+  - /Users/tai/.codex/skills/franky-workflow-factory/agents/openai.yaml
+  - /Users/tai/.codex/skills/franky-workflow-factory/scripts/factory.py
+  - /Users/tai/.codex/skills/franky-workflow-factory/tests/test_factory.py
+  - /Users/tai/.codex/workflows/franky/general-workflow-factory.yaml
+  - /Users/tai/.codex/workflows/franky/general-workflow-factory/full-package.yaml
+  - /Users/tai/.codex/workflows/franky/general-workflow-factory/workflow-only.yaml
+  - /Users/tai/.codex/workflows/franky/general-workflow-factory/workflow-with-skills.yaml
+validation:
+  status: passed
+  commands:
+    - python3 -m unittest discover -s /Users/tai/.codex/skills/franky-workflow-factory/tests -v
+    - validate_workflow.py for factory entrypoint and nested pipelines
+    - validate_workflow_layout.py
+    - validate_skill_interfaces.py
+    - validate_io_cache.py
+    - validate_agent_toml.py
+rollback:
+  method: restore listed paths from the pre-change local Git diff; remove staged temp packages only if explicitly requested
+  destructive: false
+git:
+  mode: local
+  commit: 2b4fbdc
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

@@ -13,11 +13,13 @@ Select exactly one role and one workflow before governed work:
 - Franky: workflow routing, registry/platform maintenance, links, schedules,
   and the Codex control plane. Do not edit research-project contents.
 
-Franky uses the two registered entrypoint workflows under `workflows/franky/`:
+Franky uses the three registered entrypoint workflows under `workflows/franky/`:
 
 - `franky-install.yaml` routes one component request to an install branch.
 - `franky-maintenance.yaml` audits, updates, validates, records, and locally
   commits approved control-plane changes.
+- `general-workflow-factory.yaml` stages and validates role-aware workflow,
+  skill, agent-binding, and registry proposals before approved promotion.
 
 Feynman and Prometheus use their selected project-scoped workflows and explicit
 handoff contracts; they do not inherit Franky maintenance rules. Franky agents

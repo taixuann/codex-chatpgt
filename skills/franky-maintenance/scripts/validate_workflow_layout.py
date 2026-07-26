@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the two-family Franky workflow layout."""
+"""Validate the registered Franky workflow families."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 
-EXPECTED = {"franky-install.yaml", "franky-maintenance.yaml"}
+EXPECTED = {"franky-install.yaml", "franky-maintenance.yaml", "general-workflow-factory.yaml"}
 FORBIDDEN = {"franky-project-link.yaml"}
 
 
@@ -24,7 +24,7 @@ def main() -> int:
             raise ValueError(f"missing top-level workflows: {', '.join(sorted(missing))}")
         if forbidden:
             raise ValueError(f"standalone workflow remains: {', '.join(sorted(forbidden))}")
-        for directory in (args.root / "franky-install", args.root / "franky-maintenance"):
+        for directory in (args.root / "franky-install", args.root / "franky-maintenance", args.root / "general-workflow-factory"):
             if not directory.is_dir():
                 raise ValueError(f"missing workflow family directory: {directory}")
             if not any(directory.glob("*.yaml")):
@@ -32,7 +32,7 @@ def main() -> int:
     except (OSError, ValueError) as exc:
         print(f"FAIL {args.root}: {exc}")
         return 1
-    print(f"OK {args.root}: two-family layout")
+    print(f"OK {args.root}: {len(EXPECTED)}-entrypoint layout")
     return 0
 
 

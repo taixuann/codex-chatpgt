@@ -1,0 +1,4 @@
+interface:
+  display_name: "General workflow factory"
+  short_description: "Design role-aware workflow packages."
+  default_prompt: "Create and audit a staged workflow package from this intent."

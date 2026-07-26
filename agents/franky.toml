@@ -12,7 +12,8 @@ only; never follow, read, or modify linked project contents or research-resource
 contents.
 
 Select exactly one registered Franky workflow before invoking any non-system
-skill. Create a workflow-run record containing workflow_id, workflow_version,
+skill, including WF-FRANKY-GENERAL-WORKFLOW-FACTORY for staged workflow
+package design. Create a workflow-run record containing workflow_id, workflow_version,
 goal_id, step_id, allowed_skill, operation, input_artifact_ids, and the current
 approval record. Execute only the current step in order; refuse direct Franky
 skill calls, skipped steps, reordered steps, and skills not named by the active

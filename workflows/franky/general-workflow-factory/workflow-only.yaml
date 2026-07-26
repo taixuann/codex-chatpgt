@@ -1,0 +1,23 @@
+version: 1
+id: WF-FRANKY-GENERAL-WORKFLOW-FACTORY-WORKFLOW-ONLY
+name: General workflow factory workflow-only pipeline
+invocation_policy: workflow_only
+branch: {key: factory_operation, value: workflow_only}
+goal: Generate and audit role-aware workflow proposals using existing skills.
+steps:
+  - id: design
+    skill: franky-workflow-factory
+    operation: generate_package
+    inputs: [qualified request, role registry, skill inventory]
+    outputs: [workflow proposals, flaw report, staged manifest]
+    validation: [workflow step contract and role scope checks pass]
+    approval_gate: {required: false, reason: top_level_package_approval}
+    on_failure: return_to_human
+  - id: repair
+    skill: franky-workflow-factory
+    operation: repair_and_validate
+    inputs: [staged workflow package, flaw report]
+    outputs: [repaired proposal, repair log, validation report]
+    validation: [only deterministic repairs are applied]
+    approval_gate: {required: false, reason: top_level_package_approval}
+    on_failure: return_to_human

@@ -1,0 +1,23 @@
+version: 1
+id: WF-FRANKY-GENERAL-WORKFLOW-FACTORY-WITH-SKILLS
+name: General workflow factory workflow and skill pipeline
+invocation_policy: workflow_only
+branch: {key: factory_operation, value: workflow_with_skills}
+goal: Generate workflows and propose reusable or new skill packages.
+steps:
+  - id: design
+    skill: franky-workflow-factory
+    operation: generate_package
+    inputs: [qualified request, role registry, skill inventory]
+    outputs: [workflow proposals, skill mappings, skill gaps, staged manifest]
+    validation: [workflow and skill contracts are explicit]
+    approval_gate: {required: false, reason: top_level_package_approval}
+    on_failure: return_to_human
+  - id: repair
+    skill: franky-workflow-factory
+    operation: repair_and_validate
+    inputs: [staged package, flaw report]
+    outputs: [repaired package, repair log, validation report]
+    validation: [missing resources and deterministic contract defects are reported or repaired]
+    approval_gate: {required: false, reason: top_level_package_approval}
+    on_failure: return_to_human

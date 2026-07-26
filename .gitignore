@@ -24,6 +24,8 @@
 !workflows/franky/franky-install/*.yaml
 !workflows/franky/franky-maintenance/
 !workflows/franky/franky-maintenance/*.yaml
+!workflows/franky/general-workflow-factory/
+!workflows/franky/general-workflow-factory/*.yaml
 !workflows/shared/
 !workflows/shared/*.yaml
 !manifests/
