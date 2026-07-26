@@ -21,5 +21,11 @@ definitions, Codex automations, and related output paths.
 5. Produce a before/after schedule diff, validation evidence, and reversible
    rollback instructions.
 
+Inventory, validation, and apply planning must be runnable deterministically
+from the declared job definition and filesystem state; an LLM is optional only
+for ambiguous interpretation and is never required for mechanical cron checks.
+Validate job inputs, outputs, and cache policy with the Franky maintenance
+IO/cache validator before apply.
+
 Never create a recurring job implicitly, and never use a scheduler to execute
 against linked research-project contents without an explicit approved handoff.

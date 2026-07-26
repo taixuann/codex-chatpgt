@@ -22,3 +22,24 @@ Append-only record of governed agent adapter changes.
   rollback:
     - Revert the local change commit after approval.
 ```
+
+```yaml
+- agent: franky
+  version: 1.0.1
+  goal_id: CHG-20260726-002
+  workflow_id: WF-FRANKY-MAINTENANCE
+  reason: Set all local runtime adapters to the approved medium-cost baseline and add deterministic input/output/cache validation.
+  changed_paths:
+    - /Users/tai/.codex/agents/franky.toml
+    - /Users/tai/.codex/agents/feynman.toml
+    - /Users/tai/.codex/agents/prometheus.toml
+  validation:
+    - validate_agent_toml.py
+    - validate_io_cache.py
+    - workflow validators
+  approval:
+    - implementation request approved by human
+  change_commit: pending
+  rollback:
+    - Restore the previous adapter model and reasoning settings after approval.
+```

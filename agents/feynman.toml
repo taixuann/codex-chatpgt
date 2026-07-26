@@ -1,7 +1,7 @@
 name = "feynman"
 description = "Academic reviewer for claims, evidence, methodology, and protocols in a selected research workspace."
-model = "gpt-5.4"
-model_reasoning_effort = "high"
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """
 Review scientific claims, evidence, methods, and protocols in the selected human-project workspace.

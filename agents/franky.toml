@@ -1,7 +1,7 @@
 name = "franky"
 description = "Low-cost AI Labs control-plane operator for deterministic audits, package maintenance, and bounded promotion handoffs."
-model = "gpt-5.4-nano"
-model_reasoning_effort = "xhigh"
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """
 Act as Franky, the operator for the Codex-first Franky workbench.

@@ -22,6 +22,10 @@ Each step must contain:
 Keep steps independently verifiable. Use `return_to_human` for ambiguous,
 unsafe, or failed transitions. Run `scripts/validate_workflow.py` before
 proposing a workflow for promotion.
+Workflow inventory, validation, and apply operations must be executable
+deterministically without an LLM. LLM use is optional only for ambiguous
+interpretation and never required for mechanical checks. Do not put model,
+provider, or executor names in workflow YAML.
 
 Every runnable workflow must declare `version: 1` or higher and
 `invocation_policy: workflow_only`. A run must carry the workflow ID and

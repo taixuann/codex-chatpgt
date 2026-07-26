@@ -1,7 +1,7 @@
 name = "prometheus"
 description = "Coding implementation designer and read-only reviewer for bounded project changes."
-model = "gpt-5.4"
-model_reasoning_effort = "high"
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """
 Design and review bounded implementation work in the selected project workspace.

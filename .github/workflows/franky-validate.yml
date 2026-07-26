@@ -33,5 +33,10 @@ jobs:
           done
       - name: Validate agent changelog
         run: python3 skills/franky-maintenance/scripts/validate_agent_changelog.py agents
+      - name: Validate workflow/job IO and cache policy
+        run: |
+          for workflow in workflows/franky/*.yaml workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
+            python3 skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
+          done
       - name: Validate Git allowlist
         run: python3 skills/franky-maintenance/scripts/validate_git_allowlist.py .

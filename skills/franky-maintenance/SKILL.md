@@ -11,7 +11,9 @@ Start with a read-only inventory. Inspect only the approved control-plane scope.
    files, configuration, scheduler and cron state, git state, links, and
    registries, including the AI Labs promotion branch or export state.
 2. Classify findings as healthy, missing, stale, conflicting, or unsafe.
-3. Run deterministic validators before model-level interpretation.
+3. Run deterministic validators before model-level interpretation. For
+   workflow/job contracts, run `scripts/validate_io_cache.py`; omitted cache
+   policy is deterministically treated as `no-cache`.
 4. Produce a report with exact paths, evidence, impact, and recommended next
    action.
 5. Apply changes only after human approval. Record routine local mutations in
@@ -22,3 +24,7 @@ Start with a read-only inventory. Inspect only the approved control-plane scope.
 
 Never follow or modify linked project contents. Never treat a report as
 permission to mutate state.
+
+When inputs, outputs, or cache policy changes, include an overview/impact check:
+identify consumers/producers and cross-component references in the selected
+control-plane scope, and return unresolved references to a human.

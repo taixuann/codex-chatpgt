@@ -1,0 +1,51 @@
+change_id: CHG-20260726-002
+operation: cost_aware_agent_and_maintenance_update
+component: franky_control_plane
+scope:
+  - /Users/tai/.codex/agents/
+  - /Users/tai/.codex/skills/franky-agent-installer/
+  - /Users/tai/.codex/skills/franky-maintenance/
+  - /Users/tai/.codex/skills/franky-cron-installer/
+  - /Users/tai/.codex/skills/franky-workflow-organizer/
+  - /Users/tai/.codex/.github/workflows/franky-validate.yml
+preview:
+  summary: Add agent templates, enforce recursive input/output/cache checks, and make routine executor defaults medium-cost with deterministic cron operations.
+  digest: sha256:cost-aware-franky-update-20260726
+approval:
+  granted: true
+  authority: user-approved implementation request
+  preview_digest: sha256:cost-aware-franky-update-20260726
+changed_paths:
+  - /Users/tai/.codex/agents/franky.toml
+  - /Users/tai/.codex/agents/feynman.toml
+  - /Users/tai/.codex/agents/prometheus.toml
+  - /Users/tai/.codex/skills/franky-agent-installer/SKILL.md
+  - /Users/tai/.codex/skills/franky-agent-installer/templates/agent.toml
+  - /Users/tai/.codex/skills/franky-agent-installer/scripts/validate_agent_toml.py
+  - /Users/tai/.codex/skills/franky-maintenance/SKILL.md
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_io_cache.py
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/fixtures/io-cache-valid.yaml
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/fixtures/io-cache-invalid.yaml
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/fixtures/io-cache-unsafe-path.yaml
+  - /Users/tai/.codex/skills/franky-cron-installer/SKILL.md
+  - /Users/tai/.codex/skills/franky-workflow-organizer/SKILL.md
+  - /Users/tai/.codex/.github/workflows/franky-validate.yml
+validation:
+  status: passed
+  commands:
+    - quick_validate.py for all Franky skills
+    - validate_agent_toml.py for all adapters
+    - validate_workflow.py for both entrypoints
+    - validate_io_cache.py for all workflows and fixtures
+    - validate_franky_agent.py
+    - validate_research_os.py
+rollback:
+  method: restore the listed paths from the pre-change local Git diff
+  destructive: false
+git:
+  mode: local
+  commit: pending
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

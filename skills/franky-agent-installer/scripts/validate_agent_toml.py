@@ -33,7 +33,7 @@ def main() -> int:
             raise ValueError(f"unsupported sandbox_mode: {data['sandbox_mode']}")
         if not data["developer_instructions"].strip():
             raise ValueError("developer_instructions must not be empty")
-        if data["name"] != args.agent.stem:
+        if data["name"] != args.agent.stem and not (args.agent.parent.name == "templates" and args.agent.stem == "agent"):
             raise ValueError("name must match the filename stem")
     except (OSError, tomllib.TOMLDecodeError, ValueError) as exc:
         print(f"FAIL {args.agent}: {exc}")

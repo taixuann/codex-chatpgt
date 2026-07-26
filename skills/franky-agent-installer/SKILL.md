@@ -19,5 +19,16 @@ registry.
 5. Validate candidate files with `scripts/validate_agent_toml.py` and report a
    reversible installation plan.
 
+Use the optional `templates/agent.toml` as the adapter template. Copy it to the
+target scope, replace the identity and role-specific instructions, then validate
+the instantiated file; never inspect an arbitrary installed agent as a template.
+The template defaults to configurable medium-tier `gpt-5.4-mini` with medium
+reasoning. Routine operator work should not use `xhigh`.
+
+Copy `templates/agent.toml`, set `name` to the filename stem, fill the required
+runtime fields, and run `scripts/validate_agent_toml.py <path>`. Report the
+source template, destination, validation result, and rollback before an
+approved write.
+
 Do not write global adapters or change credentials, MCP configuration, or
 models without explicit approval.
