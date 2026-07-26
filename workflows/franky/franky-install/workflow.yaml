@@ -4,6 +4,8 @@ name: Franky workflow lifecycle
 invocation_policy: workflow_only
 branch: {key: component_type, value: workflow}
 goal: Design, validate, register, revise, and retire an executor-agnostic Franky workflow contract.
+dependencies:
+  optional: [openai-docs, review-agent]
 steps:
   - id: design-workflow
     skill: franky-workflow-organizer
@@ -20,6 +22,14 @@ steps:
     outputs: [workflow validation report, referenced-skill map]
     validation: [schema, cross-references, typed gates, and recursive forbidden-key checks pass]
     approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: review-workflow
+    skill: review-agent
+    operation: review_proposed_workflow
+    inputs: [workflow YAML proposal, workflow validation report, referenced-skill map]
+    outputs: [read-only workflow review findings]
+    validation: [forbidden keys, dependency scope, and branch routing are reviewed]
+    approval_gate: {required: false, reason: read_only_review}
     on_failure: return_to_human
   - id: register-workflow
     skill: franky-maintenance

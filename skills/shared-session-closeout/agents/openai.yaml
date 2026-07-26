@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shared session closeout"
+  short_description: "Close out a governed session with evidence."
+  default_prompt: "Review and close out this session with the appropriate evidence record."

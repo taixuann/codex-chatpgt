@@ -22,6 +22,24 @@ TOP_LEVEL_FAMILIES = {
 }
 GOVERNANCE_SEQUENCE = ("qualify", "audit", "preview", "approve", "apply", "validate", "overview", "write-change-record", "local-git-finalize")
 FORBIDDEN_NESTED_OPERATIONS = {"define", "materialize", "revise", "create-goal-session", "revise-goal-session"}
+DEPENDENCY_FIELDS = {"optional", "resolution", "protected"}
+
+
+def validate_dependencies(value: object, path: str) -> None:
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must be a mapping")
+    unknown = set(value) - DEPENDENCY_FIELDS
+    if unknown:
+        raise ValueError(f"{path} has unknown fields: {', '.join(sorted(unknown))}")
+    for field in ("optional", "protected"):
+        if field in value and (not isinstance(value[field], list) or not all(isinstance(item, str) and item for item in value[field])):
+            raise ValueError(f"{path}.{field} must be a list of non-empty strings")
+    if "resolution" in value and (not isinstance(value["resolution"], str) or not value["resolution"]):
+        raise ValueError(f"{path}.resolution must be a non-empty string")
+    for skill in value.get("optional", []):
+        skill_roots = (Path("/Users/tai/.codex/skills"), Path("/Users/tai/.codex/skills/.system"))
+        if not any((root / skill / "SKILL.md").is_file() for root in skill_roots):
+            raise ValueError(f"{path} references unavailable skill: {skill}")
 
 
 def walk_forbidden(value: object, path: str = "workflow") -> str | None:
@@ -55,6 +73,8 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
         branch = data["branch"]
         if not isinstance(branch, dict) or not isinstance(branch.get("key"), str) or not isinstance(branch.get("value"), str):
             raise ValueError("branch requires string key and value")
+    if "dependencies" in data:
+        validate_dependencies(data["dependencies"], "dependencies")
     if not nested and path.name in TOP_LEVEL_FAMILIES:
         branch_key, branch_count = TOP_LEVEL_FAMILIES[path.name]
         if not isinstance(data.get("pipelines"), list) or len(data["pipelines"]) != branch_count:
@@ -92,8 +112,8 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
             raise ValueError(f"step {step['id']} approval_gate must contain required and reason")
         if not isinstance(gate["required"], bool) or not isinstance(gate["reason"], str):
             raise ValueError(f"step {step['id']} approval_gate has invalid types")
-        skill_path = Path("/Users/tai/.codex/skills") / step["skill"] / "SKILL.md"
-        if not skill_path.is_file():
+        skill_roots = (Path("/Users/tai/.codex/skills"), Path("/Users/tai/.codex/skills/.system"))
+        if not any((root / step["skill"] / "SKILL.md").is_file() for root in skill_roots):
             raise ValueError(f"step {step['id']} references unavailable skill: {step['skill']}")
         if "condition" in step and not isinstance(step["condition"], str):
             raise ValueError(f"step {step['id']} condition must be a string")

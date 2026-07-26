@@ -4,6 +4,8 @@ name: Franky skill lifecycle
 invocation_policy: workflow_only
 branch: {key: component_type, value: skill}
 goal: Govern one Franky skill from candidate capability through validation and optional promotion.
+dependencies:
+  optional: [skill-installer, skill-creator, openai-docs, review-agent]
 steps:
   - id: audit-skill
     skill: franky-maintenance
@@ -12,6 +14,32 @@ steps:
     outputs: [collision report, dependency inventory, provenance report]
     validation: [system-owned paths and unsupported sources are rejected]
     approval_gate: {required: false, reason: read_only_audit}
+    on_failure: return_to_human
+  - id: resolve-external-source
+    skill: skill-installer
+    operation: resolve_source
+    condition: requested source is curated or GitHub-based
+    inputs: [candidate source, target scope, dependency inventory]
+    outputs: [resolved source manifest, provenance evidence]
+    validation: [source is supported; destination is outside .system; provenance is recorded]
+    approval_gate: {required: false, reason: approved_context}
+    on_failure: return_to_human
+  - id: scaffold-local-skill
+    skill: skill-creator
+    operation: scaffold_skill
+    condition: requested change creates a new local skill
+    inputs: [approved skill name, resource requirements, target scope]
+    outputs: [scaffolded skill package]
+    validation: [package name and target are allowed; .system is unchanged]
+    approval_gate: {required: false, reason: approved_context}
+    on_failure: return_to_human
+  - id: review-skill-package
+    skill: review-agent
+    operation: review_proposed_package
+    inputs: [skill package proposal, provenance evidence, dependency inventory]
+    outputs: [read-only review findings]
+    validation: [review is complete; findings are returned before mutation]
+    approval_gate: {required: false, reason: read_only_review}
     on_failure: return_to_human
   - id: prepare-skill-change
     skill: franky-skill-installer

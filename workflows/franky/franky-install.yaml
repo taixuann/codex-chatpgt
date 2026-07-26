@@ -4,6 +4,10 @@ name: Franky installation entrypoint
 invocation_policy: workflow_only
 entrypoint: true
 goal: Qualify, audit, preview, approve, apply, validate, record, and locally finalize one component change.
+dependencies:
+  resolution: installed_skill_name
+  optional: [skill-installer, skill-creator, openai-docs, review-agent]
+  protected: [.system, credentials, linked-projects]
 pipelines:
   - path: franky-install/skill.yaml
     branch: {key: component_type, value: skill}

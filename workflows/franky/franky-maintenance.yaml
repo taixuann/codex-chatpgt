@@ -4,6 +4,10 @@ name: Franky maintenance entrypoint
 invocation_policy: workflow_only
 entrypoint: true
 goal: Qualify, audit, preview, approve, apply, validate, record, and locally finalize one maintenance operation.
+dependencies:
+  resolution: installed_skill_name
+  optional: [skill-installer, skill-creator, openai-docs, review-agent]
+  protected: [.system, credentials, linked-projects]
 pipelines:
   - path: franky-maintenance/inventory.yaml
     branch: {key: maintenance_operation, value: inventory}
