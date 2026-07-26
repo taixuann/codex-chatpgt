@@ -23,7 +23,7 @@ steps:
     operation: qualify_component
     inputs: [operator request, component_type, requested source and destination]
     outputs: [qualified scope, workflow-run envelope]
-    validation: [scope, role, goal ID, and workflow ID/version are explicit]
+    validation: [scope, role, change ID, and workflow ID/version are explicit]
     approval_gate: {required: false, reason: read_only_routing}
     on_failure: return_to_human
   - id: audit
@@ -65,6 +65,14 @@ steps:
     outputs: [validation report]
     validation: [component, workflow, change-record, and allowlist validators pass]
     approval_gate: {required: false, reason: validation_only}
+    on_failure: return_to_human
+  - id: overview
+    skill: franky-maintenance
+    operation: assess_control_plane_impact
+    inputs: [validation report, changed paths, approved preview]
+    outputs: [overview and impact report]
+    validation: [impacted skills, agents, workflows, guidance, links, and registries are explicit]
+    approval_gate: {required: false, reason: impact_review}
     on_failure: return_to_human
   - id: write-change-record
     skill: franky-maintenance

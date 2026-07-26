@@ -1,0 +1,6 @@
+component_type: workflow
+component_id: WF-EXAMPLE
+operation: audit_workflow
+status: pass
+checks: [schema, branches, steps, skills, io, forbidden_executor_keys]
+findings: []

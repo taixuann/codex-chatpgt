@@ -1,0 +1,6 @@
+component_type: skill
+component_id: example-skill
+operation: audit_skill
+status: pass
+checks: [skill_md, metadata, scripts, dependencies, collision, protected_paths]
+findings: []

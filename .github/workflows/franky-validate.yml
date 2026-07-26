@@ -38,5 +38,7 @@ jobs:
           for workflow in workflows/franky/*.yaml workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
             python3 skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
           done
+      - name: Validate audit-record template
+        run: python3 skills/franky-maintenance/scripts/validate_audit_record.py skills/franky-maintenance/templates/audit-record.yaml
       - name: Validate Git allowlist
         run: python3 skills/franky-maintenance/scripts/validate_git_allowlist.py .

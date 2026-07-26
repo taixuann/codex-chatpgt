@@ -1,0 +1,6 @@
+component_type: cron
+component_id: example-cron
+operation: audit_cron
+status: pass
+checks: [schedule, timezone, collision, command_scope, rollback]
+findings: []

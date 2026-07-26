@@ -1,0 +1,20 @@
+schema: franky.audit
+version: 1
+audit_id: AUD-YYYYMMDD-NNN
+component_type: skill
+component_id: example
+operation: audit_component
+scope: explicit approved path scope
+source: /Users/tai/.codex
+destination: /Users/tai/.codex
+inputs: {declared: [], resolved: [], valid: true}
+outputs: {declared: [], consumers: [], valid: true}
+cache: {mode: no-cache, path: null, valid: true}
+protected_paths: {touched: [], rejected: []}
+collisions: []
+dependencies: []
+overview: {impact: none identified, references: []}
+preview: {changed_paths: [], digest: null}
+rollback: {location: null, reversible: true}
+status: pass
+findings: []

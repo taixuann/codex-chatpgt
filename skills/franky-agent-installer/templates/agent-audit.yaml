@@ -1,0 +1,6 @@
+component_type: agent
+component_id: example-agent
+operation: audit_agent
+status: pass
+checks: [required_fields, sandbox, model_tier, collision, scope, protected_paths]
+findings: []

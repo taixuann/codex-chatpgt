@@ -20,7 +20,7 @@ TOP_LEVEL_FAMILIES = {
     "franky-install.yaml": ("component_type", 6),
     "franky-maintenance.yaml": ("maintenance_operation", 8),
 }
-GOVERNANCE_SEQUENCE = ("qualify", "audit", "preview", "approve", "apply", "validate", "write-change-record", "local-git-finalize")
+GOVERNANCE_SEQUENCE = ("qualify", "audit", "preview", "approve", "apply", "validate", "overview", "write-change-record", "local-git-finalize")
 FORBIDDEN_NESTED_OPERATIONS = {"define", "materialize", "revise", "create-goal-session", "revise-goal-session"}
 
 
