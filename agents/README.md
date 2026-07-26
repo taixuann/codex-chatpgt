@@ -4,11 +4,11 @@ This directory contains Codex runtime adapters. The canonical semantic roles
 remain defined by the AI Labs role registry; these TOML files only describe
 the local runtime boundary.
 
-## Versioning
+## Runtime metadata
 
-Every non-empty adapter uses `MAJOR.MINOR.PATCH` SemVer. Patch versions cover
-documentation and validator-only changes; minor versions add compatible
-capabilities; major versions change routing, sandbox, or instruction contracts.
+Agent TOML files intentionally contain no runtime `version` field. Versioning
+belongs to workflows, goal packages, promotion artifacts, and the change log;
+the adapters are runtime role boundaries validated by their schema.
 
 ## Change logging
 
