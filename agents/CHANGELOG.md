@@ -18,7 +18,7 @@ Append-only record of governed agent adapter changes.
     - full Franky workflow validation
   approval:
     - implementation plan approved by human
-  change_commit: pending
+  change_commit: c7d6553
   rollback:
     - Revert the local change commit after approval.
 ```
