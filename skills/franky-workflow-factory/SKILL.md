@@ -1,14 +1,16 @@
 ---
 name: franky-workflow-factory
-description: Design staged, role-aware workflow packages with reusable skill matching, deterministic flaw detection, bounded repair, and approval-bound promotion.
+description: Design staged, role-aware workflow packages with proposal-first routing, deterministic flaw detection, bounded repair, and approval-bound lifecycle handoff.
 ---
 
 # Franky workflow factory
 
-Generate proposals for workflows owned by registered roles without executing
-the domain work. The factory may coordinate workflow, skill, agent, and
-registry proposals, but final application must use the existing lifecycle
-pipelines after one exact package approval.
+The factory is proposal-first. It stages workflow packages and hands approved
+artifacts back to the existing lifecycle pipelines. It never launches agents,
+never spawns subagents, and never performs recursive delegation.
+
+The parent runtime delegates once into Franky, and Franky enters
+`WF-FRANKY-GENERAL-WORKFLOW-FACTORY` for staged workflow package design.
 
 Operations:
 
@@ -19,7 +21,7 @@ Operations:
 - `repair_and_validate`: apply only deterministic repairs, record each repair,
   and re-run the audit.
 - `promote_approved_package`: route approved artifacts to their existing
-  lifecycle workflows; never bypass their validators.
+  lifecycle workflows; never bypass their validators or launch agents.
 
 The structured request may contain `purpose`, `roles`, `mode`, `references`,
 and optional `capabilities`. Natural-language intent is preserved in the
@@ -29,5 +31,5 @@ missing required resources remain non-runnable.
 
 Every generated workflow step must contain `id`, `skill`, `operation`,
 `inputs`, `outputs`, `validation`, `approval_gate`, and `on_failure`.
-Generated workflows are executor-agnostic and use `return_to_human` for
-ambiguity or failure.
+Generated workflows are executor-agnostic, keep role boundaries explicit, and
+use `return_to_human` for ambiguity or failure.

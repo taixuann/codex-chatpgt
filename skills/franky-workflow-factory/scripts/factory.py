@@ -17,11 +17,21 @@ SKILLS = ROOT / "skills"
 ROLES = Path("/Users/tai/ai-labs/ops/agents/agents.yaml")
 FORBIDDEN = {"model", "executor", "provider", "backend"}
 REGISTERED_ROLES = {"feynman", "prometheus", "franky"}
+ENTRYPOINT_METADATA = {
+    "agent_type": "franky",
+    "workflow_id": "WF-FRANKY-GENERAL-WORKFLOW-FACTORY",
+}
 
 
 def slug(value: str) -> str:
     value = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return value or "workflow"
+
+
+def delegated_entrypoint_metadata() -> dict[str, str]:
+    """Return the single delegated Franky entrypoint metadata."""
+
+    return dict(ENTRYPOINT_METADATA)
 
 
 def load_yaml(path: Path) -> Any:
@@ -113,7 +123,7 @@ def main() -> int:
         if request.get("approval", {}).get("status") != "approved":
             print("FAIL package approval is required before promotion")
             return 2
-        print("OK package is approved; route workflows, skills, agents, and registry changes through lifecycle pipelines")
+        print("OK package is approved; route workflows, skills, agents, and registry changes through lifecycle pipelines without launching agents")
         return 0
     if args.operation == "repair_and_validate":
         if request.get("schema") != "franky.workflow-factory-package":

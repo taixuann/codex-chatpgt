@@ -2,3 +2,5 @@ interface:
   display_name: "General workflow factory"
   short_description: "Design role-aware workflow packages."
   default_prompt: "Create and audit a staged workflow package from this intent."
+  agent_type: franky
+  workflow_id: WF-FRANKY-GENERAL-WORKFLOW-FACTORY

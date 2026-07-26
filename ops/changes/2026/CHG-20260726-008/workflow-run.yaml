@@ -1,0 +1,12 @@
+workflow_id: WF-FRANKY-GENERAL-WORKFLOW-FACTORY
+workflow_version: 1
+goal_id: CHG-20260726-008
+change_id: CHG-20260726-008
+step_id: qualify
+allowed_skill: franky-maintenance
+operation: qualify_factory_request
+input_artifact_ids:
+  - approved-user-request
+approval_record:
+  granted: true
+  authority: user implementation request
