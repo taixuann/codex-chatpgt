@@ -50,7 +50,7 @@ rollback:
   destructive: false
 git:
   mode: local
-  commit: pending-local-finalization
+  commit: db2ea5e
   push: false
 promotion:
   automatic: false
