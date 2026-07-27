@@ -10,7 +10,8 @@ artifacts back to the existing lifecycle pipelines. It never launches agents,
 never spawns subagents, and never performs recursive delegation.
 
 The parent runtime delegates once into Franky, and Franky enters
-`WF-FRANKY-GENERAL-WORKFLOW-FACTORY` for staged workflow package design.
+`WF-FRANKY-CANONICAL` with `factory_operation` selected for staged workflow
+package design.
 
 Operations:
 

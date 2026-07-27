@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 
-EXPECTED = {"franky-install.yaml", "franky-maintenance.yaml", "general-workflow-factory.yaml"}
+EXPECTED = {"franky.yaml"}
 FORBIDDEN = {"franky-project-link.yaml"}
 
 
@@ -32,7 +32,7 @@ def main() -> int:
     except (OSError, ValueError) as exc:
         print(f"FAIL {args.root}: {exc}")
         return 1
-    print(f"OK {args.root}: {len(EXPECTED)}-entrypoint layout")
+    print(f"OK {args.root}: canonical-entrypoint layout")
     return 0
 
 

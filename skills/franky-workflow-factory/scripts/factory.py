@@ -19,7 +19,7 @@ FORBIDDEN = {"model", "executor", "provider", "backend"}
 REGISTERED_ROLES = {"feynman", "prometheus", "franky"}
 ENTRYPOINT_METADATA = {
     "agent_type": "franky",
-    "workflow_id": "WF-FRANKY-GENERAL-WORKFLOW-FACTORY",
+    "workflow_id": "WF-FRANKY-CANONICAL",
 }
 
 

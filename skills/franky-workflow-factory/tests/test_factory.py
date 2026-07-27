@@ -74,10 +74,10 @@ capabilities:
         interface = yaml.safe_load(INTERFACE.read_text(encoding="utf-8"))
         self.assertEqual(metadata, {
             "agent_type": "franky",
-            "workflow_id": "WF-FRANKY-GENERAL-WORKFLOW-FACTORY",
+            "workflow_id": "WF-FRANKY-CANONICAL",
         })
         self.assertEqual(interface["interface"]["agent_type"], "franky")
-        self.assertEqual(interface["interface"]["workflow_id"], "WF-FRANKY-GENERAL-WORKFLOW-FACTORY")
+        self.assertEqual(interface["interface"]["workflow_id"], "WF-FRANKY-CANONICAL")
 
 
 if __name__ == "__main__":

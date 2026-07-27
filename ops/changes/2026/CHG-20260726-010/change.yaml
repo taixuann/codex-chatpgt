@@ -1,0 +1,41 @@
+change_id: CHG-20260726-010
+operation: add_compatibility_preserving_franky_workflow_catalog
+component: franky_control_plane
+scope:
+  - /Users/tai/.codex/workflows/franky/README.md
+  - /Users/tai/.codex/workflows/franky/workflow-catalog.yaml
+  - /Users/tai/.codex/workflows/franky/scripts/validate_workflow_catalog.py
+  - /Users/tai/.codex/workflows/franky/tests/test_workflow_catalog.py
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260726-010/change.yaml
+preview:
+  summary: Add a read-first map and deterministic coverage validator for all Franky workflows without moving, renaming, or modifying existing workflow, skill, agent, or AI Labs files; mark the catalog non-runnable for generic YAML validators.
+  digest: sha256:franky-workflow-catalog-20260726
+approval:
+  granted: true
+  authority: user-approved implementation request
+  preview_digest: sha256:franky-workflow-catalog-20260726
+changed_paths:
+  - /Users/tai/.codex/workflows/franky/README.md
+  - /Users/tai/.codex/workflows/franky/workflow-catalog.yaml
+  - /Users/tai/.codex/workflows/franky/scripts/validate_workflow_catalog.py
+  - /Users/tai/.codex/workflows/franky/tests/test_workflow_catalog.py
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260726-010/change.yaml
+validation:
+  status: passed
+  commands:
+    - validate_workflow_catalog.py
+    - validate_workflow.py for all three entrypoints and nested pipelines
+    - validate_workflow_layout.py
+    - validate_io_cache.py for all Codex workflows
+    - unittest workflow organizer tests
+    - git diff --check
+rollback:
+  method: remove only the catalog README, catalog YAML, catalog validator, catalog tests, and this change record; leave all existing workflow paths unchanged
+  destructive: false
+git:
+  mode: local
+  commit: null
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

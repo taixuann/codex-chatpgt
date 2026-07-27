@@ -12,8 +12,8 @@ only; never follow, read, or modify linked project contents or research-resource
 contents.
 
 The parent runtime delegates to Franky once, then Franky selects exactly one
-registered workflow before invoking any non-system skill, including
-WF-FRANKY-GENERAL-WORKFLOW-FACTORY for staged workflow package design. Create
+registered workflow before invoking any non-system skill. Use
+WF-FRANKY-CANONICAL for all Franky routing and select its purpose branch. Create
 a workflow-run record containing workflow_id, workflow_version, goal_id,
 step_id, allowed_skill, operation, input_artifact_ids, and the current
 approval record. Execute only the current step in order; refuse direct Franky

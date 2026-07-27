@@ -1,0 +1,52 @@
+change_id: CHG-20260726-011
+operation: unify_franky_entrypoint_with_legacy_adapters
+component: franky_control_plane
+scope:
+  - /Users/tai/.codex/workflows/franky/
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/agents/franky.toml
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260726-011/change.yaml
+external_handoff:
+  target: /Users/tai/ai-labs/ops/agents/agents.yaml
+  operation: add WF-FRANKY-CANONICAL to Franky allowed_workflows
+  status: applied_in_shared_workspace
+  validation: YAML parse and canonical workflow membership check passed
+preview:
+  summary: Add one canonical Franky workflow entrypoint, retain all former entrypoints as compatibility paths, remove optional catalog clutter, and update agent routing without changing skills or leaf workflow paths.
+  digest: sha256:franky-canonical-entrypoint-20260726
+approval:
+  granted: true
+  authority: user-approved implementation request
+  preview_digest: sha256:franky-canonical-entrypoint-20260726
+changed_paths:
+  - /Users/tai/.codex/workflows/franky/franky.yaml
+  - /Users/tai/.codex/workflows/franky/franky-install.yaml
+  - /Users/tai/.codex/workflows/franky/franky-maintenance.yaml
+  - /Users/tai/.codex/workflows/franky/general-workflow-factory.yaml
+  - /Users/tai/.codex/workflows/franky/README.md
+  - /Users/tai/.codex/workflows/franky/workflow-catalog.yaml
+  - /Users/tai/.codex/workflows/franky/scripts/validate_workflow_catalog.py
+  - /Users/tai/.codex/workflows/franky/tests/test_workflow_catalog.py
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/agents/franky.toml
+  - /Users/tai/.codex/ops/scripts/validate_franky_canonical_layout.py
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260726-011/change.yaml
+validation:
+  status: passed
+  commands:
+    - validate_workflow.py for canonical and compatibility entrypoints
+    - validate_io_cache.py for all Codex workflows
+    - validate_workflow_layout.py for legacy compatibility layout
+    - validate_franky_canonical_layout.py
+    - TOML and role-registry parse checks
+    - git diff --check
+rollback:
+  method: restore canonical routing metadata and recreate the removed catalog files only if explicitly requested; all original workflow leaf paths remain available
+  destructive: false
+git:
+  mode: local
+  commit: null
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

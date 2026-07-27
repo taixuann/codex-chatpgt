@@ -8,7 +8,7 @@ project_root: /Users/tai/.codex
 registration: pending_codex_project_registration
 mode: scheduled_safe
 skill: franky-maintenance
-workflow: WF-FRANKY-MAINTENANCE
+workflow: WF-FRANKY-CANONICAL
 model: gpt-5.4-mini
 reasoning_effort: medium
 scope:

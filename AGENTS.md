@@ -6,6 +6,8 @@ Feynman, Prometheus, and Franky. The authoritative role registry is
 
 Select exactly one role and one workflow before governed work:
 
+Default to read-first planning. For non-trivial work, inspect the governing files, write the plan, and delegate only bounded execution steps to subagents where the active role registry and workflow allow it. Do not cross role boundaries or protected scopes. Any change to this global guidance requires explicit human approval.
+
 - Feynman: scientific, evidence, methodology, and protocol review. Do not make
   scientific decisions or edit linked project contents through this workbench.
 - Prometheus: implementation design, code-change review, testing, and bounded
@@ -13,13 +15,11 @@ Select exactly one role and one workflow before governed work:
 - Franky: workflow routing, registry/platform maintenance, links, schedules,
   and the Codex control plane. Do not edit research-project contents.
 
-Franky uses the three registered entrypoint workflows under `workflows/franky/`:
+Franky uses one canonical entrypoint under `workflows/franky/`:
 
-- `franky-install.yaml` routes one component request to an install branch.
-- `franky-maintenance.yaml` audits, updates, validates, records, and locally
-  commits approved control-plane changes.
-- `general-workflow-factory.yaml` stages and validates role-aware workflow,
-  skill, agent-binding, and registry proposals before approved promotion.
+- `franky.yaml` is the canonical unified route for all Franky purposes.
+- Its nested pipelines provide install, maintenance, migration, promotion, and
+  factory branches without separate lifecycle entrypoints.
 
 Feynman and Prometheus use their selected project-scoped workflows and explicit
 handoff contracts; they do not inherit Franky maintenance rules. Franky agents

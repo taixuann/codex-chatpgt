@@ -17,8 +17,7 @@ REQUIRED_STEP_FIELDS = {"id", "skill", "operation", "inputs", "outputs", "valida
 FORBIDDEN_KEYS = {"model", "executor", "provider", "backend"}
 REQUIRED_APPROVAL_FIELDS = {"required", "reason"}
 TOP_LEVEL_FAMILIES = {
-    "franky-install.yaml": ("component_type", 6),
-    "franky-maintenance.yaml": ("maintenance_operation", 8),
+    "franky.yaml": (None, 18),
 }
 GOVERNANCE_SEQUENCE = ("qualify", "audit", "preview", "approve", "apply", "validate", "overview", "write-change-record", "local-git-finalize")
 FORBIDDEN_NESTED_OPERATIONS = {"define", "materialize", "revise", "create-goal-session", "revise-goal-session"}
@@ -133,7 +132,7 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
             if key_value in seen_branches:
                 raise ValueError(f"duplicate pipeline branch: {key_value}")
             seen_branches.add(key_value)
-            if path.name in TOP_LEVEL_FAMILIES and key_value[0] != TOP_LEVEL_FAMILIES[path.name][0]:
+            if path.name in TOP_LEVEL_FAMILIES and TOP_LEVEL_FAMILIES[path.name][0] and key_value[0] != TOP_LEVEL_FAMILIES[path.name][0]:
                 raise ValueError(f"branch key mismatch: expected {TOP_LEVEL_FAMILIES[path.name][0]}")
             nested_path = (path.parent / entry["path"]).resolve()
             if not nested_path.is_file():
