@@ -52,7 +52,7 @@ rollback:
   destructive: true
 git:
   mode: local
-  commit: b1861d8
+  commit: 7b47f6e
   push: false
 promotion:
   automatic: false
