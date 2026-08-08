@@ -6,13 +6,21 @@ rename, merge, or repurpose those roles.
 
 ## Runtime adapters
 
+The registry defines the three canonical planning roles: Feynman, Prometheus,
+and Franky. Argus and Athena are support adapters only; they do not expand the
+canonical role registry and cannot own an independent workflow.
+
 | Adapter | Function | Default boundary |
 | --- | --- | --- |
-| `argus` | read-only exploration and repository mapping | `read-only` |
+| `argus` | non-canonical read-only exploration and repository mapping | `read-only` |
 | `feynman` | bounded research and evidence work | `read-only` |
 | `prometheus` | bounded implementation and code review handoff | `workspace-write` |
-| `athena` | independent review and critique | `read-only` |
+| `athena` | non-canonical independent review and critique | `read-only` |
 | `franky` | Codex/AI Labs control-plane operation | `read-only`, no subagents |
+
+Support adapters may be used only as bounded leaf workers under the selected
+canonical role and workflow. If a task needs a new capability, add or reuse a
+skill first; do not create a new role merely to hold domain expertise.
 
 Names are personality labels; descriptions and developer instructions are the
 machine-readable routing contract. Model and reasoning are runtime defaults,

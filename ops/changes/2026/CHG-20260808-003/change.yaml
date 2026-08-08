@@ -1,0 +1,65 @@
+change_id: CHG-20260808-003
+operation: reconcile_global_kernel_and_cloud_entrypoint
+component: codex-control-plane
+scope:
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/agents/AGENTS.md
+  - /Users/tai/.codex/.gitignore
+  - /Users/tai/.codex/documentation/
+  - /Users/tai/.codex/ops/schemas/task-contract.schema.yaml
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_git_allowlist.py
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260808-003/
+preview:
+  changed_paths:
+    - .gitignore
+    - AGENTS.md
+    - agents/AGENTS.md
+    - README.md
+    - documentation/CURRENT.md
+    - documentation/DECISIONS.md
+    - documentation/CLOUD-BRIEF.md
+    - documentation/handoffs/README.md
+    - ops/schemas/task-contract.schema.yaml
+    - skills/franky-maintenance/scripts/validate_git_allowlist.py
+    - ops/changes/2026/CHG-20260808-003/PLAN.md
+    - ops/changes/2026/CHG-20260808-003/change.yaml
+    - ops/changes/2026/CHG-20260808-003/audit-record.yaml
+  digest: sha256:codex-kernel-reconcile-20260808-v1
+approval:
+  granted: true
+  by: user
+  preview_digest: sha256:codex-kernel-reconcile-20260808-v1
+changed_paths:
+  - /Users/tai/.codex/.gitignore
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/agents/AGENTS.md
+  - /Users/tai/.codex/README.md
+  - /Users/tai/.codex/documentation/CURRENT.md
+  - /Users/tai/.codex/documentation/DECISIONS.md
+  - /Users/tai/.codex/documentation/CLOUD-BRIEF.md
+  - /Users/tai/.codex/documentation/handoffs/README.md
+  - /Users/tai/.codex/ops/schemas/task-contract.schema.yaml
+  - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_git_allowlist.py
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260808-003/PLAN.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260808-003/change.yaml
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260808-003/audit-record.yaml
+validation:
+  commands:
+    - python3 skills/franky-maintenance/scripts/validate_git_allowlist.py .
+    - python3 ops/scripts/validate_franky_canonical_layout.py .
+    - python3 skills/franky-maintenance/scripts/validate_skill_interfaces.py skills
+    - python3 skills/franky-maintenance/scripts/validate_workflow_layout.py workflows/franky
+    - python3 -m unittest discover -s skills/franky-maintenance/tests -p 'test_*.py'
+    - python3 -m unittest discover -s skills/franky-workflow-factory/tests -p 'test_*.py'
+    - git diff --check
+  expected: pass
+rollback:
+  method: revert commit containing this change
+  backup: none_required
+git:
+  mode: local
+  commit: pending
+  pushed: pending
+promotion:
+  automatic: false
+  target: none

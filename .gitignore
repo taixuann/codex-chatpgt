@@ -1,9 +1,12 @@
 # Franky control-plane Git uses an allowlist. Runtime and personal state stay ignored.
 *
 !.gitignore
+!README.md
 !AGENTS.md
 !.github/
 !.github/**
+!documentation/
+!documentation/**
 !agents/
 !agents/*.toml
 !agents/README.md

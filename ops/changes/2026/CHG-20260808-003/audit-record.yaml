@@ -1,0 +1,68 @@
+schema: franky.audit
+version: 1
+audit_id: AUD-20260808-003
+component_type: maintenance
+component_id: codex-kernel-reconcile
+operation: reconcile_global_kernel_and_cloud_entrypoint
+scope: .codex control-plane guidance, documentation, schemas, and change record
+source: /Users/tai/.codex
+destination: /Users/tai/.codex
+inputs:
+  declared:
+    - /Users/tai/ai-labs/ops/agents/agents.yaml
+    - /Users/tai/.codex/AGENTS.md
+    - /Users/tai/.codex/agents/AGENTS.md
+    - Structure of Skill and Workflow conversation update
+  resolved:
+    - canonical registry has three roles: feynman, prometheus, franky
+    - local runtime has argus and athena support adapters
+  valid: true
+outputs:
+  declared:
+    - canonical role distinction
+    - cloud brief and state documents
+    - task-contract schema
+  consumers:
+    - ChatGPT Cloud repository inspection
+    - Codex main-agent planning and routing
+  valid: true
+cache: {mode: no-cache, path: null, valid: true}
+protected_paths:
+  touched: []
+  rejected:
+    - credentials
+    - sessions
+    - caches
+    - linked research projects
+collisions: []
+dependencies:
+  - /Users/tai/ai-labs/ops/agents/agents.yaml
+overview:
+  impact: clarifies role authority and adds progressive-disclosure coordination artifacts
+  references:
+    - .gitignore
+    - AGENTS.md
+    - agents/AGENTS.md
+    - documentation/CLOUD-BRIEF.md
+    - ops/schemas/task-contract.schema.yaml
+preview:
+  changed_paths:
+    - .gitignore
+    - AGENTS.md
+    - agents/AGENTS.md
+    - README.md
+    - documentation/CURRENT.md
+    - documentation/DECISIONS.md
+    - documentation/CLOUD-BRIEF.md
+    - documentation/handoffs/README.md
+    - ops/schemas/task-contract.schema.yaml
+    - skills/franky-maintenance/scripts/validate_git_allowlist.py
+    - ops/changes/2026/CHG-20260808-003/PLAN.md
+    - ops/changes/2026/CHG-20260808-003/change.yaml
+    - ops/changes/2026/CHG-20260808-003/audit-record.yaml
+  digest: sha256:codex-kernel-reconcile-20260808-v1
+rollback:
+  location: git revert of the reconciliation commit
+  reversible: true
+status: pass
+findings: []
