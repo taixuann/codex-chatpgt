@@ -1,80 +1,77 @@
 ---
 id: PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001
-title: Context Strengthening v1 Vertical Slice
+title: Context Acquisition v1 Vertical Slice
 status: proposed
 date: 2026-08-08
 issue: 2
-scope: global-capability-vertical-slice
+scope: global-context-acquisition-vertical-slice
 ---
 
 # Objective
 
-Prove the current global agent/skill/task-contract architecture through one thin end-to-end path before expanding memory, research integrations, or broader orchestration.
+Prove bounded context acquisition end-to-end before deciding which parts deserve permanent skill/workflow packaging.
 
-Target path:
+Required behavior:
 
-`main orchestration -> task contract -> Argus -> repository-exploration -> context-strengthening -> compact context packet -> parent planning`
+`main detects insufficient context -> bounded acquisition -> compact evidence/context packet -> parent resumes planning`
 
-# Confirmed decisions
+This PLAN intentionally distinguishes required behavior from candidate implementation.
 
-- Keep the current top-level architecture simple.
-- Do not add new agents for this slice.
-- Argus is the bounded read-only explorer adapter.
-- Skills remain capability-centric and reusable across roles.
-- Main retains architecture, planning, and final synthesis authority.
-- Workflows express lifecycle/conditions rather than persona-specific scripts.
-- Do not integrate AgentMemory, Wiki/RAG, or OpenScience in v1.
+# Starting state
 
-# Scope
+The reconciled baseline already provides:
 
-## In scope
+- root and scoped guidance;
+- bounded runtime adapters including read-only Argus;
+- canonical CURRENT/DECISIONS/CLOUD-BRIEF state;
+- the task-contract schema;
+- existing Franky/shared skills and workflows;
+- deterministic control-plane validation.
 
-1. Add `repository-exploration` skill.
-2. Add `context-strengthening` skill.
-3. Create a representative task-contract instance for a bounded Argus exploration task.
-4. Connect conditional delegation semantics to the existing main operating kernel without creating a persona-specific workflow.
-5. Define and validate a compact context packet.
-6. Add deterministic validation where practical.
-7. Record actual local runtime behavior and deviations.
+The current repository does not yet prove that a dedicated `context-strengthening` skill is necessary. That is an implementation hypothesis to test, not a requirement.
 
-## Out of scope
+# Runtime reconnaissance first
 
-- AgentMemory integration.
-- Wiki/RAG implementation.
-- OpenScience integration.
-- New agents or recursive delegation.
-- Full model-routing redesign.
-- Broad Franky cleanup or renaming.
-- Large folder restructuring.
-- Generalization into a larger orchestration framework.
+Before creating new capability files, inspect the actual installed runtime and record:
 
-# Capability contracts
+1. how applicable AGENTS/instructions are discovered;
+2. what repository exploration the parent already performs effectively;
+3. whether Argus can be invoked with the expected bounded/read-only semantics;
+4. what context is inherited versus explicitly supplied to a bounded worker;
+5. how skills are currently discovered/selected and what metadata drives routing;
+6. which task-contract fields are useful in practice;
+7. which existing validators/scripts can be reused;
+8. any runtime/config mismatch that would invalidate an architectural assumption.
 
-## repository-exploration
+Do not infer success from configuration text alone.
 
-Purpose: retrieve exact internal repository evidence needed by a bounded task.
+# Required behavior
 
-Must define:
+## Context sufficiency
 
-- trigger conditions;
-- allowed scope;
-- applicable-instruction discovery;
-- file/dependency search procedure;
-- evidence formatting;
-- stop conditions;
-- read-only boundary;
-- return contract.
+The parent must be able to distinguish at least one representative case where existing context is sufficient and one where additional internal context materially improves reliable planning/review.
 
-## context-strengthening
+## Bounded repository acquisition
 
-Purpose: improve planning/review context by selecting and combining only material internal context.
+Retrieve only the applicable instructions, relevant files/relationships, and exact evidence needed by the task. Avoid broad repository/history dumping.
 
-For v1, use only sources that actually exist in this control-plane implementation:
+A reusable `repository-exploration` skill is a likely implementation if the probe confirms a stable trigger, procedure, and return contract. Reuse existing capability instead if one already provides equivalent behavior.
 
-- canonical state;
-- repository evidence.
+## Delegation choice
 
-Return shape:
+Compare direct parent inspection with bounded Argus delegation.
+
+Delegate only when:
+
+- the exploration task is independently executable;
+- context isolation/parallelism materially helps;
+- expected value exceeds delegation overhead.
+
+Argus must remain read-only, non-recursive, and unable to redesign the parent plan or create global rules.
+
+## Context packet
+
+Prefer a compact representation such as:
 
 ```yaml
 canonical: []
@@ -83,83 +80,100 @@ conflicts: []
 uncertainties: []
 ```
 
-Do not add speculative memory/wiki/RAG integration fields merely for future architecture symmetry.
+A simpler equivalent is acceptable if runtime evidence shows it is easier and equally traceable.
 
-# Delegation rules
+# Packaging decision
 
-Delegate to the explorer role only when:
+After the representative run, classify each candidate behavior:
 
-- material internal context is missing;
-- the exploration task is independently executable;
-- isolated context reduces parent-context noise or cost;
-- delegation is expected to add more value than its overhead.
+- **policy/instruction** if it should apply broadly and needs no reusable procedure;
+- **skill** if it has a clear trigger, stable input/output, and reusable procedure;
+- **script/tool** if the operation is deterministic;
+- **workflow** only if real lifecycle/state/gate semantics require it;
+- **no new component** if existing behavior is sufficient.
 
-Otherwise the parent should inspect the required context directly.
-
-Argus may choose local search/inspection order inside the bounded task but must not:
-
-- modify files;
-- widen scope;
-- redesign the parent plan;
-- create new global rules;
-- recursively delegate.
+Do not create `context-strengthening` as a standalone skill merely for symmetry. Create it only if the run demonstrates independent reuse value.
 
 # Representative task contract
 
-The implementation should include one small representative contract following the existing schema and containing:
+If delegation is used, include one bounded contract using the existing schema with:
 
 - objective;
 - include/exclude scope;
-- relevant canonical context;
-- explorer role hint where useful;
-- required capability: repository exploration;
+- minimal canonical/supporting context;
+- role hint only where useful;
+- required capability;
 - expected evidence output;
 - validation;
 - stop conditions.
 
 Do not embed the full parent conversation.
 
-# Validation
+# Expected changed components
 
-Validate at minimum:
+Exact files are deliberately not fixed before runtime reconnaissance.
 
-1. new skill structure/interfaces;
-2. representative task contract against the existing schema;
-3. read-only Argus boundary;
-4. context-packet shape;
-5. existing repository validation/tests remain passing;
-6. actual runtime execution where the installed Codex surface allows it.
+Likely changes may include:
 
-Record runtime limitations rather than papering over unsupported behavior.
+- one repository-exploration capability surface if justified;
+- one representative task-contract fixture/example;
+- context-packet schema/fixture only if it improves validation;
+- deterministic validation additions where justified;
+- minimal durable-state updates only after accepted behavior changes.
+
+Any additional workflow, agent, top-level folder, memory integration, research integration, or broad Franky refactor is out of scope.
+
+# Validation plan
+
+Validate:
+
+1. sufficient vs insufficient context decision with representative cases;
+2. bounded evidence retrieval and exact paths;
+3. task-contract schema if delegation is used;
+4. Argus read-only/bounded behavior if Argus is used;
+5. context-packet shape/traceability;
+6. existing repository validation remains passing;
+7. actual runtime/skill-discovery behavior;
+8. diff scope and absence of speculative architecture.
+
+Record limitations explicitly.
+
+# Acceptance mapping
+
+| Issue AC | PLAN evidence |
+| --- | --- |
+| AC-01 | sufficient vs insufficient representative cases |
+| AC-02 | bounded repository evidence retrieval |
+| AC-03 | compact context packet/example |
+| AC-04 | schema-valid task contract when delegation is used |
+| AC-05 | Argus boundary evidence when used |
+| AC-06 | parent resumes planning/synthesis |
+| AC-07 | direct-vs-delegated comparison |
+| AC-08 | deterministic validation results |
+| AC-09 | runtime reconnaissance/probe record |
+| AC-10 | packaging rationale for every new component |
+| AC-11 | scoped diff + minimal durable-state updates |
+
+# Failure modes
+
+- Runtime already performs the proposed behavior adequately: prefer no new component and document the finding.
+- Argus/runtime controls differ from assumptions: record the mismatch and adapt the smallest viable path.
+- Skill routing overlaps with existing skills: reuse/generalize rather than add another wrapper.
+- Context packet adds more ceremony than value: simplify the representation.
+- Validation cannot prove a runtime semantic deterministically: separate observable evidence from reviewer judgment.
 
 # Review gate
 
-Before acceptance, review the implementation against:
+Review against Issue #2, canonical CURRENT/DECISIONS, actual diff, runtime evidence, and validation.
 
-- GitHub Issue #2;
-- this plan;
-- `documentation/CURRENT.md`;
-- `documentation/DECISIONS.md`;
-- the actual diff;
-- validation evidence.
+The reviewer must answer:
 
-Ask specifically:
-
-1. Was delegation actually useful?
-2. Did the task contract reduce ambiguity?
-3. Did capability routing remain natural?
-4. Did the context packet improve planning without dumping irrelevant history?
-5. Is the resulting system still easy to understand and debug?
-
-# Expected output
-
-- working `repository-exploration` capability;
-- working `context-strengthening` capability;
-- one representative bounded task contract;
-- deterministic validation additions where justified;
-- runtime validation notes;
-- minimal CURRENT/CLOUD-BRIEF updates only if accepted state changes.
+1. Did context acquisition improve the task?
+2. Was delegation useful enough to justify overhead?
+3. Did any new skill/workflow actually earn its existence?
+4. Did the implementation avoid duplicate existing/official capabilities?
+5. Is the resulting path easier to understand and maintain than the pre-change state?
 
 # Definition of done
 
-This slice is done only when it works end-to-end well enough to inform whether the pattern should be reused. Do not promote it into a broader framework based solely on the design looking clean on paper.
+The slice is complete when the required behavior is demonstrated and the packaging decision is evidence-backed. A valid outcome may include fewer new skills/files than originally expected.
