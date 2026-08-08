@@ -1,6 +1,10 @@
 ---
 name: shared-session-closeout
 description: Close or update a Codex or AI Labs work session using acceptance evidence, task state, and a bounded outcome record. Use when a session is ending, resuming, or ready for review across Feynman, Prometheus, or Franky; do not use it to decide scientific content, execute project changes, or close a chat automatically.
+namespace: shared
+qualified_name: shared.session-closeout
+folder: shared-session-closeout
+scope: shared
 ---
 
 # Shared session closeout

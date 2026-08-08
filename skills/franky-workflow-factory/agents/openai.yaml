@@ -1,3 +1,7 @@
+namespace: franky
+qualified_name: franky.workflow-factory
+folder: franky-workflow-factory
+scope: franky
 interface:
   display_name: "General workflow factory"
   short_description: "Design role-aware workflow packages."

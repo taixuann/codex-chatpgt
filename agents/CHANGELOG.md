@@ -3,6 +3,31 @@
 Append-only record of governed agent adapter changes.
 
 ```yaml
+- agent: codex-first-routing
+  version: 1.1.0
+  goal_id: CHG-20260808-001
+  workflow_id: WF-FRANKY-CANONICAL
+  reason: Add Argus exploration and Athena independent review adapters while preserving canonical Feynman, Prometheus, and Franky boundaries; migrate defaults to observed GPT-5.6 routing tiers.
+  changed_paths:
+    - /Users/tai/.codex/agents/argus.toml
+    - /Users/tai/.codex/agents/athena.toml
+    - /Users/tai/.codex/agents/feynman.toml
+    - /Users/tai/.codex/agents/prometheus.toml
+    - /Users/tai/.codex/agents/franky.toml
+    - /Users/tai/.codex/agents/templates/agent.toml
+    - /Users/tai/.codex/agents/AGENTS.md
+  validation:
+    - validate_agent_toml.py for all active adapters and inert template
+    - canonical Franky layout validator
+    - git diff --check
+  approval:
+    - user approved agent setup after referenced architecture update
+  change_commit: not-created; working tree preserved for human review
+  rollback:
+    - Restore prior adapter TOML files and the prior template path from the change record.
+```
+
+```yaml
 - agent: franky
   version: 1.0.0
   goal_id: GOAL-20260726-002

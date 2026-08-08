@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import re
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ ENTRYPOINT_METADATA = {
     "agent_type": "franky",
     "workflow_id": "WF-FRANKY-CANONICAL",
 }
+QUALITY_VALIDATOR = ROOT / "skills" / "franky-maintenance" / "scripts" / "validate_skill_quality.py"
 
 
 def slug(value: str) -> str:
@@ -98,6 +100,17 @@ def resource_findings(skill_path: Path, resources: list[str], owner: str) -> lis
     return findings
 
 
+def skill_quality_report(skill_path: Path) -> dict[str, Any]:
+    """Run the shared deterministic skill quality gates."""
+
+    spec = importlib.util.spec_from_file_location("franky_skill_quality", QUALITY_VALIDATOR)
+    if spec is None or spec.loader is None:
+        return {"skill": str(skill_path), "status": "blocked", "results": [{"gate": "quality_validator", "status": "fail", "severity": "critical", "message": "quality validator could not be loaded"}]}
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.assess(skill_path)
+
+
 def make_step(cap: dict[str, Any], skill: str | None, proposed_skill: str | None) -> dict[str, Any]:
     step_id = slug(str(cap.get("id") or cap.get("description") or "step"))
     return {
@@ -146,6 +159,7 @@ def main() -> int:
     repairs: list[dict[str, Any]] = []
     skill_proposals: list[dict[str, Any]] = []
     agent_proposals: list[dict[str, Any]] = []
+    quality_gate_reports: list[dict[str, Any]] = []
     targets = [str(role).lower() for role in (request.get("roles") or ["franky"])]
     for role in targets:
         if role != "shared" and role not in REGISTERED_ROLES:
@@ -183,6 +197,16 @@ def main() -> int:
                 skill_path = next((Path(item["path"]) for item in skills if item["name"] == skill), None)
                 if skill_path:
                     findings.extend(resource_findings(skill_path, list(cap["required_resources"]), skill))
+            if skill:
+                skill_path = next((Path(item["path"]) for item in skills if item["name"] == skill), None)
+                if skill_path:
+                    quality = skill_quality_report(skill_path)
+                    quality_gate_reports.append(quality)
+                    for gate in quality.get("results", []):
+                        if gate.get("status") == "fail":
+                            findings.append({"severity": "critical", "code": "skill_quality_gate", "skill": skill, "gate": gate.get("gate"), "message": gate.get("message")})
+                        elif gate.get("status") == "warn":
+                            findings.append({"severity": "warning", "code": "skill_quality_advisory", "skill": skill, "gate": gate.get("gate"), "message": gate.get("message")})
             target_scope = str(cap.get("target_scope", "")).lower()
             if role == "franky" and any(term in target_scope for term in ("linked project", "research resource", "scientific")):
                 findings.append({"severity": "critical", "code": "role_scope_violation", "role": role, "step": cap.get("id")})
@@ -210,7 +234,7 @@ def main() -> int:
                 "adapter_action": "review_existing_adapter_before_change",
             })
 
-    manifest = {"schema": "franky.workflow-factory-package", "version": 1, "request_id": request_id, "purpose": request.get("purpose"), "mode": request.get("mode", "full_package"), "roles": targets, "status": "blocked" if any(x["severity"] == "critical" for x in findings) else "proposed", "proposals": {"workflows": generated, "skills": skill_proposals, "agents": agent_proposals}, "findings": findings, "repairs": repairs, "approval": {"required": True, "status": "pending", "digest": None}, "rollback": {"method": "remove staged package or restore approved changed paths", "destructive": False}}
+    manifest = {"schema": "franky.workflow-factory-package", "version": 1, "request_id": request_id, "purpose": request.get("purpose"), "mode": request.get("mode", "full_package"), "roles": targets, "status": "blocked" if any(x["severity"] == "critical" for x in findings) else "proposed", "proposals": {"workflows": generated, "skills": skill_proposals, "agents": agent_proposals}, "quality_gates": {"policy": "franky-skill-quality-v1", "required": ["structure", "security"], "advisory": ["eval", "staleness"], "reports": quality_gate_reports}, "findings": findings, "repairs": repairs, "approval": {"required": True, "status": "pending", "digest": None}, "rollback": {"method": "remove staged package or restore approved changed paths", "destructive": False}}
     manifest["approval"]["digest"] = "sha256:" + hashlib.sha256(yaml.safe_dump(manifest, sort_keys=True).encode()).hexdigest()
     (output / "manifest.yaml").write_text(yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8")
     print(f"OK staged {output} status={manifest['status']}")

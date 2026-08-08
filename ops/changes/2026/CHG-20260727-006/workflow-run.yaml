@@ -1,0 +1,27 @@
+workflow_id: WF-FRANKY-CANONICAL
+workflow_version: 1
+goal_id: CHG-20260727-006
+step_id: apply
+allowed_skill: franky-maintenance
+operation: update_skill_namespace_convention
+input_artifact_ids:
+  - /Users/tai/.codex/skills/feynman-document-refine/SKILL.md
+  - /Users/tai/.codex/skills/feynman-document-refine/skill.yaml
+  - /Users/tai/.codex/skills/feynman-document-refine/agents/openai.yaml
+  - /Users/tai/.codex/skills/shared-session-closeout/SKILL.md
+  - /Users/tai/.codex/skills/shared-session-closeout/agents/openai.yaml
+  - /Users/tai/.codex/skills/franky-workflow-factory/SKILL.md
+  - /Users/tai/.codex/skills/franky-workflow-factory/agents/openai.yaml
+  - /Users/tai/ai-labs/ops/registry/skills.yaml
+  - /Users/tai/ai-labs/ops/registry/skill-inventory.yaml
+  - /Users/tai/ai-labs/wiki/registry/skills.yaml
+  - /Users/tai/ai-labs/wiki/registry/pages.yaml
+  - /Users/tai/ai-labs/ops/agents/agents.yaml
+  - /Users/tai/ai-labs/ops/agents/prometheus.md
+  - /Users/tai/ai-labs/wiki/skills.md
+  - /Users/tai/ai-labs/wiki/modules/module-2-knowledge-design.md
+  - /Users/tai/ai-labs/wiki/modules/module-4-writing.md
+approval_record:
+  granted: true
+  authority: user implementation request
+  preview_digest: sha256:skill-namespace-convention-20260727

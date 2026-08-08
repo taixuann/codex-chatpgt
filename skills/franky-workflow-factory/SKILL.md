@@ -1,6 +1,10 @@
 ---
 name: franky-workflow-factory
 description: Design staged, role-aware workflow packages with proposal-first routing, deterministic flaw detection, bounded repair, and approval-bound lifecycle handoff.
+namespace: franky
+qualified_name: franky.workflow-factory
+folder: franky-workflow-factory
+scope: franky
 ---
 
 # Franky workflow factory
@@ -29,6 +33,16 @@ and optional `capabilities`. Natural-language intent is preserved in the
 manifest, while runnable workflow proposals require explicit capability
 contracts. Unknown roles, scope crossings, unresolved critical flaws, and
 missing required resources remain non-runnable.
+
+For any existing skill selected by a proposal, run the Franky-adapted quality
+gates before the package is considered runnable:
+
+- required gates: package structure and security scan;
+- advisory gates: bundled eval/test evidence and review-age metadata.
+
+Structural or security failures block the package. Missing evals or review
+metadata produce warnings so existing skills remain compatible. The validator
+does not install, publish, push, or modify the inspected skill.
 
 Every generated workflow step must contain `id`, `skill`, `operation`,
 `inputs`, `outputs`, `validation`, `approval_gate`, and `on_failure`.

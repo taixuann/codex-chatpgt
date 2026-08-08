@@ -39,3 +39,29 @@
 !ops/schedulers/**
 !ops/changes/
 !ops/changes/**
+
+# Security boundary: never publish credentials, runtime state, or local stores.
+# These rules are intentionally last so they override any broad allowlist above.
+**/.env
+**/.env.*
+**/*secret*
+**/*credential*
+**/*token*
+**/*apikey*
+**/*api_key*
+**/auth.json
+**/config.toml
+**/hooks.json
+**/*state*.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.sqlite
+**/*.sqlite-*
+**/*history*.jsonl
+**/sessions/**
+**/logs/**
+**/cache/**
+**/attachments/**
+**/backups/**

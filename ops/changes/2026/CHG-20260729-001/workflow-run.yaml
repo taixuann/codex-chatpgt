@@ -1,0 +1,16 @@
+workflow_id: WF-FRANKY-CANONICAL
+workflow_version: 1
+goal_id: CHG-20260729-001
+step_id: validate
+allowed_skill: franky-maintenance
+operation: stabilize_control_plane_and_deploy_franky_bundle
+input_artifact_ids:
+  - /Users/tai/ai-labs/ops/platforms/role-skill-bundles.yaml
+  - /Users/tai/ai-labs/ops/agents/agents.yaml
+  - /Users/tai/ai-labs/ops/workflows/franky/franky.yaml
+  - /Users/tai/.codex/agents/franky.toml
+  - /Users/tai/.codex/workflows/franky/franky.yaml
+approval_record:
+  granted: true
+  authority: user implementation request
+  preview_digest: sha256:CHG-20260729-001-approved-plan-v1

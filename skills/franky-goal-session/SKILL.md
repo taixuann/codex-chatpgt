@@ -5,7 +5,9 @@ description: Create or update a measurable Franky maintenance goal package with 
 
 # Franky goal session
 
-Use this skill for governed, multi-step operator work. Do not create a goal for
+Use this skill for governed, multi-step operator work. Keep `PLAN.md` as the
+canonical readable execution contract and use Plannotator for plan/diff review;
+visual HTML is optional presentation only. Do not create a goal for
 a simple read-only check unless the user requests durable tracking.
 
 Use the lifecycle `qualify -> select role -> load role/ontology -> draft ->

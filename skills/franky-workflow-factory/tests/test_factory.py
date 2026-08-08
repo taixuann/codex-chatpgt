@@ -52,6 +52,8 @@ capabilities:
         )
         self.assertEqual(result.returncode, 0)
         self.assertIn("status: proposed", manifest)
+        self.assertIn("policy: franky-skill-quality-v1", manifest)
+        self.assertIn("gate: structure", manifest)
         self.assertNotIn("severity: critical", manifest)
 
     def test_missing_capabilities_is_blocked(self):

@@ -1,0 +1,49 @@
+change_id: CHG-20260808-001
+operation: install_codex_first_agent_routing
+component: codex_agent_adapters
+scope:
+  - /Users/tai/.codex/agents
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260808-001
+preview:
+  summary: >-
+    Add Argus exploration and Athena independent-review adapters, migrate
+    existing canonical adapter defaults to supported GPT-5.6 tiers, preserve
+    Franky control-plane restrictions, and replace the invalid template with
+    an inert validated template.
+  digest: sha256:codex-agent-routing-memory-20260808-v3
+approval:
+  granted: true
+  authority: user-directed request to process and complete the agent setup after reviewing the updated architecture
+  preview_digest: sha256:codex-agent-routing-memory-20260808-v3
+changed_paths:
+  - /Users/tai/.codex/agents/argus.toml
+  - /Users/tai/.codex/agents/athena.toml
+  - /Users/tai/.codex/agents/feynman.toml
+  - /Users/tai/.codex/agents/prometheus.toml
+  - /Users/tai/.codex/agents/franky.toml
+  - /Users/tai/.codex/agents/AGENTS.md
+  - /Users/tai/.codex/agents/CHANGELOG.md
+  - /Users/tai/.codex/agents/templates/agent.toml
+  - /Users/tai/.codex/agents/code_mapper.toml
+  - /Users/tai/.codex/agents/codex_agent_template.toml
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/config.toml
+  - /Users/tai/.codex/hooks.json
+validation:
+  status: passed_with_warning
+  commands:
+    - python3 skills/franky-agent-installer/scripts/validate_agent_toml.py for every active adapter and templates/agent.toml
+    - python3 ops/scripts/validate_franky_canonical_layout.py
+    - git diff --check
+    - agentmemory connect codex --with-hooks --force
+    - agentmemory status (initial startup healthy; later status health unknown, capture pending next session)
+rollback:
+  method: restore the prior adapter TOML files and restore the two legacy paths from the recorded pre-change state
+  destructive: false
+git:
+  mode: local
+  commit: not-created
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

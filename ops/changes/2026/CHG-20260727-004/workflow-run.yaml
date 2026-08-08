@@ -1,0 +1,14 @@
+workflow_id: WF-FRANKY-CANONICAL
+workflow_version: 1
+goal_id: CHG-20260727-004
+change_id: CHG-20260727-004
+step_id: update
+allowed_skill: franky-skill-installer
+operation: update_approved_skills
+input_artifact_ids:
+  - approved-user-request
+  - current-skill-package
+  - workflow-selection
+approval_record:
+  granted: true
+  authority: user implementation request

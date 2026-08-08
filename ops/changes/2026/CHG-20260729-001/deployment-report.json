@@ -1,0 +1,176 @@
+{
+  "agent_adapter": {
+    "destination": "/Users/tai/.codex/agents/franky.toml",
+    "source": "/Users/tai/ai-labs/ops/agents/templates/codex/franky.toml",
+    "status": "drift_preserved"
+  },
+  "applied": true,
+  "backups": [
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/install-agent",
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/supporting-skill-finder",
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/supporting-multi-sync",
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/workflow-manager",
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/define-goal",
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/goal-session",
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/session-closeout"
+  ],
+  "bundle_id": "BUNDLE-FRANKY-CODEX",
+  "collisions": [],
+  "generated_at": "2026-07-29T14:38:33.153841+00:00",
+  "mode": "apply",
+  "platform": "codex",
+  "protected_rejections": [],
+  "role": "franky",
+  "skills": [
+    {
+      "destination": "/Users/tai/.codex/skills/install-agent",
+      "destination_sha256": "e4ca18faa11aa94feeeda743dceb0877cac033bd479a533e72ddd161e98fe1c8",
+      "runtime_name": "install-agent",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.install/install-agent",
+      "source_sha256": "41bb929887a70ac9f2651ce16cc5a5152c81b06ac7bea4b02c5e0d850f77e928",
+      "status": "update"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/install-cron",
+      "destination_sha256": "3d4b409cccb1820a74e0d0a8ee78e4d31adc3fd13977afcd731067e407b7dd20",
+      "runtime_name": "install-cron",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.install/install-cron",
+      "source_sha256": "3d4b409cccb1820a74e0d0a8ee78e4d31adc3fd13977afcd731067e407b7dd20",
+      "status": "unchanged"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/install-skill",
+      "destination_sha256": "486759d88d868c6ba2a56a9ce509d968b274b12581af53a238fcbd43068ed201",
+      "runtime_name": "install-skill",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.install/install-skill",
+      "source_sha256": "486759d88d868c6ba2a56a9ce509d968b274b12581af53a238fcbd43068ed201",
+      "status": "unchanged"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/install-workflow",
+      "destination_sha256": "391bd6897734915b5a2e62dd6aa2249132f090801b17ccb5916413ea8e5710da",
+      "runtime_name": "install-workflow",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.install/install-workflow",
+      "source_sha256": "391bd6897734915b5a2e62dd6aa2249132f090801b17ccb5916413ea8e5710da",
+      "status": "unchanged"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/install-guidance",
+      "destination_sha256": "abf16276158afe956556ed684145e0ee46809e6692c4c9f17654758bdc765550",
+      "runtime_name": "install-guidance",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.install/install-guidance",
+      "source_sha256": "abf16276158afe956556ed684145e0ee46809e6692c4c9f17654758bdc765550",
+      "status": "unchanged"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/install-project-link",
+      "destination_sha256": "44f22005658bb8827e2498f8199b7719b3b60197f5411feb4e5478976e8dbdf0",
+      "runtime_name": "install-project-link",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.install/install-project-link",
+      "source_sha256": "44f22005658bb8827e2498f8199b7719b3b60197f5411feb4e5478976e8dbdf0",
+      "status": "unchanged"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/skill-maintenance",
+      "runtime_name": "skill-maintenance",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.maintenance/skill-maintenance",
+      "source_sha256": "f2326d179a23acac10254866c1ecbfcc7babe9ec565413c5594d2f8952a3a2a1",
+      "status": "create"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/skill-migration",
+      "destination_sha256": "dd971bc40185a5becbb4750da67da9d54c882599e2ff433cd96c3db0c8565729",
+      "runtime_name": "skill-migration",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.maintenance/skill-migration",
+      "source_sha256": "dd971bc40185a5becbb4750da67da9d54c882599e2ff433cd96c3db0c8565729",
+      "status": "unchanged"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/supporting-skill-finder",
+      "destination_sha256": "d2ba9f4764e6717688aa1e27922c56dc47296404df918379a2f1af57a15ad423",
+      "runtime_name": "supporting-skill-finder",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.supporting/supporting-skill-finder",
+      "source_sha256": "b3a84ad30ef6afc977738ccbcc4ffde5a8c56eb8d08f087246dafbc1b4d145c2",
+      "status": "update"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/supporting-multi-sync",
+      "destination_sha256": "fe8721363b42da5ec1005c8bdbdbdf7e38a1ba2ea7ca8466422663527b3455af",
+      "runtime_name": "supporting-multi-sync",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.supporting/supporting-multi-sync",
+      "source_sha256": "633943d78cd78e075eab0939886cb314ab4135dfd24f451569ae0e7b36be3067",
+      "status": "update"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/workflow-manager",
+      "destination_sha256": "65f697239f96ee9331c553dc579ee6fd23740f53e3e020730c074e3b796a466c",
+      "runtime_name": "workflow-manager",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.workflow/workflow-manager",
+      "source_sha256": "47b5a34f66f6420d06ed2d2ea1de782c881486efebc5bc15088c67e2baf400d9",
+      "status": "update"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/workflow-lens",
+      "runtime_name": "workflow-lens",
+      "source": "/Users/tai/ai-labs/ops/skills/franky.workflow/workflow-lens",
+      "source_sha256": "590ddd80ea13fa1c97493f8d63bd286e11a8f66afdc831fc09c38b8a3a48b606",
+      "status": "create"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/external-handoff",
+      "destination_sha256": "c059690bc2d255409187457498f1050f91c806fe9f255451af547cc4ffce8251",
+      "runtime_name": "external-handoff",
+      "source": "/Users/tai/ai-labs/ops/skills/shared.execution/external-handoff",
+      "source_sha256": "c059690bc2d255409187457498f1050f91c806fe9f255451af547cc4ffce8251",
+      "status": "unchanged"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/define-goal",
+      "destination_sha256": "5129da723d66737364d3eac95c8d9c43b150220e31bd1d193c9e119ddee3e371",
+      "runtime_name": "define-goal",
+      "source": "/Users/tai/ai-labs/ops/skills/shared.session/define-goal",
+      "source_sha256": "63b4477793dbcb0a4481f0660392e58d6aa4eb78bda89f9a6a8885025ec622a9",
+      "status": "update"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/goal-session",
+      "destination_sha256": "ae15128589b0da769b3b1eadf64d421974056f140004f456ea50c44c660197cb",
+      "runtime_name": "goal-session",
+      "source": "/Users/tai/ai-labs/ops/skills/shared.session/goal-session",
+      "source_sha256": "1669f0c5a296c134efce9a14a29daeaf4efc39f7f62618c8d30d31e25098c040",
+      "status": "update"
+    },
+    {
+      "destination": "/Users/tai/.codex/skills/session-closeout",
+      "destination_sha256": "302d29b0063441ab0147bbb4ceb21fb1b2ca3dfdb52f21baa5e5aa11d91f6654",
+      "runtime_name": "session-closeout",
+      "source": "/Users/tai/ai-labs/ops/skills/shared.session/session-closeout",
+      "source_sha256": "3330ac7f07b0314c0b13ffdd53fd079b62fb0fc40cbde3ccfc733a917d7dd03c",
+      "status": "update"
+    }
+  ],
+  "workflows": [
+    {
+      "destination": "/Users/tai/.codex/workflows/franky/franky.yaml",
+      "destination_sha256": "3e104415286ef0f842158de11f112f823db09236971bf6b9ba269d05c734b7dd",
+      "mode": "audit_existing",
+      "source": "/Users/tai/ai-labs/ops/workflows/franky/franky.yaml",
+      "source_sha256": "c8318c17d84012c7fe4fa4358985b6cf30d09706438da410a21331e36ad90af0",
+      "status": "drift_preserved"
+    },
+    {
+      "destination": "/Users/tai/.codex/workflows/franky/install.yaml",
+      "mode": "deploy",
+      "source": "/Users/tai/ai-labs/ops/workflows/franky/install.yaml",
+      "source_sha256": "cb3283a25412b8512af0662be1e8c6ea71bba0e5593f4a848759123ab0eaf090",
+      "status": "create"
+    },
+    {
+      "destination": "/Users/tai/.codex/workflows/franky/maintenance.yaml",
+      "mode": "deploy",
+      "source": "/Users/tai/ai-labs/ops/workflows/franky/maintenance.yaml",
+      "source_sha256": "5a9d2d6795e18dd80cef2f6092d19d36bf1ca0fa4345dbbe7f9c1da84c002208",
+      "status": "create"
+    }
+  ]
+}

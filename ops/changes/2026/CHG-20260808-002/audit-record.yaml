@@ -1,0 +1,45 @@
+schema: franky.audit
+version: 1
+audit_id: AUD-20260808-002
+component_type: maintenance
+component_id: cloud-local-handoff-target-resolution
+operation: resolve_target_and_prepare_handoff_plan
+scope: /Users/tai/.codex only; no target-repository mutation, commit, or push
+source: /Users/tai/.codex
+destination: /Users/tai/.codex
+inputs:
+  declared: [local Git repositories, remotes, branches, existing state artifacts, applicable guidance]
+  resolved:
+    - /Users/tai/.codex
+    - /Users/tai/workspace
+    - /Users/tai/workspace/projects
+    - /Users/tai/workspace/documentation
+    - /Users/tai/ai-labs
+  valid: true
+outputs:
+  declared: [target resolution report, handoff implementation plan]
+  consumers: [human approver, future local execution]
+  valid: true
+cache: {mode: no-cache, path: null, valid: true}
+protected_paths: {touched: [], rejected: [linked-projects, credentials, .system, remotes]}
+collisions:
+  - path: /Users/tai/workspace
+    finding: Pre-existing dirty tracked deletions and untracked personal-wiki/ must not be mixed with handoff changes.
+    disposition: Preserve and require target-scope confirmation before mutation.
+dependencies:
+  - GitHub remote must be explicitly confirmed before any push.
+  - Target-repository AGENTS.md and documentation structure must be inspected after confirmation.
+overview:
+  impact: No target repository state was changed; only a local plan and audit were added under .codex.
+  references: [PLAN-ARW-CLOUD-HANDOFF-20260808-001.md, /Users/tai/workspace]
+preview:
+  changed_paths:
+    - /Users/tai/.codex/ops/changes/2026/CHG-20260808-002/PLAN-ARW-CLOUD-HANDOFF-20260808-001.md
+    - /Users/tai/.codex/ops/changes/2026/CHG-20260808-002/audit-record.yaml
+  digest: sha256:cloud-handoff-target-resolution-20260808-v1
+rollback: {location: /Users/tai/.codex/ops/changes/2026/CHG-20260808-002, reversible: true}
+status: pass
+findings:
+  - healthy: /Users/tai/workspace is the only inspected local Git repository with a configured GitHub remote.
+  - unresolved: Human confirmation is required before treating /Users/tai/workspace as the target.
+  - warning: The candidate workspace contains pre-existing unrelated dirty state.

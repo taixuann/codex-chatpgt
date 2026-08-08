@@ -1,0 +1,49 @@
+change_id: CHG-20260727-004
+operation: update_document_refine_case_routing
+component: franky_control_plane
+scope:
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/SKILL.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/RULES.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/skill.yaml
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/agents/openai.yaml
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/orqh_triad_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/readme_refinement_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/personal_claim_record_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/personal_question_record_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/paper_evidence_record_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/data_management_record_pattern.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260727-004/workflow-run.yaml
+preview:
+  summary: Convert document-refine into a case-routed skill for init, understanding, README, personal claim, personal question, paper evidence, and data-management records while preserving human text and explicit target paths.
+  digest: sha256:document-refine-case-routing-20260727
+approval:
+  granted: true
+  authority: user implementation request
+  preview_digest: sha256:document-refine-case-routing-20260727
+changed_paths:
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/SKILL.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/RULES.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/skill.yaml
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/agents/openai.yaml
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/orqh_triad_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/readme_refinement_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/personal_claim_record_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/personal_question_record_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/paper_evidence_record_pattern.md
+  - /Users/tai/ai-labs/ops/skills/shared/document-refine/references/data_management_record_pattern.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260727-004/workflow-run.yaml
+validation:
+  status: pending
+  commands:
+    - python3 /Users/tai/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/tai/ai-labs/ops/skills/shared/document-refine
+    - rg -n "target_file|README.md|personal claim|personal question|paper and evidence|data-management" /Users/tai/ai-labs/ops/skills/shared/document-refine/SKILL.md /Users/tai/ai-labs/ops/skills/shared/document-refine/RULES.md
+rollback:
+  method: restore listed files from the pre-change local Git diff and remove the added reference files if the update is rejected
+  destructive: false
+git:
+  mode: local
+  commit: null
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

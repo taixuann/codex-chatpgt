@@ -1,0 +1,30 @@
+change_id: CHG-20260727-003
+operation: document_franky_mention_routing
+component: codex_operator_guidance
+scope:
+  - /Users/tai/.codex/AGENTS.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260727-003/change.yaml
+preview:
+  summary: Add explicit guidance that @franky and subagent://franky requests must be delegated through the supported Franky role mechanism and workflow selection.
+  digest: sha256:franky-mention-routing-guidance-v1
+approval:
+  granted: true
+  authority: user-directed request to Aquinas to implement the routing protocol
+  preview_digest: sha256:franky-mention-routing-guidance-v1
+changed_paths:
+  - /Users/tai/.codex/AGENTS.md
+validation:
+  status: passed
+  commands:
+    - git diff --check
+    - read-back verification of AGENTS.md routing paragraph
+rollback:
+  method: remove the added routing paragraph from AGENTS.md and retain this evidence record
+  destructive: false
+git:
+  mode: local
+  commit: not-created
+  push: false
+promotion:
+  automatic: false
+  status: not-prepared

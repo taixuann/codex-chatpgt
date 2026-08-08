@@ -1,0 +1,58 @@
+version: 1
+id: WF-FRANKY-UNIFIED-MAINTENANCE
+name: Franky Unified Maintenance Engine
+category: franky
+goal: Unified maintenance pipeline for health reviews, flaw reasoning, multi-platform sync, promotion, and git finalization.
+inputs:
+  maintenance_op:
+    type: string
+    description: Maintenance operation to perform
+    enum:
+      - health_review
+      - inventory
+      - sync
+      - promote
+      - git_finalize
+outputs:
+  maintenance_report:
+    type: object
+    description: Summary of maintenance run, flaw report, and remediation suggestions
+steps:
+  - id: scan_and_detect
+    name: Scan Control Plane & Detect Flaws
+    inputs:
+      operation: "${inputs.maintenance_op}"
+    decision_logic: "Execute scan_control_plane.py and detect_flaws.py"
+    validation_gate:
+      assert_exit_code: 0
+    outputs:
+      flaw_data: "Detected flaws JSON"
+    reasoning_agent: franky
+    execution_agent: shared.execution/external-handoff
+
+  - id: reason_and_diagnose
+    name: Reason Root Causes & Diagnose Agent Workflows
+    inputs:
+      flaw_data: "${steps.scan_and_detect.outputs.flaw_data}"
+    decision_logic: "Execute reason_and_suggest.py and diagnose_agent_workflow.py"
+    validation_gate:
+      assert_exit_code: 0
+    outputs:
+      enriched_report: "Enriched report with root cause analysis"
+    reasoning_agent: franky
+    execution_agent: shared.execution/external-handoff
+
+  - id: generate_remediation_report
+    name: Generate Markdown Flaw Report & Remediation Plan
+    inputs:
+      enriched_report: "${steps.reason_and_diagnose.outputs.enriched_report}"
+    decision_logic: "Execute generate_flaw_report.py"
+    validation_gate:
+      assert_exit_code: 0
+    outputs:
+      maintenance_report: "Final maintenance report"
+    reasoning_agent: franky
+    execution_agent: shared.execution/external-handoff
+
+invocation_policy: workflow_only
+entrypoint: false
