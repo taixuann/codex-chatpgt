@@ -17,6 +17,7 @@ REQUIRED = {
     "sandbox_mode",
     "developer_instructions",
 }
+ALLOWED = set(REQUIRED)
 ALLOWED_SANDBOX = {"read-only", "workspace-write", "danger-full-access"}
 
 
@@ -29,6 +30,9 @@ def main() -> int:
         missing = REQUIRED - data.keys()
         if missing:
             raise ValueError(f"missing fields: {', '.join(sorted(missing))}")
+        unknown = set(data) - ALLOWED
+        if unknown:
+            raise ValueError(f"unknown fields: {', '.join(sorted(unknown))}")
         if data["sandbox_mode"] not in ALLOWED_SANDBOX:
             raise ValueError(f"unsupported sandbox_mode: {data['sandbox_mode']}")
         if not data["developer_instructions"].strip():

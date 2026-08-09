@@ -32,10 +32,11 @@ The retained adapters have distinct agent-specific reasons:
 | Prometheus | bounded workspace-write execution boundary | changed paths, tests, deviations, rollback |
 | Franky | control-plane permission/workflow boundary | scope, findings, validation, approval boundary |
 
-`preferred_skills` entries in TOML are routing hints, not required
-dependencies. If a hint is not installed on the active runtime, the parent
-must report that limitation and use the task contract or an available
-capability instead.
+Skill hints are deliberately kept out of the TOML adapters because the active
+Codex runtime rejects unknown profile keys. Route skills through task packets,
+role instructions, and the normal discovery surface instead. If a requested
+skill is not installed on the active runtime, the parent must report that
+limitation and use the task contract or an available capability instead.
 
 Names are personality labels; descriptions and developer instructions are the
 machine-readable routing contract. Model and reasoning are runtime defaults,

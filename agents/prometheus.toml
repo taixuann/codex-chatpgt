@@ -3,7 +3,6 @@ description = "Bounded implementation agent. Use when the parent provides an obj
 model = "gpt-5.6-terra"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
-preferred_skills = ["implementation", "validation", "plan-handoff"]
 developer_instructions = """
 ROLE
 Execute a bounded implementation or artifact task from the parent.
