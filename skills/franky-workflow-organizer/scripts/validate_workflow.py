@@ -56,8 +56,6 @@ def validate_dependencies(value: object, path: str) -> None:
             raise ValueError(f"{path}.{field} must be a list of non-empty strings")
     if "resolution" in value and (not isinstance(value["resolution"], str) or not value["resolution"]):
         raise ValueError(f"{path}.resolution must be a non-empty string")
-    # Optional dependencies are advisory capabilities. Their absence must not
-    # make repository CI fail; required workflow-step skills are checked below.
 
 
 def walk_forbidden(value: object, path: str = "workflow") -> str | None:
@@ -91,8 +89,10 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
         branch = data["branch"]
         if not isinstance(branch, dict) or not isinstance(branch.get("key"), str) or not isinstance(branch.get("value"), str):
             raise ValueError("branch requires string key and value")
-    if "dependencies" in data:
-        validate_dependencies(data["dependencies"], "dependencies")
+    dependencies = data.get("dependencies", {})
+    if dependencies:
+        validate_dependencies(dependencies, "dependencies")
+    optional_skills = set(dependencies.get("optional", [])) if isinstance(dependencies, dict) else set()
     if not nested and path.name in TOP_LEVEL_FAMILIES:
         branch_key, branch_count = TOP_LEVEL_FAMILIES[path.name]
         if not isinstance(data.get("pipelines"), list) or len(data["pipelines"]) != branch_count:
@@ -130,7 +130,7 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
             raise ValueError(f"step {step['id']} approval_gate must contain required and reason")
         if not isinstance(gate["required"], bool) or not isinstance(gate["reason"], str):
             raise ValueError(f"step {step['id']} approval_gate has invalid types")
-        if not skill_available(step["skill"]):
+        if not skill_available(step["skill"]) and step["skill"] not in optional_skills:
             roots = ", ".join(str(root) for root in skill_roots())
             raise ValueError(f"step {step['id']} references unavailable required skill: {step['skill']} (searched: {roots})")
         if "condition" in step and not isinstance(step["condition"], str):
