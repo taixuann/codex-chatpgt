@@ -35,8 +35,10 @@ performs a dry-run by default, and materializes only declared files under an
 explicit output root when `--apply` is supplied. It rejects traversal,
 control-plane paths, non-external unresolved links, duplicate paths, unsafe
 raw-data writes, and invalid create/update/preserve intents. Focused tests in
-`ops/scripts/tests/test_bootstrap_file_project.py` exercise adaptive
-materialization, dry-run, CLI apply, and failure-to-preserve repair behavior.
+`ops/scripts/tests/test_bootstrap_file_project.py` and
+`ops/scripts/tests/test_bootstrap_file_project_integration.py` exercise
+adaptive materialization, dry-run, CLI apply, brownfield updates, and
+failure-to-preserve repair behavior.
 
 No new global skill, workflow, schema, or project knowledge plane was created.
 The observed procedure remains small enough to live as a deterministic control
@@ -66,7 +68,11 @@ raw file failed with exit 1 and the bounded repair restored `preserve`; a clean
 fixture then applied successfully. The independent review of the actual diff
 found malformed non-mapping artifact entries could escape the intended
 `BootstrapError` boundary. The repair validates artifact entries before path
-collection and adds a regression test; the focused suite now passes six tests.
+collection and adds a regression test. The current branch follow-up also
+rejects Windows-absolute/NUL paths, refuses symlink targets and symlinked
+parent paths, requires an existing directory for brownfield mode, and rejects
+non-string intents. The focused discovery suite now passes nine tests,
+including the public-CLI scientific lifecycle fixture.
 
 ### Acceptance status
 
@@ -88,6 +94,13 @@ This slice provides bounded evidence for #5's implement/validate/repair loop,
 Issue/PLAN relationship without adding a graph registry or relationship file.
 The next genuinely ready step is review/acceptance of this #19 implementation,
 then a separately scoped #15 follow-up if the maintainer accepts the slice.
+
+### Reconciliation and remaining gate
+
+PR #20 remains open and has no recorded maintainer review. The implementation
+and deterministic evidence are review-ready, but AC-10 is intentionally not
+treated as accepted until a maintainer confirms the minimal surface and closes
+Issue #19 (or records an explicit waiver).
 
 # Requirements
 

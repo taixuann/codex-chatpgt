@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import tempfile
 from typing import Any
 
@@ -24,6 +24,8 @@ def _relative_path(value: Any) -> PurePosixPath:
     if not isinstance(value, str) or not value.strip():
         raise BootstrapError("artifact path must be a non-empty string")
     normalized = value.replace("\\", "/")
+    if "\x00" in normalized or PureWindowsPath(normalized).drive:
+        raise BootstrapError(f"artifact path must be relative and normalized: {value}")
     path = PurePosixPath(normalized)
     if not path.parts or path.is_absolute() or ".." in path.parts or "." in path.parts:
         raise BootstrapError(f"artifact path must be relative and normalized: {value}")
@@ -36,7 +38,12 @@ def validate_map(data: Any) -> dict[str, Any]:
     if not isinstance(data, dict) or not isinstance(data.get("project"), dict):
         raise BootstrapError("artifact map requires a project mapping")
     project = data["project"]
-    if not project.get("name") or not project.get("purpose"):
+    if (
+        not isinstance(project.get("name"), str)
+        or not project.get("name").strip()
+        or not isinstance(project.get("purpose"), str)
+        or not project.get("purpose").strip()
+    ):
         raise BootstrapError("project.name and project.purpose are required")
     if project.get("mode") not in {"new", "existing"}:
         raise BootstrapError("project.mode must be new or existing")
@@ -58,7 +65,7 @@ def validate_map(data: Any) -> dict[str, Any]:
             raise BootstrapError(f"duplicate artifact path: {key}")
         paths.add(key)
         intent = raw.get("intent", "create")
-        if intent not in ALLOWED_INTENTS:
+        if not isinstance(intent, str) or intent not in ALLOWED_INTENTS:
             raise BootstrapError(f"unsupported intent for {key}: {intent}")
         if rel == RAW_PREFIX or RAW_PREFIX in rel.parents:
             if intent != "preserve":
@@ -92,26 +99,40 @@ def load_map(path: Path) -> dict[str, Any]:
 
 def _safe_target(root: Path, rel: str) -> Path:
     root = root.resolve()
-    target = (root / rel).resolve()
+    target = root / rel
     try:
         target.relative_to(root)
     except ValueError as exc:
         raise BootstrapError(f"artifact escapes output root: {rel}") from exc
+    # Do not resolve before checking links: an in-project symlink must not be
+    # followed to a destination file during materialization.
+    current = target
+    while current != root:
+        if current.is_symlink():
+            raise BootstrapError(f"refusing symlink path: {rel}")
+        current = current.parent
     return target
 
 
 def materialize(data: dict[str, Any], output_root: Path, apply: bool) -> list[str]:
     root = output_root.resolve()
+    project = data.get("project", {})
+    if root.exists() and not root.is_dir():
+        raise BootstrapError("output root must be a directory")
+    if project.get("mode") == "existing" and not root.is_dir():
+        raise BootstrapError("existing project output root must already be a directory")
     if apply:
         root.mkdir(parents=True, exist_ok=True)
     actions: list[str] = []
     targets: list[tuple[dict[str, Any], Path]] = []
     for artifact in data["artifacts"]:
         target = _safe_target(root, artifact["path"])
-        if target.exists() and target.is_symlink():
+        if target.is_symlink():
             raise BootstrapError(f"refusing symlink target: {artifact['path']}")
         if target.exists() and target.is_dir():
             raise BootstrapError(f"artifact target must be a file: {artifact['path']}")
+        if target.exists() and not target.is_file():
+            raise BootstrapError(f"artifact target must be a regular file: {artifact['path']}")
         intent = artifact["intent"]
         if intent == "create" and target.exists():
             raise BootstrapError(f"create target already exists: {artifact['path']}")

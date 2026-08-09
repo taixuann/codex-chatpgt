@@ -109,6 +109,38 @@ class BootstrapFileProjectTests(unittest.TestCase):
             self.assertEqual(profile.read_text(encoding="utf-8"), "name: new\n")
             self.assertEqual(unrelated.read_text(encoding="utf-8"), "keep\n")
 
+    def test_rejects_symlink_targets_and_missing_brownfield_root(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            destination = root / "destination.txt"
+            destination.write_text("must remain\n", encoding="utf-8")
+            link = root / "project.yaml"
+            link.symlink_to(destination)
+            data = {
+                "project": {"name": "iv-notes", "purpose": "safe update", "mode": "existing"},
+                "artifacts": [{"path": "project.yaml", "intent": "update", "content": "changed\n"}],
+            }
+            with self.assertRaises(module.BootstrapError):
+                module.materialize(module.validate_map(data), root, True)
+            self.assertEqual(destination.read_text(encoding="utf-8"), "must remain\n")
+
+            missing = root / "missing-project"
+            brownfield = {
+                "project": {"name": "missing", "purpose": "must already exist", "mode": "existing"},
+                "artifacts": [{"path": "README.md", "content": "# missing\n"}],
+            }
+            with self.assertRaises(module.BootstrapError):
+                module.materialize(module.validate_map(brownfield), missing, False)
+
+    def test_rejects_non_string_intents_and_windows_absolute_paths(self):
+        module = load_module()
+        base = {"project": {"name": "x", "purpose": "y", "mode": "new"}}
+        with self.assertRaises(module.BootstrapError):
+            module.validate_map({**base, "artifacts": [{"path": "README.md", "intent": [], "content": "x"}]})
+        with self.assertRaises(module.BootstrapError):
+            module.validate_map({**base, "artifacts": [{"path": "C:\\project\\README.md", "content": "x"}]})
+
 
 if __name__ == "__main__":
     unittest.main()

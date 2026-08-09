@@ -67,6 +67,12 @@ Core proof remains:
 
 Current readiness:
 
+- **#19** — bounded file-first scientific project bootstrap is implemented on
+  PR #20. The current branch adds brownfield/symlink/path hardening and a
+  public-CLI scientific lifecycle fixture; the discovery suite passes 9 tests.
+  Issue #19 and PR #20 remain open pending maintainer review and AC-10
+  acceptance.
+
 - **#2** — execution-ready after syncing its branch with current `main`; active PLAN and draft PR #3 exist.
 - **#14** — external-skill qualification may run in parallel now.
 - **#17** — PLAN exists but initial proof is intentionally narrowed to #2 -> PLAN -> PR #3 and should piggyback on that path.
