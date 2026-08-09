@@ -80,9 +80,11 @@ Current readiness:
 - **#2** — bounded context acquisition is implemented and merged through PR #33
   (`edf446c`). The explicit-allowlist packet helper, schema-valid task fixture,
   deterministic tests, and hosted CI step are accepted as the v1 procedure.
-  Host-observable parent-resume/adapter traces remain unavailable, so the
-  Issue stays conditionally open for runtime acceptance rather than being
-  treated as fully proven.
+  A fresh read-only run against the current `/Users/tai/ai-labs` baseline
+  produced 3 canonical and 4 repository-evidence entries with no conflicts or
+  uncertainties. Host-observable parent-resume/adapter traces remain
+  unavailable, so the Issue stays conditionally open for runtime acceptance
+  rather than being treated as fully proven.
 - **#14** — external-skill qualification may run in parallel now.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
@@ -99,10 +101,11 @@ Current readiness:
   skills missing frontmatter; follow-up Codex startup reports zero
   malformed-agent and missing-frontmatter warnings.
 - **#10** — the Graph Engineering pilot has consumed the merged #2 helper in
-  read-only mode. Its packet contained 2 canonical + 3 repository-evidence
-  entries; the project validator passed (12 pages, 21 Canvas nodes, 6 edges),
-  and a 16-file before/after hash manifest was unchanged. This is conditional
-  evidence pending #6 review and host-runtime limitations.
+  read-only mode. The current rerun produced 3 canonical + 4
+  repository-evidence entries; the project validator passed (12 pages, 21
+  Canvas nodes, 6 edges), and the selected project/instruction file hashes
+  were unchanged before and after execution. This is conditional evidence
+  pending #6 review and host-runtime limitations.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
@@ -151,4 +154,8 @@ Simplification should remove duplicate machinery or unclear ownership, not colla
 
 ## Known execution gap
 
-The immediate blocker to new core evidence is that #2 has not yet been run against the current repository/runtime baseline. Its draft PR branch predates several documentation and accepted CI updates and should be synced/reconciled before local runtime reconnaissance begins. The read-only Graph Engineering pilot now passes its project validator without modifying project files, but it remains conditional evidence until #2/#5/#6 runtime behavior and review are observed.
+The bounded #2 helper has now been rerun against the current repository/runtime
+baseline and the read-only Graph Engineering pilot remains hash-stable. The
+remaining gap is host-observable parent-resume/adapter behavior and the #6
+independent-review gate; neither should be inferred from deterministic tests
+or the project validator.

@@ -50,12 +50,15 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
 - Issue #2’s bounded context-acquisition procedure is merged through PR #33
   (`edf446c`): explicit allowlist, deterministic packet hashes, sensitive-path
   and symlink rejection, task-contract fixture, focused tests, and hosted CI
-  validation. It is conditionally accepted as v1; host-observable parent-resume
-  and adapter-selection traces remain unavailable.
-- The Graph Engineering #10 pilot now consumes that helper read-only: 2
-  canonical + 3 project-evidence packet entries, validator pass (12 pages, 21
-  Canvas nodes, 6 edges), and 16 project/instruction files unchanged by
-  before/after hashes. This remains conditional until the #6 independent
+  validation. A fresh read-only run against the current `/Users/tai/ai-labs`
+  baseline produced 3 canonical and 4 repository-evidence entries with no
+  conflicts or uncertainties. It is conditionally accepted as v1;
+  host-observable parent-resume and adapter-selection traces remain
+  unavailable.
+- The Graph Engineering #10 pilot now consumes that helper read-only: 3
+  canonical + 4 project-evidence packet entries, validator pass (12 pages, 21
+  Canvas nodes, 6 edges), and the selected project/instruction files unchanged
+  by before/after hashes. This remains conditional until the #6 independent
   review gate is resolved.
 
 ## Read next
