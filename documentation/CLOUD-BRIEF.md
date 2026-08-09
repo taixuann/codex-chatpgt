@@ -83,6 +83,10 @@ The next gate is selective #6 review against the #5/#10 evidence. The
 activation-ready review PLAN is
 `plans/PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md`; it must stop rather than
 claim independence if the host cannot provide a separate reviewer context.
+The first local review probe also found unsupported `preferred_skills` keys in
+all agent adapters; PR #34 (`200b606`) repaired that runtime-schema defect and
+the follow-up probe reported zero malformed-role warnings. External review
+execution remains approval-gated because it would transmit repository content.
 read-only Graph Engineering validator currently passes (12 pages, 21 Canvas
 nodes, 6 edges) and a 16-file before/after hash check found no project
 mutation; this remains conditional evidence until the upstream runtime gates
