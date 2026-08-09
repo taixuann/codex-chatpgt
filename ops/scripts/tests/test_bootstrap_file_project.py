@@ -63,6 +63,14 @@ class BootstrapFileProjectTests(unittest.TestCase):
         with self.assertRaises(module.BootstrapError):
             module.validate_map({"project": {"name": "x", "purpose": "y", "mode": "new"}, "artifacts": [{"path": "agents/demo.toml", "content": "bad"}]})
 
+    def test_rejects_malformed_artifact_entries_with_bootstrap_error(self):
+        module = load_module()
+        with self.assertRaises(module.BootstrapError):
+            module.validate_map({
+                "project": {"name": "x", "purpose": "y", "mode": "new"},
+                "artifacts": ["not-a-mapping"],
+            })
+
     def test_cli_dry_run_then_apply_is_file_first(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

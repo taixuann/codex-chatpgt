@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SCIENTIFIC-PROJECT-BOOTSTRAP-20260809-001
 issue: 19
-status: implementation-complete
+status: review-ready
 repository: taixuann/codex-chatpgt
 branch: codex/issue19-adaptive-bootstrap-v1
 created: 2026-08-09
@@ -41,6 +41,52 @@ materialization, dry-run, CLI apply, and failure-to-preserve repair behavior.
 No new global skill, workflow, schema, or project knowledge plane was created.
 The observed procedure remains small enough to live as a deterministic control
 plane tool plus ordinary instructions.
+
+## Execution record — 2026-08-09
+
+The authoritative Issue #19 body was read before this execution. Existing
+capabilities were checked for overlap: `franky-project-linker`,
+`franky-install-project-link`, `franky-workflow-organizer`,
+`franky-workflow-factory`, and file/document refinement capabilities. The
+#14 external-skill plan contains no qualified project-bootstrap or
+file-workbench candidate that should replace this bounded behavior. No new
+skill, workflow, schema, or project knowledge plane was introduced.
+
+A bounded existing-project scientific fixture was exercised with an artifact map
+containing orientation, project profile, metadata guidance, analysis guidance,
+external Wiki/OpenScience references, and one pre-existing immutable raw file.
+Dry-run produced no files; apply produced exactly the four declared new files
+and preserved the raw file. The raw SHA-256 was unchanged. Optional `samples`,
+`figures`, `manuscript`, `tools`, `workflows`, `skills`, and `agents` surfaces
+were not created or copied.
+
+For the #5 execution/validation lens, an intentional `create` request for the
+raw file failed with exit 1 and the bounded repair restored `preserve`; a clean
+fixture then applied successfully. The independent review of the actual diff
+found malformed non-mapping artifact entries could escape the intended
+`BootstrapError` boundary. The repair validates artifact entries before path
+collection and adds a regression test; the focused suite now passes six tests.
+
+### Acceptance status
+
+| Criterion | Status | Result |
+| --- | --- | --- |
+| AC-01 | pass | Existing-project execution plus greenfield dry-run/apply test coverage |
+| AC-02 | pass | Only declared project modules materialized; no empty optional scaffold |
+| AC-03 | pass | Existing local capabilities inspected; no new skill created |
+| AC-04 | pass | Multi-file artifact map carries purpose, format, dependencies, and links |
+| AC-05 | pass | Raw file preserve boundary and unchanged hash verified |
+| AC-06 | pass | Wiki/OpenScience represented only as external references |
+| AC-07 | pass | No global agent/workflow definitions copied into the fixture |
+| AC-08 | pass | Research workflow is referenced externally; no #16 lifecycle duplicated |
+| AC-09 | pass | No-skill packaging decision follows one observed deterministic contract |
+| AC-10 | conditional-pass | Human-readable minimal surface is demonstrated; maintainer acceptance remains pending |
+
+This slice provides bounded evidence for #5's implement/validate/repair loop,
+#6's review gate, #15's proactive system-change path, and #17's existing
+Issue/PLAN relationship without adding a graph registry or relationship file.
+The next genuinely ready step is review/acceptance of this #19 implementation,
+then a separately scoped #15 follow-up if the maintainer accepts the slice.
 
 # Requirements
 

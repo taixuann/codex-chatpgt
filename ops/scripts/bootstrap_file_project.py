@@ -45,15 +45,13 @@ def validate_map(data: Any) -> dict[str, Any]:
         raise BootstrapError("artifact map requires a non-empty artifacts list")
 
     normalized: list[dict[str, Any]] = []
-    declared_paths = {
-        _relative_path(item.get("path")).as_posix()
-        for item in artifacts
-        if isinstance(item, dict)
-    }
+    declared_paths: set[str] = set()
+    for item in artifacts:
+        if not isinstance(item, dict):
+            raise BootstrapError("each artifact must be a mapping")
+        declared_paths.add(_relative_path(item.get("path")).as_posix())
     paths: set[str] = set()
     for raw in artifacts:
-        if not isinstance(raw, dict):
-            raise BootstrapError("each artifact must be a mapping")
         rel = _relative_path(raw.get("path"))
         key = rel.as_posix()
         if key in paths:
@@ -112,6 +110,8 @@ def materialize(data: dict[str, Any], output_root: Path, apply: bool) -> list[st
         target = _safe_target(root, artifact["path"])
         if target.exists() and target.is_symlink():
             raise BootstrapError(f"refusing symlink target: {artifact['path']}")
+        if target.exists() and target.is_dir():
+            raise BootstrapError(f"artifact target must be a file: {artifact['path']}")
         intent = artifact["intent"]
         if intent == "create" and target.exists():
             raise BootstrapError(f"create target already exists: {artifact['path']}")
