@@ -40,6 +40,11 @@ not claim a hard platform hook.
 
 ## Global operating kernel
 
+The canonical human-readable semantics for the shared lifecycle live in
+[`documentation/OPERATING-WORKFLOW.md`](documentation/OPERATING-WORKFLOW.md).
+Keep this file as concise runtime policy; do not duplicate the full lifecycle
+procedure here or in persona-specific workflows.
+
 For non-trivial work, use this conditional lifecycle:
 
 ```text
