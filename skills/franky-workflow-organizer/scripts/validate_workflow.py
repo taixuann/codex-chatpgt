@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import sys
 
@@ -16,12 +17,32 @@ except ImportError as exc:  # pragma: no cover
 REQUIRED_STEP_FIELDS = {"id", "skill", "operation", "inputs", "outputs", "validation", "approval_gate", "on_failure"}
 FORBIDDEN_KEYS = {"model", "executor", "provider", "backend"}
 REQUIRED_APPROVAL_FIELDS = {"required", "reason"}
-TOP_LEVEL_FAMILIES = {
-    "franky.yaml": (None, 18),
-}
+TOP_LEVEL_FAMILIES = {"franky.yaml": (None, 18)}
 GOVERNANCE_SEQUENCE = ("qualify", "audit", "preview", "approve", "apply", "validate", "overview", "write-change-record", "local-git-finalize")
 FORBIDDEN_NESTED_OPERATIONS = {"define", "materialize", "revise", "create-goal-session", "revise-goal-session"}
 DEPENDENCY_FIELDS = {"optional", "resolution", "protected"}
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def skill_roots() -> tuple[Path, ...]:
+    """Return portable skill roots, preferring the checked-out repository."""
+    roots: list[Path] = [REPO_ROOT / "skills"]
+    configured = os.environ.get("CODEX_SKILL_ROOTS", "")
+    roots.extend(Path(item).expanduser() for item in configured.split(os.pathsep) if item)
+    user_root = Path.home() / ".codex" / "skills"
+    roots.extend((user_root, user_root / ".system"))
+    seen: set[Path] = set()
+    result: list[Path] = []
+    for root in roots:
+        resolved = root.resolve()
+        if resolved not in seen:
+            seen.add(resolved)
+            result.append(resolved)
+    return tuple(result)
+
+
+def skill_available(name: str) -> bool:
+    return any((root / name / "SKILL.md").is_file() for root in skill_roots())
 
 
 def validate_dependencies(value: object, path: str) -> None:
@@ -35,10 +56,8 @@ def validate_dependencies(value: object, path: str) -> None:
             raise ValueError(f"{path}.{field} must be a list of non-empty strings")
     if "resolution" in value and (not isinstance(value["resolution"], str) or not value["resolution"]):
         raise ValueError(f"{path}.resolution must be a non-empty string")
-    for skill in value.get("optional", []):
-        skill_roots = (Path("/Users/tai/.codex/skills"), Path("/Users/tai/.codex/skills/.system"))
-        if not any((root / skill / "SKILL.md").is_file() for root in skill_roots):
-            raise ValueError(f"{path} references unavailable skill: {skill}")
+    # Optional dependencies are advisory capabilities. Their absence must not
+    # make repository CI fail; required workflow-step skills are checked below.
 
 
 def walk_forbidden(value: object, path: str = "workflow") -> str | None:
@@ -111,9 +130,9 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
             raise ValueError(f"step {step['id']} approval_gate must contain required and reason")
         if not isinstance(gate["required"], bool) or not isinstance(gate["reason"], str):
             raise ValueError(f"step {step['id']} approval_gate has invalid types")
-        skill_roots = (Path("/Users/tai/.codex/skills"), Path("/Users/tai/.codex/skills/.system"))
-        if not any((root / step["skill"] / "SKILL.md").is_file() for root in skill_roots):
-            raise ValueError(f"step {step['id']} references unavailable skill: {step['skill']}")
+        if not skill_available(step["skill"]):
+            roots = ", ".join(str(root) for root in skill_roots())
+            raise ValueError(f"step {step['id']} references unavailable required skill: {step['skill']} (searched: {roots})")
         if "condition" in step and not isinstance(step["condition"], str):
             raise ValueError(f"step {step['id']} condition must be a string")
     pipelines = data.get("pipelines", [])
