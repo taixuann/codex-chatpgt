@@ -53,10 +53,11 @@ file-workbench candidate that should replace this bounded behavior. No new
 skill, workflow, schema, or project knowledge plane was introduced.
 
 A bounded existing-project scientific fixture was exercised with an artifact map
-containing orientation, project profile, metadata guidance, analysis guidance,
-external Wiki/OpenScience references, and one pre-existing immutable raw file.
-Dry-run produced no files; apply produced exactly the four declared new files
-and preserved the raw file. The raw SHA-256 was unchanged. Optional `samples`,
+containing orientation, project profile, metadata guidance, processed-data and
+analysis boundaries, results guidance, external Wiki/OpenScience references,
+and one pre-existing immutable raw file. Dry-run produced no files; apply
+produced exactly the six declared new files and preserved the raw file. The
+raw SHA-256 was unchanged. Optional `samples`,
 `figures`, `manuscript`, `tools`, `workflows`, `skills`, and `agents` surfaces
 were not created or copied.
 
