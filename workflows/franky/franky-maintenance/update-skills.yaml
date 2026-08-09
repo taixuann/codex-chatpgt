@@ -27,6 +27,7 @@ steps:
   - id: review-updated-skills
     skill: review-agent
     operation: review_proposed_package
+    condition: independent external skill review is required and review-agent is available
     inputs: [updated skill proposal, provenance evidence, dependency inventory]
     outputs: [read-only review findings]
     validation: [review findings are returned before the update is finalized]
