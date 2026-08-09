@@ -85,10 +85,6 @@ jobs:
         id: inventory
         run: python skills/franky-maintenance/scripts/run_session_inventory.py --root . --sessions-dir skills/franky-maintenance/scripts/fixtures --since-hours 24
 
-      - name: Validate scheduled personal-skill scope
-        id: scheduled_scope
-        run: python skills/franky-maintenance/scripts/validate_scheduled_scope.py skills/franky-maintenance
-
       - name: Validate Git allowlist
         id: allowlist
         run: python skills/franky-maintenance/scripts/validate_git_allowlist.py .
@@ -108,11 +104,11 @@ jobs:
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
             echo '| Canonical workflow IO/cache | ${{ steps.io_cache.outcome }} |'
             echo '| Audit record | ${{ steps.audit.outcome }} |'
-            echo '| Scheduler | ${{ steps.scheduler.outcome }} |'
-            echo '| Session inventory | ${{ steps.inventory.outcome }} |'
-            echo '| Scheduled scope | ${{ steps.scheduled_scope.outcome }} |'
+            echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'
+            echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
             echo 'Legacy/retired root workflow files are not validated as canonical contracts.'
             echo 'Optional external skills may be unresolved in CI; required workflow-step skills must resolve from repository or configured skill roots.'
+            echo 'Personal scheduled-scope enforcement remains a local-runtime check because it depends on the actual Codex personal skill root.'
           } >> "$GITHUB_STEP_SUMMARY"
