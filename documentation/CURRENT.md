@@ -89,7 +89,14 @@ Current readiness:
 - **#5** — activated with `PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`;
   PR #33 is the bounded change surface and its induced failure/repair plus
   closure evidence are now being exercised.
-- **#6/#10** — remain gated on the #5 execution slice and selective review.
+- **#6** — selective review remains an open gate. The current host does not
+  expose a separate Athena adapter/resume trace, so deterministic CI is not
+  being misreported as independent judgment.
+- **#10** — the Graph Engineering pilot has consumed the merged #2 helper in
+  read-only mode. Its packet contained 2 canonical + 3 repository-evidence
+  entries; the project validator passed (12 pages, 21 Canvas nodes, 6 edges),
+  and a 16-file before/after hash manifest was unchanged. This is conditional
+  evidence pending #6 review and host-runtime limitations.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
