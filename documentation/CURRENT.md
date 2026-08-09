@@ -77,13 +77,19 @@ Current readiness:
   deterministic helper and colocated tests. No workflow or second
   `file-workbench` skill exists.
 
-- **#2** — the earlier draft PR #3 was superseded and closed during cleanup; a
-  fresh execution branch must be created from the current `main` if this proof
-  is resumed.
+- **#2** — bounded context acquisition is implemented and merged through PR #33
+  (`edf446c`). The explicit-allowlist packet helper, schema-valid task fixture,
+  deterministic tests, and hosted CI step are accepted as the v1 procedure.
+  Host-observable parent-resume/adapter traces remain unavailable, so the
+  Issue stays conditionally open for runtime acceptance rather than being
+  treated as fully proven.
 - **#14** — external-skill qualification may run in parallel now.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
-- **#5/#6/#10** — backlog PLANs exist but remain blocked by upstream evidence.
+- **#5** — activated with `PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`;
+  PR #33 is the bounded change surface and its induced failure/repair plus
+  closure evidence are now being exercised.
+- **#6/#10** — remain gated on the #5 execution slice and selective review.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
@@ -109,7 +115,9 @@ Current readiness:
 
 `documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
 
-Issue #2 and #17 also have branch-scoped execution PLANs tied to their active branches.
+Issue #2 and #17 now link to current live/revised PLANs; historical PR #3 is
+not an active proof fixture. #5 is activation-ready against the merged #2
+contract.
 
 ## Anti-overengineering state
 

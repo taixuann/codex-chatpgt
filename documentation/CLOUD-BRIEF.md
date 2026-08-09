@@ -47,6 +47,11 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   platform was introduced. Empirical runtime acceptance remains open because
   the available Codex probe does not expose AGENTS load timing, automatic
   closeout, compaction internals, or custom adapter selection.
+- Issue #2’s bounded context-acquisition procedure is merged through PR #33
+  (`edf446c`): explicit allowlist, deterministic packet hashes, sensitive-path
+  and symlink rejection, task-contract fixture, focused tests, and hosted CI
+  validation. It is conditionally accepted as v1; host-observable parent-resume
+  and adapter-selection traces remain unavailable.
 
 ## Read next
 
@@ -69,8 +74,8 @@ Issue #19 / PR #20 is now accepted: PR #20 was squash-merged into `main` as
 `a87a948` and the Issue is closed. Do not add a second `file-workbench` skill or
 duplicate OpenScience capabilities until a distinct reusable contract exists.
 The #13/#21 rationalization is now applied to the control-plane baseline.
-The next vertical proof is a fresh #2 context-acquisition run followed by #5
-closure/validation, selective #6 review, and the real-project #10 pilot. The
+The next vertical proof is now #5 closure/validation against the merged #2
+surface, followed by selective #6 review and the real-project #10 pilot. The
 read-only Graph Engineering validator currently passes (12 pages, 21 Canvas
 nodes, 6 edges) and a 16-file before/after hash check found no project
 mutation; this remains conditional evidence until the upstream runtime gates

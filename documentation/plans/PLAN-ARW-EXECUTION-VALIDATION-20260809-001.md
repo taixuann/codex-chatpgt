@@ -1,9 +1,9 @@
 ---
 id: PLAN-ARW-EXECUTION-VALIDATION-20260809-001
 issue: 5
-status: blocked
-blocked_by: [2]
-activation_gate: issue-2-reviewed
+status: execution-ready
+blocked_by: []
+activation_gate: issue-2-reviewed-conditional
 scope: bounded-execution-validation
 ---
 
@@ -13,11 +13,19 @@ Prove one bounded implementation path from explicit scope/acceptance through exe
 
 # Activation gate
 
-Do not execute until #2 is reviewed and its actual context/task-boundary contracts are known. Revise this PLAN near activation if #2 changes assumptions.
+#2 is now implemented in PR #33 (`edf446c`) with a bounded allowlist,
+deterministic packet shape, task-contract fixture, and explicit host-runtime
+limitations. This PLAN is activated for one downstream vertical slice. The
+runtime limitation remains an acceptance uncertainty, not a reason to invent a
+second context subsystem.
 
 # Starting evidence
 
-Use the accepted output shape from #2 rather than inventing a new execution contract. Prefer existing task-contract/schema/runtime behavior where sufficient.
+Use the accepted output shape from #2 rather than inventing a new execution
+contract. Prefer existing task-contract/schema/runtime behavior where
+sufficient. The representative task is the merged #2 implementation surface:
+helper, task fixture, CI step, README pointer, workflow guidance, tests, and
+this PLAN's activation reconciliation.
 
 # Execution phases
 
