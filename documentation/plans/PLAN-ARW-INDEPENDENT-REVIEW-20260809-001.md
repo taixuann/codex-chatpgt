@@ -61,6 +61,19 @@ Review findings remain conditional rather than fully accepted: host-level
 parent-resume/adapter traces are unavailable, and the project validator is a
 structural check rather than a scientific-quality judgment.
 
+## Latest host probe — 2026-08-09
+
+A fresh Codex `0.146.0` ephemeral read-only probe was run with provider
+connectivity from the control-plane checkout and returned `PROBE_OK`. No
+malformed-agent-role or missing-skill-frontmatter warnings appeared. The
+probe did report unrelated runtime/vendor warnings: the local model-cache
+schema lacks `base_instructions`, one optional plugin has invalid icon/default
+prompt metadata, rollout lookup fell back after state-database discrepancies,
+skill descriptions were shortened to fit the configured context budget, and
+the optional Computer Use MCP could not start. These observations do not
+provide a native parent-resume or adapter-selection trace, so #6 remains
+conditional and no warning is treated as a hidden acceptance proof.
+
 # Execution phases
 
 1. Define review-trigger criteria from risk, uncertainty, architecture/scientific judgment, repeated failure, and validation gaps.

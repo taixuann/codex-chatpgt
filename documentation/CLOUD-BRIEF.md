@@ -102,7 +102,13 @@ the follow-up probe reported zero malformed-role warnings. External review
 execution remains approval-gated because it would transmit repository content.
 The local discovery-root probe is now clean: both legacy skills with missing
 frontmatter were repaired and the follow-up startup reported zero malformed-
-agent or missing-frontmatter warnings.
+agent or missing-frontmatter warnings. A fresh Codex 0.146.0 read-only probe
+with provider connectivity returned `PROBE_OK` and reproduced those clean
+adapter/frontmatter results. It also exposed unrelated environment/vendor
+warnings (stale model-cache schema, optional plugin manifest fields,
+rollout-db fallback, skill-description budget truncation, and an unavailable
+optional Computer Use MCP); these do not prove or disprove the remaining
+parent-resume/adapter-selection gate.
 read-only Graph Engineering validator currently passes (12 pages, 21 Canvas
 nodes, 6 edges) and a 16-file before/after hash check found no project
 mutation; this remains conditional evidence until the upstream runtime gates

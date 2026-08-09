@@ -101,7 +101,13 @@ Current readiness:
   local Codex review probe found and repaired unsupported `preferred_skills`
   adapter fields in PR #34 (`200b606`); the local discovery root was also
   repaired for two legacy skills missing frontmatter, with follow-up startup
-  reports showing zero malformed-agent and missing-frontmatter warnings.
+  reports showing zero malformed-agent and missing-frontmatter warnings. A
+  fresh Codex 0.146.0 read-only probe with provider connectivity returned
+  `PROBE_OK` and reproduced no malformed-agent/frontmatter warnings; it did
+  expose unrelated environment/vendor warnings (stale model-cache schema,
+  optional plugin manifest fields, rollout-db fallback, skill-description
+  budget truncation, and an unavailable optional Computer Use MCP). These are
+  recorded as runtime observations, not silently counted as acceptance.
 - **#10** — the Graph Engineering pilot has conditionally passed the selected
   read-only integration slice. It consumed the merged #2 helper in
   read-only mode. An earlier live Issue comment records 2 canonical + 3
