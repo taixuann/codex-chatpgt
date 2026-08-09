@@ -36,6 +36,7 @@ steps:
   - id: update
     skill: skill-installer
     operation: update_approved_skills
+    condition: approved update source requires skill-installer and skill-installer is available
     inputs: [skill collision report, dependency inventory, approved change]
     outputs: [updated skills, skill version report]
     validation: [quick_validate, interface, dependency, and hash checks pass]

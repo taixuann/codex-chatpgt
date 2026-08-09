@@ -45,6 +45,7 @@ steps:
   - id: prepare-skill-change
     skill: skill-installer
     operation: plan_change
+    condition: selected source requires skill-installer and skill-installer is available
     inputs: [collision report, dependency inventory, candidate skill]
     outputs: [skill package proposal, rollback plan]
     validation: [frontmatter, interface metadata, resources, and dependencies pass]
@@ -53,6 +54,7 @@ steps:
   - id: apply-skill-change
     skill: skill-installer
     operation: apply_change
+    condition: selected source requires skill-installer and skill-installer is available
     inputs: [approved skill package proposal, rollback plan]
     outputs: [updated skill package]
     validation: [package is at the approved path and .system is unchanged]
