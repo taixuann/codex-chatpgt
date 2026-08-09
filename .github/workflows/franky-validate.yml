@@ -73,6 +73,10 @@ jobs:
             python skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
           done
 
+      - name: Validate canonical task contract
+        id: task_contract
+        run: python ops/scripts/validate_task_contract.py ops/schemas/examples/task-contract.yaml
+
       - name: Validate audit-record template
         id: audit
         run: python skills/franky-maintenance/scripts/validate_audit_record.py skills/franky-maintenance/templates/audit-record.yaml
@@ -107,6 +111,7 @@ jobs:
             echo '| Canonical workflow contracts | ${{ steps.contracts.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
             echo '| Canonical workflow IO/cache | ${{ steps.io_cache.outcome }} |'
+            echo '| Task contract | ${{ steps.task_contract.outcome }} |'
             echo '| Audit record | ${{ steps.audit.outcome }} |'
             echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'
             echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'

@@ -36,6 +36,10 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 - Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml).
 - Change/audit evidence: [`../ops/changes/`](../ops/changes/).
 - Deterministic repository CI: [`../.github/workflows/franky-validate.yml`](../.github/workflows/franky-validate.yml), accepted through PR #18. It is path-filtered to control-plane/runtime surfaces, validates the canonical workflow surface rather than retired root files, resolves repository/local skills portably, permits unresolved optional external skills only on explicitly conditional steps, and leaves personal local-runtime scope checks outside hosted CI.
+- The canonical task-contract schema is checked by
+  [`../ops/scripts/validate_task_contract.py`](../ops/scripts/validate_task_contract.py)
+  against the checked-in example under `ops/schemas/examples/` and by focused
+  unit tests.
 
 The shared operating lifecycle remains capability-first, bounded, validation-oriented, and review-selective. `OPERATING-WORKFLOW.md` is the human-readable semantic source; machine-readable workflows are justified only when runtime state/gate enforcement adds value.
 
@@ -67,13 +71,11 @@ Core proof remains:
 
 Current readiness:
 
-- **#19** — bounded file-first scientific project bootstrap is implemented on
-  PR #20. The current branch adds brownfield/symlink/path hardening and a
-  public-CLI scientific lifecycle fixture; the discovery suite passes 9 tests.
-  One `project-bootstrap` skill now owns the agent-facing procedure around the
-  deterministic helper; no workflow or second `file-workbench` skill exists.
-  Issue #19 and PR #20 remain open pending maintainer review and AC-10
-  acceptance.
+- **#19** — bounded file-first scientific project bootstrap is merged to `main`
+  through PR #20 (merge commit `a87a948`); Issue #19 is closed. The packaged
+  `project-bootstrap` skill owns the agent-facing procedure around its
+  deterministic helper and colocated tests. No workflow or second
+  `file-workbench` skill exists.
 
 - **#2** — execution-ready after syncing its branch with current `main`; active PLAN and draft PR #3 exist.
 - **#14** — external-skill qualification may run in parallel now.
@@ -100,7 +102,10 @@ The current design intentionally preserves semantic distinctions while delaying 
 - no model-router platform before representative tasks;
 - no project lifecycle adapter unless real project evidence requires it;
 - no plugin/harness abstraction before stable behavior exists;
-- no broad skill/workflow cleanup before #13 activation.
+- #13 has an execution-ready disposition matrix, but its activation gate still
+  requires the upstream runtime evidence listed in its PLAN.
+- #21 owns physical cleanup after each #13 disposition is implemented and
+  validated; proof-only branch artifacts are not canonical state.
 
 Simplification should remove duplicate machinery or unclear ownership, not collapse distinctions that preserve provenance, authority, validation, or review independence.
 

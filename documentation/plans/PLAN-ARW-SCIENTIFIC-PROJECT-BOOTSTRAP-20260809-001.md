@@ -101,10 +101,10 @@ then a separately scoped #15 follow-up if the maintainer accepts the slice.
 
 ### Reconciliation and remaining gate
 
-PR #20 remains open and has no recorded maintainer review. The implementation
-and deterministic evidence are review-ready, but AC-10 is intentionally not
-treated as accepted until a maintainer confirms the minimal surface and closes
-Issue #19 (or records an explicit waiver).
+PR #20 is merged into `main` as `a87a948`, and Issue #19 is closed. The
+implementation and deterministic evidence are accepted as the bounded
+control-plane baseline; future changes remain subject to the focused tests and
+normal pull-request review.
 
 # Requirements
 

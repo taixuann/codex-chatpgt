@@ -51,8 +51,8 @@ whitespace checks. The final commit and remote ref are recorded in Git history.
 
 ## Next decision
 
-First obtain maintainer review/acceptance of Issue #19 / PR #20, with AC-10
-remaining an explicit human gate. Do not add a second `file-workbench` skill or
+Issue #19 / PR #20 is now accepted: PR #20 was squash-merged into `main` as
+`a87a948` and the Issue is closed. Do not add a second `file-workbench` skill or
 duplicate OpenScience capabilities until a distinct reusable contract exists.
-Afterward, resume the planned `context-strengthening` and
-`repository-exploration` slice.
+The next bounded step is the #13/#21 rationalization handoff; it does not
+authorize mass cleanup without runtime evidence.

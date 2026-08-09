@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-ARCHITECTURE-RECONCILIATION-20260809-001
 issue: 22
-status: ready-after-pr20-stable
+status: reconciled
 repository: taixuann/codex-chatpgt
 created: 2026-08-09
 ---
@@ -276,6 +276,24 @@ Expected hypotheses to challenge:
 
 Do not delete workflows in this phase unless a tiny obviously-dead compatibility file can be removed without broad reference churn and doing so materially improves the focused architecture PR.
 
+### Confirmed inventory (2026-08-09)
+
+| Surface | Repository consumer | Persistent state / enforced gate | Disposition |
+| --- | --- | --- | --- |
+| `workflows/franky/franky.yaml` + `lifecycle-contract.yaml` | Nested paths and the hosted layout/contract validators | State, approvals, and recovery are declared in YAML; no local dispatcher or resume store was found | KEEP as compatibility contract; #13 may simplify after runtime evidence |
+| `workflows/franky/franky-install/*` | Branches from the canonical Franky entrypoint and install skills | Ordering is declarative; no executable engine was found | KEEP pending #13 consumer review |
+| `workflows/franky/franky-maintenance/*` | Branches from the canonical Franky entrypoint and maintenance skills | Declarative gates; no executable engine was found | KEEP pending #13 consumer review |
+| `workflows/franky/general-workflow-factory/*` | `franky-workflow-factory` script and skill; staged output under `workflows/temp/` | Proposal files are staged, but no runtime consumer or resume store was found | DEFER; candidate for retirement in #13 |
+| `workflows/feynman/*` | Feynman skill procedures and project-scoped documentation | Domain ordering is documented; no generic dispatcher was found | KEEP as project/domain extensions |
+| `workflows/shared/session-closeout.yaml` | `shared-session-closeout` procedure | Closeout state is represented in the file; no runtime consumer was found | DEFER; compare with the skill in #13 |
+| legacy root `workflows/franky/install.yaml` / `maintenance.yaml` | No references outside their own files and canonical docs | No state or enforcement consumer found | RETIRE candidate; remove only in a focused #13 change |
+
+The audit used repository reference searches and validator entrypoints. It did
+not infer host runtime behavior from YAML: no executable workflow dispatcher,
+resume store, or approval enforcer is present in this checkout. Consequently,
+the current files remain compatibility contracts until a real consumer is
+observed.
+
 ## Phase 4 — Reclassify architecture documents
 
 ### Keep / update
@@ -318,6 +336,24 @@ Update Issue #21 with only the physical consequences that remain after #13:
 - documentation tree / decision-record migration;
 - obsolete validators and artifact wrappers;
 - branch/artifact rules.
+
+## Reconciliation result
+
+PR #20 is now merged into `main` as commit `a87a948`; Issue #19 is closed. The
+agent-facing bootstrap procedure is therefore confirmed as one reusable
+`skills/project-bootstrap/` skill colocated with its deterministic helper and
+tests. No `file-workbench` skill or project workflow was created.
+
+The fourteen Franky/shared capabilities named in the original hypotheses are
+recorded in the companion #13 plan with an evidence-backed disposition matrix.
+The matrix is a follow-up handoff, not an authorization to remove components in
+this reconciliation slice. Physical cleanup remains bounded to #13/#21.
+
+The canonical task-contract schema now has a deterministic validator at
+`ops/scripts/validate_task_contract.py`, a checked-in example under
+`ops/schemas/examples/`, and a focused two-case unit test. Hosted control-plane
+CI runs that validator alongside the existing skill, agent, workflow, and
+bootstrap checks.
 
 # Expected Changed Components
 
