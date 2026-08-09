@@ -89,6 +89,11 @@ If sufficient, continue directly.
 
 If insufficient, acquire only the missing material context. A small lookup may remain in the parent context. Use a bounded explorer such as Argus only when isolation, scale, or parallelism justifies delegation.
 
+For a repeatable local repository packet, use the explicit-allowlist helper
+`ops/scripts/acquire_context_packet.py`. It reads UTF-8 regular files, records
+deterministic hashes, and emits evidence only; it does not decide sufficiency,
+route agents, interpret project content, or write checkpoints.
+
 A capability need does not automatically imply a subagent.
 
 ### 3a. Fresh logical-session orientation
