@@ -69,8 +69,9 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   local Codex runtime and its Wiki-side contract/read-only surface passes.
   Codex discovery is confirmed, but no live evidence packet was returned in
   the available probes because MCP approval and provider/DNS startup failed.
-  The registered stdio command itself returned a valid `wiki-evidence/v1`
-  packet in a direct JSON-RPC probe, proving transport but not model routing.
+  The registered stdio command itself returned valid `wiki-evidence/v1`
+  packets for grounded and insufficient queries in a direct JSON-RPC probe,
+  proving transport and abstention semantics but not model routing.
   This is conditional registration/transport evidence, not Issue #7
   completion; no duplicate retrieval layer or wrapper skill was introduced.
 

@@ -132,7 +132,8 @@ Current readiness:
   discovery is confirmed, but the available non-interactive/interactive probes
   did not return a live evidence packet because MCP approval and provider/DNS
   startup failed. A direct stdio JSON-RPC probe did return a valid
-  `wiki-evidence/v1` packet, proving transport but not model routing. A
+  `wiki-evidence/v1` packet for both a grounded lookup and an insufficient
+  query, proving transport and abstention semantics but not model routing. A
   network-enabled Codex retry was withheld by the data-export safety boundary.
   No duplicate retrieval layer or wrapper skill was added; host-runtime use
   and routing remain conditional gates.

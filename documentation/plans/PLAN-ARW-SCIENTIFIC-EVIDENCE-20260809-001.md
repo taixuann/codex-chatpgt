@@ -290,8 +290,10 @@ Do not assume all listed files must change. Closure should identify actual consu
   portability checks pass independently. The exposed tools are exactly
   `wiki.query`, `wiki.source`, and `wiki.related`.
 - A direct stdio JSON-RPC probe of the registered launch command completed
-  `initialize`, `tools/list`, and one positive `wiki.query`; it returned a
-  `wiki-evidence/v1` packet with three source-grounded evidence items. This is
+  `initialize`, `tools/list`, and positive/negative `wiki.query` calls. The
+  positive case returned a `wiki-evidence/v1` packet with three
+  source-grounded evidence items; the contrastive case returned
+  `insufficient`/`abstain_or_verify` with an explicit gap. This is
   transport-level evidence only, not proof that the Codex model selected the
   tool.
 - The Codex control-plane validators, task-contract checks, focused project
