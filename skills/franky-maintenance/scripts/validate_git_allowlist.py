@@ -10,7 +10,7 @@ import sys
 
 
 ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/franky-", "skills/project-bootstrap/", "skills/external-handoff/", "skills/install-project-link/", "skills/shared-session-closeout/", "workflows/franky/", "workflows/shared/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/")
-ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md"}
+ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "workflows/AGENTS.md"}
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials")
 
 
