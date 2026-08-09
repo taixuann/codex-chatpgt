@@ -72,6 +72,9 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   The registered stdio command itself returned valid `wiki-evidence/v1`
   packets for grounded and insufficient queries in a direct JSON-RPC probe,
   proving transport and abstention semantics but not model routing.
+  A local-provider Codex fallback was also attempted with `qwen3-14b`, but the
+  installed Ollama runtime lacks `llama-server`, so no model/tool-selection
+  trace was produced.
   This is conditional registration/transport evidence, not Issue #7
   completion; no duplicate retrieval layer or wrapper skill was introduced.
 

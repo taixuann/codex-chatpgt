@@ -135,6 +135,9 @@ Current readiness:
   `wiki-evidence/v1` packet for both a grounded lookup and an insufficient
   query, proving transport and abstention semantics but not model routing. A
   network-enabled Codex retry was withheld by the data-export safety boundary.
+  An offline Codex fallback entered the local `qwen3-14b` provider session but
+  could not infer because the Ollama installation lacks `llama-server`; no
+  model/tool-selection trace was produced.
   No duplicate retrieval layer or wrapper skill was added; host-runtime use
   and routing remain conditional gates.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.

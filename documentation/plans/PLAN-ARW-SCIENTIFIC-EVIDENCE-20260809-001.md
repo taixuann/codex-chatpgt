@@ -308,6 +308,12 @@ Do not assume all listed files must change. Closure should identify actual consu
   local Wiki corpus content to the remote Codex/OpenAI service without an
   explicit data-export approval. This is a safety boundary, not a Wiki server
   failure.
+- An offline fallback was tested with the locally catalogued `qwen3-14b`
+  Ollama model. Codex entered the local-provider session and exposed the Wiki
+  MCP, but inference failed because this Ollama installation lacks its
+  `llama-server` binary; no model response or tool-selection trace was
+  produced. The temporary Ollama server was stopped and no persistent runtime
+  configuration was changed.
 
 The implementation is therefore a **conditional pass for registration,
 discovery, and contract evidence**, while the host-runtime acceptance gate
