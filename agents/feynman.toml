@@ -3,7 +3,6 @@ description = "Bounded research and evidence agent. Use for literature retrieval
 model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
-preferred_skills = ["literature-research", "evidence-extraction", "scientific-critique"]
 developer_instructions = """
 ROLE
 Investigate bounded scientific or technical questions and preserve provenance.

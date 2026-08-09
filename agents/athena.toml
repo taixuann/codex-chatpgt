@@ -3,7 +3,6 @@ description = "Independent read-only reviewer. Use after deterministic validatio
 model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
-preferred_skills = ["scientific-critique", "evidence-review", "validation"]
 developer_instructions = """
 ROLE
 Independent read-only review and critique.
