@@ -50,10 +50,16 @@ technical, scientific, or operator decisions.
    the Issue/PLAN/PR/CI state and update `CURRENT.md` or a decision record only
    when the result is accepted. Use a change record or full goal package only
    when its distinct consumer is named.
-7. Mark the session or goal complete only when acceptance criteria and
+7. After acceptance, run a bounded evolution observation: check for recurring
+   context/reorientation failure, routing ambiguity, guidance confusion,
+   missing validation, repeated workaround, unnecessary ceremony, boundary
+   failure, or redundant capability. Return `NO ACTION` when no material signal
+   exists. Route mature evidence to #11 and accepted system changes through
+   #15/general change lifecycle; never mutate global policy from this check.
+8. Mark the session or goal complete only when acceptance criteria and
    validation evidence pass. Otherwise record `blocked`, `needs_review`, or
    the next action and return the decision to the human.
-8. Report the record path, evidence, changed paths, unresolved items, and next
+9. Report the record path, evidence, changed paths, unresolved items, and next
    action. This skill never creates `result.md`, pushes Git, promotes to AI
    Labs, or closes the Codex chat.
 

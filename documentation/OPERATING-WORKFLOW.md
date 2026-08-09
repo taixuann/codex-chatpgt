@@ -46,6 +46,8 @@ SYNTHESIZE ↺ FINAL REFINE
   ↓
 ACCEPT / MERGE
   ↓
+BOUNDED EVOLUTION CHECK when completion is meaningful
+  ↓
 COMMIT DURABLE STATE / KNOWLEDGE
 ```
 
@@ -88,6 +90,51 @@ If sufficient, continue directly.
 If insufficient, acquire only the missing material context. A small lookup may remain in the parent context. Use a bounded explorer such as Argus only when isolation, scale, or parallelism justifies delegation.
 
 A capability need does not automatically imply a subagent.
+
+### 3a. Fresh logical-session orientation
+
+For fresh non-trivial work, orient from the smallest authoritative state before
+capability routing:
+
+```text
+identify repository/project and scope
+→ apply scoped AGENTS instructions
+→ read relevant CURRENT / DECISIONS
+→ resolve the active Issue / PLAN / PR / project task
+→ inspect live state only when correctness depends on it
+→ test context sufficiency
+→ acquire missing context through #2 only when material
+→ route capability, delegation, and execution
+```
+
+Trivial tasks may collapse these steps. Do not bulk-load all history, create a
+`session-bootstrap` skill, or duplicate the instruction chain. Current/live
+state takes precedence over stale conversational assumptions.
+
+### 3b. Event-driven reorientation
+
+Long-running logical work reorients only after a material event, such as an
+objective/scope change, phase transition, external Issue/PR/branch change,
+consequential mutation after extended discussion, material validation failure,
+contradictory evidence, authority uncertainty, or noisy superseded context.
+
+At a checkpoint reconstruct only the objective, accepted/live state, material
+changes, open constraints, authoritative artifacts, and whether #2 context
+acquisition is needed. Selectively invalidate affected assumptions and reload
+only their sources. A checkpoint is normally an internal action, not a file,
+commit, Issue, fixed turn counter, or global reset.
+
+For continuation, use this authority order:
+
+```text
+runtime instructions → scoped AGENTS → accepted CURRENT / DECISIONS
+→ live Issue / PLAN / PR / Git / project state
+→ recent unresolved conversation → older history/compaction
+```
+
+Conceptual context health may be `HEALTHY`, `NOISY`, `STALE`, or `CONFLICTED`.
+These are reasoning labels, not serialized runtime state. On conflict, surface
+it, prefer authoritative state, and reorient selectively.
 
 ### 4. Reason ↺ Refine
 
@@ -240,6 +287,25 @@ validate again
 
 Escalate rather than retry indefinitely when failures repeat, evidence conflicts, architecture/scope must change, or repair would become speculative.
 
+### 10a. Failure classification
+
+Classify a material failure before choosing the next loop:
+
+```text
+implementation/execution failure
+→ diagnose → bounded repair → revalidate
+
+context/state failure
+→ selectively reorient or acquire missing context
+
+architecture/contract failure
+→ stop and escalate with evidence
+```
+
+Do not repair code to compensate for stale context, globally reorient for a
+local deterministic failure, or retry indefinitely. Repeated repair failure is
+evidence to reclassify.
+
 ### 11. Independent review when justified
 
 Validation asks whether the result works as specified.
@@ -316,6 +382,39 @@ OBSERVE → PROPOSE → REVIEW → ACCEPT → UPDATE
 ```
 
 Do not turn a single observation into global policy or silently mutate global instructions, skills, workflows, or routing.
+
+## Completion and logical-session continuity
+
+For consequential work, acceptance precedes learning:
+
+```text
+finish implementation
+→ change-impact closure
+→ deterministic validation
+→ independent review when justified
+→ acceptance
+→ bounded evolution observation
+```
+
+The evolution check asks whether execution exposed recurring/material context
+failure, routing ambiguity, guidance confusion, unnecessary ceremony, missing
+validation, repeated workaround, boundary failure, missing capability, or
+redundant component. The normal result is `NO ACTION`. Observations accumulate
+in existing Issue/PR/project owners; mature evidence hands to #11, and accepted
+system changes follow #15/general change lifecycle. Observation never directly
+mutates global policy or creates an Issue, skill, workflow, or agent.
+
+Negative evidence is valid: a skill, workflow, agent, validator, or rule may be
+a simplification/retirement candidate. Evaluator loops are admitted only for a
+material task with a measurable criterion, plausible gain, justified cost, and
+explicit stop condition.
+
+A logical session is `objective + scope + accepted/live task state`, not a chat
+container. After acceptance, continue when the objective and context remain
+healthy; reorient when state is stale/noisy; recommend a fresh logical session
+when the objective materially changes, reconstruction is safer, or independent
+review needs fresh judgment. Do not auto-close the chat or force a fixed turn
+limit.
 
 ## Artifact responsibilities
 
