@@ -94,6 +94,15 @@ Current readiness:
   contrastive routing fixture distinguishes metadata evidence from behavioral
   runtime selection. Hosted CI passed; behavioral selection remains an
   explicit runtime limitation.
+- **#31 Phase A** — session-continuity semantics are deployed through PR #32
+  (`2cf7b80`). Fresh orientation, event-driven selective reorientation,
+  authority ordering, failure reclassification, acceptance-before-learning,
+  bounded evolution observation, and logical-session continuation guidance are
+  now part of the canonical operating surface. No session manager, checkpoint
+  store, evolution database, or new skill/workflow was added. Issue #31 stays
+  open for empirical runtime acceptance; the available Codex probe does not
+  expose AGENTS load timing, automatic closeout, compaction internals, or
+  custom adapter selection.
 - **#7/#8/#9/#11/#12** — backlog PLANs remain gated by their own runtime evidence.
 
 ## Planning state
@@ -121,4 +130,4 @@ Simplification should remove duplicate machinery or unclear ownership, not colla
 
 ## Known execution gap
 
-The immediate blocker to new core evidence is that #2 has not yet been run against the current repository/runtime baseline. Its draft PR branch predates several documentation and accepted CI updates and should be synced/reconciled before local runtime reconnaissance begins.
+The immediate blocker to new core evidence is that #2 has not yet been run against the current repository/runtime baseline. Its draft PR branch predates several documentation and accepted CI updates and should be synced/reconciled before local runtime reconnaissance begins. The read-only Graph Engineering pilot now passes its project validator without modifying project files, but it remains conditional evidence until #2/#5/#6 runtime behavior and review are observed.

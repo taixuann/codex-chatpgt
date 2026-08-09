@@ -40,6 +40,13 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   discriminative, scoped instruction files are explicit, and the static
   contrastive routing fixture is part of hosted CI. Behavioral runtime skill
   selection is not claimed because the active Codex surface exposes no trace.
+- Issue #31 Phase A is accepted into `main` through PR #32 (`2cf7b80`): fresh
+  orientation, event-driven selective reorientation, failure classification,
+  acceptance-before-learning, bounded evolution observation, and logical
+  session continuation semantics are now canonical. No session/evolution
+  platform was introduced. Empirical runtime acceptance remains open because
+  the available Codex probe does not expose AGENTS load timing, automatic
+  closeout, compaction internals, or custom adapter selection.
 
 ## Read next
 
@@ -62,5 +69,10 @@ Issue #19 / PR #20 is now accepted: PR #20 was squash-merged into `main` as
 `a87a948` and the Issue is closed. Do not add a second `file-workbench` skill or
 duplicate OpenScience capabilities until a distinct reusable contract exists.
 The #13/#21 rationalization is now applied to the control-plane baseline.
-Future portability, research, memory, and project-inheritance work remains
-separately gated by its own runtime evidence.
+The next vertical proof is a fresh #2 context-acquisition run followed by #5
+closure/validation, selective #6 review, and the real-project #10 pilot. The
+read-only Graph Engineering validator currently passes (12 pages, 21 Canvas
+nodes, 6 edges) and a 16-file before/after hash check found no project
+mutation; this remains conditional evidence until the upstream runtime gates
+are observed. Future portability, research, memory, and project-inheritance
+work remains separately gated by its own runtime evidence.
