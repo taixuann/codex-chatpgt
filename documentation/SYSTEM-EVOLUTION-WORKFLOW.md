@@ -6,13 +6,15 @@ scope: workflow-family
 inherits: OPERATING-WORKFLOW-CODEX-CONTROL-PLANE
 ---
 
-# System Configuration and Self-Evolution Workflow
+# System Configuration and Change Workflow
 
 ## Purpose
 
-This document defines the shared workflow family for improving the AI control plane itself: configuration, skills, workflows, agent boundaries, routing, tooling, deployment, validation, and controlled self-evolution.
+This document defines the shared workflow family for changing the AI control plane itself: configuration, skills, workflows, agent boundaries, routing, tooling, deployment, validation, and maintenance.
 
 It extends `documentation/OPERATING-WORKFLOW.md`. It does not replace the general lifecycle and does not grant automatic mutation authority.
+
+Controlled self-evolution is a downstream governance concern: this workflow explains **how an accepted system change is handled**, while Issue #11 owns **when repeated evidence is sufficient to propose and promote durable systemic evolution**.
 
 ## Entry modes
 
@@ -67,7 +69,7 @@ Classify before changing anything. Typical classes are:
 - runtime/tool/integration limitation;
 - packaging/deployment problem;
 - documentation/state drift;
-- repeated operational friction that may justify self-evolution.
+- repeated operational friction that may later become evidence for Issue #11.
 
 Classification is diagnostic, not permission to create a new component.
 
@@ -81,7 +83,7 @@ Before building a new local capability:
 4. compare overlap, provenance, trigger quality, mutation boundary, tests, and maintenance cost;
 5. create a new component only when the existing options do not satisfy the required contract.
 
-External skill qualification is tracked separately under the external-skill collection work. Existing/local rationalization remains evidence-driven.
+External skill qualification is tracked under Issue #14. Existing/local rationalization remains evidence-driven under Issue #13.
 
 ## Change selection
 
@@ -100,29 +102,22 @@ packaging/distribution concern?          → defer to portability layer
 
 Do not introduce a skill, workflow, or agent for architectural symmetry.
 
-## Self-evolution gate
+## Relationship to controlled self-evolution
 
-System self-evolution is distinct from one-run answer refinement.
-
-A durable behavioral change should normally follow:
+This workflow may produce evidence that a recurring pattern deserves broader change, but it does not decide global promotion by itself.
 
 ```text
-OBSERVE
+SYSTEM CHANGE OBSERVATION
   ↓
-RECURRENCE / MATERIALITY CHECK
+record evidence
   ↓
-PROPOSE
-  ↓
-REVIEW
-  ↓
-ACCEPT
-  ↓
-UPDATE
-  ↓
-VALIDATE IN REAL USE
+repeated/material pattern?
+  └─ if yes → Issue #11 self-evolution governance
 ```
 
-A single observation may justify an urgent bug fix, but it does not automatically justify a new global abstraction or policy.
+Issue #11 owns recurrence/materiality thresholds, proposal-first governance, project-local-first promotion, and acceptance of durable systemic evolution.
+
+A single observation may justify an urgent bounded fix through this workflow, but not a new global abstraction merely because it occurred once.
 
 ## Evidence expected
 
@@ -147,23 +142,22 @@ Use explicit promotion destinations:
 - reusable procedure → Skill after demonstrated reuse;
 - deterministic operation → script/tool;
 - real lifecycle/state contract → machine-readable workflow only when consumed/enforced;
-- recurring cross-project behavior → global policy candidate after review;
-- project-specific behavior → remain project-local until reuse is demonstrated.
+- project-specific behavior → remain project-local until reuse is demonstrated;
+- recurring cross-project behavior → candidate input to Issue #11, not automatic global policy.
 
 ## Relationship to projects
 
-Projects inherit the global operating system. A project may expose evidence for system evolution but should not mutate the global control plane silently.
+Projects inherit the global operating system. A project may expose evidence for system changes but should not mutate the global control plane silently.
 
 ```text
 PROJECT OBSERVATION
   ↓
-SYSTEM-EVOLUTION PROPOSAL
+BOUNDED PROJECT/SYSTEM CHANGE when needed
   ↓
-REVIEW / VALIDATION
+VALIDATE / REVIEW
   ↓
-PROJECT-LOCAL CHANGE first when appropriate
-  ↓
-GLOBAL PROMOTION only after demonstrated reuse
+repeated cross-project pattern?
+  └─ if yes → #11 promotion governance
 ```
 
 ## Sustainability rules
@@ -177,7 +171,7 @@ Prefer:
 - small vertical slices;
 - provenance/version tracking for external capabilities;
 - capability-first routing;
-- bounded self-improvement.
+- bounded changes.
 
 Avoid:
 
@@ -190,4 +184,4 @@ Avoid:
 
 ## Completion condition
 
-A system-evolution change is complete only when the observed/requested problem is addressed with evidence, validation is adequate, consequential review is resolved, durable state is reconciled, and the resulting maintenance burden is justified by demonstrated value.
+A system change is complete only when the observed/requested problem is addressed with evidence, validation is adequate, consequential review is resolved, durable state is reconciled, and the resulting maintenance burden is justified by demonstrated value.
