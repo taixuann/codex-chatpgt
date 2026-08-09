@@ -101,11 +101,14 @@ Current readiness:
   skills missing frontmatter; follow-up Codex startup reports zero
   malformed-agent and missing-frontmatter warnings.
 - **#10** — the Graph Engineering pilot has consumed the merged #2 helper in
-  read-only mode. The current rerun produced 3 canonical + 4
-  repository-evidence entries; the project validator passed (12 pages, 21
-  Canvas nodes, 6 edges), and the selected project/instruction file hashes
-  were unchanged before and after execution. This is conditional evidence
-  pending #6 review and host-runtime limitations.
+  read-only mode. An earlier live Issue comment records 2 canonical + 3
+  repository-evidence entries; the current rerun intentionally used a broader
+  explicit allowlist and produced 3 canonical + 4 repository-evidence
+  entries. The project validator passed (12 pages, 21 Canvas nodes, 6 edges),
+  and the selected project/instruction file hashes were unchanged before and
+  after execution. This is conditional evidence pending #6 review and
+  host-runtime limitations; the exact rerun hashes are recorded in the #6
+  review PLAN.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.

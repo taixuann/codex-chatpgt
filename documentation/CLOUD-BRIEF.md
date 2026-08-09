@@ -55,11 +55,14 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   conflicts or uncertainties. It is conditionally accepted as v1;
   host-observable parent-resume and adapter-selection traces remain
   unavailable.
-- The Graph Engineering #10 pilot now consumes that helper read-only: 3
-  canonical + 4 project-evidence packet entries, validator pass (12 pages, 21
-  Canvas nodes, 6 edges), and the selected project/instruction files unchanged
-  by before/after hashes. This remains conditional until the #6 independent
-  review gate is resolved.
+- The Graph Engineering #10 pilot now consumes that helper read-only. An
+  earlier live Issue comment records 2 canonical + 3 project-evidence entries;
+  the current rerun intentionally used a broader explicit allowlist and
+  produced 3 canonical + 4 project-evidence entries, with validator pass (12
+  pages, 21 Canvas nodes, 6 edges) and selected project/instruction files
+  unchanged by before/after hashes. Exact rerun hashes are recorded in the #6
+  review PLAN. This remains conditional until the #6 independent review gate
+  is resolved.
 
 ## Read next
 
