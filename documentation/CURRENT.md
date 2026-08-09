@@ -1,7 +1,7 @@
 ---
 id: CURRENT-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-09
+updated: 2026-08-10
 ---
 
 # Current state
@@ -126,6 +126,13 @@ Current readiness:
   and review disposition are recorded in the #6 review PLAN.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
+- **#7** — the production Wiki Scientific Evidence MCP is registered once in
+  the local global Codex configuration. Wiki-side contract, read-only surface,
+  four behavioral cases, portability, and repository validators pass. Codex
+  discovery is confirmed, but the available non-interactive/interactive probes
+  did not return a live evidence packet because MCP approval and provider/DNS
+  startup failed. No duplicate retrieval layer or wrapper skill was added;
+  host-runtime use and routing remain conditional gates.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
 - **#24** — control-plane quality hardening is accepted through PR #30
   (`c559f9a`). Franky authority is explicitly scoped to the control plane,

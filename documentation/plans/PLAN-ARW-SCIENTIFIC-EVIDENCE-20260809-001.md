@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SCIENTIFIC-EVIDENCE-20260809-001
 issue: 7
-status: active
+status: conditional-pass
 activation_gate: satisfied-by-production-wiki-mcp-handoff
 scope: wiki-scientific-evidence-mcp-integration
 updated: 2026-08-10
@@ -279,6 +279,30 @@ Keep the diff minimal and evidence-driven. Likely owners to inspect/update inclu
 Do not assume all listed files must change. Closure should identify actual consumers before mutation.
 
 # Validation and closure
+
+## Current Codex-side evidence (2026-08-10)
+
+- The Wiki MCP is registered once in the local global Codex configuration;
+  `codex mcp list --json` reports the documented stdio server and launch
+  command. The machine-specific registration is intentionally not committed
+  to this repository.
+- The Wiki-side contract, read-only tool surface, four behavioral cases, and
+  portability checks pass independently. The exposed tools are exactly
+  `wiki.query`, `wiki.source`, and `wiki.related`.
+- The Codex control-plane validators, task-contract checks, focused project
+  bootstrap tests, and whitespace checks pass on the current `main` state.
+- A non-interactive Codex probe discovered `wiki.query`, but the MCP call was
+  cancelled before an evidence packet was returned. An interactive retry was
+  interrupted by provider/DNS and MCP-startup failures. No end-to-end Codex
+  evidence packet or consumer-selection trace was observed.
+- No unsupported per-agent MCP fields, duplicate retrieval layer, Wiki
+  mutation path, or new wrapper skill/workflow was added.
+
+The implementation is therefore a **conditional pass for registration,
+discovery, and contract evidence**, while the host-runtime acceptance gate
+remains open. Do not mark Issue #7 complete until a live Codex session records
+one successful Wiki query with provenance/abstention semantics and the
+required positive/negative routing cases.
 
 After implementation:
 

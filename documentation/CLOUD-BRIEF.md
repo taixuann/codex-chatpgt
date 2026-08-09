@@ -1,7 +1,7 @@
 ---
 id: CLOUD-BRIEF-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-09
+updated: 2026-08-10
 repository: taixuann/codex-chatpgt
 branch: main
 ---
@@ -65,6 +65,12 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   Exact rerun hashes and the conditional
   independent-review disposition are recorded in the #6 review PLAN. This
   remains conditional only for host-runtime acceptance.
+- Issue #7’s production Wiki Scientific Evidence MCP is registered in the
+  local Codex runtime and its Wiki-side contract/read-only surface passes.
+  Codex discovery is confirmed, but no live evidence packet was returned in
+  the available probes because MCP approval and provider/DNS startup failed.
+  This is conditional registration/discovery evidence, not Issue #7
+  completion; no duplicate retrieval layer or wrapper skill was introduced.
 
 ## Read next
 
