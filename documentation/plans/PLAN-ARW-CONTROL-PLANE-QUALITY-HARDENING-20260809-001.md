@@ -10,70 +10,67 @@ scope: control-plane quality hardening
 
 ## Objective
 
-Improve the quality of the surviving control-plane architecture after the #19/#22/#13/#21 reconciliation so runtime routing, skill discovery, scoped instructions, agent boundaries, workflow authority, and component handoffs are reliable rather than merely structurally clean.
+Make the reconciled control plane reliably discoverable, composable, scoped, and routable at runtime. This is a quality pass over surviving components, not another architecture expansion.
 
-This PLAN executes Issue #24. It is a quality pass over existing components, not another architecture expansion.
+The execution must answer, in order:
+
+```text
+SHOULD THIS COMPONENT EXIST?
+→ WHAT SHOULD IT BE CALLED?
+→ WHEN SHOULD IT LOAD?
+→ HOW SHOULD IT EXECUTE?
+→ HOW DOES IT HAND OFF TO THE NEXT COMPONENT?
+→ HOW IS IT VALIDATED?
+```
+
+Do not polish a component before proving it deserves to survive.
 
 ## Accepted baseline
 
-Treat the following as accepted unless live evidence exposes a bounded contradiction:
+Treat these as accepted unless live evidence exposes a bounded contradiction:
 
-- `documentation/OPERATING-WORKFLOW.md` owns the canonical general semantic lifecycle.
+- `documentation/OPERATING-WORKFLOW.md` owns the canonical global semantic lifecycle.
 - Skills are reusable agent-facing procedures/capabilities.
 - Scripts/tools own deterministic operations.
-- Agents exist for runtime isolation, permission boundaries, independent judgment, specialized tool access, or meaningful autonomy.
-- Machine-readable workflows survive only when a real machine consumer and lifecycle/state/gate value justify them.
-- Root and nested `AGENTS.md` files are scoped normative instructions, not general architecture documentation.
-- Ordinary consequential work uses Issue -> optional PLAN -> coherent implementation branch -> validation/review -> PR/CI.
-- `ops/changes` is historical/exceptional, not a default execution artifact surface.
-- No new CHG/audit/proof-only artifact family is permitted in this execution.
-
-## Current quality risks to resolve
-
-1. `workflows/franky/franky.yaml` still declares `canonical: true`, `entrypoint: true`, and `workflow_only`, which can conflict with the accepted global semantic workflow.
-2. Active skill names and descriptions have uneven routing quality. Some are capability-centric and discriminative; some remain persona-prefixed or broad.
-3. Skill bodies vary in how explicitly they expose trigger, input/context, procedure, output, stop conditions, validation, and ownership boundaries.
-4. Root `AGENTS.md` contains several concerns that may be more appropriately scoped to `agents/`, `skills/`, `workflows/`, or canonical documentation.
-5. Agent contracts are not uniformly expressed as bounded runtime interfaces.
-6. Current validation is strong on syntax/contracts but weak on skill-routing discrimination and component-linking behavior.
+- Agents exist for isolation, permissions, independent judgment, specialized tools, or meaningful autonomy.
+- Machine workflows survive only for real machine-consumed lifecycle/state/gate/recovery semantics.
+- `AGENTS.md` owns scoped normative behavior, not architecture history.
+- Ordinary consequential work uses Issue -> optional PLAN -> coherent branch -> implementation -> validation/review -> PR/CI.
+- `ops/changes` is historical/exceptional, not the default execution surface.
+- No CHG/audit/proof-only artifact family may be introduced.
 
 ## Execution mode
 
-Use one fresh coherent branch from current `main`, for example:
+Create one fresh branch from current `main`, for example:
 
 ```text
 refactor/control-plane-quality-hardening
 ```
 
-Do not create one branch per skill, one branch per quality dimension, or proof/review branches.
+Do not create one branch per skill, per quality dimension, review lens, or validator.
 
-The parent agent owns final dispositions and architecture consistency. Use bounded read-only subagents for parallel inventory/review only when that materially reduces context or improves independence.
+The parent owns final dispositions and architecture consistency. Read-only subagents may be used for parallel inventory or independent review when useful. Do not stop after audit; implement the accepted quality changes, validate, repair bounded failures, open one reviewable PR, and complete the Issue.
 
-## Phase 0 — Orient and inventory current live surface
+---
+
+# Phase 0 — Live orientation and consumer inventory
 
 Before editing:
 
-1. Read:
-   - `AGENTS.md`;
-   - `documentation/OPERATING-WORKFLOW.md`;
-   - `documentation/CURRENT.md`;
-   - `documentation/DECISIONS.md`;
-   - `documentation/CLOUD-BRIEF.md`;
-   - Issue #24;
-   - this PLAN.
-2. Inventory every active skill on `main` by actual directory and `SKILL.md` frontmatter.
-3. Inventory every active agent/profile and applicable `agents/AGENTS.md`.
-4. Inventory every retained machine-readable workflow and actual validator/runtime consumer.
-5. Inventory the active AGENTS instruction chain and note which rules apply globally versus to one subtree.
-6. Record the current references to any skill or workflow name before rename decisions.
+1. Read `AGENTS.md`, `documentation/OPERATING-WORKFLOW.md`, `CURRENT.md`, `DECISIONS.md`, `CLOUD-BRIEF.md`, Issue #24, and this PLAN.
+2. Inventory every active skill from the live `skills/` tree and its frontmatter.
+3. Inventory every active agent/profile and the applicable instruction chain.
+4. Inventory every retained machine workflow, validator, runtime/CI consumer, and references to workflow IDs.
+5. Inventory all references to active skill names before any rename.
+6. Identify installed/built-in capabilities that may already own a local skill's behavior.
 
-Do not create a separate durable inventory report. Keep temporary analysis in the active execution context and summarize accepted dispositions in the PR/Issue unless a machine-consumed fixture is explicitly justified below.
+Do not create a durable inventory report. Temporary analysis stays in execution context; final dispositions belong in the PR/Issue and accepted canonical state only.
 
-## Phase 1 — Resolve workflow authority
+---
 
-### Target
+# Phase 1 — Resolve workflow authority
 
-Make authority unambiguous:
+## Target
 
 ```text
 OPERATING-WORKFLOW.md
@@ -81,190 +78,283 @@ OPERATING-WORKFLOW.md
 
 Franky workflow
 = specialized governed control-plane mutation contract
-  invoked only when its explicit stronger lifecycle is required
+  used only when its stronger gates/contracts have a named consumer or risk reason
 ```
 
-### Required actions
+Inspect actual consumers of `workflows/franky/franky.yaml` and `lifecycle-contract.yaml` before changing metadata.
 
-1. Inspect actual consumers of `workflows/franky/franky.yaml` and `lifecycle-contract.yaml`.
-2. Determine whether `canonical`, `entrypoint`, and `workflow_only` refer only to Franky's specialized workflow family or incorrectly imply global control-plane authority.
-3. Adjust metadata, naming, documentation, or validator semantics minimally so ordinary work is not required to route through Franky.
-4. Keep stronger Franky approval/audit semantics only where a named operation or consumer justifies them.
-5. Revisit mandatory `write-change-record` / `local-git-finalize` stages. They must not force `change.yaml` for ordinary work after #21 unless a specialized Franky consumer genuinely requires that record.
-6. Do not remove safety guarantees merely to simplify syntax.
+Resolve whether `canonical`, `entrypoint`, and `workflow_only` are Franky-family-local or incorrectly imply global authority. Adjust metadata/docs/validator semantics minimally so ordinary work is not forced through Franky.
 
-### Validation
+Revisit `write-change-record` and `local-git-finalize`: a retained specialized Franky path may require them only if a named consumer needs them. They must not reintroduce mandatory `change.yaml` for ordinary work.
 
-- canonical documentation and workflow metadata do not contradict each other;
-- workflow validators still pass for any retained machine contract;
-- no ordinary task is semantically forced through Franky when the general lifecycle is sufficient.
+Retain safety guarantees that still protect real operations.
 
-## Phase 2 — Audit skill names
+Validation:
 
-Treat skill names as part of discovery/routing quality.
+- global and specialized workflow authority do not conflict;
+- retained workflow validators pass;
+- ordinary work can follow the global semantic lifecycle without Franky ceremony.
 
-For every active skill assign one of:
+---
+
+# Phase 2 — Capability-existence gate for every active skill
+
+Before naming or description work, classify every active skill:
 
 ```text
-KEEP NAME
-RENAME
+KEEP
 MERGE
 RETIRE
 DEFER
 ```
 
-### Name-quality criteria
+A skill survives only if it has a recurring/discriminative trigger, a stable reusable procedure worth preserving, useful judgment/boundaries beyond one mechanical command where applicable, and no stronger existing capability already owns the behavior.
 
-Score/judge:
+Use this decision order:
 
-- capability-centric when role-neutral;
-- concrete and discriminative;
-- stable across temporary implementations;
-- not broader than the procedure;
-- distinct from neighboring skills;
-- persona prefix only when persona/permission ownership is materially part of the capability;
-- low reference churn relative to routing gain.
+```text
+Does the recurring capability deserve skill packaging?
+├─ no → RETIRE or MERGE; preserve useful deterministic tools where justified
+└─ yes
+   ↓
+continue to naming
+```
 
-### Important rule
+Explicitly challenge these cases:
 
-Do not systematically strip `franky-` from every surviving skill. Keep it when the capability is genuinely Franky/control-plane-role specific. Rename only when the procedure is reusable independently of Franky and the new name improves discovery/ownership.
+### `install-project-link`
+Keep independently only if project-link operations are recurring outside bootstrap/inheritance. Otherwise merge the procedure/tool into the owning project capability while preserving link safety.
 
-### Expected candidates to challenge
+### `external-handoff`
+Keep only if cross-runtime/external execution requires a stable transformation, approval, evidence, and rollback procedure beyond an ordinary task contract. Otherwise retire the wrapper and use task-contract + parent reasoning.
 
-At minimum inspect:
+### `franky-workflow-organizer`
+If the surviving behavior is mostly YAML validation, retire the skill and keep the deterministic validator. Retain/repackage a skill only if real recurring lifecycle-design judgment exists.
 
-- `external-handoff`;
-- `project-bootstrap`;
-- `install-project-link`;
-- `franky-agent-installer`;
-- `franky-cron-installer`;
-- `franky-guidance-manager`;
-- `franky-maintenance`;
-- `franky-promotion`;
-- `franky-source-migration`;
-- `franky-workflow-organizer`;
-- `shared-session-closeout`;
+Do not improve names/descriptions for a skill that should be removed.
 
-Do not assume this list is exhaustive; use the live tree.
+---
 
-## Phase 3 — Harden skill descriptions and bodies
+# Phase 3 — Naming audit for retained skills
 
-### Frontmatter description contract
+## Convention
 
-Every active skill description should compactly communicate:
+Prefer capability-centric names using:
+
+```text
+<object>-<operation>
+```
+
+Preferred operation vocabulary:
+
+```text
+bootstrap
+link
+handoff
+installation
+audit
+maintenance
+validation
+migration
+promotion
+closeout
+```
+
+Avoid vague synonyms such as:
+
+```text
+manager
+organizer
+handler
+helper
+support
+controller
+coordinator
+```
+
+unless they have a real stable distinction.
+
+Persona prefixes such as `franky-` survive only when persona/permission/runtime ownership is materially part of the capability. Role routing and capability routing remain separate:
+
+```text
+TASK
+→ required capability
+→ delegation useful?
+→ role/agent if needed
+```
+
+For each retained skill assign:
+
+```text
+KEEP NAME
+RENAME
+```
+
+Rename only when routing/ownership gain exceeds reference churn.
+
+## Candidate hypotheses to test
+
+| Current | Candidate / challenge |
+| --- | --- |
+| `project-bootstrap` | KEEP |
+| `external-handoff` | `execution-handoff` if retained |
+| `install-project-link` | `project-link` if retained |
+| `franky-agent-installer` | `agent-profile-installation` if role-neutral |
+| `franky-cron-installer` | `scheduler-installation` if scheduler lifecycle is the abstraction |
+| `franky-guidance-manager` | `guidance-maintenance` |
+| `franky-maintenance` | `control-plane-audit` if diagnosis is primary; otherwise `control-plane-maintenance` |
+| `franky-promotion` | `control-plane-promotion` or DEFER if only future portability/export needs it |
+| `franky-source-migration` | `source-migration` if role-neutral |
+| `franky-workflow-organizer` | RETIRE/validator-only, or `workflow-design` only if judgment capability survives |
+| `shared-session-closeout` | `session-closeout` |
+
+These are hypotheses, not forced outcomes.
+
+Where a rename is accepted, update every reference atomically: preferred skill lists, workflows, CI, docs, tests, installation/deployment references, and any runtime metadata.
+
+---
+
+# Phase 4 — Description and SKILL.md hardening
+
+Only retained skills reach this phase.
+
+## Frontmatter description contract
+
+Treat `description` as routing metadata. It should compactly communicate:
 
 ```text
 ACTION
-+ TASK/OBJECT TYPE
++ TASK / OBJECT TYPE
 + WHEN TO USE
 + IMPORTANT BOUNDARY / WHEN NOT TO USE when overlap risk exists
 ```
 
-Descriptions are routing metadata, not miniature documentation essays.
+Avoid broad verbs (`manage`, `support`, `improve`, `handle`) without discriminative conditions.
 
-Challenge vague wording such as `manage`, `support`, `maintain`, `handle`, or `improve` when it lacks discriminative task conditions.
+For overlapping skills, add a concise negative boundary where useful.
 
-### Body contract
+## Body contract
 
-For each retained skill, make sure the skill exposes enough of:
+Each retained skill should expose enough of:
 
 - purpose;
 - positive trigger/use condition;
-- required input/context;
+- required context/inputs;
 - reusable procedure;
 - expected output/result;
-- deterministic tool/script invocation where applicable;
-- mutation/safety boundaries;
-- stop/escalation conditions;
+- deterministic helper usage;
+- mutation/safety boundary;
+- stop/escalation condition;
 - validation expectation;
-- ownership/non-goals when neighboring capabilities overlap.
+- ownership/non-goals where neighbors overlap.
 
-Do not force identical headings/templates if the content is naturally concise. Optimize for clarity and progressive disclosure, not template compliance.
+Do not force identical headings or schema-like frontmatter. Optimize clarity and progressive disclosure.
 
-### Locality
+Move optional provider/runtime-specific material into `references/` only when it is useful but not needed on every invocation. Keep capability-specific deterministic helpers with the skill unless there is a real independent global consumer.
 
-If a deterministic helper is owned by one skill, keep it with that skill unless a real independent global consumer justifies `ops/scripts/` ownership.
+---
 
-## Phase 4 — Add the smallest useful skill-routing eval
+# Phase 5 — Nearest-neighbor and contrastive routing evaluation
 
-### Purpose
+For each overlapping/high-value retained skill, identify 1-3 nearest routing neighbors during analysis. Do not create a permanent neighbor registry.
 
-Test whether metadata actually distinguishes capabilities.
+Use pairwise contrast to improve descriptions and boundaries.
 
-### Minimum case classes
+Examples:
 
-For overlapping/high-value skills include representative:
+```text
+project-bootstrap ↔ guidance-maintenance
+project-bootstrap ↔ project-link (if retained)
+control-plane-audit/maintenance ↔ workflow validator/tool
+```
+
+Create a small evaluation set with these classes:
 
 1. positive trigger;
 2. negative trigger;
-3. neighboring-skill discrimination;
-4. ambiguous prompt where the correct behavior is inspect/clarify rather than activate many skills.
+3. nearest-neighbor contrast;
+4. `expected: none` ordinary task;
+5. ambiguous case where inspection/clarification is better than loading multiple skills.
 
-### Example semantic cases
+Prefer contrastive pairs, e.g.:
 
 ```text
-Set up a new scientific IV project
-→ project-bootstrap
+A: Set up a new research project with README, metadata and analysis folders
+   → project-bootstrap
 
-Create or tighten persistent instructions for this subtree
-→ guidance-management capability
-
-Audit stale cross-component control-plane references
-→ control-plane maintenance capability
-
-Fix an ordinary Python function
-→ none of the control-plane maintenance/bootstrap skills
+B: Update AGENTS.md so analysis scripts always preserve raw data
+   → guidance-maintenance
 ```
 
-### Packaging decision
+```text
+A: Link this existing project into the Codex workspace
+   → project-link if retained
 
-First probe what the actual Codex runtime exposes for skill discovery/selection observation.
+B: Create the project structure
+   → project-bootstrap
+```
 
-- If selection can be exercised/observed reliably, create one small runnable routing-eval fixture/script/test surface.
-- If not, retain one minimal machine-readable or testable case fixture only if it still provides deterministic description-overlap checks; otherwise keep cases in the Issue/PR acceptance evidence and record the runtime limitation.
+```text
+A: Audit stale skill/workflow references across the control plane
+   → control-plane-audit/maintenance
 
-Do not build a router, vector database, telemetry service, or benchmark framework.
+B: Validate this workflow YAML
+   → deterministic workflow validator unless workflow-design judgment is actually required
+```
 
-## Phase 5 — Scope AGENTS.md correctly
+## Static vs behavioral evidence
 
-Audit each paragraph/rule using:
+Never conflate:
 
-> Does this rule apply to nearly every task under this directory scope?
+```text
+STATIC QUALITY CHECK
+= metadata/fixture syntax/obvious overlap checks
 
-### Root target
+BEHAVIORAL ROUTING EVAL
+= actual Codex skill discovery/selection
+```
 
-Root `AGENTS.md` should focus on:
+Probe the real runtime. If behavioral skill selection cannot be observed reliably, state that limitation and retain only the smallest useful static/contrastive fixture. Do not pretend a metadata lint proves LLM routing.
 
-- repository authority and canonical references;
-- global invariants;
-- orientation path;
-- broad parent/subagent authority boundaries;
-- global mutation/Git/GitHub safety;
-- durable-state rules that truly apply repo-wide.
+#24 does not own model choice, reasoning effort, parent-vs-subagent policy, parallelism, or fallback experiments. Those remain #8.
 
-Do not duplicate the full lifecycle from `OPERATING-WORKFLOW.md`.
+Do not build a router, vector index, telemetry platform, benchmark service, or routing database.
 
-### Scoped candidates
+---
 
-Use existing or add only justified scoped files:
+# Phase 6 — Scope AGENTS.md by semantic authority
+
+Audit every paragraph in the active instruction chain.
+
+For root `AGENTS.md`, require both:
+
+1. the rule applies broadly across the repository; and
+2. the rule materially changes agent behavior.
+
+If it merely explains architecture, move/link it to documentation. If it governs one subtree, move it to the nearest scoped owner when that materially improves context efficiency.
+
+Candidate scoped surfaces, only if justified:
 
 ```text
 agents/AGENTS.md
 skills/AGENTS.md
 workflows/AGENTS.md
-ops/AGENTS.md only if needed
+ops/AGENTS.md only if enough unique rules exist
 ```
 
-Potential ownership:
+Likely responsibilities:
 
-- `agents/AGENTS.md`: profile/role/delegation boundaries;
-- `skills/AGENTS.md`: skill naming, discovery, authoring, locality, and quality rules;
-- `workflows/AGENTS.md`: workflow admission, consumer/state/gate requirements, validation;
-- `ops/AGENTS.md`: only shared deterministic machinery rules if enough unique guidance exists.
+- root: authority, repo-wide invariants, orientation path, broad parent/subagent boundaries, global mutation/Git safety, durable-state rules;
+- `agents/AGENTS.md`: profile/role/delegation rules;
+- `skills/AGENTS.md`: skill existence/naming/discovery/locality/quality rules;
+- `workflows/AGENTS.md`: workflow admission, consumer/state/gate and validator rules;
+- `ops/AGENTS.md`: only genuinely shared deterministic machinery rules.
 
-Avoid creating nested AGENTS files containing only a few duplicated sentences.
+Do not optimize to a hard line count. Optimize semantic density and progressive disclosure. Do not duplicate the full `OPERATING-WORKFLOW.md` lifecycle into AGENTS files.
 
-## Phase 6 — Harden agent contracts
+---
+
+# Phase 7 — Harden agent contracts
 
 For every active agent/profile answer:
 
@@ -280,7 +370,7 @@ WHEN NOT TO USE?
 ESCALATION?
 ```
 
-An agent must justify itself through at least one real property:
+Every retained agent must justify itself through at least one real property:
 
 - permission boundary;
 - context isolation;
@@ -288,11 +378,15 @@ An agent must justify itself through at least one real property:
 - specialized tool access;
 - meaningful autonomy boundary.
 
-Do not create new agents in this phase unless a real unresolved runtime isolation/permission requirement makes ordinary parent/skill execution insufficient.
+Do not create new agents unless a real unresolved isolation/permission requirement makes parent/skill execution insufficient.
 
-## Phase 7 — Clarify component linking contract
+Keep role identity independent of skill/capability and model/reasoning policy.
 
-Update the smallest canonical semantic surface needed to make this path explicit:
+---
+
+# Phase 8 — Clarify component linking semantics
+
+Update the smallest canonical semantic surface needed to make this path obvious:
 
 ```text
 TASK / ISSUE
@@ -309,59 +403,27 @@ TASK / ISSUE
 → durable destination
 ```
 
-Clarify what each component must expose so the next stage can consume it.
-
-Preferred interface vocabulary:
+Use these as **review vocabulary only**, not mandatory serialized fields:
 
 ### Skill
-
-```text
-trigger
-inputs/context
-procedure
-output/result
-side effects
-stop conditions
-validation
-```
+`trigger -> inputs/context -> procedure -> output/result -> side effects -> stop conditions -> validation`
 
 ### Agent
-
-```text
-entry/use condition
-authority
-task contract
-allowed tools/scope
-return contract
-escalation
-```
+`entry/use condition -> authority -> task contract -> allowed tools/scope -> return contract -> escalation`
 
 ### Workflow
-
-```text
-entry condition
-state
-transitions
-gates
-failure/recovery
-exit condition
-consumer
-```
+`entry condition -> state -> transitions -> gates -> failure/recovery -> exit condition -> consumer`
 
 ### Tool/script
+`input -> deterministic operation -> output -> error conditions`
 
-```text
-input
-deterministic operation
-output
-error conditions
-```
+Do not create `component-interface.schema.yaml`, a universal registry/database, or mandatory new frontmatter taxonomy. A schema is allowed only in a later Issue if repeated real execution proves file-first metadata insufficient.
 
-Do not create a new universal registry/schema unless repeated implementation evidence shows that the existing file metadata cannot express these contracts reliably.
+---
 
-## Phase 8 — Quality review and bounded repair
+# Phase 9 — Independent quality review and bounded repair
 
-Use the following 0-2 component rubric as a review aid:
+Use the 0-2 review rubric:
 
 1. trigger/entry clarity;
 2. unique responsibility;
@@ -379,9 +441,9 @@ Interpretation:
 0-3 retire candidate
 ```
 
-Do not create a permanent scorecard file merely to store numbers. Summarize material final dispositions in the PR and update canonical docs only where the accepted architecture changes.
+The rubric supports judgment only. Do not create a permanent scorecard artifact.
 
-Also review the whole system for:
+Review the system as a whole for:
 
 - discoverability;
 - composability;
@@ -392,88 +454,105 @@ Also review the whole system for:
 - evolvability;
 - context efficiency/progressive disclosure.
 
-Use an independent reviewer for this final architecture-quality review if the runtime supports it and independence adds value.
+Use an independent reviewer when useful. Repair material findings inside #24 scope, then revalidate.
 
-Repair material findings inside Issue #24 scope, then revalidate.
+---
 
-## Required validation
+# Required validation
 
-Run all relevant existing repository validation plus any minimal new tests introduced by this pass, including at least:
+Run all relevant current validation plus any minimal new quality checks introduced by this pass:
 
-- skill validators/quality checks;
-- skill-specific test suites affected by rename/description/procedure changes;
+- retained skill validators and affected skill-specific tests;
 - workflow contract validation for retained workflows;
 - agent/profile validation;
 - task-contract/schema checks where applicable;
-- Git allowlist and `git diff --check`;
+- routing fixture/static checks if added;
+- actual behavioral routing probes where observable;
+- Git allowlist;
+- `git diff --check`;
 - hosted `Control-plane validation` CI.
 
-Where names are changed, verify all references, preferred-skill hints, workflow dependencies, CI paths, docs, tests, and installation/deployment references.
+For every rename, verify all references and installed/deployment hints. No stale old name may remain except intentional historical prose.
 
-## Durable-state updates
+---
 
-Update only what becomes accepted truth:
+# Durable-state updates
 
-- `CURRENT.md` for final deployed state;
-- `DECISIONS.md` only for durable architectural choices that need rationale;
-- `OPERATING-WORKFLOW.md` for canonical semantic/interface clarifications;
-- scoped `AGENTS.md` only for normative instructions.
+Update only accepted truth:
 
-Do not create separate quality reports, CHG folders, audit records, routing reports, or result files by default.
+- `CURRENT.md` for deployed state;
+- `DECISIONS.md` only for durable architectural choices that require rationale;
+- `OPERATING-WORKFLOW.md` for canonical workflow/linking semantics;
+- scoped `AGENTS.md` only for normative behavior.
 
-## Non-goals
+Do not create separate quality reports, routing reports, CHG folders, audit records, result files, or component scorecards.
+
+---
+
+# Explicit non-goals
 
 Do not implement:
 
-- #8 model/reasoning router;
-- #9 persistent memory;
-- #16 research workflow infrastructure;
-- #12 portability/plugin packaging;
+- #8 model/reasoning/delegation router;
+- #9 memory;
+- #16 research infrastructure;
+- #12 portability/plugin architecture;
 - a new workflow engine;
-- a capability registry/database;
+- a capability/component registry;
+- a universal interface schema;
 - one skill per project/file format;
 - new personas for conceptual stages;
 - broad project migration.
 
-## Acceptance mapping
+---
 
-Issue #24 is complete when:
+# Acceptance mapping
 
-- AC-01: global vs specialized workflow authority is unambiguous;
-- AC-02: every active skill has a deliberate name disposition;
-- AC-03: active descriptions are discriminative enough for routing;
-- AC-04: retained skill bodies expose appropriate procedure/boundary/validation semantics;
-- AC-05: a minimal routing/discovery eval exists or the runtime limitation is explicitly demonstrated with the smallest alternative evidence;
-- AC-06: root/nested AGENTS scopes are lean and non-duplicative;
-- AC-07: every active agent has a clear agent-specific justification and return boundary;
-- AC-08: component linking is explicit enough to follow without conversation history;
-- AC-09: deterministic validation and hosted CI pass;
-- AC-10: no new quality bureaucracy or orchestration layer is introduced.
+Issue #24 is complete only when:
 
-## Stop / escalation
+- AC-01: global vs specialized Franky workflow authority is unambiguous;
+- AC-02: every active skill has a capability-existence disposition before polish;
+- AC-03: every retained skill has a deliberate KEEP NAME/RENAME decision;
+- AC-04: retained descriptions are discriminative and nearest-neighbor conflicts are reduced;
+- AC-05: retained skill bodies expose stable procedure/boundary/tool/validation semantics;
+- AC-06: a minimal contrastive routing eval exists and static vs behavioral evidence is clearly distinguished;
+- AC-07: root/nested AGENTS scopes are lean, non-duplicative, and semantically local;
+- AC-08: every retained agent has an agent-specific justification and bounded return contract;
+- AC-09: task -> capability -> skill/agent/tool -> validation/review -> durable state is obvious from canonical semantics;
+- AC-10: relevant deterministic validation and hosted CI pass;
+- AC-11: no new quality bureaucracy, router, workflow engine, universal schema, or registry is introduced.
 
-Stop and report only if:
+---
+
+# Stop / escalation
+
+Stop only if:
 
 1. a rename would break an external/runtime consumer that cannot be safely migrated;
-2. current Codex skill-discovery behavior cannot be observed and no honest bounded test can approximate it;
+2. skill-discovery behavior cannot be observed and no honest bounded test can approximate the required evidence;
 3. Franky workflow metadata is consumed by an external runtime whose semantics conflict with the intended specialized scope;
-4. AGENTS precedence/runtime behavior differs materially from the repository assumptions and cannot be verified locally;
-5. a required change would expand into #8/#9/#12/#16 or another separately owned architecture concern.
+4. AGENTS precedence/runtime behavior differs materially from repository assumptions and cannot be verified;
+5. required work expands into #8/#9/#12/#16 or another separately owned architecture concern;
+6. deletion/merge would destroy unique provenance or behavior not recoverable from Git/GitHub.
 
-Do not stop for ordinary naming, description, reference migration, or scoped-instruction decisions inside this PLAN.
+Do not stop for ordinary naming, description, reference migration, scoped-instruction, merge/retire, or validator changes inside #24.
 
-## Final report
+---
+
+# Final report
 
 The PR/Issue final report should contain only:
 
 1. workflow authority outcome;
-2. final active skill names and any renames/merges/retirements;
-3. description/routing-quality improvements;
-4. routing-eval result and runtime limitations;
-5. final AGENTS scope map;
-6. agent-contract changes;
-7. component-linking clarification;
-8. tests/validators/CI results;
-9. deferred issues outside #24.
+2. final active skill surface;
+3. retired/merged skills and preserved deterministic tools;
+4. final names and rename rationale;
+5. description/neighbor-routing improvements;
+6. static and behavioral routing-eval results/limitations;
+7. final AGENTS scope map;
+8. agent-contract changes;
+9. component-linking clarification;
+10. tests/validators/CI results;
+11. deferred issues outside #24.
 
 No separate result artifact is required.
