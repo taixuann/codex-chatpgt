@@ -17,7 +17,7 @@ except ImportError as exc:  # pragma: no cover
 REQUIRED_STEP_FIELDS = {"id", "skill", "operation", "inputs", "outputs", "validation", "approval_gate", "on_failure"}
 FORBIDDEN_KEYS = {"model", "executor", "provider", "backend"}
 REQUIRED_APPROVAL_FIELDS = {"required", "reason"}
-TOP_LEVEL_FAMILIES = {"franky.yaml": (None, 18)}
+TOP_LEVEL_FAMILIES = {"franky.yaml": (None, 15)}
 GOVERNANCE_SEQUENCE = ("qualify", "audit", "preview", "approve", "apply", "validate", "overview", "write-change-record", "local-git-finalize")
 FORBIDDEN_NESTED_OPERATIONS = {"define", "materialize", "revise", "create-goal-session", "revise-goal-session"}
 DEPENDENCY_FIELDS = {"optional", "resolution", "protected"}

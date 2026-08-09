@@ -3,7 +3,7 @@ description = "Bounded AI Labs control-plane operator. Use for deterministic aud
 model = "gpt-5.6-luna"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
-preferred_skills = ["franky-maintenance", "franky-workflow-manager", "franky-external-handoff"]
+preferred_skills = ["franky-maintenance", "franky-workflow-organizer", "external-handoff"]
 developer_instructions = """
 ROLE
 Operate only on the AI Labs control plane through report-first maintenance.

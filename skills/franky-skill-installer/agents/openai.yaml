@@ -1,4 +1,0 @@
-interface:
-  display_name: "Skill installer"
-  short_description: "Install and validate Codex skills."
-  default_prompt: "Install or update a Codex skill safely."

@@ -34,7 +34,7 @@ steps:
     approval_gate: {required: false, reason: read_only_review}
     on_failure: return_to_human
   - id: update
-    skill: franky-skill-installer
+    skill: skill-installer
     operation: update_approved_skills
     inputs: [skill collision report, dependency inventory, approved change]
     outputs: [updated skills, skill version report]

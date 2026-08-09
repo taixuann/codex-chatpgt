@@ -6,7 +6,7 @@ branch: {key: component_type, value: project_link}
 goal: Audit and create reversible links from a trusted framework workspace to selected shared Codex skills.
 steps:
   - id: audit-proposed-link
-    skill: franky-project-linker
+    skill: install-project-link
     operation: audit
     inputs: [target workspace, selected Codex skills, requested link map]
     outputs: [link audit, collision report, rollback plan]
@@ -14,7 +14,7 @@ steps:
     approval_gate: {required: false, reason: read_only_audit}
     on_failure: return_to_human
   - id: apply-approved-link
-    skill: franky-project-linker
+    skill: install-project-link
     operation: apply
     inputs: [approved link audit, requested link map, rollback plan]
     outputs: [reversible framework links]

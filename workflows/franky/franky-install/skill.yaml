@@ -43,7 +43,7 @@ steps:
     approval_gate: {required: false, reason: read_only_review}
     on_failure: return_to_human
   - id: prepare-skill-change
-    skill: franky-skill-installer
+    skill: skill-installer
     operation: plan_change
     inputs: [collision report, dependency inventory, candidate skill]
     outputs: [skill package proposal, rollback plan]
@@ -51,7 +51,7 @@ steps:
     approval_gate: {required: false, reason: approved_context}
     on_failure: return_to_human
   - id: apply-skill-change
-    skill: franky-skill-installer
+    skill: skill-installer
     operation: apply_change
     inputs: [approved skill package proposal, rollback plan]
     outputs: [updated skill package]

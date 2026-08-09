@@ -19,9 +19,10 @@ Start with a read-only inventory. Inspect only the approved control-plane scope.
    live in each installer skill's optional `templates/` directory.
 5. Produce a report with exact paths, evidence, impact, and recommended next
    action.
-6. Apply changes only after human approval. Record routine local mutations in
-   `~/.codex/ops/changes/YYYY/CHG-YYYYMMDD-NNN/change.yaml`; use AI Labs
-   walkthroughs only for full architectural goal packages.
+6. Apply changes only after human approval. Use the Issue/PLAN/PR/CI surface
+   for ordinary work. Create `~/.codex/ops/changes/YYYY/CHG-YYYYMMDD-NNN/change.yaml`
+   only when a real machine/audit consumer or explicit contract requires it;
+   use AI Labs walkthroughs only for full architectural goal packages.
 7. Treat promotion preparation as a separate report with source hashes,
    destination registry changes, branch/update scope, and rollback metadata.
 

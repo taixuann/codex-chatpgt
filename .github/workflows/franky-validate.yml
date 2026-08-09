@@ -69,7 +69,7 @@ jobs:
         id: io_cache
         run: |
           python skills/franky-maintenance/scripts/validate_io_cache.py workflows/franky/franky.yaml
-          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml workflows/franky/general-workflow-factory/*.yaml; do
+          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
             python skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
           done
 
@@ -92,6 +92,10 @@ jobs:
       - name: Validate adaptive file-first bootstrap
         id: bootstrap
         run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/project-bootstrap/tests -v
+
+      - name: Validate generic project-link capability
+        id: project_link
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/install-project-link/tests -v
 
       - name: Validate Git allowlist
         id: allowlist
@@ -116,6 +120,7 @@ jobs:
             echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'
             echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'
             echo '| Adaptive file-first bootstrap | ${{ steps.bootstrap.outcome }} |'
+            echo '| Generic project-link capability | ${{ steps.project_link.outcome }} |'
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
             echo 'Legacy/retired root workflow files are not validated as canonical contracts.'

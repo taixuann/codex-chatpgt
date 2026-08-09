@@ -32,9 +32,9 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 - Architecture decisions: [`DECISIONS.md`](DECISIONS.md).
 - Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).
 - Runtime adapter contracts: [`agents/AGENTS.md`](../agents/AGENTS.md).
-- Existing Franky/shared skill/workflow surface: [`../skills/`](../skills/) and [`../workflows/`](../workflows/).
+- Active skill/workflow surface: [`../skills/`](../skills/) and [`../workflows/`](../workflows/). Retired Franky wrappers and proposal-only workflow families are no longer part of discovery.
 - Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml).
-- Change/audit evidence: [`../ops/changes/`](../ops/changes/).
+- Historical change/audit evidence: [`../ops/changes/`](../ops/changes/). New ordinary work does not create a CHG wrapper unless a named consumer requires one.
 - Deterministic repository CI: [`../.github/workflows/franky-validate.yml`](../.github/workflows/franky-validate.yml), accepted through PR #18. It is path-filtered to control-plane/runtime surfaces, validates the canonical workflow surface rather than retired root files, resolves repository/local skills portably, permits unresolved optional external skills only on explicitly conditional steps, and leaves personal local-runtime scope checks outside hosted CI.
 - The canonical task-contract schema is checked by
   [`../ops/scripts/validate_task_contract.py`](../ops/scripts/validate_task_contract.py)
@@ -77,13 +77,17 @@ Current readiness:
   deterministic helper and colocated tests. No workflow or second
   `file-workbench` skill exists.
 
-- **#2** — execution-ready after syncing its branch with current `main`; active PLAN and draft PR #3 exist.
+- **#2** — the earlier draft PR #3 was superseded and closed during cleanup; a
+  fresh execution branch must be created from the current `main` if this proof
+  is resumed.
 - **#14** — external-skill qualification may run in parallel now.
-- **#17** — PLAN exists but initial proof is intentionally narrowed to #2 -> PLAN -> PR #3 and should piggyback on that path.
+- **#17** — PLAN exists but its initial proof must piggyback on a future #2
+  implementation PR; the closed draft PR #3 is not an active proof.
 - **#5/#6/#10** — backlog PLANs exist but remain blocked by upstream evidence.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
-- **#7/#8/#9/#11/#12/#13** — backlog PLANs exist with explicit activation gates; they are not execution-ready by default.
+- **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
+- **#7/#8/#9/#11/#12** — backlog PLANs remain gated by their own runtime evidence.
 
 ## Planning state
 
@@ -102,10 +106,9 @@ The current design intentionally preserves semantic distinctions while delaying 
 - no model-router platform before representative tasks;
 - no project lifecycle adapter unless real project evidence requires it;
 - no plugin/harness abstraction before stable behavior exists;
-- #13 has an execution-ready disposition matrix, but its activation gate still
-  requires the upstream runtime evidence listed in its PLAN.
-- #21 owns physical cleanup after each #13 disposition is implemented and
-  validated; proof-only branch artifacts are not canonical state.
+- #13/#21 cleanup rules are now active for this control-plane baseline; each
+  retained abstraction has a named consumer and historical proof-only records
+  remain read-only provenance.
 
 Simplification should remove duplicate machinery or unclear ownership, not collapse distinctions that preserve provenance, authority, validation, or review independence.
 
