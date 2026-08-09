@@ -1,6 +1,0 @@
-component_type: project_link
-component_id: example-link
-operation: audit_link
-status: pass
-checks: [workspace_boundary, target, traversal, collision, rollback]
-findings: []

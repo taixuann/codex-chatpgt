@@ -13,11 +13,10 @@ lifecycle_ref:
   path: lifecycle-contract.yaml
   workflow_id: WF-FRANKY-CANONICAL-LIFECYCLE
   workflow_version: 1
-branch_keys: [component_type, maintenance_operation, factory_operation]
+branch_keys: [component_type, maintenance_operation]
 retired_entrypoint_ids:
   - WF-FRANKY-INSTALL
   - WF-FRANKY-MAINTENANCE
-  - WF-FRANKY-GENERAL-WORKFLOW-FACTORY
 pipelines:
   - path: franky-install/skill.yaml
     branch: {key: component_type, value: skill}
@@ -49,12 +48,6 @@ pipelines:
     branch: {key: maintenance_operation, value: git_finalize}
   - path: franky-maintenance/migrate-to-codex.yaml
     branch: {key: maintenance_operation, value: migrate_to_codex}
-  - path: general-workflow-factory/workflow-only.yaml
-    branch: {key: factory_operation, value: workflow_only}
-  - path: general-workflow-factory/workflow-with-skills.yaml
-    branch: {key: factory_operation, value: workflow_with_skills}
-  - path: general-workflow-factory/full-package.yaml
-    branch: {key: factory_operation, value: full_package}
 steps:
   - id: qualify
     skill: franky-maintenance

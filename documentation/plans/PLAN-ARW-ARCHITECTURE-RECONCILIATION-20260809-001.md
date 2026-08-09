@@ -274,7 +274,9 @@ Expected hypotheses to challenge:
 - `session-closeout.yaml` likely duplicates the session-closeout skill unless a machine consumer needs the state contract;
 - workflow factory/organizer machinery should shrink sharply if few machine workflows survive.
 
-Do not delete workflows in this phase unless a tiny obviously-dead compatibility file can be removed without broad reference churn and doing so materially improves the focused architecture PR.
+The bounded cleanup removed only the audited proposal-only and duplicate files.
+The canonical Franky entrypoint and nested install/maintenance pipelines stay
+intact and continue to pass contract validation.
 
 ### Confirmed inventory (2026-08-09)
 
@@ -283,10 +285,10 @@ Do not delete workflows in this phase unless a tiny obviously-dead compatibility
 | `workflows/franky/franky.yaml` + `lifecycle-contract.yaml` | Nested paths and the hosted layout/contract validators | State, approvals, and recovery are declared in YAML; no local dispatcher or resume store was found | KEEP as compatibility contract; #13 may simplify after runtime evidence |
 | `workflows/franky/franky-install/*` | Branches from the canonical Franky entrypoint and install skills | Ordering is declarative; no executable engine was found | KEEP pending #13 consumer review |
 | `workflows/franky/franky-maintenance/*` | Branches from the canonical Franky entrypoint and maintenance skills | Declarative gates; no executable engine was found | KEEP pending #13 consumer review |
-| `workflows/franky/general-workflow-factory/*` | `franky-workflow-factory` script and skill; staged output under `workflows/temp/` | Proposal files are staged, but no runtime consumer or resume store was found | DEFER; candidate for retirement in #13 |
+| `workflows/franky/general-workflow-factory/*` | No machine consumer; proposal-only factory skill | No runtime consumer or resume store was found | RETIRED in #13 cleanup |
 | `workflows/feynman/*` | Feynman skill procedures and project-scoped documentation | Domain ordering is documented; no generic dispatcher was found | KEEP as project/domain extensions |
-| `workflows/shared/session-closeout.yaml` | `shared-session-closeout` procedure | Closeout state is represented in the file; no runtime consumer was found | DEFER; compare with the skill in #13 |
-| legacy root `workflows/franky/install.yaml` / `maintenance.yaml` | No references outside their own files and canonical docs | No state or enforcement consumer found | RETIRE candidate; remove only in a focused #13 change |
+| `workflows/shared/session-closeout.yaml` | No runtime consumer; duplicated the shared skill | No state or enforcement consumer was found | RETIRED in #13 cleanup |
+| legacy root `workflows/franky/install.yaml` / `maintenance.yaml` | No references outside their own files and canonical docs | No state or enforcement consumer found | RETIRED in #13 cleanup |
 
 The audit used repository reference searches and validator entrypoints. It did
 not infer host runtime behavior from YAML: no executable workflow dispatcher,
@@ -346,8 +348,8 @@ tests. No `file-workbench` skill or project workflow was created.
 
 The fourteen Franky/shared capabilities named in the original hypotheses are
 recorded in the companion #13 plan with an evidence-backed disposition matrix.
-The matrix is a follow-up handoff, not an authorization to remove components in
-this reconciliation slice. Physical cleanup remains bounded to #13/#21.
+The bounded #13/#21 physical cleanup is now applied on the rationalization
+branch; historical change records remain immutable provenance.
 
 The canonical task-contract schema now has a deterministic validator at
 `ops/scripts/validate_task_contract.py`, a checked-in example under
@@ -445,3 +447,12 @@ The architecture-reconciliation slice is complete when:
 - deterministic validation remains green;
 - #13 and #21 are execution-ready with bounded follow-up scopes;
 - no broad cleanup or replacement framework was smuggled into the architecture PR.
+
+## Superseding execution note
+
+The architecture slice was completed on `main` at `b5155da`. The subsequent
+bounded #13/#21 rationalization branch applies the disposition matrix: generic
+handoff/link skills are tracked, duplicate wrapper skills and proposal-only
+workflow families are removed, and the retained canonical workflow validators
+remain green. This plan remains the semantic record; the cleanup plan owns the
+physical changes.

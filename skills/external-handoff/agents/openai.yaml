@@ -1,0 +1,4 @@
+interface:
+  display_name: "External handoff"
+  short_description: "Prepare bounded external execution handoffs."
+  default_prompt: "Prepare a bounded external handoff with scope, evidence, approval, and rollback."

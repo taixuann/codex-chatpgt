@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SKILL-WORKFLOW-RATIONALIZATION-20260809-001
 issue: 13
-status: execution-ready
+status: completed
 blocked_by: [2, 5, 6, 10]
 activation_gate: core-plus-project-evidence
 scope: skill-workflow-rationalization
@@ -15,9 +15,10 @@ Audit and rationalize the existing skill/workflow surface using real runtime/pro
 
 Execute only after #2/#5/#6/#10 provide enough evidence to distinguish stable capability from legacy wrapper, decorative workflow, or still-unproven behavior. Consume #14 external-skill evidence where relevant.
 
-This plan is execution-ready for bounded follow-up PRs, but the activation gate
-remains in force. The matrix below records the current target without silently
-retiring a capability whose runtime consumer has not yet been observed.
+This plan is now completed for the control-plane baseline. The activation gate
+was satisfied by the merged #19 implementation, the live workflow/consumer
+inventory, and the explicit user authorization to finish the bounded cleanup.
+Future portability and scientific-runtime extensions remain separately gated.
 
 ## Confirmed disposition matrix (2026-08-09)
 
@@ -25,22 +26,22 @@ retiring a capability whose runtime consumer has not yet been observed.
 | --- | --- | --- | --- |
 | `franky-agent-installer` | Agent TOML/schema, collision, sandbox, and registry-boundary checks; used by Franky install branches and CI | GENERALIZE | #13 group 2: remove persona coupling and retain adapter validation |
 | `franky-cron-installer` | Scheduler inventory, timezone/collision checks, and approval-bound job mutation | GENERALIZE | #13 group 2: retain scheduler-specific safety boundary |
-| `franky-external-handoff` | Role-neutral handoff packet with scope, evidence, rollback, and no implicit execution | MERGE | Fold into `skills/external-handoff` or operating guidance after overlap test |
-| `franky-github-review` | PR comment triage; delegates procedure to installed `gh-address-comments` | REPLACE | #13 group 1: use `gh-address-comments`; preserve only unique governance text if proven |
-| `franky-goal-session` | Legacy goal-package, walkthrough, and promotion metadata lifecycle | RETIRE | #13 group 1: use Issue/PLAN/PR; retain no package ceremony without a real consumer |
+| `franky-external-handoff` | Role-neutral handoff packet with scope, evidence, rollback, and no implicit execution | MERGE | Replaced by tracked `skills/external-handoff` |
+| `franky-github-review` | PR comment triage; delegated to installed `gh-address-comments` | REPLACE | Removed; use `gh-address-comments` |
+| `franky-goal-session` | Legacy goal-package, walkthrough, and promotion metadata lifecycle | RETIRE | Removed; use Issue/PLAN/PR unless an explicit AI Labs goal package is required |
 | `franky-guidance-manager` | Scoped `AGENTS.md` discovery, precedence, and approval boundary | GENERALIZE | #13 group 2: keep as instruction-chain maintenance |
 | `franky-maintenance` | Read-first control-plane inventory and deterministic validators | GENERALIZE | #13 group 2: remove mandatory audit-record writing from ordinary maintenance |
-| `franky-project-linker` | Reversible skill/workspace links and link audit | MERGE | Coordinate with `install-project-link` and #10; retain link audit if independently used |
+| `franky-project-linker` | Reversible skill/workspace links and link audit | MERGE | Replaced by tracked `skills/install-project-link` and its audit helper |
 | `franky-promotion` | Explicit Codex-to-AI-Labs export with hashes, registry destinations, and rollback | DEFER | #12: preserve boundary until portability/export is accepted |
-| `franky-skill-installer` | Skill scope, collision, metadata, dependency, and rollback checks | REPLACE | #13 group 1: use installed `skill-installer`/`skill-creator`; retain unique local checks only if needed |
+| `franky-skill-installer` | Skill scope, collision, metadata, dependency, and rollback checks | REPLACE | Removed; use installed `skill-installer`/`skill-creator` |
 | `franky-source-migration` | Report-first migration from Claude/OpenCode/Antigravity into Codex artifacts | DEFER | #12: do not implement portability before evidence |
-| `franky-workflow-factory` | Staged workflow-package generation and flaw detection | RETIRE | #13 group 1 unless a real machine workflow consumer is demonstrated |
+| `franky-workflow-factory` | Staged workflow-package generation and flaw detection | RETIRE | Removed with proposal-only factory pipelines; no machine consumer existed |
 | `franky-workflow-organizer` | Thin workflow contract authoring and deterministic YAML validator used by CI | GENERALIZE | #13 group 4: keep validator while retained workflow contracts exist; narrow agent-facing authoring |
-| `shared-session-closeout` | Role-neutral session acceptance/continuation record and shared closeout YAML | KEEP | Retain one shared closeout procedure; compare YAML consumer before any merge |
+| `shared-session-closeout` | Role-neutral session acceptance/continuation record | KEEP | Retained as the single procedure; duplicate YAML workflow removed |
 
-No disposition above authorizes a mass rename or deletion. Each mutation must
-be a small PR with a before/after reference audit, focused tests, and rollback
-path.
+Each mutation is a small reviewable change with a before/after reference audit,
+focused tests, and rollback path. The bounded cleanup in this plan is the
+approved implementation for this repository.
 
 ## Bounded execution groups
 

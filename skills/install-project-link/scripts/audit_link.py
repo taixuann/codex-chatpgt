@@ -8,26 +8,19 @@ from pathlib import Path
 import sys
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("source", type=Path)
-    parser.add_argument("target", type=Path)
-    parser.add_argument("--workspace-root", type=Path, default=None)
-    parser.add_argument("--proposed", action="store_true", help="audit a target that does not exist yet")
-    args = parser.parse_args()
-    source = args.source.resolve()
-    target = args.target
+def audit(source: Path, target: Path, workspace_root: Path | None, proposed: bool) -> int:
+    source = source.resolve()
     try:
         if ".system" in source.parts:
             raise ValueError("system-owned skills are not linkable")
         if not source.is_dir():
             raise ValueError("source is not a directory")
-        if args.workspace_root:
-            workspace_root = args.workspace_root.resolve()
+        if workspace_root:
+            workspace_root = workspace_root.resolve()
             target_parent = target.parent.resolve()
             if workspace_root not in (target_parent, *target_parent.parents):
                 raise ValueError(f"target is outside trusted workspace: {workspace_root}")
-        if args.proposed and not target.exists() and not target.is_symlink():
+        if proposed and not target.exists() and not target.is_symlink():
             print(f"OK proposed {target} -> {source}")
             return 0
         if not target.is_symlink():
@@ -39,6 +32,16 @@ def main() -> int:
         return 1
     print(f"OK {target} -> {source}")
     return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("source", type=Path)
+    parser.add_argument("target", type=Path)
+    parser.add_argument("--workspace-root", type=Path, default=None)
+    parser.add_argument("--proposed", action="store_true")
+    args = parser.parse_args()
+    return audit(args.source, args.target, args.workspace_root, args.proposed)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ id: WF-FRANKY-CANONICAL-LIFECYCLE
 name: Franky canonical governed lifecycle contract
 invocation_policy: workflow_only
 entrypoint: false
-goal: Define the shared lifecycle and handoff contract used by Franky compatibility entrypoints.
+goal: Define the shared lifecycle and handoff contract used by the canonical Franky entrypoint and its retained nested pipelines.
 handoff:
   required_fields:
     - source_workflow_id

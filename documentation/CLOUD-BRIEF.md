@@ -10,9 +10,9 @@ branch: main
 
 ## Current objective
 
-Reconcile the Codex control plane before adding the next capability layer.
-Keep canonical role authority, runtime support adapters, skills, workflows,
-task contracts, and cloud handoff semantics explicit and reviewable.
+Operate the reconciled Codex control plane with a small capability-first
+surface. Keep canonical role authority, generic handoffs/links, retained
+workflow contracts, task validation, and cloud handoff semantics explicit.
 
 ## Current state
 
@@ -23,8 +23,10 @@ task contracts, and cloud handoff semantics explicit and reviewable.
 - Canonical roles remain Feynman, Prometheus, and Franky according to the AI
   Labs registry.
 - Argus and Athena are bounded non-canonical support adapters.
-- Franky workflows and skills are established; global capability skills are
-  the next planned layer, not part of this reconciliation change.
+- Retired Franky wrappers (`github-review`, `skill-installer`, `goal-session`,
+  `workflow-factory`, and the old external/project-link wrappers) are no longer
+  discoverable. Generic replacements and the retained deterministic workflow
+  validator remain.
 - Issue #19 now has a bounded file-first bootstrap implementation in PR #20:
   adaptive artifact maps, dry-run/explicit apply, brownfield-safe updates,
   immutable `data/raw/` handling, and external Wiki/OpenScience references.
@@ -41,7 +43,7 @@ task contracts, and cloud handoff semantics explicit and reviewable.
 - [`AGENTS.md`](../AGENTS.md)
 - [`agents/AGENTS.md`](../agents/AGENTS.md)
 - [`task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml)
-- [`latest reconciliation plan`](../ops/changes/2026/CHG-20260808-003/PLAN.md)
+- [`architecture reconciliation plan`](plans/PLAN-ARW-ARCHITECTURE-RECONCILIATION-20260809-001.md)
 
 ## Validation evidence
 
@@ -54,5 +56,6 @@ whitespace checks. The final commit and remote ref are recorded in Git history.
 Issue #19 / PR #20 is now accepted: PR #20 was squash-merged into `main` as
 `a87a948` and the Issue is closed. Do not add a second `file-workbench` skill or
 duplicate OpenScience capabilities until a distinct reusable contract exists.
-The next bounded step is the #13/#21 rationalization handoff; it does not
-authorize mass cleanup without runtime evidence.
+The #13/#21 rationalization is now applied to the control-plane baseline.
+Future portability, research, memory, and project-inheritance work remains
+separately gated by its own runtime evidence.

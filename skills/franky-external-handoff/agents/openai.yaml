@@ -1,4 +1,0 @@
-interface:
-  display_name: "External handoff"
-  short_description: "Prepare bounded handoffs."
-  default_prompt: "Prepare a bounded external handoff."

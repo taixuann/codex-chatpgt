@@ -24,7 +24,7 @@ def main() -> int:
             raise ValueError(f"missing top-level workflows: {', '.join(sorted(missing))}")
         if forbidden:
             raise ValueError(f"standalone workflow remains: {', '.join(sorted(forbidden))}")
-        for directory in (args.root / "franky-install", args.root / "franky-maintenance", args.root / "general-workflow-factory"):
+        for directory in (args.root / "franky-install", args.root / "franky-maintenance"):
             if not directory.is_dir():
                 raise ValueError(f"missing workflow family directory: {directory}")
             if not any(directory.glob("*.yaml")):

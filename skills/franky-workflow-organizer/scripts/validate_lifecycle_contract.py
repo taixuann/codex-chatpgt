@@ -65,7 +65,7 @@ def validate(root: Path) -> None:
     lifecycle = canonical.get("lifecycle_ref")
     if lifecycle != {"path": "lifecycle-contract.yaml", "workflow_id": contract["id"], "workflow_version": contract["version"]}:
         raise ValueError("franky.yaml lifecycle_ref does not match the canonical contract")
-    if set(canonical.get("retired_entrypoint_ids", [])) != {"WF-FRANKY-INSTALL", "WF-FRANKY-MAINTENANCE", "WF-FRANKY-GENERAL-WORKFLOW-FACTORY"}:
+    if set(canonical.get("retired_entrypoint_ids", [])) != {"WF-FRANKY-INSTALL", "WF-FRANKY-MAINTENANCE"}:
         raise ValueError("franky.yaml must record all retired entrypoint IDs")
     apply_steps = [step for step in canonical.get("steps", []) if step.get("id") == "apply"]
     if len(apply_steps) != 1:

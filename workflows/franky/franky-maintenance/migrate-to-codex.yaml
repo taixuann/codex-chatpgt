@@ -5,7 +5,7 @@ invocation_policy: workflow_only
 branch: {key: maintenance_operation, value: migrate_to_codex}
 goal: Detect, audit, normalize, and safely merge selected agent-tool artifacts into Codex.
 dependencies:
-  optional: [franky-source-migration, skill-creator, franky-skill-installer]
+  optional: [franky-source-migration, skill-creator, skill-installer]
 steps:
   - id: detect
     skill: franky-source-migration
