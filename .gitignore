@@ -37,6 +37,7 @@ skills/install-project-link/*
 !skills/franky-maintenance/scripts/fixtures/
 !skills/franky-maintenance/scripts/fixtures/session-valid.jsonl
 !skills/franky-maintenance/scripts/fixtures/session-malformed.jsonl
+!skills/franky-maintenance/scripts/fixtures/skill-routing.yaml
 !workflows/
 !workflows/franky/
 !workflows/franky/*.yaml

@@ -1,4 +1,4 @@
 interface:
   display_name: "Franky source migration"
-  short_description: "Audit and normalize agent-tool artifacts into Codex."
-  default_prompt: "Audit Claude Code, OpenCode, or Antigravity artifacts and propose a safe Codex migration."
+  short_description: "Migrate named external tool artifacts into Codex."
+  default_prompt: "Audit a named Claude Code, OpenCode, or Antigravity source and prepare a collision-safe Codex migration proposal."

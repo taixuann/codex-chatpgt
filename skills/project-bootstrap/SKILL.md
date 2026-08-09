@@ -1,6 +1,9 @@
 ---
 name: project-bootstrap
-description: Bootstrap or minimally extend greenfield and brownfield scientific or file-first projects by inspecting requirements, selecting the smallest justified artifact surface, building an artifact map, and safely materializing files. Use when a user asks to set up, initialize, scaffold, or add related Markdown/YAML/JSON/Typst/data artifacts to a project without assuming a code-first repository.
+description: Bootstrap or minimally extend a greenfield or brownfield scientific/file-first project when the request is to set up, initialize, scaffold, or add related artifacts; inspect requirements, choose the smallest surface, and materialize safely. Do not use for guidance-only edits or link-only operations.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # Project Bootstrap

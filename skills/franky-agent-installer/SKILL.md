@@ -1,9 +1,21 @@
 ---
 name: franky-agent-installer
-description: Install or update Codex custom-agent TOML with scope, schema, model, sandbox, collision, dependency, and approval checks. Use for custom-agent lifecycle work.
+description: Validate and install a Codex agent profile when an approved control-plane change adds or updates a runtime adapter; check schema, scope, collision, sandbox, dependencies, and approval. Do not use for role design or ordinary task delegation.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # Franky agent installer
+
+## Contract
+
+- **Trigger:** an approved runtime-adapter installation or update is requested.
+- **Inputs:** target TOML, destination scope, canonical role mapping, and approval context.
+- **Output:** validated adapter, collision/dependency findings, and exact deployment paths.
+- **Boundary:** adapters implement canonical roles; they do not rename roles or decide task routing.
+- **Stop:** stop on role collision, unsafe sandbox, missing approval, or protected destination.
+- **Validation:** run `validate_agent_toml.py` and confirm filename/name, required fields, and write scope.
 
 Treat custom-agent files as runtime adapters, not as the canonical role
 registry.

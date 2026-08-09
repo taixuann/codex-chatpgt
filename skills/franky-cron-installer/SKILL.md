@@ -1,9 +1,21 @@
 ---
 name: franky-cron-installer
-description: Install, update, validate, and retire approved Franky scheduler or cron-job definitions with explicit scope, collision checks, timezone review, approval gates, and rollback evidence. Use when Franky must manage recurring operator jobs; audits remain read-only unless a workflow authorizes a change.
+description: Validate, install, or retire an approved recurring Franky/Codex job when schedule state changes; check identifier, timezone, overlap, scope, secrets, approval, and rollback. Audits remain read-only unless the selected workflow authorizes mutation.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # Franky cron installer
+
+## Contract
+
+- **Trigger:** a governed recurring scheduler definition must be created, changed, or retired.
+- **Inputs:** job identifier, owner, cadence/timezone, prompt source, output, retry policy, and current registration.
+- **Output:** collision-safe schedule proposal or approved mutation with rollback metadata.
+- **Boundary:** do not touch arbitrary user automations, credentials, or project schedulers.
+- **Stop:** stop on duplicate IDs, ambiguous timezone, secret material, or missing approval.
+- **Validation:** run scheduler/scope validators and verify the exact destination and overlap lock.
 
 Use this skill only as the cron operation within a selected Franky workflow.
 It prepares deterministic inventory and change plans for schedulers, cron

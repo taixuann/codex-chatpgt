@@ -1,9 +1,21 @@
 ---
 name: install-project-link
-description: Create and verify reversible links from the Codex workbench to approved framework paths without traversing project contents.
+description: Audit or create a reversible project link when an approved control-plane operation connects an existing external project; verify target, collision, scope, and rollback. Do not inspect or modify linked project contents.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # Install project link
+
+## Contract
+
+- **Trigger:** an approved workspace-to-project link operation is requested.
+- **Inputs:** source, target, owner, link mode, and approval/rollback boundary.
+- **Output:** audit result or reversible link with exact target and provenance.
+- **Boundary:** links are pointers only; never traverse, copy, or mutate linked project contents.
+- **Stop:** stop on collision, symlink escape, protected target, or ambiguous ownership.
+- **Validation:** run `audit_link.py`, then the focused tests before any approved create operation.
 
 Create or verify a requested link only after the source and target are explicit.
 Never infer a broad workspace, link into `.system`, credentials, or project

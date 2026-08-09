@@ -1,9 +1,21 @@
 ---
 name: franky-guidance-manager
-description: Create, audit, or update scoped AGENTS.md guidance while preventing broad global instructions, accidental persona stickiness, and unrelated task coupling. Use for agent-guidance maintenance.
+description: Audit or update scoped AGENTS.md when repository behavior or instruction locality must change; preserve precedence and keep rules near their owner. Do not use for architecture documentation or one-off prompt text.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # Franky guidance manager
+
+## Contract
+
+- **Trigger:** durable repository behavior needs a scoped instruction change.
+- **Inputs:** target path, applicable instruction chain, desired invariant, and precedence constraints.
+- **Output:** minimal guidance diff plus before/after scope and precedence evidence.
+- **Boundary:** architecture history belongs in documentation; do not make persona language global without a real behavior rule.
+- **Stop:** stop on ambiguous ownership, conflicting parent guidance, or protected scope.
+- **Validation:** inspect the resolved chain and run the guidance validator when available.
 
 Keep durable guidance small and close to the files it governs.
 

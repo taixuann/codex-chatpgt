@@ -62,6 +62,12 @@ def validate(root: Path) -> None:
     canonical = load(root / "franky.yaml")
     if canonical.get("id") != CANONICAL_ID or canonical.get("canonical") is not True:
         raise ValueError("franky.yaml must be the canonical Franky entrypoint")
+    if canonical.get("authority_scope") != "franky_control_plane" or canonical.get("semantic_authority") != "specialized_control_plane":
+        raise ValueError("franky.yaml must declare specialized control-plane authority")
+    if canonical.get("global_semantic_source") != "../../documentation/OPERATING-WORKFLOW.md":
+        raise ValueError("franky.yaml must point to the global semantic lifecycle")
+    if contract.get("authority_scope") != "franky_control_plane" or contract.get("semantic_authority") != "specialized_control_plane":
+        raise ValueError("lifecycle contract must declare specialized control-plane authority")
     lifecycle = canonical.get("lifecycle_ref")
     if lifecycle != {"path": "lifecycle-contract.yaml", "workflow_id": contract["id"], "workflow_version": contract["version"]}:
         raise ValueError("franky.yaml lifecycle_ref does not match the canonical contract")

@@ -61,6 +61,16 @@ jobs:
         id: contracts
         run: python skills/franky-workflow-organizer/scripts/validate_workflow.py workflows/franky/franky.yaml
 
+      - name: Validate specialized workflow authority
+        id: authority
+        run: |
+          python skills/franky-workflow-organizer/scripts/validate_lifecycle_contract.py workflows/franky
+          python ops/scripts/validate_franky_canonical_layout.py
+
+      - name: Validate static skill-routing fixture
+        id: routing
+        run: python skills/franky-maintenance/scripts/validate_skill_routing.py . skills/franky-maintenance/scripts/fixtures/skill-routing.yaml
+
       - name: Validate agent changelog
         id: changelog
         run: python skills/franky-maintenance/scripts/validate_agent_changelog.py agents
@@ -97,6 +107,10 @@ jobs:
         id: project_link
         run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/install-project-link/tests -v
 
+      - name: Validate skill-routing fixture tests
+        id: routing_tests
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/franky-maintenance/tests -p 'test_skill_routing.py' -v
+
       - name: Validate Git allowlist
         id: allowlist
         run: python skills/franky-maintenance/scripts/validate_git_allowlist.py .
@@ -113,6 +127,8 @@ jobs:
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
             echo '| Workflow layout | ${{ steps.layout.outcome }} |'
             echo '| Canonical workflow contracts | ${{ steps.contracts.outcome }} |'
+            echo '| Specialized workflow authority | ${{ steps.authority.outcome }} |'
+            echo '| Static skill-routing fixture | ${{ steps.routing.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
             echo '| Canonical workflow IO/cache | ${{ steps.io_cache.outcome }} |'
             echo '| Task contract | ${{ steps.task_contract.outcome }} |'
@@ -121,6 +137,7 @@ jobs:
             echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'
             echo '| Adaptive file-first bootstrap | ${{ steps.bootstrap.outcome }} |'
             echo '| Generic project-link capability | ${{ steps.project_link.outcome }} |'
+            echo '| Skill-routing fixture tests | ${{ steps.routing_tests.outcome }} |'
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
             echo 'Legacy/retired root workflow files are not validated as canonical contracts.'
