@@ -35,6 +35,11 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   procedure is now packaged as one `project-bootstrap` skill around the
   deterministic primitive; no workflow or second `file-workbench` skill was
   added.
+- Issue #24 quality hardening is accepted through PR #30 (`c559f9a`): Franky
+  workflow authority is scoped, retained skill contracts and descriptions are
+  discriminative, scoped instruction files are explicit, and the static
+  contrastive routing fixture is part of hosted CI. Behavioral runtime skill
+  selection is not claimed because the active Codex surface exposes no trace.
 
 ## Read next
 

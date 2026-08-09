@@ -1,10 +1,15 @@
 ---
 id: PLAN-ARW-CONTROL-PLANE-QUALITY-HARDENING-20260809-001
 issue: 24
-status: execution-ready
+status: accepted
 date: 2026-08-09
 scope: control-plane quality hardening
 ---
+
+> Execution result: accepted through PR #30 (`c559f9a`) on 2026-08-09. Hosted
+> control-plane validation passed. The active runtime did not expose a
+> behavioral skill-selection trace, so routing evidence remains static and
+> contrastive rather than a claim about LLM selection.
 
 # Control-plane quality hardening
 

@@ -87,12 +87,13 @@ Current readiness:
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
-- **#24** — control-plane quality hardening is implemented on
-  `codex/issue24-quality-hardening`: Franky authority is explicitly scoped to
-  the control plane, retained skill metadata/contracts are discriminative,
-  scoped `AGENTS.md` guidance is present for agents/skills/workflows, and a
-  small static contrastive routing fixture distinguishes metadata evidence from
-  behavioral runtime selection. Final acceptance is pending PR/CI review.
+- **#24** — control-plane quality hardening is accepted through PR #30
+  (`c559f9a`). Franky authority is explicitly scoped to the control plane,
+  retained skill metadata/contracts are discriminative, scoped `AGENTS.md`
+  guidance is present for agents/skills/workflows, and a small static
+  contrastive routing fixture distinguishes metadata evidence from behavioral
+  runtime selection. Hosted CI passed; behavioral selection remains an
+  explicit runtime limitation.
 - **#7/#8/#9/#11/#12** — backlog PLANs remain gated by their own runtime evidence.
 
 ## Planning state
