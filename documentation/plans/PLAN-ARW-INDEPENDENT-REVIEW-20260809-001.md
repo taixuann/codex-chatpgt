@@ -74,6 +74,14 @@ the optional Computer Use MCP could not start. These observations do not
 provide a native parent-resume or adapter-selection trace, so #6 remains
 conditional and no warning is treated as a hidden acceptance proof.
 
+The same reconciliation run completed the full local control-plane validation
+surface: seven skill interfaces, five agent adapters, canonical workflow and
+lifecycle contracts, routing/changelog/IO-cache checks, both task-contract
+examples, the bounded packet, audit/scheduler/session fixtures, bootstrap and
+project-link suites, routing tests, allowlist, and `git diff --check` all
+passed. The routing fixture still reports its documented limitation that
+behavioral runtime skill selection is not observable.
+
 # Execution phases
 
 1. Define review-trigger criteria from risk, uncertainty, architecture/scientific judgment, repeated failure, and validation gaps.
