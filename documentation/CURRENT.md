@@ -35,6 +35,7 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 - Existing Franky/shared skill/workflow surface: [`../skills/`](../skills/) and [`../workflows/`](../workflows/).
 - Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml).
 - Change/audit evidence: [`../ops/changes/`](../ops/changes/).
+- Deterministic repository CI: [`../.github/workflows/franky-validate.yml`](../.github/workflows/franky-validate.yml), accepted through PR #18. It is path-filtered to control-plane/runtime surfaces, validates the canonical workflow surface rather than retired root files, resolves repository/local skills portably, permits unresolved optional external skills only on explicitly conditional steps, and leaves personal local-runtime scope checks outside hosted CI.
 
 The shared operating lifecycle remains capability-first, bounded, validation-oriented, and review-selective. `OPERATING-WORKFLOW.md` is the human-readable semantic source; machine-readable workflows are justified only when runtime state/gate enforcement adds value.
 
@@ -70,7 +71,7 @@ Current readiness:
 - **#14** — external-skill qualification may run in parallel now.
 - **#17** — PLAN exists but initial proof is intentionally narrowed to #2 -> PLAN -> PR #3 and should piggyback on that path.
 - **#5/#6/#10** — backlog PLANs exist but remain blocked by upstream evidence.
-- **#15** — evidence-collecting; use real system changes rather than a standalone mega-project.
+- **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#7/#8/#9/#11/#12/#13** — backlog PLANs exist with explicit activation gates; they are not execution-ready by default.
 
@@ -97,4 +98,4 @@ Simplification should remove duplicate machinery or unclear ownership, not colla
 
 ## Known execution gap
 
-The immediate blocker to new core evidence is that #2 has not yet been run against the current repository/runtime baseline. Its draft PR branch predates several documentation updates and should be synced/reconciled before local runtime reconnaissance begins.
+The immediate blocker to new core evidence is that #2 has not yet been run against the current repository/runtime baseline. Its draft PR branch predates several documentation and accepted CI updates and should be synced/reconciled before local runtime reconnaissance begins.
