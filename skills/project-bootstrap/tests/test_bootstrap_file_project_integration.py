@@ -8,7 +8,7 @@ import unittest
 import yaml
 
 
-SCRIPT = Path(__file__).parents[1] / "bootstrap_file_project.py"
+SCRIPT = Path(__file__).parents[1] / "scripts" / "bootstrap_file_project.py"
 
 
 class ScientificFileFirstLifecycleTests(unittest.TestCase):

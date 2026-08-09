@@ -29,7 +29,10 @@ task contracts, and cloud handoff semantics explicit and reviewable.
   adaptive artifact maps, dry-run/explicit apply, brownfield-safe updates,
   immutable `data/raw/` handling, and external Wiki/OpenScience references.
   The current branch's focused discovery suite passes 9 tests, including the
-  scientific CLI lifecycle fixture and path/symlink hardening.
+  scientific CLI lifecycle fixture and path/symlink hardening. The reasoning
+  procedure is now packaged as one `project-bootstrap` skill around the
+  deterministic primitive; no workflow or second `file-workbench` skill was
+  added.
 
 ## Read next
 
@@ -49,7 +52,7 @@ whitespace checks. The final commit and remote ref are recorded in Git history.
 ## Next decision
 
 First obtain maintainer review/acceptance of Issue #19 / PR #20, with AC-10
-remaining an explicit human gate. Do not add a project-bootstrap skill or
-duplicate OpenScience capabilities until that packaging and boundary decision
-is accepted. Afterward, resume the planned `context-strengthening` and
+remaining an explicit human gate. Do not add a second `file-workbench` skill or
+duplicate OpenScience capabilities until a distinct reusable contract exists.
+Afterward, resume the planned `context-strengthening` and
 `repository-exploration` slice.

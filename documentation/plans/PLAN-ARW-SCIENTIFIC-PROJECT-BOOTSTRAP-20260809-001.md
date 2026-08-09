@@ -29,20 +29,23 @@ The missing behavior is not another project workflow. The missing behavior is a 
 
 ## Implemented behavior
 
-The bounded behavior is implemented in
-`ops/scripts/bootstrap_file_project.py`. It validates an artifact map,
+The deterministic primitive is bundled at
+`skills/project-bootstrap/scripts/bootstrap_file_project.py`. The
+agent-facing procedure in `skills/project-bootstrap/SKILL.md` inspects the
+request, classifies the project, selects the minimum surface, builds the map,
+and invokes the primitive. The primitive validates an artifact map,
 performs a dry-run by default, and materializes only declared files under an
 explicit output root when `--apply` is supplied. It rejects traversal,
 control-plane paths, non-external unresolved links, duplicate paths, unsafe
 raw-data writes, and invalid create/update/preserve intents. Focused tests in
-`ops/scripts/tests/test_bootstrap_file_project.py` and
-`ops/scripts/tests/test_bootstrap_file_project_integration.py` exercise
+`skills/project-bootstrap/tests/test_bootstrap_file_project.py` and
+`skills/project-bootstrap/tests/test_bootstrap_file_project_integration.py` exercise
 adaptive materialization, dry-run, CLI apply, brownfield updates, and
 failure-to-preserve repair behavior.
 
-No new global skill, workflow, schema, or project knowledge plane was created.
-The observed procedure remains small enough to live as a deterministic control
-plane tool plus ordinary instructions.
+One reusable `project-bootstrap` skill now owns the reasoning procedure and
+bundled deterministic primitive. No workflow, second `file-workbench` skill,
+schema, or project knowledge plane was created.
 
 ## Execution record — 2026-08-09
 
@@ -51,8 +54,9 @@ capabilities were checked for overlap: `franky-project-linker`,
 `franky-install-project-link`, `franky-workflow-organizer`,
 `franky-workflow-factory`, and file/document refinement capabilities. The
 #14 external-skill plan contains no qualified project-bootstrap or
-file-workbench candidate that should replace this bounded behavior. No new
-skill, workflow, schema, or project knowledge plane was introduced.
+file-workbench candidate that should replace this bounded behavior. The local
+skill is justified because its request-inspection/materialization procedure is
+distinct from the deterministic helper; no workflow or second skill was added.
 
 A bounded existing-project scientific fixture was exercised with an artifact map
 containing orientation, project profile, metadata guidance, processed-data and
@@ -80,13 +84,13 @@ including the public-CLI scientific lifecycle fixture.
 | --- | --- | --- |
 | AC-01 | pass | Existing-project execution plus greenfield dry-run/apply test coverage |
 | AC-02 | pass | Only declared project modules materialized; no empty optional scaffold |
-| AC-03 | pass | Existing local capabilities inspected; no new skill created |
+| AC-03 | pass | Existing local capabilities inspected before creating one local skill |
 | AC-04 | pass | Multi-file artifact map carries purpose, format, dependencies, and links |
 | AC-05 | pass | Raw file preserve boundary and unchanged hash verified |
 | AC-06 | pass | Wiki/OpenScience represented only as external references |
 | AC-07 | pass | No global agent/workflow definitions copied into the fixture |
 | AC-08 | pass | Research workflow is referenced externally; no #16 lifecycle duplicated |
-| AC-09 | pass | No-skill packaging decision follows one observed deterministic contract |
+| AC-09 | pass | One `project-bootstrap` skill owns the stable procedure; no second skill/workflow |
 | AC-10 | conditional-pass | Human-readable minimal surface is demonstrated; maintainer acceptance remains pending |
 
 This slice provides bounded evidence for #5's implement/validate/repair loop,
@@ -314,6 +318,14 @@ Use only if evidence shows distinct contracts, for example:
 
 Do not split by conceptual elegance alone.
 
+### Observed outcome — one skill
+
+The execution earned Outcome B. `project-bootstrap` has a stable trigger and
+procedure distinct from its deterministic materializer: inspect the request,
+classify the project, reuse capabilities, choose the minimum surface, build an
+artifact map, materialize, and validate. `file-workbench` remains deferred
+because no independent trigger or lifecycle was observed.
+
 ## Phase 6 — Exercise inheritance/research boundaries, not reimplement them
 
 When #10 is ready, run the resulting capability on one real project to test global-to-project inheritance.
@@ -331,8 +343,10 @@ skills/<existing-skill>/...
 Implemented in this slice:
 
 ```text
-ops/scripts/bootstrap_file_project.py
-ops/scripts/tests/test_bootstrap_file_project.py
+skills/project-bootstrap/SKILL.md
+skills/project-bootstrap/scripts/bootstrap_file_project.py
+skills/project-bootstrap/tests/test_bootstrap_file_project.py
+skills/project-bootstrap/tests/test_bootstrap_file_project_integration.py
 ```
 
 or, only if earned by evidence:
@@ -456,7 +470,7 @@ Issue #19 AC-01 through AC-10 are all addressed by Phases 0–6. A passing imple
 Resolve from evidence rather than up front:
 
 - Does `project.yaml` earn a stable common schema, or should it remain a light project-specific profile?
-- Are `project-bootstrap` and `file-workbench` actually separate reusable procedures?
+- Is `project-bootstrap` sufficient, with `file-workbench` still deferred?
 - Should sample identity be represented by files, a project registry, or existing project conventions in the first real scientific pilot?
 - Which existing Franky project-linking/setup skills should be generalized, retained, or later retired under #13?
 
