@@ -95,7 +95,9 @@ Current readiness:
   `PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md`. A local Codex review probe
   found and repaired unsupported `preferred_skills` adapter fields in PR #34
   (`200b606`); a completed independent judgment still requires a permitted
-  review runtime.
+  review runtime. The local discovery root was also repaired for two legacy
+  skills missing frontmatter; follow-up Codex startup reports zero
+  malformed-agent and missing-frontmatter warnings.
 - **#10** — the Graph Engineering pilot has consumed the merged #2 helper in
   read-only mode. Its packet contained 2 canonical + 3 repository-evidence
   entries; the project validator passed (12 pages, 21 Canvas nodes, 6 edges),

@@ -87,6 +87,9 @@ The first local review probe also found unsupported `preferred_skills` keys in
 all agent adapters; PR #34 (`200b606`) repaired that runtime-schema defect and
 the follow-up probe reported zero malformed-role warnings. External review
 execution remains approval-gated because it would transmit repository content.
+The local discovery-root probe is now clean: both legacy skills with missing
+frontmatter were repaired and the follow-up startup reported zero malformed-
+agent or missing-frontmatter warnings.
 read-only Graph Engineering validator currently passes (12 pages, 21 Canvas
 nodes, 6 edges) and a 16-file before/after hash check found no project
 mutation; this remains conditional evidence until the upstream runtime gates
