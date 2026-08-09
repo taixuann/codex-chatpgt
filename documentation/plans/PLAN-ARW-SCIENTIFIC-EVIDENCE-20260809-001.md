@@ -289,6 +289,11 @@ Do not assume all listed files must change. Closure should identify actual consu
 - The Wiki-side contract, read-only tool surface, four behavioral cases, and
   portability checks pass independently. The exposed tools are exactly
   `wiki.query`, `wiki.source`, and `wiki.related`.
+- A direct stdio JSON-RPC probe of the registered launch command completed
+  `initialize`, `tools/list`, and one positive `wiki.query`; it returned a
+  `wiki-evidence/v1` packet with three source-grounded evidence items. This is
+  transport-level evidence only, not proof that the Codex model selected the
+  tool.
 - The Codex control-plane validators, task-contract checks, focused project
   bootstrap tests, and whitespace checks pass on the current `main` state.
 - A non-interactive Codex probe discovered `wiki.query`, but the MCP call was
@@ -297,6 +302,10 @@ Do not assume all listed files must change. Closure should identify actual consu
   evidence packet or consumer-selection trace was observed.
 - No unsupported per-agent MCP fields, duplicate retrieval layer, Wiki
   mutation path, or new wrapper skill/workflow was added.
+- A network-enabled Codex probe was not permitted because it would transmit
+  local Wiki corpus content to the remote Codex/OpenAI service without an
+  explicit data-export approval. This is a safety boundary, not a Wiki server
+  failure.
 
 The implementation is therefore a **conditional pass for registration,
 discovery, and contract evidence**, while the host-runtime acceptance gate
