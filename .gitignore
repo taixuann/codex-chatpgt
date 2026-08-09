@@ -15,6 +15,8 @@
 !skills/franky-*/
 !skills/franky-*/*
 !skills/franky-*/*/*
+!skills/project-bootstrap/
+!skills/project-bootstrap/**
 !skills/shared-session-closeout/
 !skills/shared-session-closeout/**
 !skills/franky-maintenance/scripts/fixtures/

@@ -1,7 +1,7 @@
 ---
 id: CLOUD-BRIEF-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-08
+updated: 2026-08-09
 repository: taixuann/codex-chatpgt
 branch: main
 ---
@@ -25,6 +25,14 @@ task contracts, and cloud handoff semantics explicit and reviewable.
 - Argus and Athena are bounded non-canonical support adapters.
 - Franky workflows and skills are established; global capability skills are
   the next planned layer, not part of this reconciliation change.
+- Issue #19 now has a bounded file-first bootstrap implementation in PR #20:
+  adaptive artifact maps, dry-run/explicit apply, brownfield-safe updates,
+  immutable `data/raw/` handling, and external Wiki/OpenScience references.
+  The current branch's focused discovery suite passes 9 tests, including the
+  scientific CLI lifecycle fixture and path/symlink hardening. The reasoning
+  procedure is now packaged as one `project-bootstrap` skill around the
+  deterministic primitive; no workflow or second `file-workbench` skill was
+  added.
 
 ## Read next
 
@@ -43,6 +51,8 @@ whitespace checks. The final commit and remote ref are recorded in Git history.
 
 ## Next decision
 
-After this baseline is reviewed, build a small vertical slice for
-`context-strengthening` and `repository-exploration`. Do not add domain agents
-or duplicate OpenScience capabilities without a routing need.
+First obtain maintainer review/acceptance of Issue #19 / PR #20, with AC-10
+remaining an explicit human gate. Do not add a second `file-workbench` skill or
+duplicate OpenScience capabilities until a distinct reusable contract exists.
+Afterward, resume the planned `context-strengthening` and
+`repository-exploration` slice.

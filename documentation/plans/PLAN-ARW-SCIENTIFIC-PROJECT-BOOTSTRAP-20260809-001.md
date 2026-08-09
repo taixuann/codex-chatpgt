@@ -1,9 +1,9 @@
 ---
 id: PLAN-ARW-SCIENTIFIC-PROJECT-BOOTSTRAP-20260809-001
 issue: 19
-status: inventory-first
+status: review-ready
 repository: taixuann/codex-chatpgt
-branch: TBD-at-execution
+branch: codex/issue19-adaptive-bootstrap-v1
 created: 2026-08-09
 ---
 
@@ -26,6 +26,85 @@ The control plane already has:
 - existing project-linking / workflow-maintenance skills that must be inspected for overlap before any new skill is created.
 
 The missing behavior is not another project workflow. The missing behavior is a bounded procedure that can take a file-oriented project request, inspect a new or existing project, choose the minimum useful file/artifact surface, select existing capabilities, and materialize related artifacts without assuming the project is primarily software.
+
+## Implemented behavior
+
+The deterministic primitive is bundled at
+`skills/project-bootstrap/scripts/bootstrap_file_project.py`. The
+agent-facing procedure in `skills/project-bootstrap/SKILL.md` inspects the
+request, classifies the project, selects the minimum surface, builds the map,
+and invokes the primitive. The primitive validates an artifact map,
+performs a dry-run by default, and materializes only declared files under an
+explicit output root when `--apply` is supplied. It rejects traversal,
+control-plane paths, non-external unresolved links, duplicate paths, unsafe
+raw-data writes, and invalid create/update/preserve intents. Focused tests in
+`skills/project-bootstrap/tests/test_bootstrap_file_project.py` and
+`skills/project-bootstrap/tests/test_bootstrap_file_project_integration.py` exercise
+adaptive materialization, dry-run, CLI apply, brownfield updates, and
+failure-to-preserve repair behavior.
+
+One reusable `project-bootstrap` skill now owns the reasoning procedure and
+bundled deterministic primitive. No workflow, second `file-workbench` skill,
+schema, or project knowledge plane was created.
+
+## Execution record — 2026-08-09
+
+The authoritative Issue #19 body was read before this execution. Existing
+capabilities were checked for overlap: `franky-project-linker`,
+`franky-install-project-link`, `franky-workflow-organizer`,
+`franky-workflow-factory`, and file/document refinement capabilities. The
+#14 external-skill plan contains no qualified project-bootstrap or
+file-workbench candidate that should replace this bounded behavior. The local
+skill is justified because its request-inspection/materialization procedure is
+distinct from the deterministic helper; no workflow or second skill was added.
+
+A bounded existing-project scientific fixture was exercised with an artifact map
+containing orientation, project profile, metadata guidance, processed-data and
+analysis boundaries, results guidance, external Wiki/OpenScience references,
+and one pre-existing immutable raw file. Dry-run produced no files; apply
+produced exactly the six declared new files and preserved the raw file. The
+raw SHA-256 was unchanged. Optional `samples`,
+`figures`, `manuscript`, `tools`, `workflows`, `skills`, and `agents` surfaces
+were not created or copied.
+
+For the #5 execution/validation lens, an intentional `create` request for the
+raw file failed with exit 1 and the bounded repair restored `preserve`; a clean
+fixture then applied successfully. The independent review of the actual diff
+found malformed non-mapping artifact entries could escape the intended
+`BootstrapError` boundary. The repair validates artifact entries before path
+collection and adds a regression test. The current branch follow-up also
+rejects Windows-absolute/NUL paths, refuses symlink targets and symlinked
+parent paths, requires an existing directory for brownfield mode, and rejects
+non-string intents. The focused discovery suite now passes nine tests,
+including the public-CLI scientific lifecycle fixture.
+
+### Acceptance status
+
+| Criterion | Status | Result |
+| --- | --- | --- |
+| AC-01 | pass | Existing-project execution plus greenfield dry-run/apply test coverage |
+| AC-02 | pass | Only declared project modules materialized; no empty optional scaffold |
+| AC-03 | pass | Existing local capabilities inspected before creating one local skill |
+| AC-04 | pass | Multi-file artifact map carries purpose, format, dependencies, and links |
+| AC-05 | pass | Raw file preserve boundary and unchanged hash verified |
+| AC-06 | pass | Wiki/OpenScience represented only as external references |
+| AC-07 | pass | No global agent/workflow definitions copied into the fixture |
+| AC-08 | pass | Research workflow is referenced externally; no #16 lifecycle duplicated |
+| AC-09 | pass | One `project-bootstrap` skill owns the stable procedure; no second skill/workflow |
+| AC-10 | conditional-pass | Human-readable minimal surface is demonstrated; maintainer acceptance remains pending |
+
+This slice provides bounded evidence for #5's implement/validate/repair loop,
+#6's review gate, #15's proactive system-change path, and #17's existing
+Issue/PLAN relationship without adding a graph registry or relationship file.
+The next genuinely ready step is review/acceptance of this #19 implementation,
+then a separately scoped #15 follow-up if the maintainer accepts the slice.
+
+### Reconciliation and remaining gate
+
+PR #20 remains open and has no recorded maintainer review. The implementation
+and deterministic evidence are review-ready, but AC-10 is intentionally not
+treated as accepted until a maintainer confirms the minimal surface and closes
+Issue #19 (or records an explicit waiver).
 
 # Requirements
 
@@ -239,6 +318,14 @@ Use only if evidence shows distinct contracts, for example:
 
 Do not split by conceptual elegance alone.
 
+### Observed outcome — one skill
+
+The execution earned Outcome B. `project-bootstrap` has a stable trigger and
+procedure distinct from its deterministic materializer: inspect the request,
+classify the project, reuse capabilities, choose the minimum surface, build an
+artifact map, materialize, and validate. `file-workbench` remains deferred
+because no independent trigger or lifecycle was observed.
+
 ## Phase 6 — Exercise inheritance/research boundaries, not reimplement them
 
 When #10 is ready, run the resulting capability on one real project to test global-to-project inheritance.
@@ -251,6 +338,15 @@ Potential, not guaranteed:
 
 ```text
 skills/<existing-skill>/...
+```
+
+Implemented in this slice:
+
+```text
+skills/project-bootstrap/SKILL.md
+skills/project-bootstrap/scripts/bootstrap_file_project.py
+skills/project-bootstrap/tests/test_bootstrap_file_project.py
+skills/project-bootstrap/tests/test_bootstrap_file_project_integration.py
 ```
 
 or, only if earned by evidence:
@@ -308,12 +404,14 @@ Map Issue #19 acceptance criteria as follows:
 - AC-01: demonstrate one live mode plus bounded coverage of the other.
 - AC-02: before/after tree proves adaptive module selection.
 - AC-03: overlap inventory documents built-in/local/external reuse check.
-- AC-04: artifact map traces request -> produced files.
-- AC-05: raw-data protection test/inspection where applicable.
+- AC-04: artifact map traces request -> produced files; the deterministic
+  materializer consumes the map directly.
+- AC-05: raw-data protection rejects writes and accepts explicit preserve intent.
 - AC-06: project tree and references prove Wiki/OpenScience are not copied.
 - AC-07: project diff contains no duplicate global agent/workflow definitions.
 - AC-08: research semantics reference #16 rather than redefining promotion/lifecycle rules.
-- AC-09: packaging decision includes evidence for no skill / one skill / two skills.
+- AC-09: packaging decision remains no-skill because one deterministic tool and
+  ordinary instructions cover the observed trigger/procedure.
 - AC-10: final review explicitly removes any file/folder/capability that has no distinct purpose.
 
 # Failure Modes
@@ -372,7 +470,7 @@ Issue #19 AC-01 through AC-10 are all addressed by Phases 0–6. A passing imple
 Resolve from evidence rather than up front:
 
 - Does `project.yaml` earn a stable common schema, or should it remain a light project-specific profile?
-- Are `project-bootstrap` and `file-workbench` actually separate reusable procedures?
+- Is `project-bootstrap` sufficient, with `file-workbench` still deferred?
 - Should sample identity be represented by files, a project registry, or existing project conventions in the first real scientific pilot?
 - Which existing Franky project-linking/setup skills should be generalized, retained, or later retired under #13?
 
@@ -387,4 +485,6 @@ Activation gate:
 5. implement the smallest behavior needed for that case;
 6. validate and review before deciding global skill packaging.
 
-This PLAN is intentionally `inventory-first`. Its existence does not make broad project scaffolding execution-ready.
+This PLAN now records the bounded implementation slice. It does not authorize
+broad project scaffolding, migration, or creation of a reusable skill without a
+second project demonstrating an independent stable contract.

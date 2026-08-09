@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Bootstrap"
+  short_description: "Adaptive file-first project bootstrapping"
+  default_prompt: "Use $project-bootstrap to inspect a project request, build the smallest artifact map, and materialize it safely."
