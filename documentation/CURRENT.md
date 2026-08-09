@@ -28,6 +28,11 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 ## Accepted operating baseline
 
 - Runtime guidance and bounded delegation policy: [`AGENTS.md`](../AGENTS.md).
+- Local cross-workspace discovery: when present, the ignored
+  `$CODEX_HOME/ENVIRONMENT.md` map is read during fresh non-trivial orientation
+  before capability routing. It names local availability and owner entrypoints
+  only; it is neither portable control-plane state nor authority over external
+  workspaces.
 - Canonical human-readable general lifecycle: [`OPERATING-WORKFLOW.md`](OPERATING-WORKFLOW.md).
 - Architecture decisions: [`DECISIONS.md`](DECISIONS.md).
 - Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).

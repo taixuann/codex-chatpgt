@@ -61,6 +61,21 @@ constraints, and unresolved uncertainty. Before completion, compare the result
 with the original objective and check requirements, validation sufficiency,
 scope drift, contradictions, unsupported claims, and unresolved failures.
 
+## Local environment discovery
+
+For fresh non-trivial work, after identifying the repository and scope and
+before capability routing, read `$CODEX_HOME/ENVIRONMENT.md` when it exists.
+It is local machine state: it may identify connected workspaces, their entry
+boundaries, availability, and routing limits. It is not canonical project
+state, scientific evidence, historical memory, or authority to mutate another
+workspace.
+
+Use progressive disclosure: inspect a named external system only when its
+declared capability is material to the task. Do not scan all connected
+workspaces or treat the map as proof that a capability is current. If an entry
+is missing, stale, or conflicts with live state, reorient from the owning
+workspace and surface the context failure; do not silently repair the map.
+
 Fresh non-trivial work must orient from scoped instructions, minimal accepted
 state, and the live task before routing. Meaningful accepted completion must
 run a bounded evolution/friction check; `NO ACTION` is normal and observation
