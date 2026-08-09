@@ -101,6 +101,22 @@ The packet shape and deterministic behavior are accepted as v1. Parent-resume
 and adapter-selection traces remain unavailable in the current host, so AC-06
 and host-level runtime acceptance remain conditional rather than closed.
 
+### Empirical acceptance disposition
+
+| Criterion | Disposition | Evidence / remaining gate |
+| --- | --- | --- |
+| AC-01 | observed | Direct parent recorded sufficient and insufficient context cases. |
+| AC-02 | implemented + observed | Allowlisted helper ran against the real project read-only. |
+| AC-03 | implemented + observed | Packet emitted canonical/evidence/conflict/uncertainty sections. |
+| AC-04 | implemented + observed | Both task-contract examples validate. |
+| AC-05 | implemented; not exercised | Argus boundary is read-only/non-recursive; direct inspection was sufficient. |
+| AC-06 | not observable | Host exposes no parent-resume/synthesis trace. |
+| AC-07 | observed | Direct inspection was preferred because scope was small and known. |
+| AC-08 | observed | Helper, control-plane validators, and full local suite passed. |
+| AC-09 | observed | Runtime/provider and vendor limitations are recorded explicitly. |
+| AC-10 | observed | No standalone context skill, workflow, agent, crawler, or memory surface was added. |
+| AC-11 | observed | Scope stayed within the helper, consumers, docs, and bounded pilot evidence. |
+
 ## Acceptance mapping
 
 - AC-01: parent records one sufficient and one materially insufficient case.

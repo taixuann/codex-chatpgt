@@ -95,6 +95,27 @@ This records a real no-signal outcome, not a claim that hidden runtime hooks
 executed. AGENTS load timing, compaction, automatic closeout, and host session
 state remain unobservable and therefore conditional.
 
+### Empirical acceptance disposition
+
+| Criterion | Disposition | Evidence / remaining gate |
+| --- | --- | --- |
+| AC-01 | implemented + observed | Fresh orientation used scoped instructions, accepted state, PLAN, and live evidence. |
+| AC-02 | implemented + observed | The pilot reused #2 semantics without duplicating acquisition logic. |
+| AC-03 | implemented; not exercised | No material state change occurred to trigger reorientation. |
+| AC-04 | implemented; not exercised | No selective invalidation event occurred in the read-only pilot. |
+| AC-05 | partially observed | No noisy/stale/conflicted event occurred; hidden host ordering remains unobservable. |
+| AC-06 | not observable | Compaction/history authority behavior is not exposed by the host probe. |
+| AC-07 | observed | Direct parent inspection was selected; no delegation benefit was present. |
+| AC-08 | observed | #5 failure classification and bounded repair/revalidation were exercised. |
+| AC-09 | observed | Acceptance preceded the `NO ACTION` evolution check. |
+| AC-10 | observed | Completion evolution observation returned `NO ACTION`. |
+| AC-11 | implemented; not exercised | No repeated signal matured for #11 in one pilot. |
+| AC-12 | implemented; not triggered | Simplification/retirement remains a first-class policy outcome. |
+| AC-13 | implemented; not admitted | No evaluator loop was justified by this small read-only task. |
+| AC-14 | observed | No checkpoint/evolution/context-health artifact family was added. |
+| AC-15 | observed | No session, memory, evolution, or evaluator platform was built. |
+| AC-16 | observed | #10 consumed the lifecycle without project-local duplication. |
+
 ---
 
 # Phase 0 — Inspect live runtime and current semantics
