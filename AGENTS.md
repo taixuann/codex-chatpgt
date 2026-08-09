@@ -61,6 +61,11 @@ constraints, and unresolved uncertainty. Before completion, compare the result
 with the original objective and check requirements, validation sufficiency,
 scope drift, contradictions, unsupported claims, and unresolved failures.
 
+Fresh non-trivial work must orient from scoped instructions, minimal accepted
+state, and the live task before routing. Meaningful accepted completion must
+run a bounded evolution/friction check; `NO ACTION` is normal and observation
+never directly mutates global control-plane policy.
+
 ## Durable state and memory
 
 Keep operating guidance, accepted state, decisions, plans, historical memory,
