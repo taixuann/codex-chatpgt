@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-CONTEXT-ACQUISITION-20260809-001
 issue: 2
-status: execution-ready
+status: conditional-pass
 date: 2026-08-09
 scope: bounded-context-acquisition-v1
 ---
@@ -87,6 +87,19 @@ Record on Issue #2 and the implementation PR:
   traces;
 - whether the helper earned packaging as a skill. Default: no new skill until
   repeated stable reuse is demonstrated.
+
+## Current empirical result — 2026-08-09
+
+The helper was rerun against `/Users/tai/ai-labs` with an explicit seven-file
+allowlist: 3 canonical and 4 repository-evidence entries, no conflicts, and no
+uncertainties. The Graph Engineering validator passed and the selected project
+hashes were unchanged. Direct parent inspection was preferred because the
+scope was small and known; no new context skill, workflow, crawler, or memory
+surface was justified.
+
+The packet shape and deterministic behavior are accepted as v1. Parent-resume
+and adapter-selection traces remain unavailable in the current host, so AC-06
+and host-level runtime acceptance remain conditional rather than closed.
 
 ## Acceptance mapping
 

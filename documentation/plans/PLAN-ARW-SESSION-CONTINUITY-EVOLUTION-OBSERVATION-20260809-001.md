@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SESSION-CONTINUITY-EVOLUTION-OBSERVATION-20260809-001
 issue: 31
-status: execution-ready
+status: conditional-pass
 date: 2026-08-09
 scope: session orientation, reorientation, and evolution observation
 ---
@@ -80,6 +80,20 @@ objective + scope + accepted/live task state
 ```
 
 not a browser/chat container.
+
+## Current empirical result — 2026-08-09
+
+The #10 read-only pilot exercised fresh orientation from scoped instructions,
+minimal accepted state, the active PLAN, and live project evidence. It did not
+produce a material scope change, contradictory evidence, validation failure,
+or noisy context event, so selective reorientation was not naturally invoked.
+The bounded completion check returned `NO ACTION`: no repeated friction,
+authority duplication, routing error, or unnecessary ceremony was observed in
+this single run. No evolution component or session store was added.
+
+This records a real no-signal outcome, not a claim that hidden runtime hooks
+executed. AGENTS load timing, compaction, automatic closeout, and host session
+state remain unobservable and therefore conditional.
 
 ---
 

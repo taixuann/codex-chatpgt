@@ -83,14 +83,15 @@ Current readiness:
   A fresh read-only run against the current `/Users/tai/ai-labs` baseline
   produced 3 canonical and 4 repository-evidence entries with no conflicts or
   uncertainties. Host-observable parent-resume/adapter traces remain
-  unavailable, so the Issue stays conditionally open for runtime acceptance
-  rather than being treated as fully proven.
+  unavailable, so the Issue is conditionally passed as v1 for deterministic
+  behavior but remains open for host-level runtime acceptance.
 - **#14** — external-skill qualification may run in parallel now.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
-- **#5** — activated with `PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`;
-  PR #33 is the bounded change surface and its induced failure/repair plus
-  closure evidence are now being exercised.
+- **#5** — accepted through the bounded execution/closure record in
+  `PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`. PR #33 is the bounded
+  change surface; its induced failure/repair, impact frontier, syntactic and
+  semantic closure, whole-diff check, and revalidation are mapped there.
 - **#6** — the consequential slice now has a bounded independent read-only
   review in a separate Athena-style context, recorded in
   `PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md` as `CONDITIONAL-PASS`. The
@@ -101,15 +102,17 @@ Current readiness:
   adapter fields in PR #34 (`200b606`); the local discovery root was also
   repaired for two legacy skills missing frontmatter, with follow-up startup
   reports showing zero malformed-agent and missing-frontmatter warnings.
-- **#10** — the Graph Engineering pilot has consumed the merged #2 helper in
+- **#10** — the Graph Engineering pilot has conditionally passed the selected
+  read-only integration slice. It consumed the merged #2 helper in
   read-only mode. An earlier live Issue comment records 2 canonical + 3
   repository-evidence entries; the current rerun intentionally used a broader
   explicit allowlist and produced 3 canonical + 4 repository-evidence
   entries. The project validator passed (12 pages, 21 Canvas nodes, 6 edges),
   and the selected project/instruction file hashes were unchanged before and
-  after execution. This is conditional evidence pending host-runtime
-  limitations; the exact rerun hashes and review disposition are recorded in
-  the #6 review PLAN.
+  after execution. It found no project override, lifecycle adapter,
+  project-specific skill/agent, or evolution signal (`NO ACTION`). This
+  remains conditional only for host-runtime limitations; the exact rerun hashes
+  and review disposition are recorded in the #6 review PLAN.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
@@ -120,11 +123,14 @@ Current readiness:
   contrastive routing fixture distinguishes metadata evidence from behavioral
   runtime selection. Hosted CI passed; behavioral selection remains an
   explicit runtime limitation.
-- **#31 Phase A** — session-continuity semantics are deployed through PR #32
+- **#31 Phase A** — session-continuity semantics are conditionally passed
+  through PR #32
   (`2cf7b80`). Fresh orientation, event-driven selective reorientation,
   authority ordering, failure reclassification, acceptance-before-learning,
   bounded evolution observation, and logical-session continuation guidance are
-  now part of the canonical operating surface. No session manager, checkpoint
+  now part of the canonical operating surface. The #10 pilot returned
+  `NO ACTION` for evolution observation and produced no natural reorientation
+  event. No session manager, checkpoint
   store, evolution database, or new skill/workflow was added. Issue #31 stays
   open for empirical runtime acceptance; the available Codex probe does not
   expose AGENTS load timing, automatic closeout, compaction internals, or
@@ -136,8 +142,8 @@ Current readiness:
 `documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
 
 Issue #2 and #17 now link to current live/revised PLANs; historical PR #3 is
-not an active proof fixture. #5 is activation-ready against the merged #2
-contract.
+not an active proof fixture. #5 is accepted against the merged #2 contract;
+host-level runtime acceptance remains explicitly open under #2/#6.
 
 ## Anti-overengineering state
 

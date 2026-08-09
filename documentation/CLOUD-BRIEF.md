@@ -52,15 +52,17 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   and symlink rejection, task-contract fixture, focused tests, and hosted CI
   validation. A fresh read-only run against the current `/Users/tai/ai-labs`
   baseline produced 3 canonical and 4 repository-evidence entries with no
-  conflicts or uncertainties. It is conditionally accepted as v1;
-  host-observable parent-resume and adapter-selection traces remain
-  unavailable.
+  conflicts or uncertainties. It is conditionally accepted as v1 for
+  deterministic behavior; host-observable parent-resume and adapter-selection
+  traces remain unavailable.
 - The Graph Engineering #10 pilot now consumes that helper read-only. An
   earlier live Issue comment records 2 canonical + 3 project-evidence entries;
   the current rerun intentionally used a broader explicit allowlist and
   produced 3 canonical + 4 project-evidence entries, with validator pass (12
   pages, 21 Canvas nodes, 6 edges) and selected project/instruction files
-  unchanged by before/after hashes. Exact rerun hashes and the conditional
+  unchanged by before/after hashes. No project override, lifecycle adapter,
+  project-specific skill/agent, or evolution signal was needed (`NO ACTION`).
+  Exact rerun hashes and the conditional
   independent-review disposition are recorded in the #6 review PLAN. This
   remains conditional only for host-runtime acceptance.
 
@@ -85,10 +87,15 @@ Issue #19 / PR #20 is now accepted: PR #20 was squash-merged into `main` as
 `a87a948` and the Issue is closed. Do not add a second `file-workbench` skill or
 duplicate OpenScience capabilities until a distinct reusable contract exists.
 The #13/#21 rationalization is now applied to the control-plane baseline.
-The selective #6 review against the #5/#10 evidence is conditionally passed in
+The #5 execution/closure slice is accepted in
+`plans/PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`; its host-level runtime
+uncertainty remains scoped to #2/#6. The selective #6 review against the
+#5/#10 evidence is conditionally passed in
 the bounded read-only review recorded in
 `plans/PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md`; host-runtime acceptance
-remains open and must not be inferred from deterministic checks.
+remains open and must not be inferred from deterministic checks. #5 closure,
+#10 pilot integration, and #31 evolution observation are recorded as
+conditional evidence in their existing PLANs; no new machinery was added.
 The first local review probe also found unsupported `preferred_skills` keys in
 all agent adapters; PR #34 (`200b606`) repaired that runtime-schema defect and
 the follow-up probe reported zero malformed-role warnings. External review
