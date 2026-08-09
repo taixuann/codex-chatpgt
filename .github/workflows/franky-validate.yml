@@ -32,10 +32,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -109,6 +109,6 @@ jobs:
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
             echo 'Legacy/retired root workflow files are not validated as canonical contracts.'
-            echo 'Optional external skills may be unresolved in CI; required workflow-step skills must resolve from repository or configured skill roots.'
+            echo 'Optional external skills may be unresolved in CI only when their workflow step is explicitly conditional; required workflow-step skills must resolve from repository or configured skill roots.'
             echo 'Personal scheduled-scope enforcement remains a local-runtime check because it depends on the actual Codex personal skill root.'
           } >> "$GITHUB_STEP_SUMMARY"
