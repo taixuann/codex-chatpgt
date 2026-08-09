@@ -85,7 +85,20 @@ jobs:
 
       - name: Validate canonical task contract
         id: task_contract
-        run: python ops/scripts/validate_task_contract.py ops/schemas/examples/task-contract.yaml
+        run: |
+          python ops/scripts/validate_task_contract.py ops/schemas/examples/task-contract.yaml
+          python ops/scripts/validate_task_contract.py ops/schemas/examples/context-acquisition-task.yaml
+
+      - name: Validate bounded context packet
+        id: context_packet
+        run: |
+          python ops/scripts/acquire_context_packet.py \
+            --root . \
+            --canonical AGENTS.md \
+            --canonical documentation/CURRENT.md \
+            --evidence documentation/DECISIONS.md \
+            --uncertainty 'host adapter trace is not exposed' > /tmp/context-packet.json
+          python -m json.tool /tmp/context-packet.json >/dev/null
 
       - name: Validate audit-record template
         id: audit
@@ -132,6 +145,7 @@ jobs:
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
             echo '| Canonical workflow IO/cache | ${{ steps.io_cache.outcome }} |'
             echo '| Task contract | ${{ steps.task_contract.outcome }} |'
+            echo '| Bounded context packet | ${{ steps.context_packet.outcome }} |'
             echo '| Audit record | ${{ steps.audit.outcome }} |'
             echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'
             echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'

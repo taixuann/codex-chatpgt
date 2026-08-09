@@ -18,6 +18,8 @@ credentials, session state, caches, or linked project contents.
    architecture decisions.
 5. [`ops/schemas/task-contract.schema.yaml`](ops/schemas/task-contract.schema.yaml)
    — glue contract between workflows, roles, and skills.
+6. [`ops/scripts/acquire_context_packet.py`](ops/scripts/acquire_context_packet.py)
+   — explicit-allowlist, read-only context evidence packet helper.
 
 The GitHub repository is a coordination bridge. Local Codex state remains the
 runtime source; GitHub provides reviewable, portable artifacts.
