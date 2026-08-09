@@ -57,24 +57,19 @@ jobs:
         id: layout
         run: python skills/franky-maintenance/scripts/validate_workflow_layout.py workflows/franky
 
-      - name: Validate workflow contracts
+      - name: Validate canonical workflow contracts
         id: contracts
-        run: |
-          for workflow in workflows/franky/*.yaml; do
-            python skills/franky-workflow-organizer/scripts/validate_workflow.py "$workflow"
-          done
-          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
-            python skills/franky-workflow-organizer/scripts/validate_workflow.py "$workflow"
-          done
+        run: python skills/franky-workflow-organizer/scripts/validate_workflow.py workflows/franky/franky.yaml
 
       - name: Validate agent changelog
         id: changelog
         run: python skills/franky-maintenance/scripts/validate_agent_changelog.py agents
 
-      - name: Validate workflow/job IO and cache policy
+      - name: Validate canonical workflow/job IO and cache policy
         id: io_cache
         run: |
-          for workflow in workflows/franky/*.yaml workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
+          python skills/franky-maintenance/scripts/validate_io_cache.py workflows/franky/franky.yaml
+          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml workflows/franky/general-workflow-factory/*.yaml; do
             python skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
           done
 
@@ -109,14 +104,15 @@ jobs:
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
             echo '| Workflow layout | ${{ steps.layout.outcome }} |'
-            echo '| Workflow contracts | ${{ steps.contracts.outcome }} |'
+            echo '| Canonical workflow contracts | ${{ steps.contracts.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
-            echo '| Workflow IO/cache | ${{ steps.io_cache.outcome }} |'
+            echo '| Canonical workflow IO/cache | ${{ steps.io_cache.outcome }} |'
             echo '| Audit record | ${{ steps.audit.outcome }} |'
             echo '| Scheduler | ${{ steps.scheduler.outcome }} |'
             echo '| Session inventory | ${{ steps.inventory.outcome }} |'
             echo '| Scheduled scope | ${{ steps.scheduled_scope.outcome }} |'
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
-            echo 'Optional external skills are not required for repository CI. Required workflow-step skills must resolve from the repository or configured skill roots.'
+            echo 'Legacy/retired root workflow files are not validated as canonical contracts.'
+            echo 'Optional external skills may be unresolved in CI; required workflow-step skills must resolve from repository or configured skill roots.'
           } >> "$GITHUB_STEP_SUMMARY"
