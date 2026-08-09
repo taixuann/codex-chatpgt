@@ -130,11 +130,16 @@ def validate_document(data: object, path: Path, *, nested: bool = False) -> list
             raise ValueError(f"step {step['id']} approval_gate must contain required and reason")
         if not isinstance(gate["required"], bool) or not isinstance(gate["reason"], str):
             raise ValueError(f"step {step['id']} approval_gate has invalid types")
-        if not skill_available(step["skill"]) and step["skill"] not in optional_skills:
-            roots = ", ".join(str(root) for root in skill_roots())
-            raise ValueError(f"step {step['id']} references unavailable required skill: {step['skill']} (searched: {roots})")
-        if "condition" in step and not isinstance(step["condition"], str):
-            raise ValueError(f"step {step['id']} condition must be a string")
+        condition = step.get("condition")
+        if condition is not None and (not isinstance(condition, str) or not condition.strip()):
+            raise ValueError(f"step {step['id']} condition must be a non-empty string")
+        if not skill_available(step["skill"]):
+            if step["skill"] in optional_skills:
+                if not condition:
+                    raise ValueError(f"step {step['id']} uses unresolved optional skill without a condition: {step['skill']}")
+            else:
+                roots = ", ".join(str(root) for root in skill_roots())
+                raise ValueError(f"step {step['id']} references unavailable required skill: {step['skill']} (searched: {roots})")
     pipelines = data.get("pipelines", [])
     nested_paths: list[Path] = []
     if pipelines:
