@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-INDEPENDENT-REVIEW-20260809-001
 issue: 6
-status: review-ready
+status: conditional-pass
 blocked_by: []
 activation_gate: issue-5-reviewed-conditional
 scope: selective-independent-review

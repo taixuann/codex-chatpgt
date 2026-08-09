@@ -91,24 +91,25 @@ Current readiness:
 - **#5** — activated with `PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`;
   PR #33 is the bounded change surface and its induced failure/repair plus
   closure evidence are now being exercised.
-- **#6** — selective review remains an open gate. The current host does not
-  expose a separate Athena adapter/resume trace, so deterministic CI is not
-  being misreported as independent judgment. Its activation-ready PLAN is
-  `PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md`. A local Codex review probe
-  found and repaired unsupported `preferred_skills` adapter fields in PR #34
-  (`200b606`); a completed independent judgment still requires a permitted
-  review runtime. The local discovery root was also repaired for two legacy
-  skills missing frontmatter; follow-up Codex startup reports zero
-  malformed-agent and missing-frontmatter warnings.
+- **#6** — the consequential slice now has a bounded independent read-only
+  review in a separate Athena-style context, recorded in
+  `PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md` as `CONDITIONAL-PASS`. The
+  review added judgment beyond deterministic checks and documented a concrete
+  low-risk skip case. The current host still does not expose parent-resume or
+  adapter-selection traces, so runtime acceptance remains conditional. A
+  local Codex review probe found and repaired unsupported `preferred_skills`
+  adapter fields in PR #34 (`200b606`); the local discovery root was also
+  repaired for two legacy skills missing frontmatter, with follow-up startup
+  reports showing zero malformed-agent and missing-frontmatter warnings.
 - **#10** — the Graph Engineering pilot has consumed the merged #2 helper in
   read-only mode. An earlier live Issue comment records 2 canonical + 3
   repository-evidence entries; the current rerun intentionally used a broader
   explicit allowlist and produced 3 canonical + 4 repository-evidence
   entries. The project validator passed (12 pages, 21 Canvas nodes, 6 edges),
   and the selected project/instruction file hashes were unchanged before and
-  after execution. This is conditional evidence pending #6 review and
-  host-runtime limitations; the exact rerun hashes are recorded in the #6
-  review PLAN.
+  after execution. This is conditional evidence pending host-runtime
+  limitations; the exact rerun hashes and review disposition are recorded in
+  the #6 review PLAN.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
@@ -159,6 +160,6 @@ Simplification should remove duplicate machinery or unclear ownership, not colla
 
 The bounded #2 helper has now been rerun against the current repository/runtime
 baseline and the read-only Graph Engineering pilot remains hash-stable. The
-remaining gap is host-observable parent-resume/adapter behavior and the #6
-independent-review gate; neither should be inferred from deterministic tests
-or the project validator.
+remaining gap is host-observable parent-resume/adapter behavior; neither
+should be inferred from deterministic tests, the project validator, or the
+bounded independent review.
