@@ -11,6 +11,10 @@ scope:
     - documentation/OPERATING-WORKFLOW.md
     - documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
     - ops/schemas/task-contract.schema.yaml
+    - .github/workflows/franky-validate.yml
+    - workflows/franky/franky.yaml
+    - skills/franky-workflow-organizer/scripts/validate_workflow.py
+    - git refs origin/main and origin/feat/context-strengthening-v1
     - ops/changes/2026/CHG-20260809-001/
   exclude:
     - credentials
@@ -29,6 +33,9 @@ context:
     - ops/schemas/task-contract.schema.yaml
   supporting:
     - documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - .github/workflows/franky-validate.yml
+    - workflows/franky/franky.yaml
+    - skills/franky-workflow-organizer/scripts/validate_workflow.py
     - public GitHub Issue #2
     - public GitHub draft PR #3
 role_hint: argus
@@ -53,7 +60,7 @@ validation:
   - return packet has the required evidence fields
   - no files are modified by the bounded worker
   - relevant paths are exact and auditable
-  - local agent adapter TOML validates
+  - local agent adapter TOML and the complete task-contract schema validate
 stop_conditions:
   - required paths and runtime limitations are recorded
   - additional context would require unrelated project or secret state

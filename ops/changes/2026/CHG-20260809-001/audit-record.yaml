@@ -46,6 +46,7 @@ overview:
   impact: proves conditional context acquisition behavior without installing speculative components
   references:
     - documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - documentation/CURRENT.md
     - ops/changes/2026/CHG-20260809-001/runtime-probe.md
 preview:
   changed_paths:
@@ -55,11 +56,12 @@ preview:
     - ops/changes/2026/CHG-20260809-001/runtime-probe.md
     - ops/changes/2026/CHG-20260809-001/change.yaml
     - ops/changes/2026/CHG-20260809-001/audit-record.yaml
-  digest: sha256:context-acquisition-probe-20260809-v1
+    - ops/changes/2026/CHG-20260809-001/validation-output.md
+  digest: sha256:ae3b12729a8fc782a48942bb4f7b2cc8627c984eaf509fd607792b3d774b1c2a
 rollback:
   location: git revert of evidence commit
   reversible: true
-status: pass
+status: conditional-pass
 findings:
   - severity: warning
     finding: native delegation does not expose custom adapter/model/sandbox selection
@@ -67,3 +69,6 @@ findings:
   - severity: warning
     finding: Argus preferred skills are unresolved package names
     action: do not create wrappers until repeated runtime reuse justifies them
+  - severity: warning
+    finding: independent review accepts the evidence slice conditionally, but native custom adapter selection remains host-observable only
+    action: keep Issue 2 open/draft until the host-level runtime acceptance surface is available

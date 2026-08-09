@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001
 title: Context Acquisition v1 Vertical Slice
-status: evidence-collected
+status: conditional-pass
 date: 2026-08-08
 issue: 2
 scope: global-context-acquisition-vertical-slice
@@ -44,6 +44,13 @@ small known scopes; Argus adds value for independent, broad, or relationship-
 heavy exploration. The host surface does not expose enough metadata to prove
 that the custom `agents/argus.toml` adapter was selected by native delegation,
 so that limitation remains explicit.
+
+Athena independently reviewed the slice and returned a conditional pass. The
+review findings and evidence-backed corrections are recorded in
+`ops/changes/2026/CHG-20260809-001/runtime-probe.md` and
+`ops/changes/2026/CHG-20260809-001/validation-output.md`. Issue #2 remains open
+and PR #3 remains draft because custom adapter selection is still not
+host-observable.
 
 # Runtime reconnaissance first
 

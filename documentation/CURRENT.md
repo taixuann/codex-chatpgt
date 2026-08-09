@@ -67,7 +67,7 @@ Core proof remains:
 
 Current readiness:
 
-- **#2** — execution-ready after syncing its branch with current `main`; active PLAN and draft PR #3 exist.
+- **#2** — evidence-collected with a conditional independent review; branch `feat/context-strengthening-v1` is synced to current `main`, and draft PR #3 contains the bounded probe package. Issue acceptance remains open because native adapter selection is not host-observable.
 - **#14** — external-skill qualification may run in parallel now.
 - **#17** — PLAN exists but initial proof is intentionally narrowed to #2 -> PLAN -> PR #3 and should piggyback on that path.
 - **#5/#6/#10** — backlog PLANs exist but remain blocked by upstream evidence.
@@ -98,4 +98,8 @@ Simplification should remove duplicate machinery or unclear ownership, not colla
 
 ## Known execution gap
 
-The immediate blocker to new core evidence is that #2 has not yet been run against the current repository/runtime baseline. Its draft PR branch predates several documentation and accepted CI updates and should be synced/reconciled before local runtime reconnaissance begins.
+Issue #2 has now been run against the current repository/runtime baseline. The
+remaining gap is host-level evidence: native delegation does not expose whether
+the custom Argus TOML/model/sandbox was selected. Keep PR #3 draft and do not
+activate #5 until the acceptance review decides whether the observed bounded
+leaf behavior is sufficient or a host-observable probe is required.

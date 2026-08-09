@@ -4,7 +4,7 @@ canonical:
   - path: AGENTS.md
     finding: runtime policy requires progressive disclosure and capability-first routing
   - path: documentation/CURRENT.md
-    finding: Issue 2 is execution-ready after branch synchronization
+    finding: Issue 2 evidence is collected with conditional review; acceptance remains open
   - path: documentation/DECISIONS.md
     finding: agents, skills, workflows, and task contracts have separate jobs
   - path: documentation/OPERATING-WORKFLOW.md
@@ -20,6 +20,8 @@ repository_evidence:
     finding: support adapters do not expand the canonical role registry
   - path: skills/franky-workflow-organizer/scripts/validate_workflow.py
     finding: workflow skill resolution prefers the checked-out repository skill root
+  - path: ops/changes/2026/CHG-20260809-001/validation-output.md
+    finding: deterministic and schema-surface validation outputs are captured for review
   - path: .github/workflows/franky-validate.yml
     finding: deterministic repository validation is path-filtered and separate from qualitative reasoning
   - path: origin/main
