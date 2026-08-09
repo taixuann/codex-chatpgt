@@ -80,6 +80,9 @@ Issue #19 / PR #20 is now accepted: PR #20 was squash-merged into `main` as
 duplicate OpenScience capabilities until a distinct reusable contract exists.
 The #13/#21 rationalization is now applied to the control-plane baseline.
 The next gate is selective #6 review against the #5/#10 evidence. The
+activation-ready review PLAN is
+`plans/PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md`; it must stop rather than
+claim independence if the host cannot provide a separate reviewer context.
 read-only Graph Engineering validator currently passes (12 pages, 21 Canvas
 nodes, 6 edges) and a 16-file before/after hash check found no project
 mutation; this remains conditional evidence until the upstream runtime gates

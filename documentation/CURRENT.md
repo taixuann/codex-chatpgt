@@ -91,7 +91,8 @@ Current readiness:
   closure evidence are now being exercised.
 - **#6** — selective review remains an open gate. The current host does not
   expose a separate Athena adapter/resume trace, so deterministic CI is not
-  being misreported as independent judgment.
+  being misreported as independent judgment. Its activation-ready PLAN is
+  `PLAN-ARW-INDEPENDENT-REVIEW-20260809-001.md`.
 - **#10** — the Graph Engineering pilot has consumed the merged #2 helper in
   read-only mode. Its packet contained 2 canonical + 3 repository-evidence
   entries; the project validator passed (12 pages, 21 Canvas nodes, 6 edges),

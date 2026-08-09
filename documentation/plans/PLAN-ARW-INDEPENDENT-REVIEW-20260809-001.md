@@ -1,9 +1,9 @@
 ---
 id: PLAN-ARW-INDEPENDENT-REVIEW-20260809-001
 issue: 6
-status: blocked
-blocked_by: [5]
-activation_gate: issue-5-reviewed
+status: review-ready
+blocked_by: []
+activation_gate: issue-5-reviewed-conditional
 scope: selective-independent-review
 ---
 
@@ -13,17 +13,23 @@ Prove a selective independent-review gate that adds judgment beyond deterministi
 
 # Activation gate
 
-Execute only after #5 establishes the actual execution/validation output shape. Revise this PLAN against that evidence before activation.
+#5 now has a bounded execution/closure/validation slice against the merged #2
+context packet contract. Activate this PLAN for a selective review decision,
+but stop if the host cannot provide an independent Athena/reviewer context.
 
 # Starting evidence
 
-Consume originating Issue/PLAN acceptance criteria, actual diff/result, deterministic validation evidence, and unresolved uncertainty. Athena is a candidate reviewer only where runtime support and independence justify it.
+Consume the originating Issue/PLAN acceptance criteria, the PR #33 changed
+surface, the induced traversal failure and repair, deterministic validation,
+the #10 Graph Engineering pilot result, and unresolved runtime uncertainty.
+Athena is a candidate reviewer only where runtime support and independence
+justify it; configuration text alone is not review evidence.
 
 # Execution phases
 
 1. Define review-trigger criteria from risk, uncertainty, architecture/scientific judgment, repeated failure, and validation gaps.
 2. Define bounded review input/output using the real #5 evidence shape.
-3. Run one representative review where independent judgment should materially help.
+3. Run one representative review where independent judgment should materially help; if the host cannot provide it, record the gate as unresolved rather than claiming self-review.
 4. Run or document one low-risk case where review is explicitly skipped.
 5. Require findings to distinguish blocker, non-blocking improvement, and uncertainty.
 6. Keep reviewer read-only and separate from remediation.
