@@ -1,6 +1,9 @@
 ---
 name: shared-session-closeout
-description: Close or update a Codex or AI Labs work session using acceptance evidence, task state, and a bounded outcome record. Use when a session is ending, resuming, or ready for review across Feynman, Prometheus, or Franky; do not use it to decide scientific content, execute project changes, or close a chat automatically.
+description: Close or update a governed Codex or AI Labs session when acceptance evidence and durable outcome state must be recorded; map status and preserve provenance. Do not decide scientific content, mutate project files, or close chats automatically.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 namespace: shared
 qualified_name: shared.session-closeout
 folder: shared-session-closeout
@@ -8,6 +11,15 @@ scope: shared
 ---
 
 # Shared session closeout
+
+## Contract
+
+- **Trigger:** a governed session is ending, resuming, or ready for review.
+- **Inputs:** session/task state, acceptance evidence, unresolved items, and durable destination.
+- **Output:** bounded outcome record or updated session state with provenance links.
+- **Boundary:** the calling role retains technical/scientific/control-plane authority; this skill does not execute project changes.
+- **Stop:** stop when acceptance evidence or durable destination is missing.
+- **Validation:** map status consistently and validate the selected session-state contract.
 
 Use this role-neutral skill after work has produced evidence and the session
 needs a durable state update. The calling role remains responsible for its own

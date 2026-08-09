@@ -1,3 +1,4 @@
 interface:
   display_name: "Franky Cron Installer"
-  short_description: "Help with Franky Cron Installer tasks"
+  short_description: "Validate approved recurring job definitions."
+  default_prompt: "Validate or install an approved Franky/Codex scheduler definition with timezone, overlap, scope, and rollback checks."

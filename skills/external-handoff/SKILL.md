@@ -1,9 +1,21 @@
 ---
 name: external-handoff
-description: Prepare bounded role-neutral handoffs to external executors with explicit scope, evidence, approval gates, and rollback.
+description: Prepare a bounded handoff for an external executor when work crosses a runtime or team boundary; include scope, evidence, approval, and rollback. Do not use for ordinary parent-to-worker packets or to execute the external change.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # External handoff
+
+## Contract
+
+- **Trigger:** an approved task must cross a runtime, tool, or team boundary.
+- **Inputs:** objective, exact scope, evidence, constraints, approval owner, and rollback target.
+- **Output:** a role-neutral handoff with acceptance and rollback conditions.
+- **Boundary:** ordinary parent-to-worker delegation stays in the task contract; this skill does not execute the external action.
+- **Stop:** stop when scope, authority, or rollback is ambiguous.
+- **Validation:** verify every path and acceptance command is explicit and no protected data is included.
 
 Prepare a handoff package for an external executor or bounded worker. This
 skill does not execute the external action implicitly.

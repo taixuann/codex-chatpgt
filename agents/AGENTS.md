@@ -22,6 +22,21 @@ Support adapters may be used only as bounded leaf workers under the selected
 canonical role and workflow. If a task needs a new capability, add or reuse a
 skill first; do not create a new role merely to hold domain expertise.
 
+The retained adapters have distinct agent-specific reasons:
+
+| Adapter | Why an agent is justified | Return boundary |
+| --- | --- | --- |
+| Argus | read-only context isolation for broad repository mapping | paths, evidence, and uncertainty only |
+| Athena | independent judgment after execution/validation | severity-ranked critique, no edits |
+| Feynman | evidence/provenance boundary and scientific read-only scope | sources, findings, disagreements, handoff |
+| Prometheus | bounded workspace-write execution boundary | changed paths, tests, deviations, rollback |
+| Franky | control-plane permission/workflow boundary | scope, findings, validation, approval boundary |
+
+`preferred_skills` entries in TOML are routing hints, not required
+dependencies. If a hint is not installed on the active runtime, the parent
+must report that limitation and use the task contract or an available
+capability instead.
+
 Names are personality labels; descriptions and developer instructions are the
 machine-readable routing contract. Model and reasoning are runtime defaults,
 not personality semantics. The parent may select a different supported tier
@@ -45,6 +60,15 @@ stop: completion or escalation condition
 Subagents do not re-plan the parent request, widen scope, or make final
 scientific/control-plane decisions. Skills provide procedure and expertise;
 agents provide execution topology and permission isolation.
+
+## Contract quality
+
+Every retained adapter must state why it is an agent rather than a skill or
+normal parent behavior, when it is used, its authority and write scope, the
+task input contract, local autonomy, return contract, non-goals, and
+escalation condition. Model and reasoning defaults are resource policy, not
+role identity. The parent remains responsible for synthesis, conflict
+resolution, acceptance, and durable-state promotion.
 
 ## Configuration locations
 

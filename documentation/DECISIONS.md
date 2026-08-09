@@ -63,3 +63,30 @@ different states, ordering, domain steps, or validation gates.
 
 Do not duplicate the full general workflow across persona-specific workflows,
 skills, Issue templates, or project instructions.
+
+## D-008 — Quality-hardening dispositions (Issue #24)
+
+The active tracked skill surface was audited in capability-first order. All
+eleven packages currently earn independent packaging because they have a
+recurring trigger plus a reusable boundary/procedure or named workflow
+consumer; no rename is justified by reference churn in this pass.
+
+| Skill | Existence | Name | Boundary/neighbor decision |
+| --- | --- | --- | --- |
+| `project-bootstrap` | KEEP | KEEP NAME | distinct from guidance-only and link-only work |
+| `install-project-link` | KEEP | KEEP NAME | safety-critical link operation with a named Franky branch |
+| `external-handoff` | KEEP | KEEP NAME | cross-runtime approval/rollback procedure; ordinary task packets remain separate |
+| `franky-agent-installer` | KEEP | KEEP NAME | Franky runtime-adapter permission boundary |
+| `franky-cron-installer` | KEEP | KEEP NAME | governed scheduler lifecycle and overlap checks |
+| `franky-guidance-manager` | KEEP | KEEP NAME | scoped instruction locality and precedence |
+| `franky-maintenance` | KEEP | KEEP NAME | control-plane audit plus approved repair, not project work |
+| `franky-promotion` | KEEP | KEEP NAME | explicit Codex-to-AI-Labs export boundary |
+| `franky-source-migration` | KEEP | KEEP NAME | external-tool source boundary and collision review |
+| `franky-workflow-organizer` | KEEP | KEEP NAME | persisted workflow design judgment; validator remains deterministic helper |
+| `shared-session-closeout` | KEEP | KEEP NAME | role-neutral durable session-state procedure |
+
+The static contrastive fixture at
+`skills/franky-maintenance/scripts/fixtures/skill-routing.yaml` covers
+positive, negative, nearest-neighbor, expected-none, and ambiguous cases. It
+is metadata/fixture evidence only; this repository does not claim to observe
+LLM skill selection when the active runtime does not expose that behavior.

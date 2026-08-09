@@ -170,6 +170,35 @@ Supported invocation modes are conceptually:
 
 Skills are capability-centric and may be used by the parent or by different bounded workers. Do not treat skills as permanently owned by one persona unless a real permission/tool boundary requires it.
 
+### 8a. Component linking contract
+
+Make the composition path explicit without introducing a universal registry or
+interface schema:
+
+```text
+TASK / ISSUE
+  ↓ objective + scope + constraints
+REQUIRED CAPABILITY
+  ↓ candidate skill/procedure
+DELEGATION DECISION
+  ↓ parent or bounded agent
+DETERMINISTIC TOOL when needed
+  ↓ result
+VALIDATION / INDEPENDENT REVIEW when justified
+  ↓ acceptance
+DURABLE DESTINATION
+```
+
+The reusable contracts are semantic review vocabulary:
+
+- **Skill:** trigger → inputs/context → procedure → output → side effects → stop conditions → validation.
+- **Agent:** use condition → authority → task contract → allowed scope → return contract → escalation.
+- **Workflow:** entry → state/transitions → gates → failure/recovery → exit → consumer.
+- **Tool/script:** input → deterministic operation → output → error conditions.
+
+Use the smallest contract that makes a handoff, validation, or recovery
+observable. Do not serialize these fields merely for symmetry.
+
 ### 9. Delegate / Execute
 
 The parent/main agent retains overall reasoning, architecture, planning, decomposition, conflict resolution, synthesis, and final decision authority.

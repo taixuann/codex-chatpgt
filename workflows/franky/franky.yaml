@@ -4,6 +4,9 @@ name: Franky unified control-plane workflow
 invocation_policy: workflow_only
 entrypoint: true
 canonical: true
+authority_scope: franky_control_plane
+semantic_authority: specialized_control_plane
+global_semantic_source: ../../documentation/OPERATING-WORKFLOW.md
 goal: Route one approved Franky control-plane operation through the shared lifecycle and a purpose-specific branch.
 dependencies:
   resolution: installed_skill_name

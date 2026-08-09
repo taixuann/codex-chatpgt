@@ -1,9 +1,21 @@
 ---
 name: franky-maintenance
-description: Audit and maintain the Franky Codex control plane across skills, agents, workflows, guidance, TOML, configuration, cron, git state, links, and registries. Use for report-first operator maintenance.
+description: Audit or maintain the Codex control plane when a governed health check or approved maintenance operation spans skills, agents, workflows, guidance, schedules, links, or Git state; start read-only and validate before mutation. Never use for research or linked-project contents.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # Franky maintenance
+
+## Contract
+
+- **Trigger:** a control-plane health check or approved maintenance operation is requested.
+- **Inputs:** selected Franky workflow branch, exact control-plane scope, current state, and approval context.
+- **Output:** findings, impacted consumers, exact proposed/changed paths, validation evidence, rollback, and unresolved issues.
+- **Boundary:** no research/project contents, credentials, sessions, or unapproved external writes.
+- **Stop:** stop on scope collision, unresolved reference, repeated validation failure, or missing approval.
+- **Validation:** run deterministic component validators before model-level interpretation and distinguish process pass from acceptance.
 
 Start with a read-only inventory. Inspect only the approved control-plane scope.
 

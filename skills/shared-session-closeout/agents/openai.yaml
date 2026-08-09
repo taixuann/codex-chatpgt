@@ -4,5 +4,5 @@ folder: shared-session-closeout
 scope: shared
 interface:
   display_name: "Shared session closeout"
-  short_description: "Close out a governed session with evidence."
-  default_prompt: "Review and close out this session with the appropriate evidence record."
+  short_description: "Close governed sessions with evidence."
+  default_prompt: "Close or update this governed session using acceptance evidence, unresolved items, provenance, and the correct durable destination."

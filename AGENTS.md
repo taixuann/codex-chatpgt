@@ -22,11 +22,10 @@ selected or spawned by an active canonical role/workflow with an explicit task
 contract. Their presence under `agents/` must not be interpreted as a change to
 the AI Labs role registry.
 
-Franky uses one canonical entrypoint under `workflows/franky/`:
-
-- `franky.yaml` is the canonical unified route for all Franky purposes.
-- Its nested pipelines provide install, maintenance, migration, promotion, and
-  factory branches without separate lifecycle entrypoints.
+Franky uses one canonical entrypoint under `workflows/franky/` for the
+specialized `franky_control_plane` scope. The global semantic lifecycle remains
+`documentation/OPERATING-WORKFLOW.md`; nested Franky pipelines are governed
+branches, not a replacement for ordinary work.
 
 Feynman and Prometheus use their selected project-scoped workflows and explicit
 handoff contracts; they do not inherit Franky maintenance rules. Franky agents
@@ -62,46 +61,14 @@ constraints, and unresolved uncertainty. Before completion, compare the result
 with the original objective and check requirements, validation sufficiency,
 scope drift, contradictions, unsupported claims, and unresolved failures.
 
-## Delegation and model routing
+## Durable state and memory
 
-Subagents are leaf workers with L1 local planning autonomy. They may choose
-search or implementation order inside a bounded contract, but may not perform
-L2 architectural planning, redefine scope, or create global rules. Recursive
-delegation is disabled by default.
-
-Use native `spawn_agent` where the active Codex surface exposes it. Prefer a
-fresh or bounded child context (`fork_turns = none` when supported) and put the
-task packet in the child message. Do not assume a custom profile, model, or
-reasoning override is available on every runtime surface; probe the active
-surface and fall back safely when it is not.
-
-Route model and reasoning independently from personality:
-
-- cheap exploration/extraction: cheapest supported model, low or medium effort;
-- normal bounded execution: balanced model, medium effort;
-- difficult implementation or consequential review: stronger model, high effort;
-- arbitration: strongest available model or an independent external reviewer,
-  only when failure, disagreement, uncertainty, or consequence justifies it.
-
-The parent owns synthesis, conflict resolution, final decisions, and knowledge
-promotion. A successful child spawn is not acceptance; deterministic validation
-and review remain separate checks.
-
-## Context planes and memory
-
-Keep these planes distinct:
-
-- `AGENTS.md`: operating behavior and boundaries;
-- `CURRENT.md`, `DECISIONS.md`, and `PLAN-*.md`: canonical accepted state;
-- agentmemory: prior observations, failures, and recurring patterns;
-- Wiki: compiled, reviewed knowledge;
-- RAG/source corpus: original evidence and source material.
-
-Memory strengthens context but never replaces canonical state or scientific
-evidence. Use selective, project-scoped recall and produce a compact context
-packet instead of dumping all history into the model. Promote knowledge only by
-`OBSERVE → PROPOSE → REVIEW → ACCEPT → UPDATE`; never silently mutate global
-guidance, workflows, or skills from a memory observation.
+Keep operating guidance, accepted state, decisions, plans, historical memory,
+compiled Wiki knowledge, and raw source evidence distinct. Memory strengthens
+context but never replaces canonical state or evidence; promote changes only by
+`OBSERVE → PROPOSE → REVIEW → ACCEPT → UPDATE`. Detailed role/delegation rules
+live in `agents/AGENTS.md`, skill rules in `skills/AGENTS.md`, and workflow
+admission rules in `workflows/AGENTS.md`.
 
 Keep `.system`, logs, sessions, caches, databases, credentials, config, and
 linked project contents outside the Codex Git allowlist. Session content is

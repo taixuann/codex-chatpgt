@@ -6,7 +6,7 @@ import sys
 import yaml
 
 
-ROOT = Path("/Users/tai/.codex/workflows/franky")
+ROOT = Path(__file__).resolve().parents[2] / "workflows" / "franky"
 EXPECTED = {
     "franky.yaml": "WF-FRANKY-CANONICAL",
 }
@@ -20,10 +20,12 @@ def main() -> int:
             if data.get("id") != workflow_id:
                 raise ValueError(f"{filename} has unexpected workflow ID")
         canonical = yaml.safe_load((ROOT / "franky.yaml").read_text(encoding="utf-8"))
-        if canonical.get("canonical") is not True or len(canonical.get("pipelines", [])) != 18:
-            raise ValueError("canonical workflow must expose all 18 purpose branches")
+        if canonical.get("canonical") is not True or len(canonical.get("pipelines", [])) != 15:
+            raise ValueError("canonical workflow must expose all 15 purpose branches")
+        if canonical.get("authority_scope") != "franky_control_plane":
+            raise ValueError("canonical workflow must declare Franky control-plane scope")
         retired = set(canonical.get("retired_entrypoint_ids", []))
-        if retired != {"WF-FRANKY-INSTALL", "WF-FRANKY-MAINTENANCE", "WF-FRANKY-GENERAL-WORKFLOW-FACTORY"}:
+        if retired != {"WF-FRANKY-INSTALL", "WF-FRANKY-MAINTENANCE"}:
             raise ValueError("canonical workflow must record all retired entrypoint IDs")
         for forbidden in ("README.md", "workflow-catalog.yaml", "scripts", "tests"):
             if (ROOT / forbidden).exists():

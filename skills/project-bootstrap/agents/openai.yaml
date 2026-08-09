@@ -1,4 +1,4 @@
 interface:
   display_name: "Project Bootstrap"
-  short_description: "Adaptive file-first project bootstrapping"
-  default_prompt: "Use $project-bootstrap to inspect a project request, build the smallest artifact map, and materialize it safely."
+  short_description: "Bootstrap scientific file-first projects safely."
+  default_prompt: "Use $project-bootstrap for bounded project setup or scaffold requests; inspect first, choose the smallest artifact map, and materialize safely."

@@ -1,9 +1,21 @@
 ---
 name: franky-source-migration
-description: Audit and normalize agent-tool instructions, skills, agents, commands, hooks, and MCP configuration from Claude Code, OpenCode, or Antigravity into approved Codex control-plane artifacts. Use for report-first cross-tool migration, collision review, and approval-gated Codex updates.
+description: Audit and normalize Claude Code, OpenCode, or Antigravity artifacts into Codex when an explicit migration is requested; inventory, map collisions, and prepare approval-gated changes. Do not edit source tools or silently deploy.
+metadata:
+  last_reviewed: 2026-08-09
+  review_interval_days: 90
 ---
 
 # Franky source migration
+
+## Contract
+
+- **Trigger:** an explicitly named external agent-tool source must be migrated into Codex.
+- **Inputs:** source root, artifact types, target Codex scope, compatibility constraints, and approval owner.
+- **Output:** inventory, normalized mapping, collision findings, and bounded migration proposal.
+- **Boundary:** source files remain read-only; no silent multi-platform sync or deployment.
+- **Stop:** stop on ambiguous source identity, collision, unsupported runtime semantics, or missing approval.
+- **Validation:** run source detection/inventory and migration validators before any apply step.
 
 Use this skill as the source-adapter and merge-analysis capability inside the
 Franky maintenance workflow. Keep the work inside the Codex control plane;
