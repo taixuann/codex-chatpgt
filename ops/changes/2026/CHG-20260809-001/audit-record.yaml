@@ -1,0 +1,69 @@
+schema: franky.audit
+version: 1
+audit_id: AUD-20260809-001
+component_type: maintenance
+component_id: context-acquisition-probe
+operation: prove_context_acquisition_v1_vertical_slice
+scope: Issue 2 behavior-first runtime reconnaissance and evidence only
+source: /Users/tai/.codex
+destination: /Users/tai/.codex
+inputs:
+  declared:
+    - /Users/tai/.codex/documentation/CURRENT.md
+    - /Users/tai/.codex/documentation/DECISIONS.md
+    - /Users/tai/.codex/documentation/CLOUD-BRIEF.md
+    - /Users/tai/.codex/documentation/OPERATING-WORKFLOW.md
+    - /Users/tai/.codex/documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - public GitHub Issue #2
+    - public GitHub draft PR #3
+  resolved:
+    - branch rebased onto origin/main at 07a4de6
+    - direct parent and bounded Argus evidence packets collected
+  valid: true
+outputs:
+  declared:
+    - task-contract fixture
+    - compact context packet
+    - runtime probe and acceptance mapping
+  consumers:
+    - draft PR #3 review
+    - parent planning and future Issue #5 activation
+  valid: true
+cache: {mode: no-cache, path: null, valid: true}
+protected_paths:
+  touched: []
+  rejected:
+    - credentials
+    - sessions
+    - caches
+    - logs
+    - linked research projects
+collisions: []
+dependencies:
+  - /Users/tai/.codex/ops/schemas/task-contract.schema.yaml
+  - /Users/tai/.codex/agents/argus.toml
+overview:
+  impact: proves conditional context acquisition behavior without installing speculative components
+  references:
+    - documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - ops/changes/2026/CHG-20260809-001/runtime-probe.md
+preview:
+  changed_paths:
+    - documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - ops/changes/2026/CHG-20260809-001/task-contract.yaml
+    - ops/changes/2026/CHG-20260809-001/context-packet.yaml
+    - ops/changes/2026/CHG-20260809-001/runtime-probe.md
+    - ops/changes/2026/CHG-20260809-001/change.yaml
+    - ops/changes/2026/CHG-20260809-001/audit-record.yaml
+  digest: sha256:context-acquisition-probe-20260809-v1
+rollback:
+  location: git revert of evidence commit
+  reversible: true
+status: pass
+findings:
+  - severity: warning
+    finding: native delegation does not expose custom adapter/model/sandbox selection
+    action: keep runtime limitation explicit and do not infer profile selection
+  - severity: warning
+    finding: Argus preferred skills are unresolved package names
+    action: do not create wrappers until repeated runtime reuse justifies them

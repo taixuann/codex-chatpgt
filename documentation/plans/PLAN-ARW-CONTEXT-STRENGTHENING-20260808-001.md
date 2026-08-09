@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001
 title: Context Acquisition v1 Vertical Slice
-status: proposed
+status: evidence-collected
 date: 2026-08-08
 issue: 2
 scope: global-context-acquisition-vertical-slice
@@ -29,6 +29,21 @@ The reconciled baseline already provides:
 - deterministic control-plane validation.
 
 The current repository does not yet prove that a dedicated `context-strengthening` skill is necessary. That is an implementation hypothesis to test, not a requirement.
+
+## Evidence outcome
+
+Runtime reconnaissance and one bounded Argus comparison are recorded in:
+
+- `ops/changes/2026/CHG-20260809-001/runtime-probe.md`
+- `ops/changes/2026/CHG-20260809-001/context-packet.yaml`
+- `ops/changes/2026/CHG-20260809-001/task-contract.yaml`
+
+The current evidence supports a conditional pass for the vertical slice and a
+no-new-component packaging decision. Direct parent inspection is preferred for
+small known scopes; Argus adds value for independent, broad, or relationship-
+heavy exploration. The host surface does not expose enough metadata to prove
+that the custom `agents/argus.toml` adapter was selected by native delegation,
+so that limitation remains explicit.
 
 # Runtime reconnaissance first
 

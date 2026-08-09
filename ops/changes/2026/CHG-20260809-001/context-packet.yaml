@@ -1,0 +1,39 @@
+id: CONTEXT-PACKET-20260809-001
+task_contract: ops/changes/2026/CHG-20260809-001/task-contract.yaml
+canonical:
+  - path: AGENTS.md
+    finding: runtime policy requires progressive disclosure and capability-first routing
+  - path: documentation/CURRENT.md
+    finding: Issue 2 is execution-ready after branch synchronization
+  - path: documentation/DECISIONS.md
+    finding: agents, skills, workflows, and task contracts have separate jobs
+  - path: documentation/OPERATING-WORKFLOW.md
+    finding: direct lookup is preferred when sufficient; Argus is conditional
+  - path: ops/schemas/task-contract.schema.yaml
+    finding: delegated packets require explicit objective, scope, context, capability, output, validation, and stop fields
+repository_evidence:
+  - path: documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    finding: behavior must be proven before packaging a context skill or workflow
+  - path: agents/argus.toml
+    finding: Argus is configured as read-only, low-effort, non-recursive, and bounded
+  - path: agents/AGENTS.md
+    finding: support adapters do not expand the canonical role registry
+  - path: skills/franky-workflow-organizer/scripts/validate_workflow.py
+    finding: workflow skill resolution prefers the checked-out repository skill root
+  - path: .github/workflows/franky-validate.yml
+    finding: deterministic repository validation is path-filtered and separate from qualitative reasoning
+  - path: origin/main
+    finding: branch was synchronized to commit 07a4de6 before reconnaissance
+  - path: origin/feat/context-strengthening-v1
+    finding: active branch contains the Issue 2 behavior-first PLAN
+conflicts:
+  - source: documentation/CLOUD-BRIEF.md
+    issue: brief still describes the earlier reconciliation objective and does not index the active Issue 2 execution branch
+    resolution: use CURRENT, the active PLAN, and Issue/PR evidence as newer execution context; do not mutate accepted state before review
+  - source: agents/argus.toml
+    issue: preferred_skills names repository-exploration and context-retrieval are not installed skill packages
+    resolution: treat them as unresolved hints, not proof of runtime capability; do not create wrappers in this slice
+uncertainties:
+  - native delegation exposed an explorer worker but did not expose whether the custom Argus TOML, model tier, or sandbox was selected
+  - host AGENTS precedence and inherited conversation context are not observable from repository files alone
+  - GitHub connector issue/PR fetch was unavailable during the probe, so public API evidence was used for Issue 2 and PR 3

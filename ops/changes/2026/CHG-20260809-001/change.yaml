@@ -1,0 +1,47 @@
+change_id: CHG-20260809-001
+operation: prove_context_acquisition_v1_vertical_slice
+component: context-acquisition-evidence
+scope:
+  - /Users/tai/.codex/documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/
+preview:
+  changed_paths:
+    - /Users/tai/.codex/documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/task-contract.yaml
+    - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/context-packet.yaml
+    - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/runtime-probe.md
+    - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/change.yaml
+    - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/audit-record.yaml
+  digest: sha256:context-acquisition-probe-20260809-v1
+approval:
+  granted: true
+  by: user
+  preview_digest: sha256:context-acquisition-probe-20260809-v1
+changed_paths:
+  - /Users/tai/.codex/documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/task-contract.yaml
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/context-packet.yaml
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/runtime-probe.md
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/change.yaml
+  - /Users/tai/.codex/ops/changes/2026/CHG-20260809-001/audit-record.yaml
+validation:
+  commands:
+    - python3 skills/franky-agent-installer/scripts/validate_agent_toml.py agents/argus.toml
+    - python3 ops/scripts/validate_franky_canonical_layout.py .
+    - python3 skills/franky-maintenance/scripts/validate_skill_interfaces.py skills
+    - python3 skills/franky-maintenance/scripts/validate_workflow_layout.py workflows/franky
+    - python3 skills/franky-workflow-organizer/scripts/validate_workflow.py workflows/franky/franky.yaml
+    - python3 skills/franky-maintenance/scripts/validate_git_allowlist.py .
+    - python3 -c "import yaml; from pathlib import Path; d=yaml.safe_load(Path('ops/changes/2026/CHG-20260809-001/task-contract.yaml').read_text()); assert all(k in d for k in ('id','objective','scope','context','required_capabilities','expected_output','validation','stop_conditions')); assert set(d['scope']) == {'include','exclude'}; assert set(d['context']) == {'canonical','supporting'}; print('OK task contract shape')"
+    - git diff --check
+  expected: pass
+rollback:
+  method: revert the evidence commit; no runtime component was installed
+  backup: none_required
+git:
+  mode: local
+  commit: pending
+  pushed: pending
+promotion:
+  automatic: false
+  target: none

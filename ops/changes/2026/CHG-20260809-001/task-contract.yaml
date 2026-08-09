@@ -1,0 +1,62 @@
+id: TASK-CONTEXT-PROBE-20260809-001
+objective: Compare direct parent inspection with bounded Argus repository exploration for Issue 2.
+scope:
+  include:
+    - AGENTS.md
+    - agents/AGENTS.md
+    - agents/argus.toml
+    - documentation/CURRENT.md
+    - documentation/DECISIONS.md
+    - documentation/CLOUD-BRIEF.md
+    - documentation/OPERATING-WORKFLOW.md
+    - documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - ops/schemas/task-contract.schema.yaml
+    - ops/changes/2026/CHG-20260809-001/
+  exclude:
+    - credentials
+    - sessions
+    - logs
+    - caches
+    - linked research projects
+    - broad repository history dumps
+context:
+  canonical:
+    - documentation/CURRENT.md
+    - documentation/DECISIONS.md
+    - documentation/CLOUD-BRIEF.md
+    - AGENTS.md
+    - agents/AGENTS.md
+    - ops/schemas/task-contract.schema.yaml
+  supporting:
+    - documentation/plans/PLAN-ARW-CONTEXT-STRENGTHENING-20260808-001.md
+    - public GitHub Issue #2
+    - public GitHub draft PR #3
+role_hint: argus
+required_capabilities:
+  - bounded repository exploration
+  - context relevance selection
+  - exact evidence paths
+expected_output:
+  - canonical paths consulted
+  - repository evidence
+  - conflicts
+  - uncertainties
+  - direct-versus-delegated value
+  - packaging recommendation
+constraints:
+  - read-only
+  - no recursive delegation
+  - no plan redesign
+  - no global policy creation
+  - do not copy the parent conversation
+validation:
+  - return packet has the required evidence fields
+  - no files are modified by the bounded worker
+  - relevant paths are exact and auditable
+  - local agent adapter TOML validates
+stop_conditions:
+  - required paths and runtime limitations are recorded
+  - additional context would require unrelated project or secret state
+review:
+  required: true
+  reason: independent review is needed to decide whether delegation overhead and any new packaging are justified
