@@ -1,9 +1,9 @@
 ---
 id: PLAN-ARW-SCIENTIFIC-PROJECT-BOOTSTRAP-20260809-001
 issue: 19
-status: inventory-first
+status: implementation-complete
 repository: taixuann/codex-chatpgt
-branch: TBD-at-execution
+branch: codex/issue19-adaptive-bootstrap-v1
 created: 2026-08-09
 ---
 
@@ -26,6 +26,21 @@ The control plane already has:
 - existing project-linking / workflow-maintenance skills that must be inspected for overlap before any new skill is created.
 
 The missing behavior is not another project workflow. The missing behavior is a bounded procedure that can take a file-oriented project request, inspect a new or existing project, choose the minimum useful file/artifact surface, select existing capabilities, and materialize related artifacts without assuming the project is primarily software.
+
+## Implemented behavior
+
+The bounded behavior is implemented in
+`ops/scripts/bootstrap_file_project.py`. It validates an artifact map,
+performs a dry-run by default, and materializes only declared files under an
+explicit output root when `--apply` is supplied. It rejects traversal,
+control-plane paths, non-external unresolved links, duplicate paths, unsafe
+raw-data writes, and invalid create/update/preserve intents. Focused tests in
+`ops/scripts/tests/test_bootstrap_file_project.py` exercise adaptive
+materialization, dry-run, CLI apply, and failure-to-preserve repair behavior.
+
+No new global skill, workflow, schema, or project knowledge plane was created.
+The observed procedure remains small enough to live as a deterministic control
+plane tool plus ordinary instructions.
 
 # Requirements
 
@@ -253,6 +268,13 @@ Potential, not guaranteed:
 skills/<existing-skill>/...
 ```
 
+Implemented in this slice:
+
+```text
+ops/scripts/bootstrap_file_project.py
+ops/scripts/tests/test_bootstrap_file_project.py
+```
+
 or, only if earned by evidence:
 
 ```text
@@ -308,12 +330,14 @@ Map Issue #19 acceptance criteria as follows:
 - AC-01: demonstrate one live mode plus bounded coverage of the other.
 - AC-02: before/after tree proves adaptive module selection.
 - AC-03: overlap inventory documents built-in/local/external reuse check.
-- AC-04: artifact map traces request -> produced files.
-- AC-05: raw-data protection test/inspection where applicable.
+- AC-04: artifact map traces request -> produced files; the deterministic
+  materializer consumes the map directly.
+- AC-05: raw-data protection rejects writes and accepts explicit preserve intent.
 - AC-06: project tree and references prove Wiki/OpenScience are not copied.
 - AC-07: project diff contains no duplicate global agent/workflow definitions.
 - AC-08: research semantics reference #16 rather than redefining promotion/lifecycle rules.
-- AC-09: packaging decision includes evidence for no skill / one skill / two skills.
+- AC-09: packaging decision remains no-skill because one deterministic tool and
+  ordinary instructions cover the observed trigger/procedure.
 - AC-10: final review explicitly removes any file/folder/capability that has no distinct purpose.
 
 # Failure Modes
@@ -387,4 +411,6 @@ Activation gate:
 5. implement the smallest behavior needed for that case;
 6. validate and review before deciding global skill packaging.
 
-This PLAN is intentionally `inventory-first`. Its existence does not make broad project scaffolding execution-ready.
+This PLAN now records the bounded implementation slice. It does not authorize
+broad project scaffolding, migration, or creation of a reusable skill without a
+second project demonstrating an independent stable contract.

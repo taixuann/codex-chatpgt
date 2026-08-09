@@ -85,6 +85,10 @@ jobs:
         id: inventory
         run: python skills/franky-maintenance/scripts/run_session_inventory.py --root . --sessions-dir skills/franky-maintenance/scripts/fixtures --since-hours 24
 
+      - name: Validate adaptive file-first bootstrap
+        id: bootstrap
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest -v ops.scripts.tests.test_bootstrap_file_project
+
       - name: Validate Git allowlist
         id: allowlist
         run: python skills/franky-maintenance/scripts/validate_git_allowlist.py .
@@ -106,6 +110,7 @@ jobs:
             echo '| Audit record | ${{ steps.audit.outcome }} |'
             echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'
             echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'
+            echo '| Adaptive file-first bootstrap | ${{ steps.bootstrap.outcome }} |'
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
             echo 'Legacy/retired root workflow files are not validated as canonical contracts.'
