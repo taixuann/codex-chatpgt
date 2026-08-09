@@ -1,50 +1,114 @@
-name: Franky control-plane validation
+name: Control-plane validation
 
 on:
+  workflow_dispatch:
   push:
+    paths:
+      - 'AGENTS.md'
+      - 'agents/**'
+      - 'skills/**'
+      - 'workflows/**'
+      - 'ops/**'
+      - '.github/workflows/franky-validate.yml'
   pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'agents/**'
+      - 'skills/**'
+      - 'workflows/**'
+      - 'ops/**'
+      - '.github/workflows/franky-validate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: control-plane-validation-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: '3.12'
+
       - name: Install validation dependency
-        run: python -m pip install pyyaml
+        run: python -m pip install 'pyyaml>=6,<7'
+
       - name: Validate skill interfaces
-        run: python3 skills/franky-maintenance/scripts/validate_skill_interfaces.py skills
+        id: skills
+        run: python skills/franky-maintenance/scripts/validate_skill_interfaces.py skills
+
       - name: Validate agent adapters
+        id: agents
         run: |
           for agent in agents/*.toml; do
-            test ! -s "$agent" || python3 skills/franky-agent-installer/scripts/validate_agent_toml.py "$agent"
+            test ! -s "$agent" || python skills/franky-agent-installer/scripts/validate_agent_toml.py "$agent"
           done
+
       - name: Validate workflow layout
-        run: python3 skills/franky-maintenance/scripts/validate_workflow_layout.py workflows/franky
-      - name: Validate workflow contracts
-        run: |
-          for workflow in workflows/franky/*.yaml; do
-            python3 skills/franky-workflow-organizer/scripts/validate_workflow.py "$workflow"
-          done
-          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
-            python3 skills/franky-workflow-organizer/scripts/validate_workflow.py "$workflow"
-          done
+        id: layout
+        run: python skills/franky-maintenance/scripts/validate_workflow_layout.py workflows/franky
+
+      - name: Validate canonical workflow contracts
+        id: contracts
+        run: python skills/franky-workflow-organizer/scripts/validate_workflow.py workflows/franky/franky.yaml
+
       - name: Validate agent changelog
-        run: python3 skills/franky-maintenance/scripts/validate_agent_changelog.py agents
-      - name: Validate workflow/job IO and cache policy
+        id: changelog
+        run: python skills/franky-maintenance/scripts/validate_agent_changelog.py agents
+
+      - name: Validate canonical workflow/job IO and cache policy
+        id: io_cache
         run: |
-          for workflow in workflows/franky/*.yaml workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
-            python3 skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
+          python skills/franky-maintenance/scripts/validate_io_cache.py workflows/franky/franky.yaml
+          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml workflows/franky/general-workflow-factory/*.yaml; do
+            python skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
           done
+
       - name: Validate audit-record template
-        run: python3 skills/franky-maintenance/scripts/validate_audit_record.py skills/franky-maintenance/templates/audit-record.yaml
+        id: audit
+        run: python skills/franky-maintenance/scripts/validate_audit_record.py skills/franky-maintenance/templates/audit-record.yaml
+
       - name: Validate scheduled maintenance definition
-        run: python3 skills/franky-maintenance/scripts/validate_scheduler.py ops/schedulers/franky-personal-skill-maintenance.yaml
+        id: scheduler
+        run: python skills/franky-maintenance/scripts/validate_scheduler.py ops/schedulers/franky-personal-skill-maintenance.yaml
+
       - name: Validate session inventory fixture
-        run: python3 skills/franky-maintenance/scripts/run_session_inventory.py --root . --sessions-dir skills/franky-maintenance/scripts/fixtures --since-hours 24
-      - name: Validate scheduled personal-skill scope
-        run: python3 skills/franky-maintenance/scripts/validate_scheduled_scope.py skills/franky-maintenance
+        id: inventory
+        run: python skills/franky-maintenance/scripts/run_session_inventory.py --root . --sessions-dir skills/franky-maintenance/scripts/fixtures --since-hours 24
+
       - name: Validate Git allowlist
-        run: python3 skills/franky-maintenance/scripts/validate_git_allowlist.py .
+        id: allowlist
+        run: python skills/franky-maintenance/scripts/validate_git_allowlist.py .
+
+      - name: Write validation summary
+        if: always()
+        run: |
+          {
+            echo '## Control-plane validation'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
+            echo '| Agent adapters | ${{ steps.agents.outcome }} |'
+            echo '| Workflow layout | ${{ steps.layout.outcome }} |'
+            echo '| Canonical workflow contracts | ${{ steps.contracts.outcome }} |'
+            echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
+            echo '| Canonical workflow IO/cache | ${{ steps.io_cache.outcome }} |'
+            echo '| Audit record | ${{ steps.audit.outcome }} |'
+            echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'
+            echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'
+            echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
+            echo
+            echo 'Legacy/retired root workflow files are not validated as canonical contracts.'
+            echo 'Optional external skills may be unresolved in CI only when their workflow step is explicitly conditional; required workflow-step skills must resolve from repository or configured skill roots.'
+            echo 'Personal scheduled-scope enforcement remains a local-runtime check because it depends on the actual Codex personal skill root.'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -26,6 +26,7 @@ steps:
   - id: review-workflow
     skill: review-agent
     operation: review_proposed_workflow
+    condition: independent workflow review is justified and review-agent is available
     inputs: [workflow YAML proposal, workflow validation report, referenced-skill map]
     outputs: [read-only workflow review findings]
     validation: [forbidden keys, dependency scope, and branch routing are reviewed]

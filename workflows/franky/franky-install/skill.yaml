@@ -36,6 +36,7 @@ steps:
   - id: review-skill-package
     skill: review-agent
     operation: review_proposed_package
+    condition: independent external package review is required and review-agent is available
     inputs: [skill package proposal, provenance evidence, dependency inventory]
     outputs: [read-only review findings]
     validation: [review is complete; findings are returned before mutation]
