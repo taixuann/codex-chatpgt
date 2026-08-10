@@ -187,3 +187,8 @@ The newest approved bounded local Wiki export returned 5 `wiki-evidence/v1` synt
 
 
 A fresh OpenCode model-execution attempt on a synthetic skill was rejected by the host privacy guard before execution; direct OpenCode behavior remains `NOT_ASSESSED`, while no-model catalog and precedence evidence remains valid.
+
+
+### Latest approved Wiki MCP retry — 2026-08-10
+
+The approved read-only MCP retry failed before returning a packet with `KeyError: 'edges'` while loading the Wiki NetworkX graph index. The contract validator still passed with immutable sources unchanged and no live knowledge changes. This is `NOT_ASSESSED/BLOCKED` runtime/index evidence, not a successful export; no corpus, index, or Wiki knowledge file was modified.
