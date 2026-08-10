@@ -863,7 +863,7 @@ Tier-3 candidate and now uses the semantic `issue-plan-skill` route.
 | Runtime | Observed catalog | Finding |
 | --- | --- | --- |
 | Codex `0.146.0` | 61 files / 49 unique names | Ten duplicate-name groups and 2% description-budget shortening; hidden activation policy remains `NOT_ASSESSED`. |
-| OpenCode `1.18.15` | 89 effective skills / 89 unique IDs | Path/config aliases and precedence observed; direct activation and permission enforcement are `NOT_ASSESSED`; cross-runtime semantic mapping is `PORTABLE_WITH_ADAPTER`, not equivalence. |
+| OpenCode `1.18.15` | 89 effective skills / 89 unique IDs | Path/config aliases and precedence observed; a synthetic run loaded `franky-install-guidance` and inspected the fixture, but ended before final output. Activation is `SMOKE_PASS`; permission enforcement and completed behavioral equivalence remain `NOT_ASSESSED`; semantic mapping is `PORTABLE_WITH_ADAPTER`, not equivalence. |
 
 ### Conditional reconciliation
 

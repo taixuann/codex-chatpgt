@@ -506,6 +506,13 @@ introduced.
   `build` agent is permissive, so no portability claim is made from that
   configuration alone.
 
+A bounded OpenCode run in the same disposable synthetic fixture produced a
+real `skill` tool load for `franky-install-guidance` and a read-only directory
+inspection. The process ended before emitting its final audit response, and
+the fixture hashes were unchanged; this upgrades OpenCode **activation smoke
+evidence** to `SMOKE_PASS` but leaves behavioral utility and permission
+enforcement **NOT_ASSESSED**.
+
 ### Phases F–G — trigger and behavioral evidence
 
 The static routing fixture covers direct positive, adjacent negative,
@@ -529,10 +536,11 @@ performed.
 
 ### Phases I–J — portability, freshness, lifecycle
 
-Codex execution is observed. OpenCode exposes an adapter/alias catalog but not
-the same Codex skill identity or activation trace; the honest classification is
-`PORTABLE_WITH_ADAPTER` for the semantic procedure and `NOT_PROVEN` for
-cross-runtime behavioral equivalence. The release was checked against Codex
+Codex execution is observed. OpenCode exposes an adapter/alias catalog and a
+skill-load smoke trace but not the same Codex skill identity or completed
+behavioral result; the honest classification is `PORTABLE_WITH_ADAPTER` for
+the semantic procedure and `NOT_PROVEN` for cross-runtime behavioral
+equivalence. The release was checked against Codex
 `0.146.0`, OpenCode `1.18.15`, model `gpt-5.6-terra`, and catalog snapshots
 from 2026-08-10. Lifecycle dispositions are recorded in the #35 matrix below;
 no registry or telemetry store was created.
