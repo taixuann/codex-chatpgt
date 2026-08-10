@@ -718,3 +718,8 @@ skill_sha256: 1de0761725ce2b47b279cf82e80bf7477febefff33be5684bb71c8d1285accd4
 input_sha256: d974c0a6e49c8e1c8edcad34b1b9251656a32c31f7900a55494414218dad2334
 marker_sha256: 6c0e165283df90f90103524f4dda951e09f877594634fc59be71d719faa81b2c
 ```
+
+
+### Latest OpenCode provider/privacy boundary — 2026-08-10
+
+A fresh attempt to run a synthetic project-local skill through OpenCode with the configured free provider was rejected by the host privacy guard before execution because the selected agent/configuration and loaded skill content could be exported to the provider without explicit authorization. This does not alter the no-model catalog/precedence evidence; direct OpenCode behavior remains `NOT_ASSESSED`.
