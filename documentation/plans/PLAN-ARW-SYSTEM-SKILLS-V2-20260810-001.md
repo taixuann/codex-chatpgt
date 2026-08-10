@@ -910,3 +910,8 @@ The current matrix was checked against `git ls-files 'skills/*/SKILL.md'`. It co
 ### Fresh OpenCode no-model catalog recheck — 2026-08-10
 
 A fresh `opencode debug skill --pure` run completed without invoking a model or sending skill content to a provider. It reported 89 effective entries with 89 unique names. Two external Franky workflow-related overlay entries remain visible outside this repository; exact local paths are intentionally withheld from the public coordination record. This reconfirms repository-scoped workflow retirement and the #12 cross-runtime boundary; no overlay files were modified.
+
+
+### Fresh disposable OpenCode shadowing probe — 2026-08-10
+
+Two disposable no-model fixtures used the same skill ID, `shadow-demo`, once with both a project-local candidate and a configured-path candidate, and once with only the configured-path candidate. The effective catalog resolved one entry in each case: project-local precedence won when both were present, while the configured path resolved when it was the only candidate. Counts were 91 entries / 91 unique names with both candidates and 90 / 90 with the configured-only fixture. No model was invoked, no provider received skill content, and no real external overlay was modified. Exact temporary paths are withheld.
