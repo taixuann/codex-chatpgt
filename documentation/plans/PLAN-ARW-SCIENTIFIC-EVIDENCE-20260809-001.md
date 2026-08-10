@@ -448,6 +448,39 @@ the MCP call was cancelled before a packet was returned. The resulting
 provider trace is therefore `NOT_ASSESSED/BLOCKED` for this attempt, and does
 not upgrade or replace the previously accepted host-mediated evidence.
 
+### Bounded export execution — 2026-08-10 (current approval)
+
+The user approved a bounded Wiki evidence export for this probe. The export
+was limited to one read-only synthesis query and packet metadata; no Wiki
+corpus, source excerpts, or source files were copied into `codex-chatpgt`.
+
+The canonical local Wiki CLI returned a `wiki-evidence/v1` packet with:
+
+```yaml
+intent: synthesis
+evidence_count: 2
+source_count: 2
+gaps: []
+sufficiency: sufficient
+retrieval_mode: hybrid
+methods: [bm25, lexical_fallback]
+```
+
+The returned source IDs were retained only as repository-relative provenance:
+
+```text
+sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md
+sources/raw/markdown/kumar-2024-metal-ion-proton-coupled-electron-transfer.md
+```
+
+The registered MCP adapter was then invoked once with the same bounded query.
+It failed before returning a packet because the Wiki runtime raised
+`KeyError: 'edges'` while loading its NetworkX graph index
+(`.rag/query.py::_load_indexes`). This is recorded as a Wiki-runtime/index
+failure, not as a successful host-mediated export. No repair or fallback was
+attempted in this Issue, and the earlier accepted Codex/OpenAI slice remains
+the active host evidence.
+
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
