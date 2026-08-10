@@ -227,3 +227,6 @@ bounded independent review.
 ## Latest skill-system runtime boundary
 
 The isolated no-skill Codex baseline completed read-only without loading a skill procedure. A matching run with the real private #35 skill was rejected by the host privacy guard because provider export of that local skill content lacked explicit authorization; real-skill utility lift therefore remains `NOT_ASSESSED`. Synthetic activation/co-loaded/negative evidence remains bounded and does not upgrade that gate.
+
+
+The newest approved bounded local Wiki export returned 5 `wiki-evidence/v1` synthesis items across 4 distinct source IDs with no gaps using `hybrid` retrieval (`bm25`, `lexical_fallback`). The validator reported immutable sources unchanged and no live knowledge changes; only metadata and repository-relative provenance were retained.
