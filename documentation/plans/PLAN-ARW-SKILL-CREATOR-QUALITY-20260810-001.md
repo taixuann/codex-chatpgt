@@ -621,8 +621,10 @@ workflow engine, or general evaluation platform.
   approval. Existing prior with-skill evidence remains unchanged; this audit
   does not upgrade `baseline_delta` or co-loaded activation.
 - OpenCode `1.18.15` was invoked in the same fixture with `--pure --agent
-  build --format json`. It loaded the configured model path but returned a
-  provider `401 CreditsError` (no payment method) before a final response.
-  The earlier read-only activation smoke remains the only OpenCode behavior
-  evidence; completed behavior and permission enforcement remain
-  `NOT_ASSESSED`.
+-  build --model opencode/gpt-5.6-terra --format json`. It returned a provider
+  `401 CreditsError` (no payment method) before a final response. A fresh
+  `opencode debug skill` snapshot still resolves 89 effective skills with 89
+  unique IDs and no duplicate effective IDs; path/config precedence remains
+  observable, but provider execution is unavailable. The earlier read-only
+  activation smoke remains the only OpenCode behavior evidence; completed
+  behavior and permission enforcement remain `NOT_ASSESSED`.
