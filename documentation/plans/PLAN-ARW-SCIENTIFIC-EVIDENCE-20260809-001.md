@@ -599,3 +599,14 @@ methods: [bm25, lexical_fallback]
 ```
 
 The four source IDs were `sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md`, `sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md`, `sources/notes/zhou-2022-natural-biomaterialbased-memristor-bearing.md`, and `sources/raw/markdown/valov-2011-electrochemical-metallization-memories.md`. The Wiki contract validator passed with `immutable_sources_unchanged: true` and `live_knowledge_changes: []`. This is local Wiki evidence only and does not upgrade the separate conditional Codex host-runtime boundary.
+
+
+### Approval-confirmed MCP retry — 2026-08-10
+
+Following the user's bounded-export approval, the registered read-only MCP adapter was invoked once with the same synthesis query. The adapter failed before returning a packet while loading the local NetworkX graph index:
+
+```text
+KeyError: 'edges' (wiki/.rag/query.py::_load_indexes)
+```
+
+The Wiki contract validator was rerun separately and passed, reporting `immutable_sources_unchanged: true` and no live knowledge changes. This attempt is therefore `NOT_ASSESSED/BLOCKED` for MCP retrieval and is recorded as a runtime/index compatibility failure, not as a successful export. No corpus, source, index, or Wiki knowledge file was modified, and no repair or fallback was attempted inside Issue #7.
