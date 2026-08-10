@@ -863,7 +863,7 @@ Tier-3 candidate and now uses the semantic `issue-plan-skill` route.
 | Runtime | Observed catalog | Finding |
 | --- | --- | --- |
 | Codex `0.146.0` | Current root scan: 60 source files / 54 unique basenames; earlier runtime snapshot: 61 files / 49 unique names; fresh model-visible prompt-input snapshot: 86 entries / 58 unique names | Earlier runtime scan recorded ten duplicate-name groups and 2% description-budget shortening; current prompt-input snapshot records 13 duplicate-name groups. `--disable skill_search` leaves the initial catalog metadata present, while implicit activation remains `NOT_ASSESSED`. |
-| OpenCode `1.18.15` | 89 effective skills / 89 unique IDs | Path/config aliases and precedence observed; a synthetic run loaded `franky-install-guidance` and inspected the fixture, but ended before final output. Activation is `SMOKE_PASS`; permission enforcement and completed behavioral equivalence remain `NOT_ASSESSED`; semantic mapping is `PORTABLE_WITH_ADAPTER`, not equivalence. |
+| OpenCode `1.18.15` | 89 effective skills / 89 unique IDs; 90 in the disposable shadow fixture | Path/config aliases and precedence observed. A synthetic project-local `shadow-demo` shadows the same configured-path ID, while a config-only fixture resolves the configured candidate; each effective catalog has one ID. Activation is `SMOKE_PASS`; permission enforcement and completed behavioral equivalence remain `NOT_ASSESSED`; semantic mapping is `PORTABLE_WITH_ADAPTER`, not equivalence. |
 
 ### Conditional reconciliation
 
@@ -872,3 +872,8 @@ retiring the unconsumed Franky workflow tree and its workflow-organizer
 package, while preserving existing safety/provenance boundaries. Full #35
 acceptance remains gated on the missing host-observable co-loaded routing and
 cross-runtime behavior evidence rather than being inferred from static files.
+
+The disposable shadow probe strengthens the catalog/precedence evidence:
+OpenCode discovers configured skill paths and deterministically prefers a
+project-local ID over a configured-path collision. It does not close the
+remaining host-observable co-loaded activation or cross-runtime behavior gate.

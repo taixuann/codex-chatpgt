@@ -101,7 +101,10 @@ proven.
   procedures, Tier 2 is policy/reference/deferred unless measured, Tier 3 is
   on-demand, and all seventeen unconsumed Franky machine workflows plus the
   workflow-organizer package are retired. No registry, marketplace,
-  telemetry, dependency graph, or workflow engine was added.
+  telemetry, dependency graph, or workflow engine was added. A disposable
+  OpenCode probe confirmed configured-path discovery and project-local
+  shadowing for a colliding skill ID; activation and cross-runtime behavior
+  remain conditional.
 - Issue #9 is now **experimentally active** on the existing AgentMemory `0.9.28`
   service. The daemon runs zero-LLM/BM25-only with context injection and
   auto-compress off, and its MCP surface is explicitly limited to eight core

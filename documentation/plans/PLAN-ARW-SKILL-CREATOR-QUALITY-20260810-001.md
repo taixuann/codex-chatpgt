@@ -628,3 +628,16 @@ workflow engine, or general evaluation platform.
   observable, but provider execution is unavailable. The earlier read-only
   activation smoke remains the only OpenCode behavior evidence; completed
   behavior and permission enforcement remain `NOT_ASSESSED`.
+
+### Supplemental OpenCode precedence probe — 2026-08-10
+
+Two synthetic, disposable skills with the same ID (`shadow-demo`) were used
+to test effective catalog resolution without invoking a model or transmitting
+skill content. With one candidate in the project-local `.opencode/skills/`
+tree and one in a configured external `skills.paths` directory,
+`opencode debug skill --pure` reported 90 effective entries and one
+`shadow-demo` entry, resolved to the project-local path. A companion fixture
+with only the configured path resolved the same ID to the configured path.
+The result directly confirms configured-path discovery and project-local
+shadowing; it does not establish model selection, activation utility, or
+permission enforcement.
