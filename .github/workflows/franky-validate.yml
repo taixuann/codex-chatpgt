@@ -44,6 +44,14 @@ jobs:
         id: skills
         run: python skills/franky-maintenance/scripts/validate_skill_interfaces.py skills
 
+      - name: Validate tracked skill quality
+        id: skill_quality
+        run: |
+          while IFS= read -r skill_md; do
+            skill_dir="${skill_md%/SKILL.md}"
+            PYTHONDONTWRITEBYTECODE=1 python skills/franky-maintenance/scripts/validate_skill_quality.py "$skill_dir"
+          done < <(git ls-files 'skills/*/SKILL.md')
+
       - name: Validate agent adapters
         id: agents
         run: |
@@ -113,6 +121,7 @@ jobs:
             echo '| Check | Result |'
             echo '| --- | --- |'
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
+            echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
             echo '| Static skill-routing fixture | ${{ steps.routing.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
