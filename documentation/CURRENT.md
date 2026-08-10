@@ -160,17 +160,20 @@ Current readiness:
   open for empirical runtime acceptance; the available Codex probe does not
   expose AGENTS load timing, automatic closeout, compaction internals, or
   custom adapter selection.
-- **#7/#8/#9/#11/#12** — backlog PLANs remain gated by their own runtime evidence.
-- **#9** — existing AgentMemory `0.9.28` was probed in place without adding an
-  integration. The real localhost service was healthy in zero-LLM/BM25-only
-  mode; a bounded capture fixture, persistence across restart, useful recall,
-  no-recall, verification, and diagnostics were exercised. Diagnostics warned
-  that the only test memory has no project scope, and project-filter probes
-  returned that unscoped record for both the `.codex` and unrelated-project
-  filters. Native Codex/OpenCode automatic capture, consolidation, scoped
-  isolation, contradiction handling, and a repeated continuity gap remain
-  unproven. #9 therefore stays explicitly `deferred` and no memory layer,
-  skill, workflow, or repository mirror is activated.
+- **#7/#8/#11/#12** — backlog PLANs remain gated by their own runtime evidence.
+- **#9** — user-authorized **experimental activation** is now running on the
+  existing AgentMemory `0.9.28` substrate with the eight-tool core surface,
+  zero-LLM/BM25-only mode, auto-compress off, and context injection off.
+  Phase A–E probes completed: healthy durable service, Codex/OpenCode
+  smart-search calls, bounded three-observation capture fixture, restart
+  persistence, diagnostics/reconciliation, useful/no-recall, stale-conflict
+  precedence, scope-isolation and latency checks. Native host capture is not
+  proven (OpenCode session gap observed), and unscoped memory still leaks
+  across `.codex` and `/tmp/unrelated-project` filters. #9 is therefore
+  `active-experimental`, non-blocking and non-canonical; normal mandatory
+  orientation remains gated on scope isolation, consolidation, provenance,
+  contradiction handling and a repeated continuity/retrieval gap. No memory
+  layer, workflow, agent, mirror or auto-promotion path was added.
 
 ## Planning state
 

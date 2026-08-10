@@ -77,20 +77,18 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   richer Feynman/Athena adapter/model traces are not exposed by Codex. No
   duplicate retrieval layer or wrapper skill was introduced, and the
   historical Ollama fallback remains out of scope.
-- Issue #9’s existing AgentMemory `0.9.28` runtime was reused for a bounded
-  reconnaissance rather than installed or vendored. The local server was
-  healthy and persistent across restart; targeted recall and an empty
-  no-recall case worked, while zero-LLM/BM25-only mode kept compression and
-  injection disabled. Diagnostics exposed an unscoped test memory that was
-  returned for both a `.codex` and an unrelated project filter, and verification
-  found no citation chain. Native host capture, consolidation, isolation,
-  contradiction handling, and repeated continuity value are therefore not
-  proven. #9 remains `deferred`; no memory skill, workflow, agent, or mirror was
-  added. Dry-run wiring reports Codex CLI and OpenCode already connected, while
-  Hermes still requires manual installation; this is configuration evidence,
-  not proof of native host capture. The Codex MCP shim is not configured with
-  an explicit core allowlist, so tool-surface minimization remains an open
-  experiment rather than an accepted runtime policy.
+- Issue #9 is now **experimentally active** on the existing AgentMemory `0.9.28`
+  service. The daemon runs zero-LLM/BM25-only with context injection and
+  auto-compress off, and its MCP surface is explicitly limited to eight core
+  tools. Phase A–E evidence covers health, Codex/OpenCode recall calls,
+  bounded capture, restart persistence, diagnostics/reconciliation, recall and
+  no-recall, stale canonical precedence, isolation leakage and local latency.
+  Native host capture/consolidation remains unproven; diagnostics still report
+  an unscoped memory and project filters return it for unrelated paths. The
+  activation is therefore non-blocking and non-canonical: keep for bounded
+  experiments, but do not make it mandatory orientation or promote memories
+  until the remaining gates are independently evidenced. No memory skill,
+  workflow, agent, mirror or auto-promotion path was added.
 
 ## Read next
 

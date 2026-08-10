@@ -1,11 +1,12 @@
 ---
 id: PLAN-ARW-PERSISTENT-MEMORY-20260809-001
 issue: 9
-status: deferred
-activation_gate: repeated-continuity-or-retrieval-gap-after-core-orientation
+status: active-experimental
+activation_gate: user-approved-bounded-reuse-experiment-2026-08-10
 scope: persistent-memory-promotion
 preferred_candidate: agentmemory
 candidate_status: experimental-substrate-only
+updated: 2026-08-10
 ---
 
 # Objective
@@ -199,6 +200,93 @@ did not establish it and the activation gate remains closed.
 This disposition supports `DEFER`, not activation: the substrate is usable for
 experimentation, but the evidence does not justify making it part of normal
 control-plane orientation.
+
+## User-authorized experimental activation — 2026-08-10
+
+The user explicitly authorized activation of Issue #9 and an end-to-end Phase
+A–E run. This is an **experimental activation**, not an acceptance of
+AgentMemory as mandatory control-plane infrastructure. The service is kept
+non-blocking, zero-LLM by default, and limited to the eight core read-oriented
+tools. The existing Codex/OpenCode MCP wiring is reused; no repository memory
+layer, mirror, hook package, or canonical-state mutation is introduced.
+
+### Phase A — Local reconnaissance (completed)
+
+- AgentMemory `0.9.28` was already installed; no reinstall or vendoring was
+  performed.
+- The service was restarted and `/agentmemory/livez` returned
+  `{"status":"ok"}`. `agentmemory status` reported a healthy durable server,
+  one existing session, two observations and one memory.
+- The daemon is explicitly running with `AGENTMEMORY_TOOLS=core`; the exposed
+  MCP inventory is exactly eight tools: recall, save, sessions, smart-search,
+  consolidate, diagnose, lesson-save and reflect.
+- Provider mode is `noop`/BM25-only; auto-compress, graph extraction and
+  context injection remain off. Codex and OpenCode are wired; Hermes still
+  requires manual installation.
+- Existing state survived the service restart. The prior synthetic session
+  and memory remained present.
+
+### Phase B — Capture reliability (completed with host limitation)
+
+- A fresh Codex session called `memory_smart_search` exactly once and received
+  three bounded results. The host event trace proves MCP tool use, but no new
+  native Codex AgentMemory session/observations appeared.
+- A fresh OpenCode session (`ses_0155ace94ffesnqRD2WazpTMRM`) called the
+  AgentMemory smart-search tool exactly once and received three bounded
+  results. Its host session was not present in the durable AgentMemory session
+  list after process shutdown; this is recorded as a capture-gap observation,
+  not as successful native capture.
+- A bounded lifecycle fixture (`issue9-phase-b-20260810`) explicitly started,
+  recorded three observations (prompt, file read, smart-search), ended
+  normally, and remained present after a service restart.
+
+### Phase C — Reconciliation (completed with honest gap report)
+
+- `POST /agentmemory/diagnostics` returned 14 passing checks and one warning:
+  the latest memory has no project scope. This is an attribution/isolation
+  gap; it was not silently repaired because automatic scope inference would
+  mutate external memory state without trustworthy evidence.
+- Reconciliation also compared the observed OpenCode session ID with durable
+  AgentMemory sessions and classified the missing record as a host capture
+  gap. No raw transcript backfill was fabricated.
+
+### Phase D — Recall value (completed; isolation failure retained)
+
+- Useful historical recall returned three bounded results for the `.codex`
+  project; the unrelated query returned zero results.
+- The stale-conflict fixture returned the historical note claiming that #9 was
+  accepted, while the live canonical plan reads `status: active-experimental`,
+  not accepted/mandatory.
+  The reconciliation decision keeps canonical plan state authoritative; the
+  stale fixture does not override it.
+- Project isolation is **not accepted**: the same unscoped results were
+  returned for `.codex` and `/tmp/unrelated-project` filters.
+- Median measured smart-search latency was approximately 3.9–4.1 ms for the
+  bounded fixture, versus approximately 1.5 ms for the liveness baseline. This
+  is a small local probe, not a production benchmark.
+- `memory_verify` succeeded for the existing memory but returned
+  `citationCount: 0`; AgentMemory is not a scientific-provenance authority.
+
+### Phase E — Acceptance decision
+
+**Decision: `KEEP — experimental-only, non-blocking`.**
+
+The user-approved activation is retained because the substrate provides a
+working bounded recall/capture experiment and does not block core work. It is
+not promoted to normal orientation or canonical state. Continued activation
+requires the following unresolved gates to be addressed by separate evidence:
+
+- native Codex/OpenCode lifecycle capture and consolidation;
+- project/agent isolation and scoped-memory enforcement;
+- contradiction handling in the runtime rather than policy alone;
+- source/provenance linkage for scientific claims;
+- a repeated continuity/retrieval gap with measurable planning benefit.
+
+Ongoing cadence is therefore minimal: keep the local daemon available when
+explicit recall is needed, run diagnostics/reconciliation at the end of an
+active experiment, and treat outages as degraded continuity rather than task
+failure. No automatic promotion, forget/delete, repository mirror or policy
+mutation is enabled.
 
 # Memory lifecycle integrity states
 
