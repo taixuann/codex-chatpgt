@@ -49,6 +49,7 @@ observed_head: 808cda6
 state: dirty_and_unresolved
 approval_owner: user/maintainer
 status: NOT_EXECUTED
+last_catalog_probe: OpenCode 1.18.15, 89 effective / 89 unique, no duplicate IDs
 ```
 
 ### Read-only scope
@@ -59,14 +60,17 @@ Inspect only the effective catalog and the following relevant paths:
 /Users/tai/.config/opencode/AGENTS.md
 /Users/tai/.config/opencode/skills/workflow-manager/SKILL.md
 /Users/tai/.config/opencode/skills/install-workflow/SKILL.md
+/Users/tai/.config/opencode/skills/ai-labs/franky.workflow/workflow-manager/SKILL.md
 /Users/tai/.config/opencode/skills/ai-labs/franky.install/install-workflow/SKILL.md
 ```
 
 The observed catalog contains `franky-workflow-manager` and
 `franky-install-workflow`, which overlap the repository-level retired
-workflow surface. The external checkout is already dirty, including modified
-runtime/config files and untracked skill trees; do not reset, clean, stash,
-delete, or overwrite any of that state.
+workflow surface. The latest effective locations resolve through the
+`ai-labs/franky.workflow/` and `ai-labs/franky.install/` overlay paths while
+the direct alias paths remain present. The external checkout is already dirty,
+including modified runtime/config files and untracked skill trees; do not
+reset, clean, stash, delete, or overwrite any of that state.
 
 ### Required approval before mutation
 

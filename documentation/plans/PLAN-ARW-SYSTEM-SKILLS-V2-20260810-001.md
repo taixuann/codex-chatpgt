@@ -875,6 +875,9 @@ Tier-3 candidate and now uses the semantic `issue-plan-skill` route.
 The OpenCode catalog also exposes external, non-`.codex` Franky overlay skills
 named `franky-workflow-manager` and `franky-install-workflow`. Their metadata
 describes YAML workflow execution/registration under external `ops/` paths.
+The latest refresh resolved them from the `ai-labs/franky.workflow/` and
+`ai-labs/franky.install/` overlay paths; direct aliases remain present but were
+not the effective locations.
 This means the repository-level retirement cannot be promoted to
 cross-runtime retirement. The external overlay is recorded as an explicit
 #12 portability/ownership boundary; no external control-plane files were

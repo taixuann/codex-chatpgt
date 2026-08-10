@@ -658,5 +658,6 @@ The same effective OpenCode catalog still contains external
 `franky-workflow-manager` and `franky-install-workflow` entries whose
 descriptions reference YAML workflow execution/registration. These are outside
 the `codex-chatpgt` repository allowlist and were not modified; #35's workflow
-retirement therefore remains repository-scoped and cross-runtime retirement is
-`NOT_ASSESSED` under #12.
+retirement currently resolves through the `ai-labs/franky.workflow/` and
+`ai-labs/franky.install/` overlay paths, so it remains repository-scoped and
+cross-runtime retirement is `NOT_ASSESSED` under #12.
