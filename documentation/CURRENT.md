@@ -91,8 +91,8 @@ Current readiness:
   unavailable, so the Issue is conditionally passed as v1 for deterministic
   behavior but remains open for host-level runtime acceptance.
 - **#14** — the bounded external provenance/artifact/runtime-fit matrix is recorded in `PLAN-ARW-EXTERNAL-SKILLS-20260809-001.md`; installed Codex creator reuse is accepted and unqualified external catalogs remain reference/deferred.
-- **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. A fresh explicit `--disable skill_search` Codex baseline completed without a skill-tool event, while the model-visible catalog currently exposes 86 entries / 58 unique names with 13 duplicate-name groups. No side-by-side lift is claimed because a matching with-skill rerun would expose private host skill/config content without separate export approval. It is conditionally passed as the admission baseline; baseline delta, co-loaded activation, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`.
-- **#35** — current repository skill dispositions and all seventeen retired Franky workflow YAMLs are recorded in `PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md`. Disposable OpenCode probes confirm configured-path discovery, project-local shadowing, and a 9-entry source-root swap; the external OpenCode overlay still exposes workflow-manager/install-workflow entries, so cross-runtime retirement remains a #12 boundary. The reconciliation remains conditional until host-observable co-loaded activation and cross-runtime behavior exist. No new target skill zoo or workflow engine was created here.
+- **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. A fresh explicit `--disable skill_search` Codex baseline completed without a skill-tool event, while the model-visible catalog currently exposes 86 entries / 58 unique names with 13 duplicate-name groups. A new disposable fixture demonstrated project-local activation, sibling selection, and a clear arithmetic negative without exporting private host skill content. Real-skill utility lift, broad catalog co-loading, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`; the issue remains conditional.
+- **#35** — current repository skill dispositions and all seventeen retired Franky workflow YAMLs are recorded in `PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md`. The deterministic interface validator now covers all 10 Git-tracked packages. Disposable Codex/OpenCode probes confirm project-local activation/sibling selection, configured-path discovery, OpenCode project-local shadowing, and a 9-entry source-root swap; the external OpenCode overlay still exposes workflow-manager/install-workflow entries, so cross-runtime retirement remains a #12 boundary. The reconciliation remains conditional until broad host-observable co-loaded activation and cross-runtime behavior exist. No new target skill zoo or workflow engine was created here.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in
@@ -145,7 +145,12 @@ Current readiness:
   re-probe independently confirmed the local `wiki-evidence/v1` packet (five
   evidence items, four source IDs, no gaps); its fresh host-mediated call was
   selected once but cancelled before return and is therefore recorded as
-  `NOT_ASSESSED/BLOCKED`, not as new acceptance evidence.
+  `NOT_ASSESSED/BLOCKED`, not as new acceptance evidence. The latest
+  approval-confirmed local export independently returned five evidence items
+  across three distinct source IDs with no gaps; the contract validator
+  passed and immutable Wiki sources remained unchanged. Its fresh host retry
+  again selected one `wiki.query` call but was cancelled before a packet
+  returned, so it remains `NOT_ASSESSED/BLOCKED`.
 - **#13** — historical v1 rationalization remains provenance only; current skill-system work is governed by #38/#35.
 - **#24** — control-plane quality hardening is accepted through PR #30
   (`c559f9a`). Franky authority is explicitly scoped to the control plane,
