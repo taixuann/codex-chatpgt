@@ -121,6 +121,9 @@ proven.
   experiments, but do not make it mandatory orientation or promote memories
   until the remaining gates are independently evidenced. No memory skill,
   workflow, agent, mirror or auto-promotion path was added.
+- The #12 portability handoff for the external OpenCode overlay is prepared
+  but `NOT_EXECUTED`: its checkout is dirty and owner confirmation/rollback
+  evidence are required before any external mutation.
 
 ## Read next
 

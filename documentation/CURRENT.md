@@ -167,6 +167,9 @@ Current readiness:
   expose AGENTS load timing, automatic closeout, compaction internals, or
   custom adapter selection.
 - **#7/#8/#11/#12** — backlog PLANs remain gated by their own runtime evidence.
+  For #12 specifically, a bounded OpenCode overlay handoff is recorded in
+  `PLAN-ARW-PORTABILITY-20260809-001.md` as `NOT_EXECUTED`; the external
+  checkout is dirty and requires owner confirmation before any mutation.
 - **#9** — user-authorized **experimental activation** is now running on the
   existing AgentMemory `0.9.28` substrate with the eight-tool core surface,
   zero-LLM/BM25-only mode, auto-compress off, and context injection off.
