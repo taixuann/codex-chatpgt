@@ -905,3 +905,8 @@ remaining host-observable co-loaded activation or cross-runtime behavior gate.
 ### Deterministic matrix reconciliation — 2026-08-10
 
 The current matrix was checked against `git ls-files 'skills/*/SKILL.md'`. It contains all 10 tracked package names with no omissions; the 11th row is the explicit retired `franky-workflow-organizer` disposition. The retirement block lists 17 historical workflow paths, while the tracked workflow YAML count is zero.
+
+
+### Fresh OpenCode no-model catalog recheck — 2026-08-10
+
+A fresh `opencode debug skill --pure` run completed without invoking a model or sending skill content to a provider. It reported 89 effective entries with 89 unique names. Two external Franky workflow-related overlay entries remain visible outside this repository; exact local paths are intentionally withheld from the public coordination record. This reconfirms repository-scoped workflow retirement and the #12 cross-runtime boundary; no overlay files were modified.
