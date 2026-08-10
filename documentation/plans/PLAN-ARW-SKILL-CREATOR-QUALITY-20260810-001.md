@@ -740,3 +740,8 @@ With the user's explicit approval, the exact `franky-guidance-manager` package w
 | With project-local #35 skill | Loaded `.agents/skills/franky-guidance-manager/SKILL.md`, inspected the same chain, returned `skill_used: franky-guidance-manager`, `decision: no_change`, `writes_performed: false`. |
 
 This is `BEHAVIORAL_PASS` for a bounded real-skill with-vs-without counterfactual and demonstrates the skill adds an explicit no-change/precedence decision on the same task. It is not a catalog-wide utility estimate, cost benchmark, or proof of private global-skill export; the fixture was temporary and no files were written.
+
+
+### Fresh OpenCode empty-fixture provider probe — 2026-08-10
+
+A safe direct-provider probe used an empty disposable fixture, the built-in `build` agent, `--pure`, external skills/plugins disabled, and the configured free OpenCode model. It carried no project instructions or skill content. The process did not return a model result within a 25-second bounded timeout, so direct OpenCode behavior remains `NOT_ASSESSED`; this is a provider/runtime timeout observation, not evidence of skill failure. No project or overlay files were modified.
