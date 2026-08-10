@@ -91,7 +91,7 @@ Current readiness:
   unavailable, so the Issue is conditionally passed as v1 for deterministic
   behavior but remains open for host-level runtime acceptance.
 - **#14** — the bounded external provenance/artifact/runtime-fit matrix is recorded in `PLAN-ARW-EXTERNAL-SKILLS-20260809-001.md`; installed Codex creator reuse is accepted and unqualified external catalogs remain reference/deferred.
-- **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. It is conditionally passed as the admission baseline; no-skill delta, co-loaded activation, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`.
+- **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. A fresh explicit `--disable skill_search` Codex baseline completed without a skill-tool event, while the model-visible catalog currently exposes 86 entries / 58 unique names with 13 duplicate-name groups. No side-by-side lift is claimed because a matching with-skill rerun would expose private host skill/config content without separate export approval. It is conditionally passed as the admission baseline; baseline delta, co-loaded activation, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`.
 - **#35** — current skill dispositions and all seventeen retired Franky workflow YAMLs are recorded in `PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md`. The reconciliation is conditional until host-observable co-loaded and cross-runtime behavior exists; no new target skill zoo or workflow engine was created.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.

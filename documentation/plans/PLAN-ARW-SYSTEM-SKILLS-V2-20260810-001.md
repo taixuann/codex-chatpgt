@@ -862,7 +862,7 @@ Tier-3 candidate and now uses the semantic `issue-plan-skill` route.
 
 | Runtime | Observed catalog | Finding |
 | --- | --- | --- |
-| Codex `0.146.0` | 61 files / 49 unique names | Ten duplicate-name groups and 2% description-budget shortening; hidden activation policy remains `NOT_ASSESSED`. |
+| Codex `0.146.0` | Current root scan: 60 source files / 54 unique basenames; earlier runtime snapshot: 61 files / 49 unique names; fresh model-visible prompt-input snapshot: 86 entries / 58 unique names | Earlier runtime scan recorded ten duplicate-name groups and 2% description-budget shortening; current prompt-input snapshot records 13 duplicate-name groups. `--disable skill_search` leaves the initial catalog metadata present, while implicit activation remains `NOT_ASSESSED`. |
 | OpenCode `1.18.15` | 89 effective skills / 89 unique IDs | Path/config aliases and precedence observed; a synthetic run loaded `franky-install-guidance` and inspected the fixture, but ended before final output. Activation is `SMOKE_PASS`; permission enforcement and completed behavioral equivalence remain `NOT_ASSESSED`; semantic mapping is `PORTABLE_WITH_ADAPTER`, not equivalence. |
 
 ### Conditional reconciliation

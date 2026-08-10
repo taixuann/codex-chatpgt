@@ -84,8 +84,13 @@ proven.
   is reused; Anthropic/OSS candidates remain reference/deferred.
 - Issue #38 is conditionally passed as the installed creator/admission gate.
   It has one real Codex dogfood result (`franky-guidance-manager` ->
-  `instruction-maintenance` generalization), while no-skill baseline,
-  co-loaded selection, dynamic security, and direct OpenCode behavior remain
+  `instruction-maintenance` generalization) and a fresh explicit-disabled
+  Codex baseline with no skill-tool event. The current model-visible catalog
+  snapshot is 86 entries / 58 unique names with 13 duplicate-name groups. No
+  side-by-side lift is claimed
+  because a matching with-skill rerun would expose private host skill/config
+  content without separate export approval; baseline delta, co-loaded
+  selection, dynamic security, and direct OpenCode behavior remain
   `NOT_ASSESSED`.
 - Issue #35 is conditionally reconciled: Tier 1 uses existing/generalized
   procedures, Tier 2 is policy/reference/deferred unless measured, Tier 3 is

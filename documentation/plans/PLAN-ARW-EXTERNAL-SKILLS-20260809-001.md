@@ -85,9 +85,12 @@ external catalog or copy upstream packages into this repository.
 ### Effective runtime observations
 
 - Codex `0.146.0`, configured model `gpt-5.6-terra`, reasoning `medium`.
-- Codex local discovery contained 61 `SKILL.md` files and 49 unique frontmatter
-  names; 10 name groups had duplicate source paths. A fresh read-only startup
-  returned `PROBE_OK` but emitted the observable warning that descriptions were
+- The earlier Codex local discovery contained 61 `SKILL.md` files and 49
+  unique frontmatter names; 10 name groups had duplicate source paths. After
+  retirement cleanup, the current root scan is 60 files / 54 unique basenames.
+  A fresh model-visible prompt-input snapshot records 86 entries / 58 unique
+  names and 13 duplicate-name groups. A fresh read-only startup returned
+  `PROBE_OK` but emitted the observable warning that descriptions were
   shortened to fit the 2% skills context budget. This is catalog-pressure
   evidence, not a claim about hidden selection behavior.
 - OpenCode `1.18.15` resolved 89 effective skills with unique effective names.
@@ -99,8 +102,11 @@ external catalog or copy upstream packages into this repository.
   **NOT_ASSESSED**, not portable by folder resemblance.
 - A real Codex read-only dogfood on a synthetic guidance fixture selected and
   applied `franky-guidance-manager`'s scoped-chain procedure without writes.
-  A no-skill baseline could not be isolated: `--ignore-user-config` still
-  loaded the skill, so baseline delta is **NOT_ASSESSED** rather than PASS.
+  An earlier natural-prompt no-skill attempt could not be isolated because
+  `--ignore-user-config` still loaded the host skill. A later explicit
+  `--disable skill_search` baseline completed without a skill-tool event, but
+  no matching with-skill rerun was authorized; baseline delta remains
+  **NOT_ASSESSED** rather than PASS.
 
 ### Handoff decisions
 

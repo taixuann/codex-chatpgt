@@ -479,7 +479,7 @@ USE_EXISTING | ADAPT_EXISTING | CREATE_SKILL | SCRIPT_NOT_SKILL
 POLICY_NOT_SKILL | REFERENCE_NOT_SKILL | TOOL_NOT_SKILL | DEFER
 ```
 
-Tracked control-plane skills: **11/11** pass the installed OpenAI
+Tracked control-plane skills: **10/10** pass the installed OpenAI
 `quick_validate.py` after removing unsupported metadata from
 `shared-session-closeout`. Existing interface/routing validators and four
 focused Franky maintenance tests pass. Four ignored personal overlay packages
@@ -494,10 +494,19 @@ introduced.
 ### Phase E — effective runtime discovery
 
 - Codex `0.146.0`, configured model `gpt-5.6-terra`, reasoning `medium`:
-  61 `SKILL.md` files, 49 unique names, ten duplicate-name groups. A fresh
-  read-only probe returned `PROBE_OK` and reported description shortening to
-  fit the 2% skills-context budget. Hidden implicit-selection policy and
-  adapter metadata remain **NOT_ASSESSED**.
+  the earlier 2026-08-10 root scan found 61 `SKILL.md` files, 49 unique
+  names, and ten duplicate-name groups. A fresh read-only probe returned
+  `PROBE_OK` and reported description shortening to fit the 2% skills-context
+  budget. The current root scan is 60 files / 54 unique basenames after the
+  retirement cleanup; hidden implicit-selection policy and adapter metadata
+  remain **NOT_ASSESSED**.
+- A fresh `codex debug prompt-input` snapshot on 2026-08-10 exposed the
+  model-visible catalog as 86 entries, 58 unique public names, and 13
+  duplicate-name groups across the configured skill roots. Repeating the
+  snapshot with `--disable skill_search` produced the same initial catalog;
+  the flag therefore does not by itself remove catalog metadata. The runtime
+  baseline observation below is based on the absence of a skill-tool event,
+  not on catalog removal.
 - OpenCode `1.18.15`: 89 effective skills with 89 unique effective IDs.
   Path-derived/config aliases and precedence were observed, including
   `franky-install-guidance`, `franky-install-project-link`, and a native
@@ -527,12 +536,16 @@ guidance fixture selected `franky-guidance-manager`, inspected the scoped
 instruction chain, and returned a bounded review without writes. This is
 `BEHAVIORAL_PASS` for the with-skill path.
 
-An independent no-skill baseline could not be isolated. Both
-`--ignore-user-config` and an explicit `--disable skill_search` run still loaded
-the host `franky-guidance-manager` procedure, so the same natural prompt does
-not provide a valid no-skill counterfactual. Baseline delta, co-loaded
-activation, and hidden trigger selection are therefore **NOT_ASSESSED**, not a
-claimed lift.
+An earlier natural-prompt attempt did not isolate a no-skill baseline. A fresh
+read-only run on 2026-08-10 used `--ignore-user-config --disable
+skill_search` against the disposable fixture and completed with
+`CODEX_BASELINE_DONE`; its JSON trace contained only the requested command
+execution and final message, with no skill-tool event. This is a valid
+baseline-path observation, but not a with-vs-without lift by itself. A matching
+fresh with-skill rerun was not authorized because it could transmit private
+host skill/config content to the external provider. Baseline delta, co-loaded
+activation, and hidden trigger selection therefore remain **NOT_ASSESSED**, not
+a claimed lift.
 
 ### Phase H — safety and dependencies
 
@@ -595,3 +608,21 @@ because host-level no-skill baselines, co-loaded activation, dynamic security,
 and direct OpenCode execution evidence are unavailable. Those limitations are
 recorded explicitly and do not justify a registry, marketplace, telemetry,
 workflow engine, or general evaluation platform.
+
+### Supplemental runtime audit — 2026-08-10
+
+- Codex `0.146.0` baseline path: `codex exec --ignore-user-config
+  --disable skill_search --ephemeral --json -s read-only` against
+  `/tmp/skill-dogfood-fixture` returned `CODEX_BASELINE_DONE`. The trace showed
+  the fixture guidance being read by a shell command and no skill-tool event;
+  no files were written.
+- A matching with-skill rerun was not performed because the host would expose
+  private skill/config content to the provider without a separate data-export
+  approval. Existing prior with-skill evidence remains unchanged; this audit
+  does not upgrade `baseline_delta` or co-loaded activation.
+- OpenCode `1.18.15` was invoked in the same fixture with `--pure --agent
+  build --format json`. It loaded the configured model path but returned a
+  provider `401 CreditsError` (no payment method) before a final response.
+  The earlier read-only activation smoke remains the only OpenCode behavior
+  evidence; completed behavior and permission enforcement remain
+  `NOT_ASSESSED`.
