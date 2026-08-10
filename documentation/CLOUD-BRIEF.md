@@ -86,7 +86,11 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   found no citation chain. Native host capture, consolidation, isolation,
   contradiction handling, and repeated continuity value are therefore not
   proven. #9 remains `deferred`; no memory skill, workflow, agent, or mirror was
-  added.
+  added. Dry-run wiring reports Codex CLI and OpenCode already connected, while
+  Hermes still requires manual installation; this is configuration evidence,
+  not proof of native host capture. The Codex MCP shim is not configured with
+  an explicit core allowlist, so tool-surface minimization remains an open
+  experiment rather than an accepted runtime policy.
 
 ## Read next
 

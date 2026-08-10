@@ -157,6 +157,8 @@ hook, or repository runtime surface was added.
 | installed version | AgentMemory `0.9.28` | existing substrate confirmed |
 | server liveness | `GET /agentmemory/livez` returned `status=ok` | real local server, not MCP-only fallback |
 | provider/embedding mode | provider `noop`; BM25-only; auto-compress and context injection off | deterministic degraded/zero-LLM mode |
+| host wiring | `agentmemory connect codex --dry-run` and `connect opencode --dry-run` report both already wired; Hermes reports manual install required | Codex/OpenCode configuration paths exist; this does not prove native host capture |
+| MCP surface | Codex config uses the standalone `@agentmemory/mcp` shim with no explicit core allowlist; the installed AgentMemory CLI documents an all-tools surface (53) and a separate core profile (8) | tool minimization is not yet enforced by this Codex config |
 | persisted state | one previously captured memory and one completed synthetic session loaded; the same memory ID was present across two fresh service starts | restart persistence observed for this fixture |
 | capture fixture | the earlier bounded hook lifecycle produced one completed `.codex` session with two observations | hook-to-server path works when explicitly invoked; native host auto-capture remains unproven |
 | useful recall | targeted `smart-search` returned the bounded canonical-state memory | selective recall path works |
@@ -169,6 +171,9 @@ The probe therefore demonstrates a healthy, persistent experimental substrate,
 bounded capture/recall behavior, and explicit degradation modes. It does not
 demonstrate automatic Codex/OpenCode host capture, consolidation, project or
 agent isolation, contradiction handling, or a material repeated continuity gap.
+The Codex/OpenCode wiring result is configuration evidence only; no live
+OpenCode model session was run, and no automatic host lifecycle event was
+attributed from that dry-run.
 The synthetic record remains a test fixture in the external AgentMemory store;
 it is not canonical repository state and is not deleted without explicit
 confirmation.
