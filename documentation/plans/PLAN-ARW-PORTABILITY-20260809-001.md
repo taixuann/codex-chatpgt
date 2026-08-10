@@ -93,6 +93,15 @@ itself a safe rollback target while the worktree is dirty.
 Until those conditions are met, cross-runtime workflow retirement remains
 `NOT_ASSESSED` and this Codex repository remains the only mutation surface.
 
+### Handoff artifact validation — 2026-08-10
+
+The handoff contract was validated read-only: all required metadata fields are
+present, the target root exists, all five listed paths exist, no listed path
+contains a credential marker, and the external checkout reports 46 dirty
+entries. The rollback gate evaluates true (`dirty_and_unresolved` plus
+`NOT_EXECUTED`). This validates the handoff artifact, not the external runtime
+or any mutation.
+
 # Validation
 
 - same semantic task survives both adapters;
