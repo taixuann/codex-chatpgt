@@ -900,3 +900,8 @@ The disposable shadow probe strengthens the catalog/precedence evidence:
 OpenCode discovers configured skill paths and deterministically prefers a
 project-local ID over a configured-path collision. It does not close the
 remaining host-observable co-loaded activation or cross-runtime behavior gate.
+
+
+### Deterministic matrix reconciliation — 2026-08-10
+
+The current matrix was checked against `git ls-files 'skills/*/SKILL.md'`. It contains all 10 tracked package names with no omissions; the 11th row is the explicit retired `franky-workflow-organizer` disposition. The retirement block lists 17 historical workflow paths, while the tracked workflow YAML count is zero.
