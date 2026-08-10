@@ -178,6 +178,28 @@ The synthetic record remains a test fixture in the external AgentMemory store;
 it is not canonical repository state and is not deleted without explicit
 confirmation.
 
+## Issue acceptance disposition — 2026-08-10
+
+The authoritative Issue #9 acceptance criteria are reconciled against the
+runtime probe and the current control-plane boundary below. `PASS` means the
+criterion is supported by current evidence; `UNPROVEN` means the experiment
+did not establish it and the activation gate remains closed.
+
+| Criterion | Disposition | Evidence / remaining gap |
+| --- | --- | --- |
+| AC-01 memory is context, not canonical authority | PASS | The plan, `CURRENT`, and the bounded memory fixture explicitly preserve canonical/live state as higher authority. |
+| AC-02 selective/scoped recall | PARTIAL | Targeted recall and no-recall pass; project filtering is not safe for the unscoped fixture. |
+| AC-03 explicit global/project scopes | UNPROVEN | Diagnostics warn about missing project scope, and the same unscoped result appears for `.codex` and an unrelated project filter. |
+| AC-04 contradictions are surfaced; memory does not silently win | UNPROVEN | No native stale-memory conflict case was exercised; canonical precedence is policy only so far. |
+| AC-05 knowledge promotion is explicit and reviewed | PASS | No automatic promotion or repository mutation occurred; promotion destinations remain explicit in the governing plan. |
+| AC-06 scientific claims retain source/Wiki provenance | UNPROVEN | `memory_verify` succeeded with `citationCount=0`; the fixture cannot establish scientific provenance. |
+| AC-07 recurrence creates a candidate, not automatic adoption | UNPROVEN / DEFERRED | No repeated continuity pattern was observed, so no promotion candidate was created or adopted. |
+| AC-08 no duplicate memory agent/graph architecture | PASS | No memory agent, database, graph, workflow, skill, or repository mirror was added. |
+
+This disposition supports `DEFER`, not activation: the substrate is usable for
+experimentation, but the evidence does not justify making it part of normal
+control-plane orientation.
+
 # Memory lifecycle integrity states
 
 Treat recent sessions conceptually as having three independent integrity levels:
