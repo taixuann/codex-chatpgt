@@ -433,6 +433,21 @@ provider success. The earlier accepted host-mediated slice above remains the
 active Issue #7 evidence; this re-probe does not replace it and does not
 justify a local-model fallback.
 
+### Approved bounded export audit — 2026-08-10
+
+The user re-approved the bounded export for this probe. A fresh local
+read-only `wiki.query` lookup was executed once for the same biomaterial
+memristor question and returned a sufficient `wiki-evidence/v1` packet with
+five evidence items, five source IDs, and no gaps. Only packet metadata was
+retained here; the Wiki corpus and source excerpts were not copied into this
+repository.
+
+The intended normal Codex/OpenAI run was retried with network access and the
+same one-call constraint. Codex selected exactly one `wiki.query` call, but
+the MCP call was cancelled before a packet was returned. The resulting
+provider trace is therefore `NOT_ASSESSED/BLOCKED` for this attempt, and does
+not upgrade or replace the previously accepted host-mediated evidence.
+
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
