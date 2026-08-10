@@ -581,3 +581,21 @@ Stop or narrow rather than adding machinery if:
 # Definition of done
 
 Issue #7 is complete when the actual local Codex runtime using the normal intended Codex/OpenAI provider can discover and use the Wiki Scientific Evidence MCP through the minimal read-only surface, appropriate parent/Feynman/reviewer paths select it for real literature-grounded tasks and avoid it for contrastive local-only tasks, provenance and insufficiency semantics survive end-to-end, the bounded fresh-session/reload stability check passes, MCP transport/protocol failure remains distinct from Codex/provider/data-policy failure and Wiki evidence gaps, no local-model fallback or duplicate scientific search/reasoning layer exists in `codex-chatpgt`, and the accepted capability boundary remains portable as `scientific-literature-evidence -> wiki-evidence/v1`.
+
+
+### Latest bounded local Wiki export — 2026-08-10
+
+Following explicit user approval, the canonical local Wiki CLI was run once with the bounded read-only synthesis query "How do proton transport and mixed ionic-electronic conduction explain switching in biomaterial memristors?". Only packet metadata and repository-relative provenance were retained; no corpus, excerpts, or Wiki knowledge pages were copied into this repository.
+
+```yaml
+contract_version: wiki-evidence/v1
+intent: synthesis
+evidence_count: 5
+distinct_source_count: 4
+gaps: []
+sufficiency: sufficient
+retrieval_mode: hybrid
+methods: [bm25, lexical_fallback]
+```
+
+The four source IDs were `sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md`, `sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md`, `sources/notes/zhou-2022-natural-biomaterialbased-memristor-bearing.md`, and `sources/raw/markdown/valov-2011-electrochemical-metallization-memories.md`. The Wiki contract validator passed with `immutable_sources_unchanged: true` and `live_knowledge_changes: []`. This is local Wiki evidence only and does not upgrade the separate conditional Codex host-runtime boundary.
