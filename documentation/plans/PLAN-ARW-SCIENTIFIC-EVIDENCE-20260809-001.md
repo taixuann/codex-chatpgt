@@ -77,6 +77,8 @@ Need literature grounding?
   `- yes -> Wiki MCP -> evidence packet -> reasoning
 ```
 
+Global registration means **globally available**, not **globally mandatory**. Do not set the Wiki server as a hard global runtime dependency merely because it is reusable across projects. A Wiki outage must not prevent unrelated coding, configuration, plotting, fitting, or local-analysis sessions from starting. Literature-grounded tasks may still become `BLOCKED`/`LIMITED` when the required capability is unavailable.
+
 # Phase 0 — Reorient and probe actual local runtime
 
 Before changing repository guidance or local configuration:
@@ -87,7 +89,8 @@ Before changing repository guidance or local configuration:
 4. Inspect the Wiki MCP launch/connection contract from the local Wiki checkout/handoff.
 5. Confirm whether the Wiki server is local stdio, HTTP/streamable HTTP, or another supported transport.
 6. Probe whether current Codex supports per-agent MCP/tool permission configuration. Do not infer this from documentation or invent TOML keys.
-7. Record runtime limitations separately from repository semantics.
+7. Record the actual MCP protocol version/lifecycle negotiated or supported by the runtime and Wiki server. Do not assume the current `initialize` handshake is a permanent protocol invariant.
+8. Record runtime limitations separately from repository semantics.
 
 Stop if the Wiki MCP cannot be started/discovered in the current runtime; report the exact transport/config/runtime blocker rather than building a wrapper.
 
@@ -96,6 +99,8 @@ Stop if the Wiki MCP cannot be started/discovered in the current runtime; report
 Preferred default:
 
 - register Wiki MCP once in the user's local/global Codex configuration because the same evidence backend is reusable across research projects;
+- keep it enabled/discoverable without making it a hard global startup requirement unless future evidence demonstrates that such strictness is actually desirable;
+- constrain the normal agent-facing surface to exactly `wiki.query`, `wiki.source`, and `wiki.related` when the installed runtime supports an allowlist;
 - do not commit machine-specific absolute paths, credentials or secrets as canonical repository truth;
 - if a portable example or installation procedure is useful, place it under an existing configuration/ops owner rather than creating a new top-level subsystem;
 - keep the semantic capability name stable even if the runtime-specific MCP server identifier later changes.
@@ -104,7 +109,8 @@ Validation:
 
 - server appears in actual Codex MCP discovery;
 - exactly the intended read-only tools are exposed for the normal agent-facing surface;
-- tool schemas/descriptions resolve successfully;
+- tool schemas/descriptions resolve successfully and remain discriminative enough for model selection without duplicating workflow prose;
+- read-only/safety annotations, when present, match actual behavior but are not treated as enforcement;
 - no write/promotion/ingestion/Research-Ticket operations are accidentally exposed through the normal surface.
 
 # Phase 2 — Tool-selection policy in existing owners
@@ -194,7 +200,7 @@ Keep two failure classes distinct.
 
 ## Transport/runtime failure
 
-Examples: MCP unavailable, startup failure, tool discovery failure, schema/runtime mismatch.
+Examples: MCP unavailable, startup failure, tool discovery failure, schema/runtime mismatch, negotiated-protocol incompatibility.
 
 Behavior:
 
@@ -254,7 +260,33 @@ Pass criteria:
 
 Use the existing Wiki-side 4-case benchmark as a comparison/reference, but Codex-side validation must be an independent consumer-side run.
 
-# Phase 8 — Portability check
+# Phase 8 — Deployment and stability acceptance
+
+After one successful host-mediated behavioral run, prove that the integration survives ordinary runtime lifecycle events without adding a monitoring platform.
+
+Use four gates:
+
+```text
+transport/contract
+  -> Codex host integration
+  -> routing/responsibility
+  -> stability/regression
+```
+
+Minimum stability slice:
+
+1. start a fresh Codex session and verify the Wiki server/tool surface is discoverable;
+2. run the bounded positive + negative behavioral matrix from Phase 7;
+3. restart/reload the MCP server or start another fresh Codex session so discovery is rebuilt;
+4. rerun at least one positive and one negative case;
+5. verify the positive case still returns `wiki-evidence/v1` with provenance and the negative case still avoids Wiki;
+6. record startup/tool failures, duplicate calls, and observed latency only if measurable;
+7. tune startup/tool timeouts only when observed failures justify it rather than guessing values;
+8. do not introduce daemon health checks, telemetry databases, or a bespoke deployment framework for this local read-only capability.
+
+If official MCP conformance tooling can exercise the Wiki server's actual transport/version without creating a second test framework, prefer using it or a bounded equivalent. Protocol-version/backcompat validation belongs primarily to the Wiki server/runtime boundary; `codex-chatpgt` should record the compatibility evidence rather than reimplement protocol conformance.
+
+# Phase 9 — Portability check
 
 Keep canonical semantics harness-neutral:
 
@@ -295,7 +327,8 @@ Do not assume all listed files must change. Closure should identify actual consu
   source-grounded evidence items; the contrastive case returned
   `insufficient`/`abstain_or_verify` with an explicit gap. This is
   transport-level evidence only, not proof that the Codex model selected the
-  tool.
+  tool. Treat the observed handshake as evidence for the negotiated/supported
+  protocol path used by that probe, not as a permanent MCP lifecycle contract.
 - The Codex control-plane validators, task-contract checks, focused project
   bootstrap tests, and whitespace checks pass on the current `main` state.
 - A non-interactive Codex probe discovered `wiki.query`, but the MCP call was
@@ -318,22 +351,24 @@ Do not assume all listed files must change. Closure should identify actual consu
 The implementation is therefore a **conditional pass for registration,
 discovery, and contract evidence**, while the host-runtime acceptance gate
 remains open. Do not mark Issue #7 complete until a live Codex session records
-one successful Wiki query with provenance/abstention semantics and the
-required positive/negative routing cases.
+one successful Wiki query with provenance/abstention semantics, the required
+positive/negative routing cases, and the bounded fresh-session/reload stability
+check in Phase 8.
 
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
 2. validate skills/workflows remain unchanged or pass existing validators if touched;
 3. run repository CI/control-plane validation;
-4. run MCP discovery/startup probe;
+4. run MCP discovery/startup probe and record supported/negotiated protocol lifecycle where observable;
 5. run positive + negative behavioral selection cases;
-6. verify read-only MCP surface and absence of duplicate retrieval implementation;
-7. inspect whole diff for prompt/policy duplication;
-8. use independent review when material;
-9. reconcile Issue #7 criterion-by-criterion;
-10. add a bounded evidence comment to #16 explaining what capability is now available to the broader research workflow;
-11. add a routing observation to #8 only if this run yields useful general execution-routing evidence.
+6. run the bounded fresh-session/reload stability slice;
+7. verify read-only MCP surface and absence of duplicate retrieval implementation;
+8. inspect whole diff for prompt/policy duplication;
+9. use independent review when material;
+10. reconcile Issue #7 criterion-by-criterion;
+11. add a bounded evidence comment to #16 explaining what capability is now available to the broader research workflow;
+12. add a routing observation to #8 only if this run yields useful general execution-routing evidence.
 
 # Stop / escalation conditions
 
@@ -346,8 +381,9 @@ Stop or narrow rather than adding machinery if:
 - a proposed config helper duplicates standard Codex configuration;
 - a change starts duplicating Wiki/OpenScience retrieval/reasoning;
 - one runtime-specific workaround threatens to become canonical architecture;
-- negative cases reveal broad over-triggering that should be repaired in policy/description rather than by introducing a router service.
+- negative cases reveal broad over-triggering that should be repaired in policy/description rather than by introducing a router service;
+- protocol-version drift is detected and belongs in the Wiki MCP implementation rather than the Codex control plane.
 
 # Definition of done
 
-Issue #7 is complete when the actual local Codex runtime can discover and use the Wiki Scientific Evidence MCP through the minimal read-only surface, appropriate parent/Feynman/reviewer paths select it for real literature-grounded tasks and avoid it for contrastive local-only tasks, provenance and insufficiency semantics survive end-to-end, MCP transport failure is handled honestly, no duplicate scientific search/reasoning layer exists in `codex-chatpgt`, and the accepted capability boundary remains portable as `scientific-literature-evidence -> wiki-evidence/v1`.
+Issue #7 is complete when the actual local Codex runtime can discover and use the Wiki Scientific Evidence MCP through the minimal read-only surface, appropriate parent/Feynman/reviewer paths select it for real literature-grounded tasks and avoid it for contrastive local-only tasks, provenance and insufficiency semantics survive end-to-end, the bounded fresh-session/reload stability check passes, MCP transport/protocol failure is handled honestly, no duplicate scientific search/reasoning layer exists in `codex-chatpgt`, and the accepted capability boundary remains portable as `scientific-literature-evidence -> wiki-evidence/v1`.
