@@ -12,6 +12,16 @@ Reconcile the control-plane semantic architecture against real execution evidenc
 
 This PLAN is intentionally bounded. It does not authorize a mass cleanup of all legacy skills, workflows, or `ops/changes` records.
 
+## Current-state supersession note — 2026-08-10
+
+This is the historical Issue #22 semantic baseline. Its Phase-3 inventory
+predates the creator-gated #35 reconciliation and must not be read as the
+current workflow catalog. D-009 and
+`PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md` supersede the historical `KEEP`
+rows: all seventeen unconsumed `workflows/franky/**` YAMLs are now retired,
+and only `workflows/AGENTS.md` remains as admission policy. The semantic
+Agent/Skill/Script/Workflow model below remains valid as a design record.
+
 # Starting State
 
 The repository currently contains two partially conflicting architecture generations.

@@ -20,6 +20,16 @@ was satisfied by the merged #19 implementation, the live workflow/consumer
 inventory, and the explicit user authorization to finish the bounded cleanup.
 Future portability and scientific-runtime extensions remain separately gated.
 
+## Current-state supersession note — 2026-08-10
+
+This document is retained as the historical Issue #13 v1 rationalization
+record, not as the current execution destination. Its original package table
+and follow-up groups are superseded by the creator-gated #35 matrix in
+`PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md` and D-009. In particular,
+`franky-workflow-organizer` is currently `RETIRE`, and the unconsumed Franky
+machine workflow tree is retired; do not reactivate the historical `KEEP` or
+`GENERALIZE` rows without a new evidence-backed issue.
+
 ## Confirmed disposition matrix (2026-08-09)
 
 | Skill | Current consumer / unique procedure | Disposition | Follow-up |
