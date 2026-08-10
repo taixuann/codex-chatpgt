@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001
 issue: 35
-status: ready-for-audit
+status: ready-after-skill-creator-gate
 scope: system-skills-and-workflow-reconciliation-v2
 updated: 2026-08-10
 ---
@@ -55,7 +55,8 @@ A system capability may be used by the parent directly or by a bounded worker. S
 - Wiki routing established an external scientific-evidence capability rather than an autonomous scientific agent OS;
 - portability now requires separating canonical semantics from harness adapters;
 - current repository inspection still shows Franky/AI-Labs-era assumptions in retained skills and a large Franky workflow tree;
-- current Agent Skills ecosystems provide stronger patterns for progressive disclosure, engineering discipline, and behavioral skill testing.
+- current Agent Skills ecosystems provide stronger patterns for progressive disclosure, engineering discipline, and behavioral skill testing;
+- #38 now owns the production-grade `skill-creator` quality system that must gate future local skill creation/adaptation.
 
 # External evidence to qualify
 
@@ -127,6 +128,194 @@ SYSTEM SKILLS
 ```
 
 The active core should remain small. On-demand capabilities may exist without being globally exposed if the runtime supports disabling/selective installation.
+
+# Target formation map after #38
+
+This section is a **capability target and formation order**, not approval to create every named skill.
+
+Every item below must pass the #38 creator/admission gate and end in one of:
+
+```text
+USE_EXISTING
+ADAPT_EXISTING
+CREATE_SKILL
+SCRIPT_NOT_SKILL
+POLICY_NOT_SKILL
+REFERENCE_NOT_SKILL
+TOOL_NOT_SKILL
+DEFER
+```
+
+The target names are semantic handles only until admission proves the final package boundary and name.
+
+## Tier 0 — creator/admission gate first
+
+### `skill-creator`
+
+Owner: #38.
+
+This must mature before broad system-skill refactoring because it governs:
+
+- necessity / `DO NOT CREATE A SKILL`;
+- upstream/local reuse search;
+- trigger and sibling-conflict evidence;
+- behavioral utility / with-vs-without baseline where material;
+- security/dependency evidence;
+- portability honesty;
+- regression and simplification pressure.
+
+Do not create the remaining target catalog first and validate it afterward.
+
+## Tier 1 — control-plane core capability hypotheses
+
+Expected capability set to resolve after #38:
+
+1. `skill-creator`
+   - canonical meta-procedure for skill creation/adaptation/evaluation;
+   - remains one visible capability while evaluators/scanners stay tools/dependencies.
+
+2. `capability-qualification`
+   - qualify external skills/plugins/MCPs/adapters/OSS assets;
+   - provenance, overlap, safety, trigger/runtime fit, disposition;
+   - distinct from creator only if broader non-skill qualification remains a stable recurring procedure.
+
+3. `control-plane-audit`
+   - read-first audit of agents/skills/instructions/runtime adapters/workflows/stale refs;
+   - no universal mutation authority.
+
+4. `instruction-maintenance`
+   - scoped `AGENTS.md`/instruction discovery, inheritance, precedence, locality and drift correction;
+   - no architecture-history or model-routing ownership.
+
+5. `runtime-adapter-management`
+   - map canonical role/capability semantics to runtime-specific adapter/config/permission deployment;
+   - Codex/OpenCode implementation details remain adapters/references, not canonical architecture.
+
+6. `external-handoff`
+   - bounded execution/handoff contract between Codex and OpenCode/another runtime/team;
+   - non-executing and role-neutral.
+
+7. `project-bootstrap`
+   - adaptive project inspection/materialization with deterministic dry-run/apply and raw-data protection.
+
+8. `session-closeout`
+   - acceptance state, unresolved work, durable pointers, next action, bounded evolution observation;
+   - legacy Trekker/CHG/goal-package paths do not remain core unless independently consumed.
+
+Target expectation: approximately **6-8 active local/core procedures**, not a mandatory count. If two hypotheses collapse cleanly without losing trigger/permission/validation boundaries, prefer the smaller catalog.
+
+## Tier 2 — engineering-discipline capability hypotheses
+
+These are capability gaps to resolve, not a mandate for local authoring. Prefer maintained external skills when they outperform ordinary model behavior and fit the control plane.
+
+1. `repo-recon`
+   - lightweight repository orientation before mutation;
+   - should complement #2, not generate broad documentation by default.
+
+2. `change-surface`
+   - map likely affected code/tests/config/docs/generated/consumer surfaces and support #5 closure.
+
+3. `systematic-debugging`
+   - reproduce -> localize/minimize -> hypothesis -> instrument -> fix -> regression evidence.
+
+4. `verification-before-completion`
+   - fresh evidence before completion claims;
+   - may resolve to #5 policy instead of an installed skill if measured lift is negligible.
+
+5. `safe-refactor`
+   - behavior-preserving, small-step refactoring with tests between changes;
+   - not architecture redesign.
+
+6. `self-review`
+   - author-side pre-PR/diff review;
+   - cannot replace #6 independent review when judgment independence matters.
+
+7. `docs-drift`
+   - code/docs/instruction freshness and scoped correction;
+   - may merge into `instruction-maintenance` or remain a separate engineering skill only if trigger/use cases are sufficiently distinct.
+
+Target expectation: resolve all seven capability families, but admit only the smallest set with measurable routing/outcome value. A realistic result may be **3-5 active or installed engineering-discipline skills**, with the rest represented by policy, tools or on-demand external capabilities.
+
+## Tier 3 — on-demand specialist hypotheses
+
+These should not occupy global discovery surface unless actual usage earns it.
+
+1. `scheduler-management`
+   - recurrence/timezone/collision/approval/rollback semantics.
+
+2. `harness-migration`
+   - cross-harness inventory, compatibility, collision and migration;
+   - gated by #12 and current OpenCode portability evidence.
+
+Target expectation: installed/available on demand, disabled or absent from ordinary discovery where possible.
+
+## External/system-installed capabilities
+
+Do not locally clone capabilities already owned well by maintained plugins/skills.
+
+Current examples to preserve/qualify:
+
+```text
+GitHub specialist capabilities
+- gh-address-comments
+- gh-fix-ci
+- yeet/publish workflow
+
+External engineering candidates
+- acquire-codebase-knowledge?  -> qualify against repo-recon need
+- refactor-plan?               -> qualify against planning/refactor boundary
+- agentic-eval?                -> on-demand only if eval value is material
+
+Skill quality tooling
+- upstream/installed skill-creator baseline
+- agent-skill-eval? / skill-probe? / SkillSpector? / equivalent
+  -> tools or optional dependencies, not visible skills by default
+```
+
+`?` means candidate, not pre-approved installation.
+
+## Expected steady-state discovery surface
+
+Do not optimize for a precise number, but use this as a routing-pressure sanity check:
+
+```text
+local/core active procedures        ~6-8
+active engineering disciplines      ~3-5
+on-demand specialists               ~0-2 in normal discovery
+maintained plugin/runtime skills     separate, no local duplicate
+```
+
+Therefore the ordinary active discovery surface should likely remain around **8-12 high-signal capabilities**, even if more optional capabilities are available outside the default path.
+
+If the active catalog grows materially beyond this, require evidence that trigger precision and co-loaded routing remain healthy.
+
+# Formation sequence
+
+Execute the skill system in this order:
+
+```text
+#38 harden skill-creator
+        |
+        v
+admit/refactor Tier 1 core procedures
+        |
+        v
+qualify Tier 2 OSS engineering disciplines
+        |
+        v
+resolve Tier 3 on-demand specialists
+        |
+        v
+retire/merge legacy Franky skills + workflows
+        |
+        v
+co-loaded routing + outcome regression
+        |
+        v
+reconcile CURRENT / DECISIONS / roadmap
+```
+
+Do not mass-create target names before #38 proves the gate.
 
 # Phase A — current-surface inventory and legacy-coupling audit
 
@@ -371,9 +560,9 @@ Prefer narrow deterministic drift detectors plus scoped correction over periodic
 
 ## C8 — skill authoring/evaluation
 
-Prefer current built-in/maintained `skill-creator` for authoring.
+Resolved primarily by #38.
 
-Qualification must decide whether to add any external tool for:
+Prefer current built-in/maintained `skill-creator` baseline plus only the smallest qualified tooling needed for:
 
 - static package lint;
 - activation positive/negative scenarios;
@@ -421,33 +610,34 @@ Keep workflow validators only if a retained workflow or another independent cons
 
 Do not judge skill quality from prose alone.
 
-For every changed or newly admitted active skill:
+For every changed or newly admitted active skill, use #38's quality contract proportionally.
 
 ## E1 activation scenarios
 
 Create a compact test set:
 
-- 2-4 positive/direct prompts;
-- 2-4 indirect/semantic positives;
-- 2-4 adjacent negatives;
+- positive/direct prompts;
+- indirect/semantic positives;
+- adjacent negatives;
 - at least one likely-conflict prompt when a neighbor exists.
 
 Record whether the intended skill activates/gets selected in the actual runtime where observable.
 
-## E2 outcome scenarios
+## E2 co-loaded routing
 
-Run at least one representative task and verify:
+For the final active catalog, test representative conflict-prone skills together rather than certifying each one only in isolation.
+
+If co-loaded testing reveals trigger theft/interference, prefer narrowing/merging/removing skills over endlessly broadening descriptions.
+
+## E3 outcome scenarios
+
+Run representative tasks and verify:
 
 - expected bounded output;
 - no forbidden side effect;
 - stop/escalation behavior;
-- deterministic helper result where applicable.
-
-## E3 conflict analysis
-
-At minimum compare descriptions pairwise for likely overlapping active skills.
-
-A tool such as Tripwire/SkillGuard/SkillKit may be evaluated, but manual/small deterministic tests are acceptable until dependency value is proven.
+- deterministic helper result where applicable;
+- measurable lift over no-skill baseline for material/new engineering-discipline capabilities when practical.
 
 ## E4 portability check
 
@@ -457,7 +647,7 @@ Do not duplicate source files into independently editable Codex/OpenCode copies.
 
 # Phase F — implement in small groups
 
-Only after the disposition matrix is accepted.
+Only after the disposition matrix is accepted and #38 has produced a usable admission gate.
 
 Suggested groups:
 
@@ -469,22 +659,29 @@ Suggested groups:
 2. **Control-plane generalization**
    - guidance -> instruction maintenance;
    - maintenance -> read-first audit;
-   - agent installer -> runtime adapter management.
+   - agent installer -> runtime adapter management;
+   - creator/admission integration from #38.
 
 3. **Merge/narrow**
    - project-link helper integration;
    - session-closeout simplification;
-   - scheduler on-demand boundary.
+   - scheduler on-demand boundary;
+   - docs-drift vs instruction-maintenance boundary.
 
 4. **Engineering discipline admission**
-   - only candidates with positive benchmark/trigger evidence;
-   - prefer installed/upstream source over local copy.
+   - only candidates with positive trigger/outcome/baseline evidence;
+   - prefer installed/upstream source over local copy;
+   - keep catalog pressure visible.
 
 5. **Workflow retirement**
    - remove unconsumed Franky YAML and dead validators/references;
    - no replacement orchestration layer.
 
-6. **Canonical reconciliation**
+6. **Catalog-level regression**
+   - co-loaded routing checks on conflict-prone capabilities;
+   - outcome regression on representative tasks.
+
+7. **Canonical reconciliation**
    - CURRENT/DECISIONS/roadmap only for accepted long-lived outcomes.
 
 Do not create one branch per skill by ritual. Group changes by coherent independently reviewable behavior.
@@ -508,15 +705,19 @@ Every proposed capability:
 ```text
 USE_EXISTING
 ADAPT_EXISTING
-CREATE_LOCAL
-POLICY_NOT_SKILL
+CREATE_SKILL
 SCRIPT_NOT_SKILL
+POLICY_NOT_SKILL
+REFERENCE_NOT_SKILL
+TOOL_NOT_SKILL
 DEFER
 ```
 
 # Guardrails
 
+- #38 creator/admission gate before broad new skill authoring;
 - no mass `cp -r` from OSS skill catalogs;
+- no target-name-driven creation: a capability hypothesis may legitimately resolve to policy/tool/merge/reuse/defer;
 - no agent-per-skill architecture;
 - no workflow-per-procedure symmetry;
 - no hardcoded model binding in portable skill semantics;
@@ -526,42 +727,49 @@ DEFER
 - no replacing deterministic checks with LLM prose;
 - no generic self-reflection loop without criterion + stop condition;
 - no large skill-testing dependency before measured value;
-- no deletion solely because a component looks old.
+- no deletion solely because a component looks old;
+- no active-catalog growth without considering co-loaded trigger interference.
 
 # Evidence matrix required before final mutation
 
 | Surface | Evidence required |
 | --- | --- |
 | Current skill | trigger, consumer, assets, overlap, legacy coupling, runtime evidence |
-| Proposed skill | positive/negative triggers, unique procedure, candidate source, representative outcome |
+| Proposed skill | #38 necessity disposition, positive/negative/conflict triggers, unique procedure, candidate source, representative outcome |
 | External candidate | exact repo/path/ref where practical, provenance/license, overlap, runtime fit, disposition |
+| Engineering-discipline candidate | with/without-skill outcome evidence when material, routing fit, catalog conflict risk, cost/context overhead where observable |
 | Workflow | consumer, state, gates, recovery, refs, reason workflow beats skill/script/PLAN |
 | Retired component | reference search + replacement/absence justification + rollback |
 | Generalized component | before/after trigger and authority boundary + validator results |
-| Portable capability | no machine-specific path/model authority + compatible standard shape |
+| Portable capability | no machine-specific path/model authority + Codex/OpenCode compatible proof where claimed |
+| Final active catalog | representative co-loaded conflict/routing evidence |
 
 # Stop conditions
 
 Stop or DEFER a change when:
 
+- #38 admission/creator gate is not yet usable for a proposed new skill;
 - current runtime consumer cannot be identified confidently;
 - external candidate has unclear provenance/licensing for reuse;
 - trigger overlap cannot be resolved without broader redesign;
 - a proposed local skill duplicates a maintained capability without measurable gain;
+- a proposed skill adds negligible behavioral lift over current model/policy while increasing active routing surface;
 - workflow state/gates appear real but runtime evidence is unavailable;
 - simplification would remove a meaningful permission, validation, rollback, or provenance boundary;
-- a tooling dependency would exceed the complexity of the problem it solves.
+- a tooling dependency would exceed the complexity of the problem it solves;
+- active discovery size or co-loaded interference becomes worse without corresponding capability value.
 
 # Definition of done
 
 Issue #35 is complete when:
 
 1. every current skill/workflow has an evidence-backed disposition;
-2. the active local skill surface is capability-first rather than persona-first;
-3. control-plane maintenance procedures are narrow and current;
-4. engineering-discipline gaps are resolved through maintained reuse/adaptation/local creation only where justified;
-5. skill activation and outcome quality have representative evidence;
-6. legacy absolute paths/model/AI-Labs authority assumptions are gone or explicitly isolated;
-7. every remaining machine workflow proves a real persisted-state consumer or the workflow tree is reduced accordingly;
-8. Codex remains the primary orchestration/acceptance authority and OpenCode consumes portable skills only as a bounded executor path;
-9. the resulting system is simpler to route correctly even if its optional capability library becomes richer.
+2. #38's creator/admission quality gate has been used to govern new/adapted skill decisions;
+3. the active local skill surface is capability-first rather than persona-first;
+4. control-plane maintenance procedures are narrow and current;
+5. all engineering-discipline capability gaps are explicitly resolved through reuse/adaptation/local creation/policy/tool/defer, with only evidence-backed skills admitted;
+6. the ordinary active discovery surface remains small and high-signal, with representative co-loaded routing evidence;
+7. legacy absolute paths/model/AI-Labs authority assumptions are gone or explicitly isolated;
+8. every remaining machine workflow proves a real persisted-state consumer or the workflow tree is reduced accordingly;
+9. Codex remains the primary orchestration/acceptance authority and OpenCode consumes portable skills only as a bounded executor path;
+10. the resulting system is simpler to route correctly even if its optional capability library becomes richer.
