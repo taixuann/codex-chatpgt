@@ -105,8 +105,10 @@ proven.
   OpenCode probe confirmed configured-path discovery and project-local
   shadowing for a colliding skill ID; a second catalog-only comparison kept
   89/89 IDs while swapping the source root for 9 entries when external-skill
-  scan flags were toggled. Activation and cross-runtime behavior remain
-  conditional.
+  scan flags were toggled. The external OpenCode overlay still exposes
+  workflow-manager/install-workflow entries; repository retirement therefore
+  does not claim cross-runtime retirement, and activation/cross-runtime
+  behavior remain conditional under #12.
 - Issue #9 is now **experimentally active** on the existing AgentMemory `0.9.28`
   service. The daemon runs zero-LLM/BM25-only with context injection and
   auto-compress off, and its MCP surface is explicitly limited to eight core

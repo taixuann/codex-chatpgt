@@ -648,3 +648,10 @@ scan flags. The effective catalog remained 89 entries / 89 unique IDs, but
 versus its `ai-labs` overlay path). This is recorded as an alias/overlay
 observation, not as proof that the two implementations are behaviorally
 equivalent.
+
+The same effective OpenCode catalog still contains external
+`franky-workflow-manager` and `franky-install-workflow` entries whose
+descriptions reference YAML workflow execution/registration. These are outside
+the `codex-chatpgt` repository allowlist and were not modified; #35's workflow
+retirement therefore remains repository-scoped and cross-runtime retirement is
+`NOT_ASSESSED` under #12.

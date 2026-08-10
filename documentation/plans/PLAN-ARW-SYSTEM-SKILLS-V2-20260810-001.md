@@ -865,6 +865,14 @@ Tier-3 candidate and now uses the semantic `issue-plan-skill` route.
 | Codex `0.146.0` | Current root scan: 60 source files / 54 unique basenames; earlier runtime snapshot: 61 files / 49 unique names; fresh model-visible prompt-input snapshot: 86 entries / 58 unique names | Earlier runtime scan recorded ten duplicate-name groups and 2% description-budget shortening; current prompt-input snapshot records 13 duplicate-name groups. `--disable skill_search` leaves the initial catalog metadata present, while implicit activation remains `NOT_ASSESSED`. |
 | OpenCode `1.18.15` | 89 effective skills / 89 unique IDs; 90 in the disposable shadow fixture | Path/config aliases and precedence observed. A synthetic project-local `shadow-demo` shadows the same configured-path ID, while a config-only fixture resolves the configured candidate; each effective catalog has one ID. Toggling both external-skill scan flags kept 89/89 IDs but changed the source root for 9 entries, confirming an overlay distinction without proving equivalence. Activation is `SMOKE_PASS`; permission enforcement and completed behavioral equivalence remain `NOT_ASSESSED`; semantic mapping is `PORTABLE_WITH_ADAPTER`, not equivalence. |
 
+The OpenCode catalog also exposes external, non-`.codex` Franky overlay skills
+named `franky-workflow-manager` and `franky-install-workflow`. Their metadata
+describes YAML workflow execution/registration under external `ops/` paths.
+This means the repository-level retirement cannot be promoted to
+cross-runtime retirement. The external overlay is recorded as an explicit
+#12 portability/ownership boundary; no external control-plane files were
+mutated in this issue.
+
 ### Conditional reconciliation
 
 The current result is **CONDITIONAL_PASS**. The active surface is reduced by

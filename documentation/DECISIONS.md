@@ -127,4 +127,8 @@ kept the ID count stable while changing the source root for nine entries.
 
 These observations inform routing and overlay audits but do not establish
 model-mediated activation, permission enforcement, or cross-runtime behavioral
-equivalence. Those gates remain `NOT_ASSESSED`/conditional under #38 and #35.
+equivalence. The OpenCode overlay also retains external workflow-manager and
+install-workflow entries outside this repository's allowlist; this is an
+explicit #12 portability/ownership boundary, not a permission to mutate that
+external control plane. Those gates remain `NOT_ASSESSED`/conditional under
+#38 and #35.
