@@ -132,3 +132,10 @@ install-workflow entries outside this repository's allowlist; this is an
 explicit #12 portability/ownership boundary, not a permission to mutate that
 external control plane. Those gates remain `NOT_ASSESSED`/conditional under
 #38 and #35.
+
+The deterministic skill-interface validator now resolves the Git-tracked
+package surface and validates all 10 tracked packages; ignored personal or
+plugin overlays are excluded. A disposable Codex fixture also demonstrated
+project-local activation, sibling selection, and a clear arithmetic negative,
+but this bounded evidence does not establish catalog-wide activation or
+real-skill utility lift.
