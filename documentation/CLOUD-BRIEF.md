@@ -77,6 +77,16 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   trace was produced.
   This is conditional registration/transport evidence, not Issue #7
   completion; no duplicate retrieval layer or wrapper skill was introduced.
+- Issue #9’s existing AgentMemory `0.9.28` runtime was reused for a bounded
+  reconnaissance rather than installed or vendored. The local server was
+  healthy and persistent across restart; targeted recall and an empty
+  no-recall case worked, while zero-LLM/BM25-only mode kept compression and
+  injection disabled. Diagnostics exposed an unscoped test memory that was
+  returned for both a `.codex` and an unrelated project filter, and verification
+  found no citation chain. Native host capture, consolidation, isolation,
+  contradiction handling, and repeated continuity value are therefore not
+  proven. #9 remains `deferred`; no memory skill, workflow, agent, or mirror was
+  added.
 
 ## Read next
 

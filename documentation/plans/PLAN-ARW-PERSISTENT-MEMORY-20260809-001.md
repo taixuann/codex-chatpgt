@@ -147,6 +147,32 @@ The first bounded runtime reconnaissance should record:
 
 Prefer deterministic shell/API probes for this inventory. Do not use model inference when the runtime can answer directly.
 
+## Local reconnaissance record — 2026-08-10
+
+The existing local installation was probed in place; no package, configuration,
+hook, or repository runtime surface was added.
+
+| Check | Result | Interpretation |
+| --- | --- | --- |
+| installed version | AgentMemory `0.9.28` | existing substrate confirmed |
+| server liveness | `GET /agentmemory/livez` returned `status=ok` | real local server, not MCP-only fallback |
+| provider/embedding mode | provider `noop`; BM25-only; auto-compress and context injection off | deterministic degraded/zero-LLM mode |
+| persisted state | one previously captured memory and one completed synthetic session loaded; the same memory ID was present across two fresh service starts | restart persistence observed for this fixture |
+| capture fixture | the earlier bounded hook lifecycle produced one completed `.codex` session with two observations | hook-to-server path works when explicitly invoked; native host auto-capture remains unproven |
+| useful recall | targeted `smart-search` returned the bounded canonical-state memory | selective recall path works |
+| no-recall | unrelated query returned an empty result set | ordinary no-memory path remains valid |
+| provenance | `POST /agentmemory/verify` succeeded but returned `citationCount=0` | this fixture is not source-provenance evidence |
+| diagnostics | 14 checks passed; one warning reported that the only latest memory has no project scope | scope/attribution is not accepted |
+| scope comparison | REST search returned the unscoped fixture for both `.codex` and `/tmp/unrelated-project` filters | project isolation is not proven and currently leaks unscoped records |
+
+The probe therefore demonstrates a healthy, persistent experimental substrate,
+bounded capture/recall behavior, and explicit degradation modes. It does not
+demonstrate automatic Codex/OpenCode host capture, consolidation, project or
+agent isolation, contradiction handling, or a material repeated continuity gap.
+The synthetic record remains a test fixture in the external AgentMemory store;
+it is not canonical repository state and is not deleted without explicit
+confirmation.
+
 # Memory lifecycle integrity states
 
 Treat recent sessions conceptually as having three independent integrity levels:
