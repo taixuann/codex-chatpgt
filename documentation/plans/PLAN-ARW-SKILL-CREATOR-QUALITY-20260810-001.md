@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SKILL-CREATOR-QUALITY-20260810-001
 issue: 38
-status: ready
+status: ready-for-end-to-end-execution
 scope: skill-creator-quality-system
 updated: 2026-08-10
 ---
@@ -10,90 +10,78 @@ updated: 2026-08-10
 
 ## Objective
 
-Bootstrap one strong `skill-creator` baseline, then harden it into the control plane's canonical admission/update procedure for future skills.
+Bootstrap the smallest credible `skill-creator`, prove it against real Codex behavior, then dogfood it as the admission/update gate for #35.
 
-The plan must remain smaller than a bespoke evaluation platform. Reuse maintained creator/eval/security tooling when it earns the role, preserve provenance, and prove behavior in real Codex/OpenCode harnesses before claiming readiness.
+Do not build a registry, marketplace, workflow engine, telemetry platform, or generic evaluation service.
 
-## Authority and issue relationships
+## Authority
 
-- Issue #38 owns this implementation and its acceptance criteria.
-- Issue #14 owns external skill/tool provenance and qualification evidence.
-- Issue #35 consumes the hardened creator during system-skill/workflow rationalization.
-- Issue #8 owns production executor/model/session routing.
-- Issues #5/#6 own ordinary execution-validation and independent acceptance semantics.
-- Issue #12 owns later packaging/portability architecture.
+- #38 = skill creation/admission/update quality contract.
+- #14 = external skill/tool provenance and qualification evidence.
+- #35 = final local/system skill + workflow disposition matrix.
+- #8 = production executor/model/session routing.
+- #5/#6 = ordinary deterministic validation and independent review.
+- #12 = later packaging/portable adapter architecture.
 
-Do not move those authorities into the creator.
+## Non-negotiable rules
 
-## Non-negotiable design rules
+1. Creator may return `DO NOT CREATE A SKILL`.
+2. Reuse/adapt is checked before local authoring.
+3. Validators/evaluators remain tools unless they independently earn skill status.
+4. `NOT_ASSESSED != PASS`.
+5. Utility and security are separate evidence axes.
+6. Effective runtime discovery matters more than source-folder appearance.
+7. Co-loaded routing matters more than isolated demos.
+8. Material claims should compare `WITH_SKILL` vs `WITHOUT_SKILL` when practical.
+9. Portable claims require actual Codex + OpenCode evidence.
+10. Previously passing skills are re-checkable after material model/runtime/catalog changes.
+11. Creator must support on-demand, deprecate/replace, simplify and retire outcomes.
+12. Prefer the smaller implementation when measured behavior is equal or better.
 
-1. `skill-creator` may return `DO NOT CREATE A SKILL`.
-2. Search/reuse/adaptation precedes local authoring.
-3. One visible creator may compose deterministic tools and external evaluators without exposing them as more active skills.
-4. Utility evidence and safety evidence stay separate.
-5. `NOT_ASSESSED` is not `PASS`.
-6. Trigger quality must consider the active catalog, not only isolated examples.
-7. Material skill claims should measure lift over a no-skill baseline when practical.
-8. Portability is claimed only after runtime proof.
-9. Failures that matter become durable regression cases.
-10. Prefer simpler instructions/resources when measured behavior is equal or better.
+# Phase A — Baseline + provenance
 
-## Phase A — Resolve upstream baseline and legal/provenance path
-
-### A1. Inspect the installed OpenAI/Codex creator
+## A1. Audit actual installed Codex creator
 
 Record:
-- actual installed source/path/version if observable;
-- procedure and bundled resources;
-- trigger/authoring/eval behavior;
-- what is system-owned and should not be duplicated locally.
+- source/path/version if observable;
+- full procedure/resources;
+- current authoring/eval behavior;
+- system-owned behavior that should not be duplicated.
 
-### A2. Inspect Anthropic skill-creator at the real artifact level
+## A2. Audit Anthropic creator
 
-Read the current upstream `SKILL.md`, scripts, agents/references/evals resources and exact commit/ref.
+Inspect real `SKILL.md` and relevant scripts/references/evals at an exact ref.
 
-Record at minimum:
-- intent/interview workflow;
-- progressive-disclosure guidance;
-- eval creation and grading;
-- quantitative benchmark aggregation;
-- blind comparison;
-- trigger-description optimization;
-- packaging behavior;
-- host-specific assumptions.
+Record:
+- intent capture/interview;
+- progressive disclosure;
+- eval generation/grading;
+- baseline/A-B or blind comparison behavior;
+- description/trigger optimization;
+- packaging/runtime assumptions.
 
-### A3. Verify reuse terms before copying
+## A3. Verify reuse path
 
-Determine the exact license/redistribution situation for the chosen source tree/path.
+Resolve license/provenance before copying.
 
-Preferred bootstrap order:
-
-```text
-installed maintained capability
--> pinned upstream/install/reference mechanism
--> adapted/re-authored local implementation with explicit provenance
-```
-
-Do not create an untracked verbatim fork simply because `cp -r` is easy.
-
-### A4. Produce baseline disposition
-
-Choose one:
+Preferred order:
 
 ```text
 USE_INSTALLED_OPENAI_CREATOR
-ADAPT_ANTHROPIC_BASELINE
-AUTHOR_LOCAL_COMPOSITE
-DEFER
+→ ADAPT_PINNED_UPSTREAM
+→ AUTHOR_MINIMAL_LOCAL_COMPOSITE
+→ DEFER
 ```
 
-The decision must explain what unique control-plane behavior justifies any local layer.
+Do not create an untracked verbatim fork.
 
-## Phase B — Define the creator contract before implementation
+## A4. Baseline decision
 
-### B1. Necessity gate
+Write one explicit disposition with rationale and exact source/ref.
 
-For every requested capability, resolve:
+# Phase B — Define creator contract
+
+Before implementation, creator must support these decisions:
 
 ```text
 USE_EXISTING
@@ -106,11 +94,7 @@ TOOL_NOT_SKILL
 DEFER
 ```
 
-Evidence should include overlap with installed/local/external capabilities and expected reuse frequency/stability.
-
-### B2. Component classification
-
-Before creating multiple visible skills, classify every proposed component:
+For a proposed component, classify:
 
 ```text
 merge_into_parent
@@ -121,82 +105,84 @@ deterministic_script_or_tool
 external_dependency
 ```
 
-Only independently reusable, discriminatively triggered capability should increase the catalog.
+Only an independently reusable and discriminatively triggered capability increases active skill count.
 
-### B3. Skill contract fields
-
-Each serious created/adapted skill must make these inspectable:
-- trigger and negative boundary;
-- stable inputs/context requirements;
+Each serious skill must expose:
+- trigger + negative boundary;
+- inputs/context;
 - output contract;
-- side effects and permissions;
-- deterministic assets/dependencies;
-- stop/retry/fallback/escalation conditions;
+- side effects/permissions;
+- dependencies/resources;
+- stop/retry/fallback/escalation;
 - validation expectations;
-- portability claims;
-- provenance for imported/adapted assets.
+- provenance;
+- portability claim/status.
 
-## Phase C — Bootstrap the creator
+# Phase C — Bootstrap minimal creator
 
-Use the disposition from Phase A.
+Use the Phase A disposition.
 
-If a local layer is justified, keep the first implementation deliberately small:
+If a local layer is needed, default shape:
 
 ```text
 skills/skill-creator/
 ├── SKILL.md
-├── references/      # only detailed policy/schemas that need progressive disclosure
-├── scripts/         # deterministic checks/helpers only where justified
-├── evals/           # creator's own regression/dogfood suite
-└── agents/openai.yaml if the runtime convention requires it
+├── references/   # only progressive-disclosure policy/detail actually needed
+├── scripts/      # deterministic helpers only
+├── evals/        # small durable regression/dogfood set
+└── agents/openai.yaml  # only if runtime convention requires it
 ```
 
-Do not copy every upstream asset automatically. Import/adapt only resources needed by the chosen contract and preserve attribution/provenance where required.
+Do not copy all upstream assets by default.
 
-## Phase D — Static and package validation
+# Phase D — Cheap deterministic validation first
 
-Establish a deterministic first gate that can run cheaply before model calls.
-
-Check at minimum:
-- required frontmatter/spec shape;
-- name/path consistency;
-- broken or orphan resource references;
-- absolute machine paths;
+Check before model-based evals:
+- frontmatter/spec/name/path consistency;
+- broken/orphan resource references;
+- absolute local paths;
 - stale hardcoded model/runtime assumptions;
 - secrets/credential-like content;
-- dangerous/destructive command patterns;
-- unbounded network/external mutation assumptions;
-- dependency declarations and pinning/provenance where material;
-- SKILL.md size/progressive disclosure;
+- dangerous/destructive commands;
+- unbounded external mutation/network assumptions;
+- dependency declarations/provenance;
+- progressive-disclosure quality;
 - duplicated instructions/resources;
 - host-specific assumptions behind portability claims.
 
-First reuse the repo's existing validators. Qualify external linter/package tooling through #14 before adding a dependency.
+Reuse existing repo validators first. Qualify external lint/security tooling through #14 before adding dependencies.
 
-## Phase E — Security qualification
+# Phase E — Runtime discovery + collision audit
 
-Do not build a custom security scanner unless existing maintained options fail qualification.
+This is mandatory before trigger certification.
 
-Evaluate candidates such as NVIDIA SkillSpector / SkillLens / Skill Forge / Skill Guard for the exact required slice.
+## Codex
 
-Security evidence should cover the capability-proportional subset of:
-- prompt injection / instruction override;
-- data exfiltration / secret access;
-- destructive or excessive agency;
-- privilege/tool/permission misuse;
-- supply-chain/unpinned dependency risk;
-- memory poisoning where relevant;
-- MCP/tool poisoning where relevant;
-- trigger abuse / broad shadowing;
-- unsafe output/command handling.
+Inspect actual effective discovery/config:
+- active skill sources;
+- duplicate names/sources;
+- implicit vs explicit invocation policy;
+- whether a skill is disabled from implicit discovery;
+- catalog pressure / omitted or shortened descriptions if observable;
+- current runtime/model configuration relevant to tests.
 
-Record scanner/version/mode. Static-only and full semantic/dynamic scans must not be conflated.
+Treat active discovery as a constrained resource. Do not make every qualified skill implicitly active.
 
-## Phase F — Trigger and catalog-coexistence evaluation
+## OpenCode
 
-### F1. Minimum case matrix
+Inspect actual effective discovery/config:
+- path-derived skill ID;
+- global/project/compatibility/config sources;
+- precedence/shadowing;
+- autoinvoke visibility;
+- selected agent skill permissions;
+- project root / working-directory assumptions.
 
-For each active release candidate include:
+A shared `SKILL.md` is not automatically a shared effective capability.
+
+# Phase F — Trigger/co-loaded evaluation
+
+Minimum release-candidate cases:
 
 ```text
 positive_core
@@ -205,129 +191,155 @@ adjacent_negative
 sibling_conflict
 ```
 
-Prompts must be realistic, not just repeat skill-name keywords.
+Test:
 
-### F2. Isolation vs co-loaded catalog
+```text
+ISOLATED
+vs
+CO_LOADED_ACTIVE_CATALOG
+```
 
-Where the runtime/tooling can observe activation:
-- test skill alone;
-- test with the active catalog;
-- identify trigger theft/interference where present.
+where observability permits.
 
-Use repeated runs when stochasticity makes one-shot results unreliable.
+Use repeated runs when stochasticity makes one-shot results misleading. Candidate backends such as `skill-probe` remain optional until #14 qualification demonstrates net value.
 
-Candidate tools such as `skill-probe`, Tripwire or equivalent remain optional until qualified; Codex-specific observability limitations must be documented instead of papered over.
+Description optimization must improve held-out/negative/conflict behavior, not merely wording aesthetics.
 
-### F3. Description optimization
+# Phase G — Behavioral utility
 
-Description edits are accepted only when they improve held-out/negative/conflict behavior, not because the prose looks nicer.
+Run representative tasks through the real canonical harness.
 
-Prefer train/held-out separation or equivalent anti-overfit discipline when automated optimization is used.
-
-## Phase G — Behavioral utility evaluation
-
-### G1. Real harness requirement
-
-Run representative material skills through the actual canonical harness, not only a raw-model proxy.
-
-Preferred initial targets:
-- Codex canonical runtime;
-- OpenCode as portability/secondary-executor proof where claimed.
-
-### G2. With-skill vs without-skill
-
-For at least one dogfood skill, run comparable cases:
+For at least one dogfood skill:
 
 ```text
 WITHOUT_SKILL
+vs
 WITH_SKILL
 ```
 
-Measure the useful observable subset of:
-- acceptance/correctness pass rate;
+Measure the useful observable subset:
+- acceptance/correctness;
 - scope control/change-surface correctness;
 - validation evidence;
-- repeated reliability/pass@k if useful;
-- tokens/reasoning tokens if observable;
+- repeated reliability/pass@k where useful;
+- tokens/reasoning tokens if available;
 - wall time;
-- cost if observable.
+- cost if available.
 
-Unknown telemetry stays unknown.
-
-### G3. Net-value disposition
-
-A technically correct skill may still become:
+Possible disposition:
 
 ```text
 ACTIVE_CORE
 ON_DEMAND
 ECONOMY_LANE_HELPER
+RUNTIME_SPECIFIC
 REFERENCE_ONLY
 REDUNDANT
 REJECT
+DEFER
 ```
 
-Near-zero utility lift plus meaningful context/cost overhead is evidence against active installation.
+Near-zero lift plus meaningful routing/context overhead is evidence against active installation.
 
-## Phase H — Portability proof
+# Phase H — Safety / dependency evidence
 
-If a skill claims portable Agent Skills semantics:
+Do not build a custom scanner unless needed.
 
+Qualify the smallest useful backend slice from candidates such as SkillSpector/SkillLens or equivalent.
+
+Assess proportionally:
+- prompt/instruction override;
+- exfiltration/secret access;
+- excessive/destructive agency;
+- tool/permission misuse;
+- supply-chain/unpinned dependencies;
+- unsafe output/command handling;
+- memory/MCP poisoning only where relevant;
+- trigger abuse / broad shadowing.
+
+Record scanner/ref/version/mode. Static-only and semantic/dynamic evidence remain distinct.
+
+# Phase I — Portability proof
+
+For skills claiming portability:
 1. prove Codex discovery/execution;
 2. prove one OpenCode-compatible path;
-3. record effective model/runtime/config;
+3. record effective model/runtime/config + relevant catalog state;
 4. classify:
 
 ```text
 PORTABLE
 PORTABLE_WITH_ADAPTER
 CODEX_ONLY
+RUNTIME_SPECIFIC
 NOT_PROVEN
 ```
 
-Do not generalize from identical filesystem format alone.
+# Phase J — Freshness + lifecycle
 
-## Phase I — Regression and evolution contract
+A byte-identical skill can regress or become redundant after model/runtime/catalog changes.
 
-### I1. Durable eval cases
+For material release evidence, retain compact tested-against metadata where observable:
+- skill source/ref/digest;
+- harness/runtime version;
+- effective model/model tier;
+- reasoning setting where material;
+- relevant active catalog/config state.
 
-Keep a small high-value suite near the skill or in the smallest canonical test location.
+Re-run high-value trigger/outcome regressions after material changes. Do not build a registry solely for freshness.
 
-When a material failure is discovered:
-- reproduce;
-- encode it as an eval/regression case when stable;
-- fix;
-- rerun existing cases;
-- accept only without material regression.
-
-### I2. Skill simplification challenge
-
-For bloated or repeatedly patched skills, compare current vs simplified candidate.
-
-Prefer the simpler version if routing, outcome and safety are equal or better.
-
-Repeated deterministic invariants should migrate from prose into tests/scripts when appropriate.
-
-## Phase J — Creator release report
-
-Produce one compact readiness artifact/report for the creator itself and for dogfood candidates.
-
-Required evidence fields:
+Lifecycle outcomes must include:
 
 ```text
-necessity: PASS|FAIL|NOT_ASSESSED
-provenance: ...
-structure: ...
-security: ...
-trigger_isolated: ...
-trigger_coloaded: ...
-behavioral_utility: ...
-baseline_delta: ...
-efficiency: ...
-portability: ...
-regression: ...
-independent_review: ...
-verdict: ...
+ACTIVE_CORE
+ON_DEMAND
+RUNTIME_SPECIFIC
+DEPRECATED_BY:<replacement>
+REFERENCE_ONLY
+REDUNDANT
+REJECT
+DEFER
+```
+
+When deprecating, name replacement/migration when one exists and remove overlapping implicit discovery after migration rather than leaving both live forever.
+
+# Phase K — Regression + simplification
+
+Keep a small durable eval suite.
+
+When a material failure appears:
+
+```text
+reproduce
+→ add stable regression case
+→ fix
+→ rerun relevant suite
+→ accept only without material regression
+```
+
+For bloated skills, compare current vs simplified candidate. Prefer simpler if routing/outcome/safety are equal or better.
+
+# Phase L — Release report
+
+Minimum evidence fields:
+
+```text
+necessity:
+provenance:
+structure:
+security:
+runtime_discovery:
+trigger_isolated:
+trigger_coloaded:
+behavioral_utility:
+baseline_delta:
+efficiency:
+portability:
+freshness_tested_against:
+regression:
+lifecycle_disposition:
+independent_review:
+verdict:
 ```
 
 Evidence levels:
@@ -341,90 +353,97 @@ CROSS_RUNTIME_PASS
 RELEASE_READY
 ```
 
-No aggregate 0-100 score may override a blocking missing/failing gate.
+No aggregate score overrides a blocking failure/missing gate.
 
-## Phase K — Dogfood on Issue #35
+# Phase M — Dogfood #35
 
-Before declaring #38 complete, use the hardened creator on at least one real legacy/current skill from #35.
+Before #38 completes, evaluate at least one real legacy/current skill from #35.
 
-Good candidates:
-- `franky-guidance-manager` -> potential `instruction-maintenance`;
-- `franky-maintenance` -> challenge catch-all decomposition;
-- `install-project-link` -> challenge whether this should be a visible skill at all.
+Preferred candidates:
+- `franky-guidance-manager` → challenge/generalize toward instruction maintenance;
+- `franky-maintenance` → challenge catch-all decomposition;
+- `install-project-link` → challenge whether it should remain a visible skill.
 
-The dogfood run must demonstrate the necessity gate can produce a non-creation/merge/generalize result, not only author a shiny new skill.
+Dogfood must demonstrate at least one non-creation result such as merge/generalize/policy/script/reuse/retire.
 
-Feed the evidence back to #35's disposition matrix.
+Feed resulting disposition evidence directly to #35.
 
-## Tool qualification strategy
+# Tool qualification strategy
 
-Do not install every evaluator discovered in research.
+Do not install every discovered evaluator.
 
-For each candidate backend, record:
-- exact repository/ref/license;
-- unique capability;
-- runtime support actually needed;
+For each backend record:
+- exact repo/ref/license;
+- unique evidence it adds;
+- supported harnesses;
 - overlap with existing validators;
-- external dependencies/credentials;
-- side effects and trust boundary;
+- dependencies/credentials;
+- side effects/trust boundary;
 - observability quality;
-- cost;
-- disposition: `USE`, `OPTIONAL`, `REFERENCE`, `REJECT`, `DEFER`.
+- cost/latency;
+- disposition `USE | OPTIONAL | REFERENCE | REJECT | DEFER`.
 
-Likely comparison set:
-- installed OpenAI/Codex skill-creator;
-- Anthropic skill-creator;
-- agent-skill-eval;
-- skill-probe;
+Initial comparison set may include:
+- installed Codex/OpenAI creator;
+- Anthropic creator;
+- `agent-skill-eval`;
+- `skill-probe`;
 - SkillSpector;
 - SkillLens;
-- Tripwire / SkillCI / SkillKit / Skill Guard / Skill Forge only where they add unique evidence.
+- other lint/eval tools only if they add a unique missing gate.
 
-## Validation matrix
+# Validation matrix
 
 | Gate | Minimum proof |
 |---|---|
 | Upstream/provenance | exact source/ref + reuse method + license check |
-| Necessity | at least one CREATE and one DO-NOT-CREATE style disposition case |
+| Necessity | at least one CREATE-style and one DO-NOT-CREATE-style case |
 | Structure | deterministic validator output |
-| Security | qualified scan or explicit NOT_ASSESSED with reason |
-| Trigger positive | core + oblique cases |
-| Trigger negative | adjacent + sibling conflict cases |
+| Runtime discovery | actual effective Codex config; OpenCode when portability claimed |
+| Security | qualified scan or explicit NOT_ASSESSED |
+| Trigger positive | core + oblique |
+| Trigger negative | adjacent + sibling conflict |
 | Co-loaded | runtime/tool proof where observable |
 | Behavioral | real Codex task outcome |
-| Baseline | with-vs-without on at least one dogfood candidate |
-| Efficiency | observable tokens/time/cost or `unobservable` |
+| Baseline | with-vs-without for at least one dogfood candidate |
+| Efficiency | measured or explicitly unobservable |
 | Portability | OpenCode proof for portable claim |
+| Freshness | tested-against runtime/model/catalog context recorded |
 | Regression | rerunnable case set |
-| Independence | review separate from creator's self-claim when consequential |
+| Lifecycle | active/on-demand/deprecate/retire disposition supported |
+| Independence | separate review when consequential |
 
-## Stop / fallback conditions
+# Stop / fallback conditions
 
 Stop or reduce scope when:
-- installed OpenAI creator already satisfies the desired contract with only a tiny policy extension;
-- external tooling requires more infrastructure than the evidence it adds;
-- runtime cannot expose activation reliably and proxy evidence would be misleading;
-- evaluation cost exceeds the skill's expected value;
-- security tooling cannot be run safely in the available environment;
-- copying upstream would create licensing/provenance ambiguity;
-- the proposed creator starts becoming a general workflow/eval platform.
+- installed creator already satisfies the contract with a small extension;
+- external tooling costs more than the evidence it adds;
+- activation is not observable enough for the proposed claim;
+- evaluation cost exceeds expected skill value;
+- security tooling cannot run safely;
+- copying upstream creates licensing/provenance ambiguity;
+- the creator starts turning into a registry, marketplace, workflow engine, telemetry platform, or general eval service.
 
-In these cases record the limitation and use the smallest reliable fallback.
+Use the smallest reliable fallback and record the limitation.
 
-## Implementation grouping
+# Execution grouping
 
-Do not do one giant PR.
+Recommended order:
 
-Suggested sequence:
+1. Phase A provenance/baseline audit.
+2. Phase B contract + Phase C minimal bootstrap.
+3. Phase D deterministic validation.
+4. Phase E runtime discovery/collision audit.
+5. Phase F/G trigger + behavioral evidence.
+6. Phase H only the smallest useful security backend.
+7. Phase I/J portability + freshness/lifecycle semantics where claimed.
+8. Phase K regression/simplification.
+9. Phase L release report.
+10. Phase M dogfood #35.
+11. Remove superseded creator/factory behavior only after replacement evidence exists.
 
-1. upstream/provenance audit + creator contract;
-2. baseline creator bootstrap/adaptation;
-3. deterministic structural checks;
-4. targeted trigger/outcome eval integration;
-5. optional security/backend qualification;
-6. dogfood on one #35 skill;
-7. final reconciliation and removal of superseded creator/factory behavior.
+Do not do a giant mass-refactor PR.
 
-## Definition of done
+# Definition of done
 
-Issue #38 is done only when one canonical creator is backed by real evidence that it can reject unnecessary skills, preserve/reuse strong upstream capability, author bounded skills, test routing among siblings, measure at least one real behavioral lift, keep safety separate from utility, avoid false portability claims, preserve regressions, and successfully drive one real #35 rationalization decision.
+#38 is done only when one canonical creator can reject unnecessary skills, preserve/reuse strong upstream capability, author bounded skills, validate effective runtime discovery, test routing among siblings, measure at least one real behavioral lift, keep safety separate from utility, avoid false portability claims, retain rerunnable freshness/regression evidence, support deprecation/retirement, and successfully drive one real #35 rationalization decision.
