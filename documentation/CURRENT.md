@@ -222,3 +222,8 @@ baseline and the read-only Graph Engineering pilot remains hash-stable. The
 remaining gap is host-observable parent-resume/adapter behavior; neither
 should be inferred from deterministic tests, the project validator, or the
 bounded independent review.
+
+
+## Latest skill-system runtime boundary
+
+The isolated no-skill Codex baseline completed read-only without loading a skill procedure. A matching run with the real private #35 skill was rejected by the host privacy guard because provider export of that local skill content lacked explicit authorization; real-skill utility lift therefore remains `NOT_ASSESSED`. Synthetic activation/co-loaded/negative evidence remains bounded and does not upgrade that gate.
