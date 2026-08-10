@@ -696,3 +696,8 @@ Fixture hashes were `probe-skill/SKILL.md` =
 `input.txt` = `71f895124b66f9c026c68e643dd1216a4f488a610e29436e3d32c0f112fff027`.
 The fixture was outside the repository and was not retained as an active
 skill package.
+
+
+### Latest isolated baseline and privacy boundary — 2026-08-10
+
+A fresh no-skill baseline used a temporary `CODEX_HOME`, `--ignore-user-config`, `--disable skill_search`, `--ephemeral`, and read-only sandboxing against a disposable fixture. Codex read only `AGENTS.md` and `target.txt`, loaded no skill procedure, and made no writes. The matching run with the real private `franky-guidance-manager` package was rejected by the host privacy guard because it would transmit local skill content to the provider without explicit export authorization. This is recorded as a runtime/data boundary observation, not a workaround target; real-skill `baseline_delta` remains `NOT_ASSESSED`.
