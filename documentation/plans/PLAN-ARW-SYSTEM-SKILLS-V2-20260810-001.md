@@ -787,6 +787,11 @@ retirement block below contains 17 historical workflow paths. These counts are
 structural evidence only; runtime activation and cross-runtime retirement stay
 under their stated gates.
 
+The deterministic interface validator now resolves the Git-tracked package
+surface rather than scanning only `franky-*` directories; the current run
+validates all 10 tracked packages and ignores personal/plugin overlays that are
+outside the repository allowlist.
+
 ### Current local skill disposition
 
 | Current package | Disposition | Semantic owner/result | Evidence and boundary |
