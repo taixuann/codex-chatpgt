@@ -641,3 +641,10 @@ with only the configured path resolved the same ID to the configured path.
 The result directly confirms configured-path discovery and project-local
 shadowing; it does not establish model selection, activation utility, or
 permission enforcement.
+
+A second no-model catalog comparison toggled both OpenCode external-skill
+scan flags. The effective catalog remained 89 entries / 89 unique IDs, but
+9 entries changed only their resolved source root (the direct configured path
+versus its `ai-labs` overlay path). This is recorded as an alias/overlay
+observation, not as proof that the two implementations are behaviorally
+equivalent.
