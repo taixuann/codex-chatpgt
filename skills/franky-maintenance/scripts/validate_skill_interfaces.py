@@ -18,7 +18,10 @@ def main() -> int:
     parser.add_argument("root", type=Path)
     args = parser.parse_args()
     try:
-        packages = sorted(args.root.glob("franky-*/"))
+        packages = sorted(
+            package for package in args.root.glob("franky-*/")
+            if (package / "SKILL.md").is_file()
+        )
         if not packages:
             raise ValueError("no Franky skill packages found")
         for package in packages:

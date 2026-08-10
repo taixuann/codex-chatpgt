@@ -8,8 +8,8 @@ project_root: /Users/tai/.codex
 registration: pending_codex_project_registration
 mode: scheduled_safe
 skill: franky-maintenance
-workflow: WF-FRANKY-CANONICAL
-model: gpt-5.4-mini
+workflow: issue-plan-skill
+model: gpt-5.6-luna
 reasoning_effort: medium
 scope:
   - /Users/tai/.codex/sessions/ (read-only, previous 24 hours)

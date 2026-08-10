@@ -1,4 +1,0 @@
-interface:
-  display_name: "Workflow organizer"
-  short_description: "Design persisted Franky lifecycle workflows."
-  default_prompt: "Design or validate a thin Franky YAML workflow only when a named consumer needs persisted state, gates, or recovery."

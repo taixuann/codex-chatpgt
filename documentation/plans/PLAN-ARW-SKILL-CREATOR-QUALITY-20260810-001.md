@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SKILL-CREATOR-QUALITY-20260810-001
 issue: 38
-status: ready-for-end-to-end-execution
+status: conditional-pass
 scope: skill-creator-quality-system
 updated: 2026-08-10
 ---
@@ -447,3 +447,135 @@ Do not do a giant mass-refactor PR.
 # Definition of done
 
 #38 is done only when one canonical creator can reject unnecessary skills, preserve/reuse strong upstream capability, author bounded skills, validate effective runtime discovery, test routing among siblings, measure at least one real behavioral lift, keep safety separate from utility, avoid false portability claims, retain rerunnable freshness/regression evidence, support deprecation/retirement, and successfully drive one real #35 rationalization decision.
+
+## Execution report — 2026-08-10
+
+This report records the end-to-end run against the installed runtimes. It is
+deliberately evidence-level specific: unavailable host behavior remains
+`NOT_ASSESSED` and is not promoted to a pass by static configuration.
+
+### Phase A — provenance and baseline
+
+| Source | Exact artifact/ref | License/provenance | Decision |
+| --- | --- | --- | --- |
+| Installed Codex/OpenAI creator | `/Users/tai/.codex/skills/.system/skill-creator`, Codex `0.146.0` | Local Apache-2.0 `license.txt`; `SKILL.md` SHA-256 `da44c88f6b3845a8fa8c60792ec9a722110a55a9793c279757b48fefb11f819c`; `quick_validate.py` `6cc9dc3199c935916cf6f73fcbbbb0e3bb1b58c8f5109fefa499978908164f51`; `init_skill.py` `f40cb8fafc34e2d5dbbb8b6b04297af128b70844b67bc9445ef69790e0cdb49` | **USE_EXISTING** |
+| Anthropic creator | `anthropics/skills/skills/skill-creator` at `b0cbd3df1533b396d281a6886d5132f623393a9c` | Skill `LICENSE.txt` Apache-2.0; Claude Code/`claude -p` assumptions observed | **REFERENCE_ONLY** |
+| OSS comparison set | `github/awesome-copilot` `3f0bba475ec40b9680e1d0311b9caffeec5ad4c3` (MIT); `SteveVitali/agent-skills` `6f6c5843148443d3d3c4fe034c03eda669754bfc` (MIT) | Real SKILL.md artifacts inspected; no local copies | **REFERENCE_ONLY / DEFER** |
+| `adityaarakeri/senior-agent-skills` | `1a6c8523504f145db1ef917b123b7c052abca5ba` | Repository license metadata unresolved | **REFERENCE_ONLY / DEFER** |
+
+No competing creator package was copied into this repository.
+
+### Phases B–D — contract, bootstrap, and deterministic checks
+
+The installed creator already provides the required authoring, progressive
+disclosure, initialization, OpenAI metadata generation, and quick-validation
+procedures. The local decision contract is therefore represented by this PLAN
+and existing deterministic tools rather than another visible skill.
+
+The creator decision set used for #35 is:
+
+```text
+USE_EXISTING | ADAPT_EXISTING | CREATE_SKILL | SCRIPT_NOT_SKILL
+POLICY_NOT_SKILL | REFERENCE_NOT_SKILL | TOOL_NOT_SKILL | DEFER
+```
+
+Tracked control-plane skills: **11/11** pass the installed OpenAI
+`quick_validate.py` after removing unsupported metadata from
+`shared-session-closeout`. Existing interface/routing validators and four
+focused Franky maintenance tests pass. Four ignored personal overlay packages
+still fail the quick validator because of extra frontmatter; they are runtime
+overlay findings only and were not silently promoted or edited.
+
+The stale hard-coded model/path findings repaired in this run were limited to
+the tracked installer, maintenance, project-link, and session-closeout
+packages. No secrets, destructive commands, or external dependencies were
+introduced.
+
+### Phase E — effective runtime discovery
+
+- Codex `0.146.0`, configured model `gpt-5.6-terra`, reasoning `medium`:
+  61 `SKILL.md` files, 49 unique names, ten duplicate-name groups. A fresh
+  read-only probe returned `PROBE_OK` and reported description shortening to
+  fit the 2% skills-context budget. Hidden implicit-selection policy and
+  adapter metadata remain **NOT_ASSESSED**.
+- OpenCode `1.18.15`: 89 effective skills with 89 unique effective IDs.
+  Path-derived/config aliases and precedence were observed, including
+  `franky-install-guidance`, `franky-install-project-link`, and a native
+  `config.opencode.skill-creator`; direct activation and selected-agent
+  permission enforcement remain **NOT_ASSESSED**. The resolved default
+  `build` agent is permissive, so no portability claim is made from that
+  configuration alone.
+
+### Phases F–G — trigger and behavioral evidence
+
+The static routing fixture covers direct positive, adjacent negative,
+nearest-neighbor, expected-none, and ambiguous cases; it passes with the
+existing validator. A real read-only Codex run in a synthetic, non-sensitive
+guidance fixture selected `franky-guidance-manager`, inspected the scoped
+instruction chain, and returned a bounded review without writes. This is
+`BEHAVIORAL_PASS` for the with-skill path.
+
+An independent no-skill baseline could not be isolated: `--ignore-user-config`
+still loaded the host skill root. Baseline delta, co-loaded activation, and
+hidden trigger selection are therefore **NOT_ASSESSED**, not a claimed lift.
+
+### Phase H — safety and dependencies
+
+Static package and allowlist checks pass for tracked files. Dynamic prompt-
+injection, supply-chain, and dependency scanner evidence was not available
+without adding an unqualified backend, so those axes are **NOT_ASSESSED**.
+No external package was installed and no credential-bearing operation was
+performed.
+
+### Phases I–J — portability, freshness, lifecycle
+
+Codex execution is observed. OpenCode exposes an adapter/alias catalog but not
+the same Codex skill identity or activation trace; the honest classification is
+`PORTABLE_WITH_ADAPTER` for the semantic procedure and `NOT_PROVEN` for
+cross-runtime behavioral equivalence. The release was checked against Codex
+`0.146.0`, OpenCode `1.18.15`, model `gpt-5.6-terra`, and catalog snapshots
+from 2026-08-10. Lifecycle dispositions are recorded in the #35 matrix below;
+no registry or telemetry store was created.
+
+### Phases K–L — regression and release fields
+
+The four focused maintenance tests, tracked-skill quick validation, static
+routing checks, agent validation, and whitespace checks are rerunnable. The
+minimal simplification was to use the installed creator and remove invalid
+metadata rather than adding a creator framework. Release evidence is:
+
+```yaml
+necessity: CONDITIONAL_PASS
+provenance: RELEASE_READY
+structure: STATIC_PASS
+security: NOT_ASSESSED
+runtime_discovery: CONDITIONAL_PASS
+trigger_isolated: STATIC_PASS
+trigger_coloaded: NOT_ASSESSED
+behavioral_utility: BEHAVIORAL_PASS
+baseline_delta: NOT_ASSESSED
+efficiency: NOT_ASSESSED
+portability: PORTABLE_WITH_ADAPTER / NOT_PROVEN
+freshness_tested_against: Codex-0.146.0; OpenCode-1.18.15; 2026-08-10 catalog
+regression: STATIC_PASS
+lifecycle_disposition: RELEASE_READY for bounded admission semantics
+independent_review: CONDITIONAL_PASS
+verdict: CONDITIONAL_PASS
+```
+
+### Phase M — #35 dogfood
+
+`franky-guidance-manager` was dogfooded on the synthetic guidance fixture.
+The result is **ADAPT_EXISTING / GENERALIZE** toward the semantic capability
+`instruction-maintenance`, while retaining the compatibility name until a
+future migration earns a cleaner runtime identity. The creator correctly
+returned a non-creation outcome; no competing package was authored.
+
+### Gate conclusion
+
+The installed creator is the canonical admission baseline and is ready for
+bounded #35 decisions. #38 remains **conditional** rather than fully accepted
+because host-level no-skill baselines, co-loaded activation, dynamic security,
+and direct OpenCode execution evidence are unavailable. Those limitations are
+recorded explicitly and do not justify a registry, marketplace, telemetry,
+workflow engine, or general evaluation platform.

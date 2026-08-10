@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001
 issue: 35
-status: ready-after-skill-creator-gate
+status: conditional-reconciled
 scope: system-skills-and-workflow-reconciliation-v2
 updated: 2026-08-10
 ---
@@ -773,3 +773,102 @@ Issue #35 is complete when:
 8. every remaining machine workflow proves a real persisted-state consumer or the workflow tree is reduced accordingly;
 9. Codex remains the primary orchestration/acceptance authority and OpenCode consumes portable skills only as a bounded executor path;
 10. the resulting system is simpler to route correctly even if its optional capability library becomes richer.
+
+## Execution report — 2026-08-10
+
+This matrix is the current evidence-backed reconciliation after the #38
+creator gate. It distinguishes the package disposition from whether a future
+semantic replacement has earned a new runtime-visible name.
+
+### Current local skill disposition
+
+| Current package | Disposition | Semantic owner/result | Evidence and boundary |
+| --- | --- | --- | --- |
+| `external-handoff` | **KEEP** | `external-handoff` | Role-neutral bounded handoff; no control-plane persona coupling. |
+| `franky-agent-installer` | **GENERALIZE** | `runtime-adapter-management` | Keep compatibility name for now; stale model/path assumptions were repaired; owns adapter schema, scope, collision, permission and rollback checks. |
+| `franky-cron-installer` | **MOVE_ON_DEMAND** | `scheduler-management` | No active scheduler consumer; retain only as deferred/on-demand capability until usage earns discovery. |
+| `franky-guidance-manager` | **GENERALIZE** | `instruction-maintenance` | Real Codex dogfood passed bounded read-only guidance review; compatibility name retained pending migration evidence. |
+| `franky-maintenance` | **GENERALIZE** | `control-plane-audit` | Narrow diagnostic/audit owner; mutation remains Issue/PLAN/owning capability, not universal authority. |
+| `franky-promotion` | **MOVE_ON_DEMAND / DEFER** | promotion under #12 | No current destination consumer; do not expose in ordinary discovery. |
+| `franky-source-migration` | **MOVE_ON_DEMAND / DEFER** | `harness-migration` under #12 | Portability gate is not yet accepted; no local duplicate is created. |
+| `franky-workflow-organizer` | **RETIRE** | workflow policy in `workflows/AGENTS.md` + Issue/PLAN | No retained machine workflow has a real persisted-state consumer; deterministic validators are not a reason to keep the model-visible package. |
+| `install-project-link` | **MOVE_ON_DEMAND** | project-link safety primitive | Distinct safety boundary remains; not merged blindly into `project-bootstrap`, and not ordinary global discovery. |
+| `project-bootstrap` | **KEEP** | `project-bootstrap` | #19 implementation and 9-test integration suite provide a real reusable contract. |
+| `shared-session-closeout` | **GENERALIZE / KEEP** | `session-closeout` | Role-neutral acceptance/next-action/evolution observation; invalid metadata repaired. |
+
+### Proposed capability admission matrix
+
+| Capability hypothesis | #38 decision | Active result |
+| --- | --- | --- |
+| `skill-creator` | **USE_EXISTING** | Installed Codex/OpenAI creator; no local duplicate. |
+| `capability-qualification` | **POLICY_NOT_SKILL** | #14 plan plus deterministic evidence tables; no separate package yet. |
+| `control-plane-audit` | **ADAPT_EXISTING** | Generalize `franky-maintenance`. |
+| `instruction-maintenance` | **ADAPT_EXISTING** | Generalize `franky-guidance-manager`; dogfood evidence. |
+| `runtime-adapter-management` | **ADAPT_EXISTING** | Generalize `franky-agent-installer`. |
+| `external-handoff` | **USE_EXISTING** | Existing role-neutral package. |
+| `project-bootstrap` | **USE_EXISTING** | Existing validated package. |
+| `session-closeout` | **ADAPT_EXISTING** | Generalize existing role-neutral package. |
+| `scheduler-management` | **MOVE_ON_DEMAND / DEFER** | Existing cron package is not active core. |
+| `harness-migration` | **DEFER** | #12 portability gate remains open. |
+
+### Tier 2 engineering-discipline qualification
+
+| Capability | Disposition | Rationale |
+| --- | --- | --- |
+| `repo-recon` | **POLICY_NOT_SKILL / REFERENCE_ONLY** | Parent orientation and #2 bounded context are sufficient; broad `acquire-codebase-knowledge` writes seven docs and adds context cost. |
+| `change-surface` | **POLICY_NOT_SKILL** | Keep as #5 closure/impact-frontier procedure until a repeated reusable trigger is measured. |
+| `systematic-debugging` | **REFERENCE_ONLY / DEFER** | Senior-agent artifact has unresolved redistribution terms; no local copy. |
+| `verification-before-completion` | **POLICY_NOT_SKILL** | #5 validation plus final-critique policy already own the boundary. |
+| `safe-refactor` | **REFERENCE_ONLY / DEFER** | External pattern inspected; no measured local gap or licensed runtime proof. |
+| `self-review` | **REFERENCE_ONLY / DEFER** | SteveVitali MIT pattern is useful, but no Codex/OpenCode behavioral lift was observed; it cannot replace #6. |
+| `docs-drift` | **POLICY_NOT_SKILL / ADAPT instruction-maintenance** | Scoped guidance and deterministic checks are sufficient until repeated use proves separation. |
+| skill authoring/evaluation | **USE_EXISTING** | Installed creator and existing validators; external evaluators remain tools/references. |
+
+### Tier 3 and workflow disposition
+
+`scheduler-management` remains on-demand/deferred. `harness-migration` remains
+deferred under #12. No Tier-3 capability is added to ordinary discovery.
+
+The following 17 machine workflow YAMLs have no named runtime dispatcher,
+persisted state store, recovery/resume implementation, or independent consumer
+that beats Issue/PLAN plus a skill/script. They are therefore **RETIRE**:
+
+```text
+workflows/franky/franky.yaml
+workflows/franky/lifecycle-contract.yaml
+workflows/franky/franky-install/agent.yaml
+workflows/franky/franky-install/cron.yaml
+workflows/franky/franky-install/guidance.yaml
+workflows/franky/franky-install/project-link.yaml
+workflows/franky/franky-install/skill.yaml
+workflows/franky/franky-install/workflow.yaml
+workflows/franky/franky-maintenance/git-finalize.yaml
+workflows/franky/franky-maintenance/inventory.yaml
+workflows/franky/franky-maintenance/migrate-to-codex.yaml
+workflows/franky/franky-maintenance/promotion.yaml
+workflows/franky/franky-maintenance/update-agents.yaml
+workflows/franky/franky-maintenance/update-cron.yaml
+workflows/franky/franky-maintenance/update-guidance.yaml
+workflows/franky/franky-maintenance/update-skills.yaml
+workflows/franky/franky-maintenance/update-workflows.yaml
+```
+
+`workflows/AGENTS.md` remains as policy: a future YAML is admitted only when
+its real consumer, state, gates, transitions and recovery are demonstrated.
+The pending personal scheduler definition is not a workflow consumer; it is a
+Tier-3 candidate and now uses the semantic `issue-plan-skill` route.
+
+### Effective catalog and portability evidence
+
+| Runtime | Observed catalog | Finding |
+| --- | --- | --- |
+| Codex `0.146.0` | 61 files / 49 unique names | Ten duplicate-name groups and 2% description-budget shortening; hidden activation policy remains `NOT_ASSESSED`. |
+| OpenCode `1.18.15` | 89 effective skills / 89 unique IDs | Path/config aliases and precedence observed; direct activation and permission enforcement are `NOT_ASSESSED`; cross-runtime semantic mapping is `PORTABLE_WITH_ADAPTER`, not equivalence. |
+
+### Conditional reconciliation
+
+The current result is **CONDITIONAL_PASS**. The active surface is reduced by
+retiring the unconsumed Franky workflow tree and its workflow-organizer
+package, while preserving existing safety/provenance boundaries. Full #35
+acceptance remains gated on the missing host-observable co-loaded routing and
+cross-runtime behavior evidence rather than being inferred from static files.

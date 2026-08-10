@@ -64,12 +64,11 @@ different states, ordering, domain steps, or validation gates.
 Do not duplicate the full general workflow across persona-specific workflows,
 skills, Issue templates, or project instructions.
 
-## D-008 — Quality-hardening dispositions (Issue #24)
+## D-008 — Quality-hardening baseline (Issue #24, superseded by #35)
 
-The active tracked skill surface was audited in capability-first order. All
-eleven packages currently earn independent packaging because they have a
-recurring trigger plus a reusable boundary/procedure or named workflow
-consumer; no rename is justified by reference churn in this pass.
+The 2026-08-09 baseline kept eleven packages. That historical disposition is
+retained for provenance but is superseded for current routing by D-009 after
+the #38 creator gate and #35 workflow-consumer audit.
 
 | Skill | Existence | Name | Boundary/neighbor decision |
 | --- | --- | --- | --- |
@@ -90,3 +89,29 @@ The static contrastive fixture at
 positive, negative, nearest-neighbor, expected-none, and ambiguous cases. It
 is metadata/fixture evidence only; this repository does not claim to observe
 LLM skill selection when the active runtime does not expose that behavior.
+
+## D-009 — Creator-gated system-skill and workflow reconciliation (Issue #35)
+
+The installed Codex/OpenAI creator is the canonical admission baseline. No
+new skill is admitted without a necessity, provenance, trigger, runtime-fit,
+and proportional outcome decision. The current package dispositions are:
+
+| Package | Current disposition |
+| --- | --- |
+| `external-handoff` | KEEP |
+| `franky-agent-installer` | GENERALIZE as `runtime-adapter-management` |
+| `franky-cron-installer` | MOVE_ON_DEMAND |
+| `franky-guidance-manager` | GENERALIZE as `instruction-maintenance` |
+| `franky-maintenance` | GENERALIZE as `control-plane-audit` |
+| `franky-promotion` | MOVE_ON_DEMAND / DEFER under #12 |
+| `franky-source-migration` | MOVE_ON_DEMAND / DEFER under #12 |
+| `franky-workflow-organizer` | RETIRE |
+| `install-project-link` | MOVE_ON_DEMAND |
+| `project-bootstrap` | KEEP |
+| `shared-session-closeout` | GENERALIZE / KEEP |
+
+All seventeen `workflows/franky/**` YAMLs are retired because no named
+dispatcher, persisted state, recovery/resume implementation, or independent
+consumer was found. `workflows/AGENTS.md` remains the admission policy for a
+future real machine workflow. Issue/PLAN/task contracts and retained skills
+are the active routing surface; no replacement workflow engine is introduced.

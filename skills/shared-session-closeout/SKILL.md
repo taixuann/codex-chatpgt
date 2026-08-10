@@ -4,10 +4,6 @@ description: Close or update a governed Codex or AI Labs session when acceptance
 metadata:
   last_reviewed: 2026-08-09
   review_interval_days: 90
-namespace: shared
-qualified_name: shared.session-closeout
-folder: shared-session-closeout
-scope: shared
 ---
 
 # Shared session closeout
@@ -36,7 +32,7 @@ technical, scientific, or operator decisions.
 3. Run the deterministic state check:
 
    ```text
-   python3 /Users/tai/.codex/skills/shared-session-closeout/scripts/validate_session_state.py <path>
+   python3 "$CODEX_HOME/skills/shared-session-closeout/scripts/validate_session_state.py" <path>
    ```
 
 4. Reconcile completed tasks, remaining tasks, blockers, and acceptance

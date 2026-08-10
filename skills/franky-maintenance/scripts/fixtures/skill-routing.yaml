@@ -20,11 +20,11 @@ cases:
     kind: negative
     prompt: Validate this workflow YAML and report schema errors.
     expected: none
-    neighbors: [franky-workflow-organizer]
+    neighbors: [franky-maintenance]
   - id: persisted-workflow-design
-    kind: positive
+    kind: negative
     prompt: Design a governed workflow with persisted gates and recovery for a scheduler consumer.
-    expected: franky-workflow-organizer
+    expected: none
     neighbors: [franky-maintenance]
   - id: ordinary-coding
     kind: none

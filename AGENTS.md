@@ -22,15 +22,16 @@ selected or spawned by an active canonical role/workflow with an explicit task
 contract. Their presence under `agents/` must not be interpreted as a change to
 the AI Labs role registry.
 
-Franky uses one canonical entrypoint under `workflows/franky/` for the
-specialized `franky_control_plane` scope. The global semantic lifecycle remains
-`documentation/OPERATING-WORKFLOW.md`; nested Franky pipelines are governed
-branches, not a replacement for ordinary work.
+No active machine workflow is installed for the specialized
+`franky_control_plane` scope. `workflows/AGENTS.md` is the admission policy;
+ordinary Franky operations use Issue/PLAN/task contracts plus retained
+skills/scripts. The global semantic lifecycle remains
+`documentation/OPERATING-WORKFLOW.md`. Historical Franky workflow YAMLs are
+retired and are not runtime authority.
 
 Feynman and Prometheus use their selected project-scoped workflows and explicit
 handoff contracts; they do not inherit Franky maintenance rules. Franky agents
-must select a workflow before invoking Franky skills. Nested pipelines are the
-only allowed branch implementations.
+select the applicable Issue/PLAN/task contract before invoking Franky skills.
 
 An explicit `@franky` or `subagent://franky` request should be delegated
 through the supported Franky role mechanism and workflow selection, not
