@@ -21,6 +21,27 @@ OpenScience = scientific reasoning / execution
 
 The target is routing and integration quality, not another Wiki/search subsystem.
 
+# Intended runtime and provider path
+
+The intended behavioral acceptance and deployment path for this PLAN is the normal ChatGPT/Codex OpenAI model provider used by Codex.
+
+```text
+local Wiki corpus
+  -> local Wiki MCP
+  -> bounded wiki-evidence/v1 packet
+  -> local Codex host
+  -> normal OpenAI/ChatGPT Codex provider
+  -> model tool-selection + scientific reasoning
+```
+
+This boundary is normative for Issue #7:
+
+- Ollama, qwen, or another local-model provider is **not** an implementation dependency, deployment target, required fallback, or substitute acceptance path.
+- The previous qwen3-14b/Ollama attempt is historical diagnostic evidence only. Do not repair, install, configure, optimize, or otherwise pursue Ollama/`llama-server` for this Issue.
+- If the normal Codex/OpenAI provider is unreachable because of provider/network/DNS/auth/runtime conditions, classify the acceptance run as `BLOCKED` on the Codex/provider path rather than redirecting implementation work into Wiki or a local model.
+- If an acceptance run requires Wiki evidence to enter the Codex/OpenAI model context, resolve the applicable explicit data-export permission/policy for that bounded evidence. Do not silently avoid the intended provider by substituting another model.
+- The Wiki corpus remains local. Only the bounded evidence/context actually supplied through Codex follows the selected model-provider data path.
+
 # Activation evidence
 
 The previous deferred gate is satisfied.
@@ -35,7 +56,7 @@ Wiki-side handoff reports:
 - MCP usability and end-to-end agent-selection checks passed factual lookup, mechanism, comparison and insufficient-evidence cases;
 - reported retrieval metrics are approximately recall/source coverage 0.979, MRR 0.906, nDCG 0.906.
 
-Treat those as Wiki-side evidence. This PLAN must independently prove Codex-side registration, discovery, routing and behavioral selection.
+Treat those as Wiki-side evidence. This PLAN must independently prove Codex-side registration, discovery, routing and behavioral selection through the intended Codex/OpenAI provider path.
 
 # Current control-plane constraints
 
@@ -55,6 +76,7 @@ Preserve the current architecture:
 ```text
 LOCAL CODEX
   |
+  | normal OpenAI/ChatGPT Codex model provider
   | global MCP registration / discovery
   v
 Wiki Scientific Evidence MCP
@@ -85,14 +107,15 @@ Before changing repository guidance or local configuration:
 
 1. Reorient from current `main`, applicable AGENTS chain, Issue #7 and this PLAN.
 2. Inspect the actual local Codex version and current `~/.codex/config.toml` MCP surface.
-3. Run supported MCP discovery commands such as the installed runtime's equivalent of `codex mcp list` and inspect help/schema before assuming syntax.
-4. Inspect the Wiki MCP launch/connection contract from the local Wiki checkout/handoff.
-5. Confirm whether the Wiki server is local stdio, HTTP/streamable HTTP, or another supported transport.
-6. Probe whether current Codex supports per-agent MCP/tool permission configuration. Do not infer this from documentation or invent TOML keys.
-7. Record the actual MCP protocol version/lifecycle negotiated or supported by the runtime and Wiki server. Do not assume the current `initialize` handshake is a permanent protocol invariant.
-8. Record runtime limitations separately from repository semantics.
+3. Confirm the active/default Codex model-provider path is the intended normal OpenAI/ChatGPT Codex provider. Do not switch to or repair a local provider for this Issue.
+4. Run supported MCP discovery commands such as the installed runtime's equivalent of `codex mcp list` and inspect help/schema before assuming syntax.
+5. Inspect the Wiki MCP launch/connection contract from the local Wiki checkout/handoff.
+6. Confirm whether the Wiki server is local stdio, HTTP/streamable HTTP, or another supported transport.
+7. Probe whether current Codex supports per-agent MCP/tool permission configuration. Do not infer this from documentation or invent TOML keys.
+8. Record the actual MCP protocol version/lifecycle negotiated or supported by the runtime and Wiki server. Do not assume the current `initialize` handshake is a permanent protocol invariant.
+9. Record runtime limitations separately from repository semantics.
 
-Stop if the Wiki MCP cannot be started/discovered in the current runtime; report the exact transport/config/runtime blocker rather than building a wrapper.
+Stop if the Wiki MCP cannot be started/discovered in the current runtime; report the exact transport/config/runtime blocker rather than building a wrapper. If Wiki transport works but the normal Codex/OpenAI provider path is unavailable or data-export policy blocks the acceptance run, stop as a provider/policy blocker rather than substituting Ollama.
 
 # Phase 1 — Minimal MCP registration and discovery
 
@@ -196,9 +219,9 @@ Do not:
 
 # Phase 6 — Failure semantics
 
-Keep two failure classes distinct.
+Keep failure classes distinct.
 
-## Transport/runtime failure
+## Wiki MCP transport/runtime failure
 
 Examples: MCP unavailable, startup failure, tool discovery failure, schema/runtime mismatch, negotiated-protocol incompatibility.
 
@@ -208,6 +231,17 @@ Behavior:
 - if literature grounding is required, return blocked/limited unless equivalent supplied evidence makes the call unnecessary;
 - do not silently answer from unsupported memory/model knowledge;
 - do not classify transport failure as `bad_retrieval`, `corpus_gap`, or `scientific_gap`.
+
+## Codex/OpenAI provider or evidence-export failure
+
+Examples: normal Codex/OpenAI provider unavailable, DNS/network/auth failure, model execution failure, or the bounded Wiki evidence cannot be sent to the intended provider under current approval/policy.
+
+Behavior:
+
+- record as a Codex/provider or data-policy acceptance blocker, not a Wiki failure;
+- preserve the already-proven Wiki transport evidence;
+- do not repair or switch to Ollama/local models as a workaround inside Issue #7;
+- resume behavioral acceptance only when the intended provider path and applicable permission are available.
 
 ## Successful Wiki query with evidence-state outcome
 
@@ -222,7 +256,7 @@ Do not automatically trigger ingestion or architecture expansion from one gap.
 
 # Phase 7 — Behavioral selection evaluation
 
-Static policy quality is insufficient. Exercise the actual Codex runtime.
+Static policy quality is insufficient. Exercise the actual Codex runtime using the intended normal OpenAI/ChatGPT Codex model provider.
 
 Use at least these positive cases:
 
@@ -242,6 +276,7 @@ For each case record only observable evidence:
 
 - prompt/task;
 - whether Wiki was expected;
+- active intended model/provider path;
 - actual tool call(s) if observable;
 - selected Wiki tool;
 - evidence contract/provenance outcome for positive cases;
@@ -251,6 +286,7 @@ For each case record only observable evidence:
 
 Pass criteria:
 
+- the run uses the normal intended Codex/OpenAI provider rather than a substituted local model;
 - positive cases select Wiki appropriately;
 - negative cases do not invoke Wiki merely because they are scientific;
 - provenance is preserved;
@@ -262,27 +298,27 @@ Use the existing Wiki-side 4-case benchmark as a comparison/reference, but Codex
 
 # Phase 8 — Deployment and stability acceptance
 
-After one successful host-mediated behavioral run, prove that the integration survives ordinary runtime lifecycle events without adding a monitoring platform.
+After one successful host-mediated behavioral run through the intended provider, prove that the integration survives ordinary runtime lifecycle events without adding a monitoring platform.
 
 Use four gates:
 
 ```text
 transport/contract
-  -> Codex host integration
+  -> Codex/OpenAI host integration
   -> routing/responsibility
   -> stability/regression
 ```
 
 Minimum stability slice:
 
-1. start a fresh Codex session and verify the Wiki server/tool surface is discoverable;
+1. start a fresh Codex session with the normal intended provider and verify the Wiki server/tool surface is discoverable;
 2. run the bounded positive + negative behavioral matrix from Phase 7;
 3. restart/reload the MCP server or start another fresh Codex session so discovery is rebuilt;
 4. rerun at least one positive and one negative case;
 5. verify the positive case still returns `wiki-evidence/v1` with provenance and the negative case still avoids Wiki;
-6. record startup/tool failures, duplicate calls, and observed latency only if measurable;
+6. record startup/tool/provider failures, duplicate calls, and observed latency only if measurable;
 7. tune startup/tool timeouts only when observed failures justify it rather than guessing values;
-8. do not introduce daemon health checks, telemetry databases, or a bespoke deployment framework for this local read-only capability.
+8. do not introduce daemon health checks, telemetry databases, a bespoke deployment framework, or a local-model fallback for this local read-only capability.
 
 If official MCP conformance tooling can exercise the Wiki server's actual transport/version without creating a second test framework, prefer using it or a bounded equivalent. Protocol-version/backcompat validation belongs primarily to the Wiki server/runtime boundary; `codex-chatpgt` should record the compatibility evidence rather than reimplement protocol conformance.
 
@@ -294,6 +330,7 @@ Keep canonical semantics harness-neutral:
 required capability: scientific-literature-evidence
 provider contract: wiki-evidence/v1
 current adapter: Codex MCP
+intended model runtime for this acceptance: normal Codex/OpenAI provider
 ```
 
 Do not introduce a cross-harness plugin framework in this Issue. Future #12 work may bind another harness to the same evidence capability once the Codex integration is stable.
@@ -338,45 +375,50 @@ Do not assume all listed files must change. Closure should identify actual consu
 - No unsupported per-agent MCP fields, duplicate retrieval layer, Wiki
   mutation path, or new wrapper skill/workflow was added.
 - A network-enabled Codex probe was not permitted because it would transmit
-  local Wiki corpus content to the remote Codex/OpenAI service without an
-  explicit data-export approval. This is a safety boundary, not a Wiki server
-  failure.
-- An offline fallback was tested with the locally catalogued `qwen3-14b`
-  Ollama model. Codex entered the local-provider session and exposed the Wiki
-  MCP, but inference failed because this Ollama installation lacks its
-  `llama-server` binary; no model response or tool-selection trace was
-  produced. The temporary Ollama server was stopped and no persistent runtime
-  configuration was changed.
+  bounded evidence from the local Wiki corpus into the normal remote Codex/OpenAI
+  model context without explicit data-export approval. This is a provider/data-
+  policy acceptance boundary, not a Wiki server failure.
+- A qwen3-14b/Ollama fallback was previously attempted and failed because that
+  installation lacked `llama-server`. **This is historical diagnostic evidence
+  only. Ollama/local-model repair is explicitly out of scope and must not be
+  treated as the next execution step or an acceptance dependency.**
 
-The implementation is therefore a **conditional pass for registration,
-discovery, and contract evidence**, while the host-runtime acceptance gate
-remains open. Do not mark Issue #7 complete until a live Codex session records
-one successful Wiki query with provenance/abstention semantics, the required
-positive/negative routing cases, and the bounded fresh-session/reload stability
-check in Phase 8.
+The implementation is therefore a **conditional pass for Wiki registration,
+discovery, transport and contract evidence**, while the intended Codex/OpenAI
+host-runtime behavioral acceptance gate remains open. The active blocker is the
+normal provider/network/auth/data-policy path required to obtain an actual
+model-mediated selection trace, not Wiki retrieval and not Ollama.
+
+Do not mark Issue #7 complete until a live Codex session using the normal
+intended Codex/OpenAI provider records one successful Wiki query with
+provenance/abstention semantics, the required positive/negative routing cases,
+and the bounded fresh-session/reload stability check in Phase 8.
 
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
 2. validate skills/workflows remain unchanged or pass existing validators if touched;
 3. run repository CI/control-plane validation;
-4. run MCP discovery/startup probe and record supported/negotiated protocol lifecycle where observable;
-5. run positive + negative behavioral selection cases;
-6. run the bounded fresh-session/reload stability slice;
-7. verify read-only MCP surface and absence of duplicate retrieval implementation;
-8. inspect whole diff for prompt/policy duplication;
-9. use independent review when material;
-10. reconcile Issue #7 criterion-by-criterion;
-11. add a bounded evidence comment to #16 explaining what capability is now available to the broader research workflow;
-12. add a routing observation to #8 only if this run yields useful general execution-routing evidence.
+4. confirm the normal Codex/OpenAI provider path and applicable evidence-export permission are usable;
+5. run MCP discovery/startup probe and record supported/negotiated protocol lifecycle where observable;
+6. run positive + negative behavioral selection cases through the intended provider;
+7. run the bounded fresh-session/reload stability slice;
+8. verify read-only MCP surface and absence of duplicate retrieval/local-model implementation;
+9. inspect whole diff for prompt/policy duplication;
+10. use independent review when material;
+11. reconcile Issue #7 criterion-by-criterion;
+12. add a bounded evidence comment to #16 explaining what capability is now available to the broader research workflow;
+13. add a routing observation to #8 only if this run yields useful general execution-routing evidence.
 
 # Stop / escalation conditions
 
 Stop or narrow rather than adding machinery if:
 
 - Codex MCP transport support differs from assumptions;
+- the normal Codex/OpenAI provider path is unavailable or evidence-export policy prevents the intended acceptance run;
 - per-agent MCP permissions are unavailable;
 - behavioral tool selection cannot be observed reliably;
+- a proposed fix starts repairing/configuring Ollama or another local model for this Issue;
 - a proposed new skill only wraps MCP tools;
 - a proposed config helper duplicates standard Codex configuration;
 - a change starts duplicating Wiki/OpenScience retrieval/reasoning;
@@ -386,4 +428,4 @@ Stop or narrow rather than adding machinery if:
 
 # Definition of done
 
-Issue #7 is complete when the actual local Codex runtime can discover and use the Wiki Scientific Evidence MCP through the minimal read-only surface, appropriate parent/Feynman/reviewer paths select it for real literature-grounded tasks and avoid it for contrastive local-only tasks, provenance and insufficiency semantics survive end-to-end, the bounded fresh-session/reload stability check passes, MCP transport/protocol failure is handled honestly, no duplicate scientific search/reasoning layer exists in `codex-chatpgt`, and the accepted capability boundary remains portable as `scientific-literature-evidence -> wiki-evidence/v1`.
+Issue #7 is complete when the actual local Codex runtime using the normal intended Codex/OpenAI provider can discover and use the Wiki Scientific Evidence MCP through the minimal read-only surface, appropriate parent/Feynman/reviewer paths select it for real literature-grounded tasks and avoid it for contrastive local-only tasks, provenance and insufficiency semantics survive end-to-end, the bounded fresh-session/reload stability check passes, MCP transport/protocol failure remains distinct from Codex/provider/data-policy failure and Wiki evidence gaps, no local-model fallback or duplicate scientific search/reasoning layer exists in `codex-chatpgt`, and the accepted capability boundary remains portable as `scientific-literature-evidence -> wiki-evidence/v1`.
