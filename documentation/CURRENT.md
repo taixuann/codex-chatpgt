@@ -230,3 +230,6 @@ The isolated no-skill Codex baseline completed read-only without loading a skill
 
 
 The newest approved bounded local Wiki export returned 5 `wiki-evidence/v1` synthesis items across 4 distinct source IDs with no gaps using `hybrid` retrieval (`bm25`, `lexical_fallback`). The validator reported immutable sources unchanged and no live knowledge changes; only metadata and repository-relative provenance were retained.
+
+
+A fresh OpenCode model-execution attempt on a synthetic skill was rejected by the host privacy guard before execution; direct OpenCode behavior remains `NOT_ASSESSED`, while no-model catalog and precedence evidence remains valid.
