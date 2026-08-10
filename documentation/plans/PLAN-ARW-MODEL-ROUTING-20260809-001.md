@@ -99,6 +99,156 @@ A minimal OpenCode execution adapter, if proven necessary, owns only:
 
 It does not own architecture decisions, canonical acceptance, persistent memory, GitHub truth, general scheduling, or self-evolution.
 
+# Information ownership and access model
+
+Do not use `codex-chatpgt/documentation/` as a dump for all execution/runtime information.
+
+Use five distinct information owners:
+
+```text
+1. codex-chatpgt / GitHub
+   = canonical durable coordination and accepted state
+
+2. local control-plane runtime state
+   = machine-specific bookkeeping and indexes
+
+3. OpenCode
+   = actual execution-session history and message/diff/event state
+
+4. AgentMemory
+   = cross-session historical experience and reusable lessons
+
+5. target project repositories
+   = actual code/data/project truth and Git history
+```
+
+## Canonical GitHub state
+
+`codex-chatpgt` should retain only durable reviewed semantics and accepted evidence, such as:
+
+- routing policy;
+- execution-lane semantics;
+- session reuse/fork/fresh rules;
+- model-tier policy;
+- validation and fallback contracts;
+- Issue / PLAN / PR links;
+- accepted runtime limitations or decisions.
+
+Do not commit machine-specific runtime noise such as:
+
+- OpenCode session IDs;
+- local absolute paths;
+- per-run latency samples;
+- raw model responses;
+- every tool event;
+- local session registries;
+- transient execution logs.
+
+## Local runtime index
+
+Machine/runtime bookkeeping belongs in ignored local state, not canonical Git state.
+
+A minimal session registry may map:
+
+```text
+(repo, objective, lane)
+-> session_id
+-> model/provider attribute
+-> last_used / status
+```
+
+A minimal append-only run record may store per invocation:
+
+```text
+run_id
+repo / objective
+executor
+session_id
+session_action: reuse | fork | fresh
+requested model
+actual model where observable
+status
+changed surface
+validation result
+parent disposition
+```
+
+Prefer JSON/JSONL or another simple local format before considering SQLite. Do not mirror transcripts, embeddings, or repository content into this runtime index.
+
+The actual path is a local implementation detail to probe before creation. Do not canonize a path merely because an example uses `~/.local/state/...`.
+
+## OpenCode session ownership
+
+OpenCode itself should remain the owner of actual execution-session content:
+
+```text
+session id
+-> messages
+-> tool events
+-> diffs
+-> compaction/session history
+```
+
+Do not copy raw OpenCode transcripts into `codex-chatpgt` for continuity. Use explicit session IDs and the runtime/API/CLI to retrieve deeper execution context only when needed.
+
+## AgentMemory ownership
+
+AgentMemory owns reusable historical experience such as:
+
+- recurring runtime failures;
+- useful implementation lessons;
+- routing outcomes;
+- repeated workarounds;
+- material executor/model observations.
+
+It is not a per-run telemetry database and must not become the canonical OpenCode session registry.
+
+## Target project truth
+
+The target project repository remains authoritative for the actual implementation state:
+
+```text
+code / data / tests / Git history / PR
+```
+
+The control plane should reference accepted outcome evidence, not mirror every project diff or artifact into `codex-chatpgt`.
+
+# Progressive context access
+
+The parent should retrieve information according to the question rather than loading every store at session start:
+
+```text
+What is currently accepted?
+-> CURRENT / DECISIONS / Issue / PLAN / live Git
+
+Which execution session belongs to this objective?
+-> local runtime session registry / OpenCode session list
+
+What exactly happened in that execution?
+-> OpenCode session/messages/diff/events
+
+Have we encountered this problem before?
+-> targeted AgentMemory recall
+
+What actually exists in the project?
+-> target project repository/runtime
+```
+
+This is an access policy, not a requirement to build a new aggregate database.
+
+A future convenience command may present one context view that joins pointers from these owners, for example:
+
+```text
+objective context view
+|- canonical Issue / PLAN / status
+|- active OpenCode session pointer
+|- latest bounded execution result
+|- relevant memory lessons
+`- target-repo state pointer
+```
+
+Such a command is eligible only if repeated use proves value. It should remain a view over existing owners, not become a new source of truth.
+
 # Directory affinity
 
 OpenCode execution must never depend on whatever shell directory the caller happens to occupy.
@@ -244,34 +394,41 @@ Advertised features are hypotheses until the installed runtime proves them.
 1. Inspect the installed OpenCode runtime, global/project config, commands, agents, skills/plugins, MCP wiring, and model/provider inventory.
 2. Determine whether a suitable existing command/skill/helper already performs bounded external execution.
 3. Reconcile the `external-handoff` bundled-runner wording with the actual checked-in contents; fix the contract only if runtime/repository evidence confirms the intended behavior.
-4. Do not mutate global configuration merely to make the architecture diagram prettier.
+4. Inventory where OpenCode stores session state and which API/CLI surface can recover session IDs/messages/diffs without a duplicate mirror.
+5. Inventory existing local control-plane state owners before creating any session registry or run log.
+6. Do not mutate global configuration merely to make the architecture diagram prettier.
 
 # Phase B — first bounded execution lane
 
-5. Select one representative real task with strong deterministic validation.
-6. Route it intentionally among shell vs Codex vs OpenCode and record why OpenCode adds value.
-7. Execute OpenCode with explicit repo root, explicit model, explicit session policy, and bounded task contract.
-8. Record actual session ID, requested vs actual model/runtime route where observable, changed surface, validation result, latency/cost indicators where observable, and parent acceptance outcome.
+7. Select one representative real task with strong deterministic validation.
+8. Route it intentionally among shell vs Codex vs OpenCode and record why OpenCode adds value.
+9. Execute OpenCode with explicit repo root, explicit model, explicit session policy, and bounded task contract.
+10. Record actual session ID, requested vs actual model/runtime route where observable, changed surface, validation result, latency/cost indicators where observable, and parent acceptance outcome.
+11. Keep raw execution/session content in OpenCode; write only minimal ignored local bookkeeping needed to recover the session and recent run result.
 
 # Phase C — session/model affinity proof
 
-9. Continue the same logical objective in the same session and measure whether reuse reduces reconstruction/context overhead without importing stale state.
-10. Exercise one fork/fresh case for changed objective, model escalation, or independent judgment.
-11. Confirm directory affinity by demonstrating that a call from an unrelated caller cwd still executes against the explicit intended repo root.
-12. Record prompt/cache behavior only if surfaced by the provider/runtime; otherwise mark it unobservable rather than inferred.
+12. Continue the same logical objective in the same session and measure whether reuse reduces reconstruction/context overhead without importing stale state.
+13. Exercise one fork/fresh case for changed objective, model escalation, or independent judgment.
+14. Confirm directory affinity by demonstrating that a call from an unrelated caller cwd still executes against the explicit intended repo root.
+15. Confirm that session lookup works from the local pointer/index plus OpenCode runtime without consulting canonical documentation for machine-specific state.
+16. Record prompt/cache behavior only if surfaced by the provider/runtime; otherwise mark it unobservable rather than inferred.
 
 # Phase D — acceleration / parallelism proof
 
-13. Exercise one independent parallel candidate where OpenCode can work while the parent or deterministic tooling performs another independent branch.
-14. Compare elapsed/coordination cost qualitatively or quantitatively against sequential parent-only execution.
-15. Reject parallelism explicitly if join/coordination cost exceeds the benefit.
+17. Exercise one independent parallel candidate where OpenCode can work while the parent or deterministic tooling performs another independent branch.
+18. Compare elapsed/coordination cost qualitatively or quantitatively against sequential parent-only execution.
+19. Reject parallelism explicitly if join/coordination cost exceeds the benefit.
+20. Confirm that parent synthesis can retrieve deeper execution evidence from OpenCode on demand rather than ingesting the entire session into its context.
 
 # Phase E — packaging decision
 
-16. Decide `NO NEW COMPONENT`, `SMALL ADAPTER`, or `ADAPTER + QUALIFIED SKILL/COMMAND`.
-17. Prefer no new component when explicit CLI/runtime controls plus existing task/external-handoff semantics are sufficient.
-18. If a small adapter is justified, keep its contract executor-neutral where practical so future harnesses can reuse the semantic routing boundary without forcing a plugin framework.
-19. Do not create a long-running routing service unless repeated evidence demonstrates process-start/session-resolution overhead is materially important and a persistent OpenCode server actually improves it.
+21. Decide `NO NEW COMPONENT`, `SMALL ADAPTER`, or `ADAPTER + QUALIFIED SKILL/COMMAND`.
+22. Prefer no new component when explicit CLI/runtime controls plus existing task/external-handoff semantics are sufficient.
+23. If a small adapter is justified, keep its contract executor-neutral where practical so future harnesses can reuse the semantic routing boundary without forcing a plugin framework.
+24. If local runtime bookkeeping is required, keep it ignored, minimal, reconstructable where practical, and separate from canonical documentation.
+25. Do not create a long-running routing service unless repeated evidence demonstrates process-start/session-resolution overhead is materially important and a persistent OpenCode server actually improves it.
+26. Do not create a new aggregate context database; if a unified context command is useful, implement it as a read-only view over existing owners.
 
 # Validation matrix
 
@@ -281,6 +438,8 @@ Advertised features are hypotheses until the installed runtime proves them.
 | Runtime | exact OpenCode version and actual supported controls recorded |
 | Directory | explicit intended repo root used independent of caller cwd |
 | Session | explicit reuse plus one fork/fresh case observed |
+| Session ownership | raw execution history remains in OpenCode rather than copied into canonical docs |
+| Runtime index | any local session/run bookkeeping is ignored, minimal, and not treated as canonical truth |
 | Model | requested vs actual model route recorded where observable |
 | Validation | bounded task output deterministically checked |
 | Economics | at least one case tests whether cheaper/faster execution is acceptable under strong validation |
@@ -288,7 +447,9 @@ Advertised features are hypotheses until the installed runtime proves them.
 | Fallback | invalid/unsupported executor/model/session control degrades predictably |
 | Parent authority | architecture and final acceptance remain with parent |
 | Memory | AgentMemory may observe execution but is not canonical session registry or truth |
-| Packaging | no workflow/router service/agent created without repeated evidence |
+| Project truth | target repository remains authoritative for actual code/data/project state |
+| Progressive access | deeper OpenCode/AgentMemory context is retrieved only when relevant rather than bootstrapped wholesale |
+| Packaging | no workflow/router service/agent/aggregate context database created without repeated evidence |
 
 # Stop conditions
 
@@ -300,8 +461,9 @@ Stop or fall back to Codex/main when:
 - validation is too weak for the consequence of the task;
 - session reuse imports materially stale/conflicted context;
 - coordination overhead exceeds the acceleration benefit;
+- runtime bookkeeping begins duplicating OpenCode sessions, AgentMemory, or project Git truth;
 - packaging pressure starts creating a second orchestration framework.
 
 # Definition of done
 
-Issue #8 has a proven execution-routing slice when a real bounded task demonstrates that OpenCode can be selected intentionally as a secondary executor with explicit directory, model, and session affinity; its result is independently validated; reuse/fork/fresh semantics are evidenced; fallback to Codex remains clean; and the final implementation is no larger than the runtime evidence justifies.
+Issue #8 has a proven execution-routing slice when a real bounded task demonstrates that OpenCode can be selected intentionally as a secondary executor with explicit directory, model, and session affinity; its result is independently validated; reuse/fork/fresh semantics are evidenced; runtime execution history remains owned by OpenCode; only minimal local pointers/bookkeeping are introduced where needed; canonical GitHub retains durable accepted semantics rather than runtime exhaust; progressive context retrieval works; fallback to Codex remains clean; and the final implementation is no larger than the runtime evidence justifies.
