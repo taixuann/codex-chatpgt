@@ -181,3 +181,6 @@ work remains separately gated by its own runtime evidence.
 ## Latest skill-system runtime boundary
 
 The isolated no-skill Codex baseline completed read-only without loading a skill procedure. The matching private-skill run was rejected by the host privacy guard because provider export was not explicitly authorized; real-skill baseline lift remains `NOT_ASSESSED`. Synthetic fixture evidence remains bounded and does not close the runtime gate.
+
+
+The newest approved bounded local Wiki export returned 5 `wiki-evidence/v1` synthesis items across 4 distinct source IDs with no gaps. The validator confirmed immutable sources unchanged and no live knowledge changes; only metadata and repository-relative provenance were retained. This remains supplementary local evidence and does not alter the conditional host-runtime boundary.
