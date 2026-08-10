@@ -685,3 +685,14 @@ project-local skill, select it among a co-loaded sibling, and stay quiet on a
 clear negative. It is a synthetic routing fixture, not a claim of utility
 lift for a real #35 skill; the real-skill `baseline_delta` and hidden
 catalog-wide co-loaded behavior therefore remain `NOT_ASSESSED`.
+
+Rerun provenance for this slice is compact and disposable: Codex CLI
+`0.146.0`, `-s read-only`, `--ephemeral`, `--ignore-user-config`, and
+`--skip-git-repo-check`; baseline additionally used `--disable skill_search`.
+Fixture hashes were `probe-skill/SKILL.md` =
+`1e4864e11282d37396fa45b95342c72ddf2e94c92df194550cc3be636fe0eca5`,
+`neighbor-skill/SKILL.md` =
+`cf46cfef7bafef27b08de56ae80cebce846919040cf28eb09bb9f8e04567b482`, and
+`input.txt` = `71f895124b66f9c026c68e643dd1216a4f488a610e29436e3d32c0f112fff027`.
+The fixture was outside the repository and was not retained as an active
+skill package.
