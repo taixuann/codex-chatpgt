@@ -14,6 +14,16 @@ Extract stable control-plane semantics from the proven Codex-first implementatio
 
 Require completed core behavior (#2/#5/#6), project proof (#10), and enough routing evidence to distinguish canonical semantics from temporary Codex runtime details.
 
+## Current evidence boundary — 2026-08-10
+
+OpenCode catalog probes provide adapter-level path, ID, and precedence
+observations, but the external OpenCode overlay still contains
+`franky-workflow-manager` and `franky-install-workflow` entries. This
+repository does not own that overlay, and no mutation is authorized by this
+PLAN. Cross-runtime workflow retirement, activation, permission enforcement,
+and behavioral equivalence therefore remain deferred until a separately
+authorized #12 portability slice has an owner and a representative task.
+
 # Execution phases
 
 1. Inventory which current contracts are semantic vs Codex-specific.
