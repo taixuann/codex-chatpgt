@@ -139,7 +139,11 @@ Current readiness:
   Codex does not expose richer adapter/model identity or separate
   Feynman/Athena selection traces, so those role-specific host details remain
   conditional. No duplicate retrieval layer or wrapper skill was added, and
-  the historical Ollama fallback remains out of scope.
+  the historical Ollama fallback remains out of scope. A 2026-08-10 bounded
+  re-probe independently confirmed the local `wiki-evidence/v1` packet (five
+  evidence items, four source IDs, no gaps); its fresh host-mediated call was
+  selected once but cancelled before return and is therefore recorded as
+  `NOT_ASSESSED/BLOCKED`, not as new acceptance evidence.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
 - **#24** — control-plane quality hardening is accepted through PR #30
   (`c559f9a`). Franky authority is explicitly scoped to the control plane,

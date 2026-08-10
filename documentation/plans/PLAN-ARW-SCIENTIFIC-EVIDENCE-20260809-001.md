@@ -405,6 +405,34 @@ are evidenced. The remaining limitation is host observability: Codex does not
 expose richer adapter/model metadata or a separate Feynman/Athena selection
 trace, so those boundaries remain policy-level rather than runtime-proven.
 
+## Latest bounded export re-probe — 2026-08-10
+
+The user explicitly approved a bounded Wiki evidence export for this probe.
+The local read-only CLI path was exercised with one synthesis query and
+returned the following metadata without exporting the corpus or committing
+source excerpts:
+
+```yaml
+contract_version: wiki-evidence/v1
+intent: synthesis
+evidence_count: 5
+source_ids:
+  - sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md
+  - sources/raw/markdown/wang2019-surface-diffusion.md
+  - sources/raw/markdown/lee2016-tuning-ionic-transport.md
+  - sources/raw/markdown/europepmc_PMID_32973166.md
+gaps: []
+```
+
+The normal Codex/OpenAI host was then invoked with the same single-query,
+read-only constraint. Codex selected exactly one `wiki.query` call, but the
+host cancelled the MCP call before a packet was returned; the runtime also
+reported MCP startup `No such file or directory`. This is recorded as
+`NOT_ASSESSED/BLOCKED` for this fresh host attempt, not as a Wiki retrieval or
+provider success. The earlier accepted host-mediated slice above remains the
+active Issue #7 evidence; this re-probe does not replace it and does not
+justify a local-model fallback.
+
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
