@@ -512,6 +512,40 @@ unchanged, no live knowledge changes). This is local Wiki evidence only; it
 does not replace the previously accepted Codex/OpenAI model-mediated slice or
 upgrade the separate host retry recorded above.
 
+### Latest approval-confirmed export and host retry — 2026-08-10
+
+The user approved the bounded export again for this probe. The canonical local
+Wiki CLI was run once with the same read-only synthesis question. Only packet
+metadata and repository-relative source IDs were retained; no evidence text,
+corpus files, or Wiki knowledge files were copied into `codex-chatpgt`.
+
+```yaml
+contract_version: wiki-evidence/v1
+intent: synthesis
+evidence_count: 5
+distinct_source_count: 3
+gaps: []
+sufficiency: sufficient
+retrieval_mode: hybrid
+methods: [bm25, lexical_fallback]
+```
+
+The distinct returned source IDs were:
+
+```text
+candidates/applications/hiruma-2019-bioinspired-protonic-memristor-devices.md
+sources/notes/li-2022-pda-memristor-green.md
+sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md
+```
+
+The Wiki contract validator passed (`passed: true`), with immutable raw
+sources unchanged and no live knowledge changes. A fresh normal
+Codex/OpenAI host retry selected exactly one `wiki.query` call, but the host
+cancelled the MCP call before a packet was returned. The host result is
+therefore `NOT_ASSESSED/BLOCKED` for this retry and does not replace the
+previously accepted model-mediated evidence or justify a local-model
+fallback.
+
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
