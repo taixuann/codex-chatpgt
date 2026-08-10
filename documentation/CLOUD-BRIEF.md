@@ -176,3 +176,8 @@ nodes, 6 edges) and a 16-file before/after hash check found no project
 mutation; this remains conditional evidence until the upstream runtime gates
 are observed. Future portability, research, memory, and project-inheritance
 work remains separately gated by its own runtime evidence.
+
+
+## Latest skill-system runtime boundary
+
+The isolated no-skill Codex baseline completed read-only without loading a skill procedure. The matching private-skill run was rejected by the host privacy guard because provider export was not explicitly authorized; real-skill baseline lift remains `NOT_ASSESSED`. Synthetic fixture evidence remains bounded and does not close the runtime gate.
