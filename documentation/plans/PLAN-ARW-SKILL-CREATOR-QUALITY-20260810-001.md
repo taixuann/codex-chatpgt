@@ -723,3 +723,8 @@ marker_sha256: 6c0e165283df90f90103524f4dda951e09f877594634fc59be71d719faa81b2c
 ### Latest OpenCode provider/privacy boundary — 2026-08-10
 
 A fresh attempt to run a synthetic project-local skill through OpenCode with the configured free provider was rejected by the host privacy guard before execution because the selected agent/configuration and loaded skill content could be exported to the provider without explicit authorization. This does not alter the no-model catalog/precedence evidence; direct OpenCode behavior remains `NOT_ASSESSED`.
+
+
+### Supplemental project-local #35 utility probe — 2026-08-10
+
+A disposable fixture staged an exact project-local copy of the real `franky-guidance-manager` package under `.agents/skills/`, alongside a no-skill baseline fixture. The baseline was invoked with `CODEX 0.146.0`, `--ignore-user-config`, `--disable skill_search`, `--ephemeral`, and read-only sandboxing. With network access enabled, the normal provider returned `401 Unauthorized` before model execution because no bearer authentication was available in the isolated runtime. The matching project-local run was therefore not attempted; no utility, baseline delta, or skill activation claim is made. The fixture and copied package were temporary and were not added to the repository. This is provider authentication evidence, `NOT_ASSESSED`, not a skill failure and not a reason to export the private global catalog.
