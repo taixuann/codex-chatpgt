@@ -96,9 +96,9 @@ jobs:
         id: project_link
         run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/install-project-link/tests -v
 
-      - name: Validate skill-routing fixture tests
+      - name: Validate maintenance skill tests
         id: routing_tests
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/franky-maintenance/tests -p 'test_skill_routing.py' -v
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/franky-maintenance/tests -v
 
       - name: Validate Git allowlist
         id: allowlist
