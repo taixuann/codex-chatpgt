@@ -513,6 +513,11 @@ the fixture hashes were unchanged; this upgrades OpenCode **activation smoke
 evidence** to `SMOKE_PASS` but leaves behavioral utility and permission
 enforcement **NOT_ASSESSED**.
 
+After the #35 retirement was merged, a fresh Codex `0.146.0` read-only startup
+probe returned `PROBE_OK`. It emitted only the previously observed stale model
+cache schema and rollout-state fallback warnings; no missing
+`franky-workflow-organizer` or malformed tracked-skill warning appeared.
+
 ### Phases F–G — trigger and behavioral evidence
 
 The static routing fixture covers direct positive, adjacent negative,
@@ -522,9 +527,12 @@ guidance fixture selected `franky-guidance-manager`, inspected the scoped
 instruction chain, and returned a bounded review without writes. This is
 `BEHAVIORAL_PASS` for the with-skill path.
 
-An independent no-skill baseline could not be isolated: `--ignore-user-config`
-still loaded the host skill root. Baseline delta, co-loaded activation, and
-hidden trigger selection are therefore **NOT_ASSESSED**, not a claimed lift.
+An independent no-skill baseline could not be isolated. Both
+`--ignore-user-config` and an explicit `--disable skill_search` run still loaded
+the host `franky-guidance-manager` procedure, so the same natural prompt does
+not provide a valid no-skill counterfactual. Baseline delta, co-loaded
+activation, and hidden trigger selection are therefore **NOT_ASSESSED**, not a
+claimed lift.
 
 ### Phase H — safety and dependencies
 
