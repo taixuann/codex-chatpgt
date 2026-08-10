@@ -728,3 +728,15 @@ A fresh attempt to run a synthetic project-local skill through OpenCode with the
 ### Supplemental project-local #35 utility probe — 2026-08-10
 
 A disposable fixture staged an exact project-local copy of the real `franky-guidance-manager` package under `.agents/skills/`, alongside a no-skill baseline fixture. The baseline was invoked with `CODEX 0.146.0`, `--ignore-user-config`, `--disable skill_search`, `--ephemeral`, and read-only sandboxing. With network access enabled, the normal provider returned `401 Unauthorized` before model execution because no bearer authentication was available in the isolated runtime. The matching project-local run was therefore not attempted; no utility, baseline delta, or skill activation claim is made. The fixture and copied package were temporary and were not added to the repository. This is provider authentication evidence, `NOT_ASSESSED`, not a skill failure and not a reason to export the private global catalog.
+
+
+### Approved project-local #35 with-vs-without probe — 2026-08-10
+
+With the user's explicit approval, the exact `franky-guidance-manager` package was copied into a disposable project-local `.agents/skills/` fixture so the provider could receive only the bounded probe package, not the private global catalog. Both runs used authenticated Codex `0.146.0`, `--ignore-user-config`, `--ephemeral`, `-s read-only`, and `--skip-git-repo-check`.
+
+| Run | Observable result |
+| --- | --- |
+| Without skill | Read `AGENTS.md`, `target/AGENTS.md`, and `target/target.txt`; returned `task_completed: true`, `skill_used: none`, `writes_performed: false`. |
+| With project-local #35 skill | Loaded `.agents/skills/franky-guidance-manager/SKILL.md`, inspected the same chain, returned `skill_used: franky-guidance-manager`, `decision: no_change`, `writes_performed: false`. |
+
+This is `BEHAVIORAL_PASS` for a bounded real-skill with-vs-without counterfactual and demonstrates the skill adds an explicit no-change/precedence decision on the same task. It is not a catalog-wide utility estimate, cost benchmark, or proof of private global-skill export; the fixture was temporary and no files were written.
