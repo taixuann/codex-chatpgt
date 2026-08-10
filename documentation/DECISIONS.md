@@ -1,7 +1,7 @@
 ---
 id: DECISIONS-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-09
+updated: 2026-08-10
 ---
 
 # Architecture decisions
@@ -115,3 +115,16 @@ dispatcher, persisted state, recovery/resume implementation, or independent
 consumer was found. `workflows/AGENTS.md` remains the admission policy for a
 future real machine workflow. Issue/PLAN/task contracts and retained skills
 are the active routing surface; no replacement workflow engine is introduced.
+
+## D-010 — Runtime catalog evidence is conditional, not semantic authority
+
+The 2026-08-10 Codex/OpenCode probes are accepted as runtime catalog evidence
+only. Codex exposed 86 entries / 58 unique public names with duplicate-name
+groups; OpenCode exposed 89 effective entries / 89 unique IDs. OpenCode's
+read-only synthetic probe confirmed configured-path discovery and
+project-local shadowing for a colliding ID; toggling external-skill scan flags
+kept the ID count stable while changing the source root for nine entries.
+
+These observations inform routing and overlay audits but do not establish
+model-mediated activation, permission enforcement, or cross-runtime behavioral
+equivalence. Those gates remain `NOT_ASSESSED`/conditional under #38 and #35.
