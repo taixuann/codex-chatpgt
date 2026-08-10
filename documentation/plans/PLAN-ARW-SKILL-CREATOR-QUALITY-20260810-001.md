@@ -583,7 +583,7 @@ runtime_discovery: CONDITIONAL_PASS
 trigger_isolated: STATIC_PASS
 trigger_coloaded: BEHAVIORAL_PASS (bounded synthetic fixture; catalog-wide remains NOT_ASSESSED)
 behavioral_utility: BEHAVIORAL_PASS
-baseline_delta: NOT_ASSESSED (real #35 skill; synthetic path comparison only)
+baseline_delta: BEHAVIORAL_PASS (bounded project-local real #35 copy; catalog-wide utility remains NOT_ASSESSED)
 efficiency: NOT_ASSESSED
 portability: PORTABLE_WITH_ADAPTER / NOT_PROVEN
 freshness_tested_against: Codex-0.146.0; OpenCode-1.18.15; 2026-08-10 catalog
