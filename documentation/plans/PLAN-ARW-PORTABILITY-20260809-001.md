@@ -34,6 +34,61 @@ authorized #12 portability slice has an owner and a representative task.
 6. Run one representative task through both mappings and document unsupported differences.
 7. Keep packaging/distribution mechanics separate from capability semantics.
 
+## Bounded external handoff — OpenCode overlay (NOT_EXECUTED)
+
+This is a handoff contract, not authorization to mutate the external
+OpenCode control plane.
+
+```yaml
+executor_scope: external OpenCode configuration owner
+canonical_codex_role: Franky
+workflow: issue-12-portability-overlay-audit
+target_root: /Users/tai/.config/opencode
+target_branch: main
+observed_head: 808cda6
+state: dirty_and_unresolved
+approval_owner: user/maintainer
+status: NOT_EXECUTED
+```
+
+### Read-only scope
+
+Inspect only the effective catalog and the following relevant paths:
+
+```text
+/Users/tai/.config/opencode/AGENTS.md
+/Users/tai/.config/opencode/skills/workflow-manager/SKILL.md
+/Users/tai/.config/opencode/skills/install-workflow/SKILL.md
+/Users/tai/.config/opencode/skills/ai-labs/franky.install/install-workflow/SKILL.md
+```
+
+The observed catalog contains `franky-workflow-manager` and
+`franky-install-workflow`, which overlap the repository-level retired
+workflow surface. The external checkout is already dirty, including modified
+runtime/config files and untracked skill trees; do not reset, clean, stash,
+delete, or overwrite any of that state.
+
+### Required approval before mutation
+
+The external executor must obtain fresh confirmation of the exact repository,
+branch, and intended paths before any write. No mutation is currently allowed.
+If later approved, the executor must first create a non-destructive
+before-state manifest and an owner-approved rollback target; `808cda6` is not
+itself a safe rollback target while the worktree is dirty.
+
+### Expected handoff evidence
+
+- pre/post `git status --short` and exact commit SHA;
+- effective `opencode debug skill --pure` name/location manifest;
+- consumer/overlap decision for each workflow skill;
+- explicit keep, move-on-demand, or retire outcome;
+- validation output and a reversible rollback description;
+- confirmation that no credentials, project contents, or unrelated dirty files
+  were read into the handoff or changed.
+
+Until those conditions are met, cross-runtime workflow retirement remains
+`NOT_ASSESSED` and this Codex repository remains the only mutation surface.
+
 # Validation
 
 - same semantic task survives both adapters;
