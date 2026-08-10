@@ -620,6 +620,11 @@ workflow engine, or general evaluation platform.
   private skill/config content to the provider without a separate data-export
   approval. Existing prior with-skill evidence remains unchanged; this audit
   does not upgrade `baseline_delta` or co-loaded activation.
+- A fresh installed-creator rerun on 2026-08-10 invoked
+  `skills/.system/skill-creator/scripts/quick_validate.py` for every tracked
+  control-plane package. All **10/10** packages returned `Skill is valid!`.
+  This is deterministic package validation only and does not upgrade the
+  provider-gated runtime fields above.
 - OpenCode `1.18.15` was invoked in the same fixture with `--pure --agent
 -  build --model opencode/gpt-5.6-terra --format json`. It returned a provider
   `401 CreditsError` (no payment method) before a final response. A fresh

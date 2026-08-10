@@ -780,6 +780,13 @@ This matrix is the current evidence-backed reconciliation after the #38
 creator gate. It distinguishes the package disposition from whether a future
 semantic replacement has earned a new runtime-visible name.
 
+The current matrix rerun found 10 tracked package names with no omissions;
+the additional `franky-workflow-organizer` row is an explicit retired-package
+disposition. The repository has zero tracked workflow YAML files, and the
+retirement block below contains 17 historical workflow paths. These counts are
+structural evidence only; runtime activation and cross-runtime retirement stay
+under their stated gates.
+
 ### Current local skill disposition
 
 | Current package | Disposition | Semantic owner/result | Evidence and boundary |
