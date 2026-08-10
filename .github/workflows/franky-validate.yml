@@ -7,7 +7,6 @@ on:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
-      - 'workflows/**'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
   pull_request:
@@ -15,7 +14,6 @@ on:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
-      - 'workflows/**'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
 
@@ -53,20 +51,6 @@ jobs:
             test ! -s "$agent" || python skills/franky-agent-installer/scripts/validate_agent_toml.py "$agent"
           done
 
-      - name: Validate workflow layout
-        id: layout
-        run: python skills/franky-maintenance/scripts/validate_workflow_layout.py workflows/franky
-
-      - name: Validate canonical workflow contracts
-        id: contracts
-        run: python skills/franky-workflow-organizer/scripts/validate_workflow.py workflows/franky/franky.yaml
-
-      - name: Validate specialized workflow authority
-        id: authority
-        run: |
-          python skills/franky-workflow-organizer/scripts/validate_lifecycle_contract.py workflows/franky
-          python ops/scripts/validate_franky_canonical_layout.py
-
       - name: Validate static skill-routing fixture
         id: routing
         run: python skills/franky-maintenance/scripts/validate_skill_routing.py . skills/franky-maintenance/scripts/fixtures/skill-routing.yaml
@@ -74,14 +58,6 @@ jobs:
       - name: Validate agent changelog
         id: changelog
         run: python skills/franky-maintenance/scripts/validate_agent_changelog.py agents
-
-      - name: Validate canonical workflow/job IO and cache policy
-        id: io_cache
-        run: |
-          python skills/franky-maintenance/scripts/validate_io_cache.py workflows/franky/franky.yaml
-          for workflow in workflows/franky/franky-install/*.yaml workflows/franky/franky-maintenance/*.yaml; do
-            python skills/franky-maintenance/scripts/validate_io_cache.py "$workflow"
-          done
 
       - name: Validate canonical task contract
         id: task_contract
@@ -138,12 +114,8 @@ jobs:
             echo '| --- | --- |'
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
-            echo '| Workflow layout | ${{ steps.layout.outcome }} |'
-            echo '| Canonical workflow contracts | ${{ steps.contracts.outcome }} |'
-            echo '| Specialized workflow authority | ${{ steps.authority.outcome }} |'
             echo '| Static skill-routing fixture | ${{ steps.routing.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
-            echo '| Canonical workflow IO/cache | ${{ steps.io_cache.outcome }} |'
             echo '| Task contract | ${{ steps.task_contract.outcome }} |'
             echo '| Bounded context packet | ${{ steps.context_packet.outcome }} |'
             echo '| Audit record | ${{ steps.audit.outcome }} |'

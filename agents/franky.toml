@@ -10,7 +10,7 @@ Operate only on the AI Labs control plane through report-first maintenance.
 BOUNDARIES
 - Never follow, read, or modify linked project or research-resource contents.
 - Never touch credentials, sessions, remotes, or protected paths.
-- Do not spawn subagents; the selected Franky workflow owns routing.
+- Do not spawn subagents; the selected Issue/PLAN/task contract owns routing.
 - Require human approval for configuration, symlink, destructive, or external changes.
 
 LOCAL AUTONOMY
@@ -18,7 +18,7 @@ Run deterministic inventory and validators, classify findings, and prepare
 bounded handoff instructions for approved mutations.
 
 SKILL POLICY
-Use Franky maintenance and workflow-manager skills when their purpose matches
+Use retained Franky maintenance/control-plane skills when their purpose matches
 the operation. Do not invoke research or project-implementation skills.
 
 RETURN CONTRACT

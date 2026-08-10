@@ -37,10 +37,10 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 - Architecture decisions: [`DECISIONS.md`](DECISIONS.md).
 - Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).
 - Runtime adapter contracts: [`agents/AGENTS.md`](../agents/AGENTS.md).
-- Active skill/workflow surface: [`../skills/`](../skills/) and [`../workflows/`](../workflows/). Retired Franky wrappers and proposal-only workflow families are no longer part of discovery.
-- Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml).
+- Active skill surface: [`../skills/`](../skills/); [`../workflows/AGENTS.md`](../workflows/AGENTS.md) is policy only. The unconsumed Franky machine-workflow tree and `franky-workflow-organizer` package are retired and no longer discoverable.
+- Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml); ordinary control-plane routing uses Issue/PLAN/task contracts rather than a machine workflow tree.
 - Historical change/audit evidence: [`../ops/changes/`](../ops/changes/). New ordinary work does not create a CHG wrapper unless a named consumer requires one.
-- Deterministic repository CI: [`../.github/workflows/franky-validate.yml`](../.github/workflows/franky-validate.yml), accepted through PR #18. It is path-filtered to control-plane/runtime surfaces, validates the canonical workflow surface rather than retired root files, resolves repository/local skills portably, permits unresolved optional external skills only on explicitly conditional steps, and leaves personal local-runtime scope checks outside hosted CI.
+- Deterministic repository CI: [`../.github/workflows/franky-validate.yml`](../.github/workflows/franky-validate.yml), accepted through PR #18 and retained after #35 reconciliation. It validates active agents, skills, task contracts, schedulers, focused tests, routing fixtures, context packets, audit records, and the Git allowlist; no retired workflow tree is treated as runtime authority.
 - The canonical task-contract schema is checked by
   [`../ops/scripts/validate_task_contract.py`](../ops/scripts/validate_task_contract.py)
   against the checked-in example under `ops/schemas/examples/` and by focused
@@ -90,7 +90,9 @@ Current readiness:
   uncertainties. Host-observable parent-resume/adapter traces remain
   unavailable, so the Issue is conditionally passed as v1 for deterministic
   behavior but remains open for host-level runtime acceptance.
-- **#14** — external-skill qualification may run in parallel now.
+- **#14** — the bounded external provenance/artifact/runtime-fit matrix is recorded in `PLAN-ARW-EXTERNAL-SKILLS-20260809-001.md`; installed Codex creator reuse is accepted and unqualified external catalogs remain reference/deferred.
+- **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. It is conditionally passed as the admission baseline; no-skill delta, co-loaded activation, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`.
+- **#35** — current skill dispositions and all seventeen retired Franky workflow YAMLs are recorded in `PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md`. The reconciliation is conditional until host-observable co-loaded and cross-runtime behavior exists; no new target skill zoo or workflow engine was created.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in
@@ -144,7 +146,7 @@ Current readiness:
   evidence items, four source IDs, no gaps); its fresh host-mediated call was
   selected once but cancelled before return and is therefore recorded as
   `NOT_ASSESSED/BLOCKED`, not as new acceptance evidence.
-- **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
+- **#13** — historical v1 rationalization remains provenance only; current skill-system work is governed by #38/#35.
 - **#24** — control-plane quality hardening is accepted through PR #30
   (`c559f9a`). Franky authority is explicitly scoped to the control plane,
   retained skill metadata/contracts are discriminative, scoped `AGENTS.md`
@@ -194,6 +196,7 @@ The current design intentionally preserves semantic distinctions while delaying 
 - no custom goal graph database;
 - no one-Issue-per-task policy;
 - no workflow-per-persona/tool;
+- no active machine workflow without a proven persisted-state consumer;
 - no mandatory memory layer;
 - no model-router platform before representative tasks;
 - no project lifecycle adapter unless real project evidence requires it;

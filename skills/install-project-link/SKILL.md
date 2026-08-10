@@ -31,4 +31,6 @@ contents, and never repair a link by guessing a new target.
 4. Re-read the result and report a reversible rollback command. Do not
    auto-heal a moved target without explicit approval.
 
-Refer to [AGENTS.md](file:///Users/tai/ai-labs/ops/skills/franky/install-project-link/AGENTS.md) for the complete file map and parameter guidance.
+Read the nearest applicable `AGENTS.md` plus the colocated script/test
+contracts for any additional file-map or parameter guidance. Do not treat an
+external workspace's path as portable package authority.

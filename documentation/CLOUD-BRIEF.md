@@ -11,8 +11,10 @@ branch: main
 ## Current objective
 
 Operate the reconciled Codex control plane with a small capability-first
-surface. Keep canonical role authority, generic handoffs/links, retained
-workflow contracts, task validation, and cloud handoff semantics explicit.
+surface. Keep canonical role authority, generic handoffs/links, task
+validation, and cloud handoff semantics explicit. Machine workflows remain
+policy-gated and are not active unless a real persisted-state consumer is
+proven.
 
 ## Current state
 
@@ -23,10 +25,10 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
 - Canonical roles remain Feynman, Prometheus, and Franky according to the AI
   Labs registry.
 - Argus and Athena are bounded non-canonical support adapters.
-- Retired Franky wrappers (`github-review`, `skill-installer`, `goal-session`,
-  `workflow-factory`, and the old external/project-link wrappers) are no longer
-  discoverable. Generic replacements and the retained deterministic workflow
-  validator remain.
+- Retired Franky wrappers and the unconsumed `workflows/franky/**` machine
+  workflow tree are no longer discoverable. `workflows/AGENTS.md` remains the
+  policy boundary; Issue/PLAN/task contracts and retained skills provide the
+  active routing surface.
 - Issue #19 now has a bounded file-first bootstrap implementation in PR #20:
   adaptive artifact maps, dry-run/explicit apply, brownfield-safe updates,
   immutable `data/raw/` handling, and external Wiki/OpenScience references.
@@ -77,6 +79,19 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   richer Feynman/Athena adapter/model traces are not exposed by Codex. No
   duplicate retrieval layer or wrapper skill was introduced, and the
   historical Ollama fallback remains out of scope.
+- Issue #14’s external qualification matrix is recorded with exact artifact
+  refs/licenses and runtime-fit findings. The installed Codex/OpenAI creator
+  is reused; Anthropic/OSS candidates remain reference/deferred.
+- Issue #38 is conditionally passed as the installed creator/admission gate.
+  It has one real Codex dogfood result (`franky-guidance-manager` ->
+  `instruction-maintenance` generalization), while no-skill baseline,
+  co-loaded selection, dynamic security, and direct OpenCode behavior remain
+  `NOT_ASSESSED`.
+- Issue #35 is conditionally reconciled: Tier 1 uses existing/generalized
+  procedures, Tier 2 is policy/reference/deferred unless measured, Tier 3 is
+  on-demand, and all seventeen unconsumed Franky machine workflows plus the
+  workflow-organizer package are retired. No registry, marketplace,
+  telemetry, dependency graph, or workflow engine was added.
 - Issue #9 is now **experimentally active** on the existing AgentMemory `0.9.28`
   service. The daemon runs zero-LLM/BM25-only with context injection and
   auto-compress off, and its MCP surface is explicitly limited to eight core
@@ -101,9 +116,11 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
 
 ## Validation evidence
 
-The reconciliation change is validated with the Franky allowlist, canonical
-layout, skill-interface, workflow-layout, audit-record, unit-test, and Git
-whitespace checks. The final commit and remote ref are recorded in Git history.
+The reconciliation change is validated with the Git allowlist, agent adapters,
+skill interfaces/quality, scheduler definition, static routing fixture, focused
+unit tests, YAML parsing, audit/context/task-contract checks, and Git whitespace
+checks. No workflow-layout pass is claimed after the machine workflow tree was
+retired. The final commit and remote ref are recorded in Git history.
 
 ## Next decision
 
