@@ -66,17 +66,17 @@ workflow contracts, task validation, and cloud handoff semantics explicit.
   independent-review disposition are recorded in the #6 review PLAN. This
   remains conditional only for host-runtime acceptance.
 - Issue #7’s production Wiki Scientific Evidence MCP is registered in the
-  local Codex runtime and its Wiki-side contract/read-only surface passes.
-  Codex discovery is confirmed, but no live evidence packet was returned in
-  the available probes because MCP approval and provider/DNS startup failed.
-  The registered stdio command itself returned valid `wiki-evidence/v1`
-  packets for grounded and insufficient queries in a direct JSON-RPC probe,
-  proving transport and abstention semantics but not model routing.
-  A local-provider Codex fallback was also attempted with `qwen3-14b`, but the
-  installed Ollama runtime lacks `llama-server`, so no model/tool-selection
-  trace was produced.
-  This is conditional registration/transport evidence, not Issue #7
-  completion; no duplicate retrieval layer or wrapper skill was introduced.
+  local Codex runtime and now has a bounded model-mediated acceptance slice.
+  With explicit user approval for the bounded export, fresh read-only
+  Codex/OpenAI sessions selected `wiki.query` exactly once for factual,
+  mechanism and comparison questions and preserved `wiki-evidence/v1`
+  provenance. An unknown query remained `insufficient` with
+  `abstain_or_verify`. Four local-only contrastive tasks and a fresh negative
+  reload recorded zero Wiki calls; a fresh positive reload returned the same
+  contract. The parent routing/stability boundary is accepted conditionally;
+  richer Feynman/Athena adapter/model traces are not exposed by Codex. No
+  duplicate retrieval layer or wrapper skill was introduced, and the
+  historical Ollama fallback remains out of scope.
 - Issue #9’s existing AgentMemory `0.9.28` runtime was reused for a bounded
   reconnaissance rather than installed or vendored. The local server was
   healthy and persistent across restart; targeted recall and an empty

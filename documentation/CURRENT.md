@@ -127,19 +127,19 @@ Current readiness:
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#7** — the production Wiki Scientific Evidence MCP is registered once in
-  the local global Codex configuration. Wiki-side contract, read-only surface,
-  four behavioral cases, portability, and repository validators pass. Codex
-  discovery is confirmed, but the available non-interactive/interactive probes
-  did not return a live evidence packet because MCP approval and provider/DNS
-  startup failed. A direct stdio JSON-RPC probe did return a valid
-  `wiki-evidence/v1` packet for both a grounded lookup and an insufficient
-  query, proving transport and abstention semantics but not model routing. A
-  network-enabled Codex retry was withheld by the data-export safety boundary.
-  An offline Codex fallback entered the local `qwen3-14b` provider session but
-  could not infer because the Ollama installation lacks `llama-server`; no
-  model/tool-selection trace was produced.
-  No duplicate retrieval layer or wrapper skill was added; host-runtime use
-  and routing remain conditional gates.
+  the local global Codex configuration. With the user's bounded data-export
+  approval, fresh read-only Codex/OpenAI sessions recorded one successful
+  `wiki.query` for factual lookup, mechanism and comparison cases, plus a
+  successful insufficient-evidence response (`abstain_or_verify`, one gap).
+  Four contrastive computation/plotting/fitting/coding sessions recorded zero
+  Wiki calls. A second fresh positive and negative pair reproduced the same
+  behavior. The event traces show no duplicate retrieval calls. The accepted
+  boundary is therefore registration, discovery, transport, contract,
+  model-mediated routing and fresh-session stability for the parent path.
+  Codex does not expose richer adapter/model identity or separate
+  Feynman/Athena selection traces, so those role-specific host details remain
+  conditional. No duplicate retrieval layer or wrapper skill was added, and
+  the historical Ollama fallback remains out of scope.
 - **#13** — bounded rationalization is implemented on the current branch; retired wrappers/workflow families are removed, generic replacements are tracked, and remaining deferred portability/migration capabilities stay unchanged.
 - **#24** — control-plane quality hardening is accepted through PR #30
   (`c559f9a`). Franky authority is explicitly scoped to the control plane,

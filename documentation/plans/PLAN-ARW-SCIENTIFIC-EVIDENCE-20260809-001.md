@@ -368,31 +368,42 @@ Do not assume all listed files must change. Closure should identify actual consu
   protocol path used by that probe, not as a permanent MCP lifecycle contract.
 - The Codex control-plane validators, task-contract checks, focused project
   bootstrap tests, and whitespace checks pass on the current `main` state.
-- A non-interactive Codex probe discovered `wiki.query`, but the MCP call was
-  cancelled before an evidence packet was returned. An interactive retry was
-  interrupted by provider/DNS and MCP-startup failures. No end-to-end Codex
-  evidence packet or consumer-selection trace was observed.
+- The user explicitly approved a bounded Wiki evidence export for this
+  acceptance run. Fresh `codex exec --ephemeral` sessions used the normal
+  Codex/OpenAI provider path, read-only sandboxing, and a temporary config that
+  enabled only the registered Wiki server. The model-mediated trace recorded
+  exactly one successful `wiki.query` call for each positive case:
+  - mechanism: 5 evidence items, `wiki-evidence/v1`, sufficient;
+  - comparison: 8 evidence items, `wiki-evidence/v1`, sufficient;
+  - factual lookup: 5 evidence items, `wiki-evidence/v1`, sufficient;
+  - unknown query: zero evidence, `insufficient`, one gap,
+    `abstain_or_verify`.
+- Four contrastive fresh sessions (computation, plotting, fitting and coding)
+  recorded zero Wiki MCP calls. A further fresh computation session also
+  recorded zero calls, while the fresh factual lookup returned a valid
+  `wiki-evidence/v1` packet. This is the bounded reload/stability slice.
+- Event traces showed one `wiki.query` lifecycle (`in_progress` then
+  `completed`) per positive case and no duplicate retrieval calls. The compact
+  model JSON for the first lookup reported `duplicate_calls: 0`; the event
+  trace is the authoritative count (one call).
+- The model/provider identity is not exposed as a richer host event, so this
+  evidence proves the normal Codex/OpenAI execution path and tool behavior but
+  does not claim hidden adapter/model metadata. Feynman/Athena-specific
+  host-side selection remains governed by their existing bounded role
+  contracts rather than an invented per-agent MCP configuration.
 - No unsupported per-agent MCP fields, duplicate retrieval layer, Wiki
   mutation path, or new wrapper skill/workflow was added.
-- A network-enabled Codex probe was not permitted because it would transmit
-  bounded evidence from the local Wiki corpus into the normal remote Codex/OpenAI
-  model context without explicit data-export approval. This is a provider/data-
-  policy acceptance boundary, not a Wiki server failure.
 - A qwen3-14b/Ollama fallback was previously attempted and failed because that
   installation lacked `llama-server`. **This is historical diagnostic evidence
   only. Ollama/local-model repair is explicitly out of scope and must not be
   treated as the next execution step or an acceptance dependency.**
 
-The implementation is therefore a **conditional pass for Wiki registration,
-discovery, transport and contract evidence**, while the intended Codex/OpenAI
-host-runtime behavioral acceptance gate remains open. The active blocker is the
-normal provider/network/auth/data-policy path required to obtain an actual
-model-mediated selection trace, not Wiki retrieval and not Ollama.
-
-Do not mark Issue #7 complete until a live Codex session using the normal
-intended Codex/OpenAI provider records one successful Wiki query with
-provenance/abstention semantics, the required positive/negative routing cases,
-and the bounded fresh-session/reload stability check in Phase 8.
+The implementation is therefore a **conditional pass with the Codex host
+behavioral slice accepted**: registration, discovery, transport, contract,
+positive/negative routing, provenance/abstention, and fresh-session stability
+are evidenced. The remaining limitation is host observability: Codex does not
+expose richer adapter/model metadata or a separate Feynman/Athena selection
+trace, so those boundaries remain policy-level rather than runtime-proven.
 
 After implementation:
 
