@@ -79,6 +79,11 @@ proven.
   richer Feynman/Athena adapter/model traces are not exposed by Codex. No
   duplicate retrieval layer or wrapper skill was introduced, and the
   historical Ollama fallback remains out of scope.
+  The latest explicitly approved local export also returned a sufficient
+  `wiki-evidence/v1` synthesis packet (5 evidence items, 5 source IDs, no
+  gaps); only metadata was retained and Wiki raw/knowledge files remained
+  unchanged. This is supplementary local evidence and does not alter the
+  conditional host-runtime boundary.
 - Issue #14’s external qualification matrix is recorded with exact artifact
   refs/licenses and runtime-fit findings. The installed Codex/OpenAI creator
   is reused; Anthropic/OSS candidates remain reference/deferred.

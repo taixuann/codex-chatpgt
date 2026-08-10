@@ -481,6 +481,37 @@ failure, not as a successful host-mediated export. No repair or fallback was
 attempted in this Issue, and the earlier accepted Codex/OpenAI slice remains
 the active host evidence.
 
+### Approval-confirmed local export — 2026-08-10
+
+Following the user's explicit approval in this run, the canonical local Wiki
+CLI was executed once with a read-only synthesis query. Only packet metadata
+was retained; no corpus, source excerpts, or Wiki files were copied into this
+repository. The packet was contract-valid and sufficient:
+
+```yaml
+contract_version: wiki-evidence/v1
+intent: synthesis
+evidence_count: 5
+source_count: 5
+gaps: []
+sufficiency: sufficient
+```
+
+The five returned repository-relative source IDs were:
+
+```text
+sources/notes/li-2022-pda-memristor-green.md
+sources/raw/markdown/kumar-2024-metal-ion-proton-coupled-electron-transfer.md
+sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md
+sources/raw/markdown/zhong-2025-electropolymerized-dopamine-memristors-threshold.md
+sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md
+```
+
+The Wiki contract validator passed (`passed: true`, immutable raw sources
+unchanged, no live knowledge changes). This is local Wiki evidence only; it
+does not replace the previously accepted Codex/OpenAI model-mediated slice or
+upgrade the separate host retry recorded above.
+
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
