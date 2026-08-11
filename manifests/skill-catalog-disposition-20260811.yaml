@@ -1,0 +1,78 @@
+schema_version: 1
+id: SKILL-CATALOG-DISPOSITION-20260811
+policy: >-
+  Prefer official OpenAI/system packages for implicit discovery. Retain local
+  governance packages required by this control plane. Keep third-party and
+  unproven upstream packages vendor-only or explicit-on-demand until collision,
+  license, dependency, and task-level evidence is reviewed.
+active_catalog:
+  official_system:
+    - .system/imagegen
+    - .system/openai-docs
+    - .system/plugin-creator
+    - .system/review-agent
+    - .system/skill-creator
+    - .system/skill-installer
+  official_curated_or_maintained:
+    - define-goal
+    - gh-address-comments
+  local_governed_required:
+    - control-plane-audit
+    - external-handoff
+    - instruction-maintenance
+    - project-bootstrap
+    - runtime-adapter-management
+    - shared-session-closeout
+  third_party_or_specialized_on_demand:
+    - defuddle
+    - docling-document-processing
+    - json-canvas
+    - obsidian-bases
+    - obsidian-cli
+    - obsidian-markdown
+    - opencode-executor
+    - ragflow-markdown-retrieval
+  archived_from_active:
+    - feynman
+    - anthropic-skill-creator-empty
+archive:
+  root: /Users/tai/.codex/skills-archive/2026-08-11
+  reversible: true
+  moved:
+    - source: /Users/tai/.codex/skills/feynman
+      destination: /Users/tai/.codex/skills-archive/2026-08-11/feynman
+      reason: >-
+        User requested removal from active skills; local runtime copy is not
+        tracked and corresponding Feynman source remains in AI Labs.
+    - source: /Users/tai/.codex/skills/anthropic-skill-creator
+      destination: /Users/tai/.codex/skills-archive/2026-08-11/anthropic-skill-creator-empty
+      reason: empty invalid skeleton with no SKILL.md
+vendor_references:
+  socratic:
+    repository: m4vic/socratic
+    ref: 8c7e1fdda5ff6f7755d4855907ddf0022a755493
+    license: MIT
+    local_path: vendor-repos/m4vic-socratic/8c7e1fdda5ff6f7755d4855907ddf0022a755493
+    package_shape: root_skill_with_references
+    quick_validate: PASS
+    quality_gate: PASS_WITH_WARNINGS_ON_STAGED_PACKAGE
+    quality_root_shape: BLOCKED_UNTIL_DIRECTORY_RENAMED_FOR_VALIDATION
+    runtime_activation: none
+    disposition: explicit_only_reference
+    boundary: >-
+      Broad build/design trigger, 697-question bank, and approximately 29k
+      tokens of repository material create context and routing pressure. Do
+      not install globally or copy into active skills until a Codex-specific
+      utility/routing evaluation is complete.
+  prior_vendor_sets:
+    - vendor-repos/addyosmani-agent-skills
+    - vendor-repos/openai-skills
+    - vendor-repos/rebelytics-one-skill-to-rule-them-all
+validation_scope:
+  active_skill_files_after_archive: 22
+  socratic_validated: true
+  all_active_runtime_behavior: NOT_ASSESSED
+  next_review: >-
+    Review specialized third-party packages individually before any bulk move
+    into archive or activation; do not treat "official" as the only criterion
+    for local governance skills that operate this repository.
