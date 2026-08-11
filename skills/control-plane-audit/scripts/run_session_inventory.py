@@ -81,7 +81,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=Path("-"))
     args = parser.parse_args()
     root = args.root.resolve(); sessions = (args.sessions_dir or root / "sessions").resolve()
-    lock_path = (args.lock_file or root / "ops" / ".franky-maintenance.lock").resolve(); held = False
+    lock_path = (args.lock_file or root / "ops" / ".control-plane-audit.lock").resolve(); held = False
     try:
         if args.require_clean: clean_tree(root)
         lock(lock_path); held = True; cutoff = time.time() - args.since_hours * 3600

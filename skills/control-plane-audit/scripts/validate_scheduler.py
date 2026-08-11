@@ -15,7 +15,7 @@ def validate(data: object) -> None:
     if missing: raise ValueError(f"missing fields: {', '.join(sorted(missing))}")
     if data["schema"] != "franky.scheduler" or data["version"] != 1: raise ValueError("invalid scheduler schema/version")
     if data["surface"] != "chatgpt_scheduled_task" or data["cadence"] != "daily": raise ValueError("scheduler must be a daily ChatGPT Scheduled Task")
-    if data["mode"] != "scheduled_safe" or data["skill"] != "franky-maintenance" or data["workflow"] not in {"issue-plan", "issue-plan-skill"}: raise ValueError("invalid scheduled routing")
+    if data["mode"] != "scheduled_safe" or data["skill"] != "control-plane-audit" or data["workflow"] not in {"issue-plan", "issue-plan-skill"}: raise ValueError("invalid scheduled routing")
     if not isinstance(data["scope"], list) or not data["scope"]: raise ValueError("scope must be a non-empty list")
     if not isinstance(data["forbidden"], list) or not FORBIDDEN.issubset(set(data["forbidden"])): raise ValueError("forbidden scope is incomplete")
     if not isinstance(data["preconditions"], list) or not {"clean_git_tree", "single_run_lock", "personal_skill_allowlist"}.issubset(set(data["preconditions"])): raise ValueError("preconditions are incomplete")

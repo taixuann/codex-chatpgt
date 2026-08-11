@@ -1,5 +1,5 @@
 ---
-name: franky-maintenance
+name: control-plane-audit
 description: Audit or maintain the Codex control plane when a governed health check or approved maintenance operation spans skills, agents, workflows, guidance, schedules, links, or Git state; start read-only and validate before mutation. Never use for research or linked-project contents.
 metadata:
   last_reviewed: 2026-08-09

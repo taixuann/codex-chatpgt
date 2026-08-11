@@ -1,5 +1,5 @@
 ---
-name: franky-agent-installer
+name: runtime-adapter-management
 description: Validate and install a Codex agent profile when an approved control-plane change adds or updates a runtime adapter; check schema, scope, collision, sandbox, dependencies, and approval. Do not use for role design or ordinary task delegation.
 metadata:
   last_reviewed: 2026-08-09

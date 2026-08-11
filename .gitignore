@@ -15,6 +15,12 @@
 !skills/franky-*/
 !skills/franky-*/*
 !skills/franky-*/*/*
+!skills/control-plane-audit/
+!skills/control-plane-audit/**
+!skills/runtime-adapter-management/
+!skills/runtime-adapter-management/**
+!skills/instruction-maintenance/
+!skills/instruction-maintenance/**
 !skills/project-bootstrap/
 !skills/project-bootstrap/**
 !skills/external-handoff/
@@ -34,10 +40,10 @@ skills/install-project-link/*
 !skills/install-project-link/tests/test_audit_link.py
 !skills/shared-session-closeout/
 !skills/shared-session-closeout/**
-!skills/franky-maintenance/scripts/fixtures/
-!skills/franky-maintenance/scripts/fixtures/session-valid.jsonl
-!skills/franky-maintenance/scripts/fixtures/session-malformed.jsonl
-!skills/franky-maintenance/scripts/fixtures/skill-routing.yaml
+!skills/control-plane-audit/scripts/fixtures/
+!skills/control-plane-audit/scripts/fixtures/session-valid.jsonl
+!skills/control-plane-audit/scripts/fixtures/session-malformed.jsonl
+!skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
 !workflows/
 !workflows/AGENTS.md
 !manifests/

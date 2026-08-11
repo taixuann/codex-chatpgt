@@ -5,11 +5,11 @@ cases:
     kind: positive
     prompt: Set up a new scientific file-first project with metadata and analysis folders.
     expected: project-bootstrap
-    neighbors: [install-project-link, franky-guidance-manager]
+    neighbors: [install-project-link, instruction-maintenance]
   - id: guidance-only
     kind: negative
     prompt: Update AGENTS.md so analysis scripts preserve raw data.
-    expected: franky-guidance-manager
+    expected: instruction-maintenance
     neighbors: [project-bootstrap]
   - id: link-existing-project
     kind: neighbor
@@ -20,12 +20,12 @@ cases:
     kind: negative
     prompt: Validate this workflow YAML and report schema errors.
     expected: none
-    neighbors: [franky-maintenance]
+    neighbors: [control-plane-audit]
   - id: persisted-workflow-design
     kind: negative
     prompt: Design a governed workflow with persisted gates and recovery for a scheduler consumer.
     expected: none
-    neighbors: [franky-maintenance]
+    neighbors: [control-plane-audit]
   - id: ordinary-coding
     kind: none
     prompt: Fix the parser bug in this application and run its unit tests.
@@ -35,4 +35,4 @@ cases:
     kind: ambiguous
     prompt: Improve the setup around this project.
     expected: none
-    neighbors: [project-bootstrap, franky-guidance-manager, install-project-link]
+    neighbors: [project-bootstrap, instruction-maintenance, install-project-link]

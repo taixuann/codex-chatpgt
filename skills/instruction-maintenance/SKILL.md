@@ -1,5 +1,5 @@
 ---
-name: franky-guidance-manager
+name: instruction-maintenance
 description: Audit or update scoped AGENTS.md when repository behavior or instruction locality must change; preserve precedence and keep rules near their owner. Do not use for architecture documentation or one-off prompt text.
 metadata:
   last_reviewed: 2026-08-09
