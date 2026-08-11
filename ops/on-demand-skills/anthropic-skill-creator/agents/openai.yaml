@@ -1,0 +1,4 @@
+interface:
+  display_name: Anthropic Skill Creator
+  short_description: Design and evaluate a Codex skill with the Anthropic method.
+  default_prompt: Use the Anthropic skill-creator method to evaluate this proposed skill before changing it.

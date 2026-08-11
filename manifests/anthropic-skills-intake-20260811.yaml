@@ -1,0 +1,71 @@
+schema_version: 1
+id: ANTHROPIC-SKILLS-INTAKE-20260811
+source:
+  repository: anthropics/skills
+  ref: f17010c9bb483898c1d9c9f42dde2b3a98889434
+  local_cache: vendor-skills/anthropic/f17010c9bb483898c1d9c9f42dde2b3a98889434
+  tracked: false
+  reason: >-
+    Raw upstream source is retained locally for explicit inspection but is not
+    a Codex runtime package or distributable repository content.
+validation:
+  completed_on: 2026-08-11
+  commands:
+    - python3 vendor-skills/anthropic/f17010c9bb483898c1d9c9f42dde2b3a98889434/skill-creator/scripts/quick_validate.py <package>
+    - python3 skills/control-plane-audit/scripts/validate_skill_quality.py <package>
+  outcome:
+    upstream_static: pass
+    local_structure: pass
+    local_security: pass
+    local_eval_evidence: warning_absent
+    local_review_metadata: warning_absent
+    codex_runtime_behavior: NOT_ASSESSED
+retained_packages:
+  algorithmic-art:
+    skill_md_sha256: 3bc4092c09804853186524c826bc0621b940bb6122c05b84496dff95388e6eef
+    disposition: reference_or_on_demand
+  brand-guidelines:
+    skill_md_sha256: 1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe
+    disposition: reference_or_on_demand
+  canvas-design:
+    skill_md_sha256: a1f288079624402f30682753c1d43920b6664785698d21d3e7aa197450a6448b
+    disposition: reference_or_on_demand
+  doc-coauthoring:
+    skill_md_sha256: 2e47d78846faeea4a56e9809c52700087a15a2155a3f293a3efbaded81398ef4
+    disposition: on_demand
+  frontend-design:
+    skill_md_sha256: 1608ea77fbb6fc30d13a97d12cfa8ebf31358d40f0dd97beed24829d6b3f45dd
+    disposition: on_demand
+  internal-comms:
+    skill_md_sha256: 067b7587a344a928fc6534ef66b1bcd591fc7c26d207ea7ca3334aeb678d6475
+    disposition: reference_or_on_demand
+  mcp-builder:
+    skill_md_sha256: 0f4592dcb53cf2b5d6b7febee6b4152018b565551a1c29e3c612f57b218ab295
+    disposition: on_demand
+  skill-creator:
+    skill_md_sha256: dcd4803e61e913e6fc27294184cd3a71f09f5e924ff20c8a9a20173e7b3c2bcf
+    disposition: source_for_explicit_adapter
+  slack-gif-creator:
+    skill_md_sha256: 2efca615ce55a3edd8fc05c779068a8085816617991987e446606403cd3abb22
+    disposition: reference_or_on_demand
+  template-skill:
+    skill_md_sha256: eb685d91de039ed864fbd790cddf31684b017fd4a34ee1a55760d8d7cdbadefa
+    disposition: reference_only
+  theme-factory:
+    skill_md_sha256: c35893e221e28895c52143cc11bf30e41a44817796b39d4b15727dadc9796552
+    disposition: reference_or_on_demand
+  web-artifacts-builder:
+    skill_md_sha256: 81c5002c6643b0de7b8710b00e7a9038daa6fb9b68d59870ee6adb12da8d10f8
+    disposition: reference_only
+  webapp-testing:
+    skill_md_sha256: 51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2
+    disposition: on_demand
+excluded_packages:
+  docx:
+    reason: proprietary license forbids retaining copies outside Anthropic services; duplicate Codex document capability
+  pdf:
+    reason: proprietary license forbids retaining copies outside Anthropic services; duplicate Codex PDF capability
+  pptx:
+    reason: proprietary license forbids retaining copies outside Anthropic services; duplicate Codex presentation capability
+  xlsx:
+    reason: proprietary license forbids retaining copies outside Anthropic services; duplicate Codex spreadsheet capability
