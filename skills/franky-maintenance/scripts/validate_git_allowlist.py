@@ -14,6 +14,13 @@ ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "wo
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials")
 
 
+def is_allowed_path(path: str) -> bool:
+    """Return whether a tracked path belongs to an admitted repository surface."""
+    if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
+        return True
+    return path.startswith("plans/PLAN-") and path.endswith(".md") and "/" not in path[len("plans/"):]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("root", type=Path)
@@ -22,7 +29,7 @@ def main() -> int:
         result = subprocess.run(["git", "-C", str(args.root), "ls-files"], check=True, capture_output=True, text=True)
         paths = [line for line in result.stdout.splitlines() if line]
         for path in paths:
-            if path not in ALLOWED_FILES and not path.startswith(ALLOWED_PREFIXES):
+            if not is_allowed_path(path):
                 raise ValueError(f"tracked path outside allowlist: {path}")
             if any(marker in path for marker in FORBIDDEN_MARKERS):
                 raise ValueError(f"sensitive path is tracked: {path}")
