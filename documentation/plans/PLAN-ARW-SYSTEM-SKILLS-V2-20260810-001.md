@@ -787,6 +787,16 @@ retirement block below contains 17 historical workflow paths. These counts are
 structural evidence only; runtime activation and cross-runtime retirement stay
 under their stated gates.
 
+The deterministic interface validator now resolves the Git-tracked package
+surface rather than scanning only `franky-*` directories; the current run
+validates all 10 tracked packages and ignores personal/plugin overlays that are
+outside the repository allowlist.
+
+A deterministic matrix reconciliation also found no omissions among the 10
+tracked package names. The 11th row is the explicit retired
+`franky-workflow-organizer` disposition. The retirement block contains 17
+historical workflow paths, while the Git-tracked workflow YAML count is zero.
+
 ### Current local skill disposition
 
 | Current package | Disposition | Semantic owner/result | Evidence and boundary |
