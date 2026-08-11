@@ -1,0 +1,99 @@
+schema_version: 1
+id: OPENAI-CURATED-SKILLS-AUDIT-20260811
+source:
+  repository: openai/skills
+  path: skills/.curated
+  ref: 49f948faa9258a0c61caceaf225e179651397431
+  url: https://github.com/openai/skills/tree/main/skills/.curated
+  local_cache: vendor-repos/openai-skills/49f948faa9258a0c61caceaf225e179651397431
+  retention: vendor_reference_only
+catalog:
+  package_count: 39
+  package_names:
+    - aspnet-core
+    - chatgpt-apps
+    - cli-creator
+    - cloudflare-deploy
+    - define-goal
+    - figma
+    - figma-code-connect-components
+    - figma-create-design-system-rules
+    - figma-create-new-file
+    - figma-generate-design
+    - figma-generate-library
+    - figma-implement-design
+    - figma-use
+    - gh-address-comments
+    - gh-fix-ci
+    - hatch-pet
+    - jupyter-notebook
+    - linear
+    - migrate-to-codex
+    - netlify-deploy
+    - notion-knowledge-capture
+    - notion-meeting-intelligence
+    - notion-research-documentation
+    - notion-spec-to-implementation
+    - openai-docs
+    - pdf
+    - playwright
+    - playwright-interactive
+    - render-deploy
+    - screenshot
+    - security-best-practices
+    - security-ownership-map
+    - security-threat-model
+    - sentry
+    - speech
+    - transcribe
+    - vercel-deploy
+    - winui-app
+    - yeet
+  license_groups:
+    apache_2_0: 26
+    figma_developer_terms: 8
+    notion_terms_or_copyright: 4
+    mit: 1
+validation:
+  validator: skills/.system/skill-creator/scripts/quick_validate.py
+  quick_validate: PASS
+  quick_pass: 39
+  quick_fail: 0
+  control_plane_quality:
+    pass: 0
+    warning: 39
+    blocked: 0
+    warning_reasons:
+      - no bundled evals/tests evidence
+      - no last_reviewed/review_interval_days metadata
+  runtime_behavior: NOT_ASSESSED
+  utility_baseline_delta: NOT_ASSESSED
+collision_audit:
+  direct_personal_overlaps:
+    - define-goal
+    - gh-address-comments
+    - openai-docs
+  plugin_overlaps:
+    - gh-address-comments
+    - gh-fix-ci
+    - pdf
+    - yeet
+  activation: none
+  disposition: >-
+    Keep the pinned source as vendor reference. Do not install all 39 into
+    global discovery. Promote individual packages only after license, runtime
+    dependency, collision, and task-level evidence review.
+local_catalog_audit:
+  root: /Users/tai/.codex/skills
+  package_count: 28
+  quick_pass: 27
+  quick_fail: 1
+  quality_blocked: 0
+  failure:
+    package: feynman/feynman-document-refine
+    reason: >-
+      Legacy frontmatter fields namespace, qualified_name, folder, and scope
+      are rejected by the current Codex skill validator.
+    disposition: >-
+      Preserve pending Feynman owner review; do not silently remove routing
+      metadata in this intake.
