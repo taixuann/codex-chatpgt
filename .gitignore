@@ -12,9 +12,6 @@
 !agents/README.md
 !agents/CHANGELOG.md
 !skills/
-!skills/franky-*/
-!skills/franky-*/*
-!skills/franky-*/*/*
 !skills/control-plane-audit/
 !skills/control-plane-audit/**
 !skills/runtime-adapter-management/
@@ -28,16 +25,6 @@ skills/external-handoff/*
 !skills/external-handoff/SKILL.md
 !skills/external-handoff/agents/
 !skills/external-handoff/agents/openai.yaml
-!skills/install-project-link/
-skills/install-project-link/*
-!skills/install-project-link/SKILL.md
-!skills/install-project-link/agents/
-!skills/install-project-link/agents/openai.yaml
-!skills/install-project-link/scripts/
-!skills/install-project-link/scripts/audit_link.py
-!skills/install-project-link/scripts/create_project_link.py
-!skills/install-project-link/tests/
-!skills/install-project-link/tests/test_audit_link.py
 !skills/shared-session-closeout/
 !skills/shared-session-closeout/**
 !skills/control-plane-audit/scripts/fixtures/
@@ -57,6 +44,25 @@ skills/install-project-link/*
 !ops/schedulers/**
 !ops/changes/
 !ops/changes/**
+!ops/on-demand-skills/
+!ops/on-demand-skills/**
+ops/on-demand-skills/install-project-link/*
+ops/on-demand-skills/install-project-link/AGENTS.md
+ops/on-demand-skills/install-project-link/assets/
+ops/on-demand-skills/install-project-link/evals/
+ops/on-demand-skills/install-project-link/references/
+ops/on-demand-skills/install-project-link/skill.yaml
+ops/on-demand-skills/install-project-link/templates/
+!ops/on-demand-skills/install-project-link/SKILL.md
+!ops/on-demand-skills/install-project-link/agents/
+!ops/on-demand-skills/install-project-link/agents/openai.yaml
+!ops/on-demand-skills/install-project-link/scripts/
+ops/on-demand-skills/install-project-link/scripts/*
+!ops/on-demand-skills/install-project-link/scripts/audit_link.py
+!ops/on-demand-skills/install-project-link/scripts/create_project_link.py
+!ops/on-demand-skills/install-project-link/tests/
+ops/on-demand-skills/install-project-link/tests/*
+!ops/on-demand-skills/install-project-link/tests/test_audit_link.py
 
 # Security boundary: never publish credentials, runtime state, or local stores.
 # These rules are intentionally last so they override any broad allowlist above.

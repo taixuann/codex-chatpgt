@@ -34,6 +34,11 @@ class GitAllowlistTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertFalse(validate_git_allowlist.is_allowed_path(path))
 
+    def test_retired_persona_skill_paths_are_rejected(self):
+        for path in ("skills/franky-old/SKILL.md", "skills/franky-maintenance/SKILL.md"):
+            with self.subTest(path=path):
+                self.assertFalse(validate_git_allowlist.is_allowed_path(path))
+
 
 if __name__ == "__main__":
     unittest.main()

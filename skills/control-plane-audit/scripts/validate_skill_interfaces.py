@@ -17,9 +17,16 @@ except ImportError as exc:  # pragma: no cover
 def discover_packages(root: Path) -> list[Path]:
     """Return Git-tracked skill packages, excluding ignored overlays."""
     root = root.resolve()
-    repo_root = root.parent
+    repo_result = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    repo_root = Path(repo_result.stdout.strip()).resolve() if repo_result.returncode == 0 else root.parent
+    relative_root = root.relative_to(repo_root).as_posix()
     tracked = subprocess.run(
-        ["git", "-C", str(repo_root), "ls-files", "--", f"{root.name}/*/SKILL.md"],
+        ["git", "-C", str(repo_root), "ls-files", "--", f"{relative_root}/*/SKILL.md"],
         check=False,
         capture_output=True,
         text=True,
@@ -28,7 +35,7 @@ def discover_packages(root: Path) -> list[Path]:
         return sorted(
             (repo_root / path.rsplit("/", 1)[0]).resolve()
             for path in tracked.stdout.splitlines()
-            if path.startswith(f"{root.name}/")
+            if path.startswith(f"{relative_root}/")
         )
     return sorted(
         package for package in root.glob("franky-*/") if (package / "SKILL.md").is_file()

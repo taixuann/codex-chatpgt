@@ -20,10 +20,18 @@ class SkillInterfaceDiscoveryTests(unittest.TestCase):
         root = Path(__file__).parents[3] / "skills"
         packages = module.discover_packages(root)
         names = {package.name for package in packages}
-        self.assertEqual(len(names), 10)
+        self.assertEqual(len(names), 6)
         self.assertIn("external-handoff", names)
         self.assertIn("shared-session-closeout", names)
         self.assertNotIn("workflow-manager", names)
+        optional_root = root.parent / "ops" / "on-demand-skills"
+        optional = module.discover_packages(optional_root)
+        self.assertEqual({package.name for package in optional}, {
+            "franky-cron-installer",
+            "franky-promotion",
+            "franky-source-migration",
+            "install-project-link",
+        })
 
 
 if __name__ == "__main__":

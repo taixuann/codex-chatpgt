@@ -14,7 +14,7 @@ SPEC.loader.exec_module(MODULE)
 class SkillRoutingFixtureTests(unittest.TestCase):
     def test_static_fixture_covers_required_classes(self):
         skill_count, case_count = MODULE.validate(ROOT, FIXTURE)
-        self.assertGreaterEqual(skill_count, 10)
+        self.assertGreaterEqual(skill_count, 6)
         self.assertGreaterEqual(case_count, 5)
 
 

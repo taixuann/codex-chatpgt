@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 
-ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/franky-", "skills/control-plane-audit/", "skills/runtime-adapter-management/", "skills/instruction-maintenance/", "skills/project-bootstrap/", "skills/external-handoff/", "skills/install-project-link/", "skills/shared-session-closeout/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/")
+ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/control-plane-audit/", "skills/runtime-adapter-management/", "skills/instruction-maintenance/", "skills/project-bootstrap/", "skills/external-handoff/", "skills/shared-session-closeout/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/", "ops/on-demand-skills/")
 ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "workflows/AGENTS.md"}
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials")
 

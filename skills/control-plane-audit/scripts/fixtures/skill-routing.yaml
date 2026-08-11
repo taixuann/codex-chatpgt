@@ -5,7 +5,7 @@ cases:
     kind: positive
     prompt: Set up a new scientific file-first project with metadata and analysis folders.
     expected: project-bootstrap
-    neighbors: [install-project-link, instruction-maintenance]
+    neighbors: [instruction-maintenance]
   - id: guidance-only
     kind: negative
     prompt: Update AGENTS.md so analysis scripts preserve raw data.
@@ -14,7 +14,7 @@ cases:
   - id: link-existing-project
     kind: neighbor
     prompt: Link this existing project into the Codex workspace without copying its contents.
-    expected: install-project-link
+    expected: none
     neighbors: [project-bootstrap]
   - id: workflow-validation-only
     kind: negative
@@ -35,4 +35,4 @@ cases:
     kind: ambiguous
     prompt: Improve the setup around this project.
     expected: none
-    neighbors: [project-bootstrap, instruction-maintenance, install-project-link]
+    neighbors: [project-bootstrap, instruction-maintenance]
