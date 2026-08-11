@@ -14,6 +14,11 @@ Use the upstream methodology, not its Claude-specific execution loop. The
 immutable upstream source is available explicitly at
 `vendor-skills/anthropic/f17010c9bb483898c1d9c9f42dde2b3a98889434/skill-creator`.
 
+The canonical Codex `skill-creator` now contains the adapted evaluation loop
+and local helpers. Use this package when the user explicitly wants the
+Anthropic methodology called out, or when a deliberate evaluation pass should
+be kept separate from ordinary scaffolding.
+
 ## Scope
 
 Use this procedure when a proposed or existing Codex skill needs a deliberate

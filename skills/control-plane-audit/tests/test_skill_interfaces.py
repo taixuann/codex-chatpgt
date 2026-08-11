@@ -27,6 +27,7 @@ class SkillInterfaceDiscoveryTests(unittest.TestCase):
         optional_root = root.parent / "ops" / "on-demand-skills"
         optional = module.discover_packages(optional_root)
         self.assertEqual({package.name for package in optional}, {
+            "anthropic-skill-creator",
             "franky-cron-installer",
             "franky-promotion",
             "franky-source-migration",
