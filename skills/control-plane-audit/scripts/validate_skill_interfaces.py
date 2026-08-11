@@ -55,9 +55,12 @@ def main() -> int:
             if not skill_text.startswith("---\n"):
                 raise ValueError(f"{package.name}: missing frontmatter")
             frontmatter = yaml.safe_load(skill_text.split("---\n", 2)[1])
-            interface = yaml.safe_load((package / "agents/openai.yaml").read_text(encoding="utf-8"))
             if frontmatter.get("name") != package.name:
                 raise ValueError(f"{package.name}: SKILL name mismatch")
+            interface_path = package / "agents/openai.yaml"
+            if not interface_path.is_file():
+                continue
+            interface = yaml.safe_load(interface_path.read_text(encoding="utf-8"))
             ui = interface.get("interface", {})
             if not ui.get("display_name") or not ui.get("short_description"):
                 raise ValueError(f"{package.name}: incomplete interface metadata")

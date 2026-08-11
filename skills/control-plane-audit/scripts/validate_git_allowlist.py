@@ -10,7 +10,24 @@ import sys
 
 
 ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/control-plane-audit/", "skills/runtime-adapter-management/", "skills/instruction-maintenance/", "skills/project-bootstrap/", "skills/external-handoff/", "skills/shared-session-closeout/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/", "ops/on-demand-skills/")
-ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "workflows/AGENTS.md"}
+ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "skills/ADDYOSMANI-AGENT-SKILLS-LICENSE", "workflows/AGENTS.md"}
+ALLOWED_SKILL_PACKAGES = frozenset({
+    "api-and-interface-design", "aspnet-core", "browser-testing-with-devtools", "chatgpt-apps",
+    "ci-cd-and-automation", "cli-creator", "cloudflare-deploy", "code-review-and-quality",
+    "code-simplification", "context-engineering", "debugging-and-error-recovery", "deprecation-and-migration",
+    "documentation-and-adrs", "doubt-driven-development", "figma", "figma-code-connect-components",
+    "figma-create-design-system-rules", "figma-create-new-file", "figma-generate-design",
+    "figma-generate-library", "figma-implement-design", "figma-use", "frontend-ui-engineering",
+    "git-workflow-and-versioning", "hatch-pet", "idea-refine", "incremental-implementation", "interview-me",
+    "jupyter-notebook", "linear", "migrate-to-codex", "netlify-deploy", "notion-knowledge-capture",
+    "notion-meeting-intelligence", "notion-research-documentation", "notion-spec-to-implementation",
+    "observability-and-instrumentation", "performance-optimization", "planning-and-task-breakdown", "playwright",
+    "playwright-interactive", "render-deploy", "screenshot", "security-and-hardening",
+    "security-best-practices", "security-ownership-map", "security-threat-model", "sentry", "shipping-and-launch",
+    "skill-retrospective", "socratic", "source-driven-development", "spec-driven-development", "speech",
+    "test-driven-development", "transcribe", "using-agent-skills", "vercel-deploy", "winui-app",
+})
+ALLOWED_SKILL_SHARED_PREFIXES = ("skills/references/",)
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials")
 
 
@@ -18,6 +35,11 @@ def is_allowed_path(path: str) -> bool:
     """Return whether a tracked path belongs to an admitted repository surface."""
     if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
         return True
+    if path.startswith(ALLOWED_SKILL_SHARED_PREFIXES):
+        return True
+    if path.startswith("skills/"):
+        package = path.split("/", 2)[1] if path.count("/") >= 1 else ""
+        return package in ALLOWED_SKILL_PACKAGES and path.startswith(f"skills/{package}/")
     return path.startswith("plans/PLAN-") and path.endswith(".md") and "/" not in path[len("plans/"):]
 
 
