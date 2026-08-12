@@ -145,7 +145,25 @@ Current readiness:
   re-probe independently confirmed the local `wiki-evidence/v1` packet (five
   evidence items, four source IDs, no gaps); its fresh host-mediated call was
   selected once but cancelled before return and is therefore recorded as
-  `NOT_ASSESSED/BLOCKED`, not as new acceptance evidence.
+  `NOT_ASSESSED/BLOCKED`, not as new acceptance evidence. The latest
+  approval-confirmed local export independently returned five evidence items
+  across three distinct source IDs with no gaps; the contract validator
+  passed and immutable Wiki sources remained unchanged. Its fresh host retry
+  again selected one `wiki.query` call but was cancelled before a packet
+  returned, so it remains `NOT_ASSESSED/BLOCKED`. The newest
+  approval-confirmed local rerun used the bounded biomaterial memristor
+  synthesis query and returned five evidence items across four distinct
+  source IDs with no gaps (`hybrid`, `[bm25, lexical_fallback]`). The Wiki
+  contract validator again reported immutable sources unchanged and no live
+  knowledge changes; only packet metadata and repository-relative provenance
+  were retained.
+  The latest approval-confirmed MCP retry failed before returning a packet
+  with `KeyError: 'edges'` while loading the Wiki NetworkX graph index;
+  contract validation still passed and sources remained immutable. This is
+  `NOT_ASSESSED/BLOCKED` runtime/index evidence, not a successful export.
+  A fresh OpenCode model-execution attempt on a synthetic skill was rejected
+  by the host privacy guard before execution; direct OpenCode behavior remains
+  `NOT_ASSESSED`, while no-model catalog and precedence evidence remains valid.
 - **#13** — historical v1 rationalization remains provenance only; current skill-system work is governed by #38/#35.
 - **#24** — control-plane quality hardening is accepted through PR #30
   (`c559f9a`). Franky authority is explicitly scoped to the control plane,

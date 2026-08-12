@@ -512,6 +512,95 @@ unchanged, no live knowledge changes). This is local Wiki evidence only; it
 does not replace the previously accepted Codex/OpenAI model-mediated slice or
 upgrade the separate host retry recorded above.
 
+### Latest approval-confirmed export and host retry — 2026-08-10
+
+The user approved the bounded export again for this probe. The canonical local
+Wiki CLI was run once with the same read-only synthesis question. Only packet
+metadata and repository-relative source IDs were retained; no evidence text,
+corpus files, or Wiki knowledge files were copied into `codex-chatpgt`.
+
+```yaml
+contract_version: wiki-evidence/v1
+intent: synthesis
+evidence_count: 5
+distinct_source_count: 3
+gaps: []
+sufficiency: sufficient
+retrieval_mode: hybrid
+methods: [bm25, lexical_fallback]
+```
+
+The distinct returned source IDs were:
+
+```text
+candidates/applications/hiruma-2019-bioinspired-protonic-memristor-devices.md
+sources/notes/li-2022-pda-memristor-green.md
+sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md
+```
+
+The Wiki contract validator passed (`passed: true`), with immutable raw
+sources unchanged and no live knowledge changes. A fresh normal
+Codex/OpenAI host retry selected exactly one `wiki.query` call, but the host
+cancelled the MCP call before a packet was returned. The host result is
+therefore `NOT_ASSESSED/BLOCKED` for this retry and does not replace the
+previously accepted model-mediated evidence or justify a local-model
+fallback.
+
+### Approval-confirmed bounded export — 2026-08-10 (latest local run)
+
+Following the user's explicit approval, the canonical local Wiki CLI was run
+once with the bounded read-only synthesis query:
+
+> How do proton transport and mixed ionic-electronic conduction explain
+> switching in biomaterial memristors?
+
+Only packet metadata and repository-relative source IDs were retained. No
+source excerpts, raw corpus files, or Wiki knowledge pages were copied into
+`codex-chatpgt`.
+
+```yaml
+contract_version: wiki-evidence/v1
+intent: synthesis
+evidence_count: 5
+distinct_source_count: 4
+gaps: []
+sufficiency: sufficient
+retrieval_mode: hybrid
+methods: [bm25, lexical_fallback]
+```
+
+The four returned source IDs were:
+
+```text
+sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md
+sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md
+sources/notes/zhou-2022-natural-biomaterialbased-memristor-bearing.md
+sources/raw/markdown/valov-2011-electrochemical-metallization-memories.md
+```
+
+The Wiki contract validator passed (`passed: true`), reported
+`immutable_sources_unchanged: true`, and reported no live knowledge changes.
+This is accepted as bounded local Wiki evidence; it does not claim a new
+Codex host-mediated MCP trace and does not alter the existing conditional
+host-runtime boundary for Issue #7.
+
+### Approval-confirmed MCP retry — 2026-08-10
+
+Following the user's bounded-export approval, the registered read-only MCP
+adapter was invoked once with the same synthesis query. The adapter failed
+before returning a packet while loading the local NetworkX graph index:
+
+```text
+KeyError: 'edges' (wiki/.rag/query.py::_load_indexes)
+```
+
+The Wiki contract validator was rerun separately and passed, reporting
+`immutable_sources_unchanged: true` and no live knowledge changes. This
+attempt is therefore `NOT_ASSESSED/BLOCKED` for MCP retrieval and is recorded
+as a runtime/index compatibility failure, not as a successful export. No
+corpus, source, index, or Wiki knowledge file was modified, and no repair or
+fallback was attempted inside Issue #7.
+
 After implementation:
 
 1. validate agent TOML against the actual Codex runtime schema;
