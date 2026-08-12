@@ -36,3 +36,28 @@ cases:
     prompt: Improve the setup around this project.
     expected: none
     neighbors: [project-bootstrap, instruction-maintenance]
+  - id: intake-ambiguous-build
+    kind: positive
+    prompt: Build a production-grade context resolver for our control plane.
+    expected: interview-me
+    neighbors: [idea-refine, socratic, spec-driven-development]
+  - id: intake-trivial-change
+    kind: negative
+    prompt: Rename this local variable and run the focused test.
+    expected: none
+    neighbors: [interview-me, planning-and-task-breakdown]
+  - id: intake-scoped-plan
+    kind: neighbor
+    prompt: Implement the already-approved PLAN task exactly as written.
+    expected: planning-and-task-breakdown
+    neighbors: [interview-me, spec-driven-development]
+  - id: prompt-rendering-only
+    kind: negative
+    prompt: Render this complete task contract for a read-only executor without changing it.
+    expected: none
+    neighbors: [interview-me, planning-and-task-breakdown]
+  - id: raw-idea
+    kind: neighbor
+    prompt: Explore a vague idea without turning it into an Issue yet.
+    expected: idea-refine
+    neighbors: [interview-me, spec-driven-development]

@@ -733,3 +733,36 @@ skill_sha256: 1de0761725ce2b47b279cf82e80bf7477febefff33be5684bb71c8d1285accd4
 input_sha256: d974c0a6e49c8e1c8edcad34b1b9251656a32c31f7900a55494414218dad2334
 marker_sha256: 6c0e165283df90f90103524f4dda951e09f877594634fc59be71d719faa81b2c
 ```
+
+### Supplemental candidate admission — task intake and prompt refinement
+
+The candidate request from Issue #38 was evaluated against the live branch
+surface and the existing creator contract. The smallest correct result is not
+two new visible skills:
+
+| Candidate | Disposition | Existing owner / boundary | Evidence level |
+| --- | --- | --- | --- |
+| `task-intake` / requirement elicitation | **USE_EXISTING** | `interview-me` handles underspecified or consequential asks, emits a confirmed intent, and explicitly stays quiet for clear low-risk work. `idea-refine`, `socratic`, and `spec-driven-development` remain stage-specific neighbors. | `STATIC_PASS`; routing fixture coverage added; model-level implicit selection remains `NOT_ASSESSED` |
+| `prompt-refinement` | **POLICY_NOT_SKILL** | A complete task contract is rendered by the existing Issue/PLAN/task-contract and executor handoff semantics. No independent trigger/outcome gap or maintained Codex-compatible implementation was demonstrated. | `STATIC_PASS` for boundary cases; behavioral utility and baseline delta `NOT_ASSESSED` |
+
+The candidate matrix covers clear trivial work, ambiguous consequential work,
+missing authority, contradictory constraints, already-scoped PLAN work,
+prompt-rendering-only work, and raw brainstorming. The checked-in static
+routing fixture covers the positive, negative, and neighbor subsets that are
+safe to validate without provider execution. The expected boundaries are that
+intake asks only materially necessary questions, does not reopen accepted
+requirements, and does not promote brainstorming into a durable work unit.
+
+Validation commands for this slice are:
+
+```text
+python3 skills/.system/skill-creator/scripts/validate_eval_set.py \
+  skills/.system/skill-creator/evals/evals.json --release-candidate
+python3 skills/control-plane-audit/scripts/validate_skill_routing.py \
+  . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
+```
+
+These checks validate package/eval shape and contrastive metadata only. They
+do not prove provider-mediated implicit routing, prompt quality, utility lift,
+latency, or OpenCode behavioral equivalence. No new skill, agent, router,
+questionnaire engine, Issue, or workflow was created by this slice.
