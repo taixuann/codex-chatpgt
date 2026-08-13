@@ -787,6 +787,16 @@ retirement block below contains 17 historical workflow paths. These counts are
 structural evidence only; runtime activation and cross-runtime retirement stay
 under their stated gates.
 
+The deterministic interface validator now resolves the Git-tracked package
+surface rather than scanning only `franky-*` directories; the current run
+validates all 10 tracked packages and ignores personal/plugin overlays that are
+outside the repository allowlist.
+
+A deterministic matrix reconciliation also found no omissions among the 10
+tracked package names. The 11th row is the explicit retired
+`franky-workflow-organizer` disposition. The retirement block contains 17
+historical workflow paths, while the Git-tracked workflow YAML count is zero.
+
 ### Current local skill disposition
 
 | Current package | Disposition | Semantic owner/result | Evidence and boundary |
@@ -895,3 +905,17 @@ The disposable shadow probe strengthens the catalog/precedence evidence:
 OpenCode discovers configured skill paths and deterministically prefers a
 project-local ID over a configured-path collision. It does not close the
 remaining host-observable co-loaded activation or cross-runtime behavior gate.
+
+### Supplemental intake/refinement disposition — 2026-08-12
+
+The #38 candidate evaluation resolved the adjacent pre-plan capability without
+adding a second planning lifecycle or a prompt skill:
+
+| Candidate | Disposition consumed by #35 | Active placement | Boundary |
+| --- | --- | --- | --- |
+| `task-intake` / requirement elicitation | **USE_EXISTING** | Existing `interview-me` procedure; explicit/on-demand when ambiguity is material | Do not trigger for clear low-risk work; do not reopen an accepted Issue/PLAN. `idea-refine`, `socratic`, and `spec-driven-development` remain stage-specific neighbors. |
+| `prompt-refinement` | **POLICY_NOT_SKILL** | Issue/PLAN/task-contract and executor handoff policy | Render a complete contract only when needed; do not discover requirements, decide scope, or add a visible catalog entry without independent measured value. |
+
+This is a disposition, not a claim that provider-mediated implicit routing or
+cross-runtime behavioral equivalence has passed. Those remain under the
+existing conditional runtime gates.

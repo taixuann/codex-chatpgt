@@ -1,0 +1,10 @@
+name = "example-agent"
+description = "Bounded Codex operator adapter."
+model = "<runtime-supported-model>"
+model_reasoning_effort = "<task-contract-setting>"
+sandbox_mode = "read-only"
+developer_instructions = """
+Operate only within the explicitly approved scope. Prefer deterministic
+validators and report-only audits before any approved mutation. Return exact
+paths, validation evidence, rollback notes, and unresolved issues.
+"""

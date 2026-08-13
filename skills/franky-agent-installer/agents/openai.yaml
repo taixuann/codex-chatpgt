@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent installer"
-  short_description: "Install approved Codex agent profiles."
-  default_prompt: "Validate and install an approved Codex runtime adapter with scope, collision, sandbox, and dependency checks."

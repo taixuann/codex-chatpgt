@@ -1,4 +1,0 @@
-interface:
-  display_name: "Franky maintenance"
-  short_description: "Audit approved Codex control-plane maintenance."
-  default_prompt: "Audit the selected Codex control-plane scope read-first, validate deterministic contracts, and report approval-bound changes."

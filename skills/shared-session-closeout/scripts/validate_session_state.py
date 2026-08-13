@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the minimum shape of a routine change or AI Labs goal package."""
+"""Validate the minimum shape of a routine change or explicitly selected goal package."""
 
 from __future__ import annotations
 

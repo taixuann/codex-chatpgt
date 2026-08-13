@@ -1,0 +1,53 @@
+schema_version: 1
+id: SKILL-CREATOR-HYBRID-IMPLEMENTATION-20260811
+objective: >-
+  Keep the Codex/OpenAI skill-creator as the canonical runtime package while
+  integrating the strongest provider-neutral evaluation practices from the
+  Anthropic skill-creator.
+canonical_runtime:
+  path: skills/.system/skill-creator
+  authority: system_owned_runtime
+  git_visibility: ignored_by_control_plane_allowlist
+  active_name: skill-creator
+integrated:
+  - codex_native_creation_and_validation
+  - structured_eval_set_with_four_routing_categories
+  - isolated_and_co_loaded_routing_protocol
+  - with_skill_without_skill_or_previous_version_comparison
+  - assertion_timing_metrics_and_human_review_evidence
+  - benchmark_aggregation_without_model_or_network_calls
+  - held_out_negative_and_conflict_trigger_optimization_guidance
+files:
+  - skills/.system/skill-creator/SKILL.md
+  - skills/.system/skill-creator/references/evaluation_protocol.md
+  - skills/.system/skill-creator/scripts/validate_eval_set.py
+  - skills/.system/skill-creator/scripts/aggregate_benchmark.py
+  - skills/.system/skill-creator/evals/evals.json
+sha256:
+  skills/.system/skill-creator/SKILL.md: b3c77a776d7d72ffded096dc5077a41d8b09a134ed2b9f32892855db621c507b
+  skills/.system/skill-creator/references/evaluation_protocol.md: 938ec6888253c09a24e8a4cab9807eff799fc9669b549e3bc5732812b568f435
+  skills/.system/skill-creator/scripts/validate_eval_set.py: 12f6214a3c47423a4ce6e95420518c54ad3ebc1c26496237d13bff0ee7fa446b
+  skills/.system/skill-creator/scripts/aggregate_benchmark.py: d907cc8324372865b91544a2b6e608c30452635a4b19de34d296f0b54a2b9f86
+  skills/.system/skill-creator/evals/evals.json: 6f15137faa97f10b8c477783779aaf1b186a573edd28ead873cf5b3a1f9c4d5a
+source_provenance:
+  upstream_repository: anthropics/skills
+  upstream_ref: f17010c9bb483898c1d9c9f42dde2b3a98889434
+  upstream_license: Apache-2.0
+  adaptation_boundary:
+    - no_claude_cli
+    - no_claude_directory_or_provider_specific_commands
+    - no_automatic_skill_installation_publication_or_rewrite
+    - no_new_registry_telemetry_or_general_evaluation_service
+validation:
+  codex_quick_validate: PASS
+  codex_quality_gate: PASS_WITH_BASELINE_WARNINGS
+  eval_set_release_candidate_validation: PASS
+  runtime_behavior: NOT_ASSESSED
+  utility_baseline_delta: NOT_ASSESSED
+  human_artifact_review: NOT_ASSESSED
+retained_adapter:
+  path: ops/on-demand-skills/anthropic-skill-creator
+  disposition: EXPLICIT_ONLY
+  purpose: >-
+    Preserve an explicit entry point for users who request the Anthropic
+    method, while delegating to the Codex-adapted canonical evaluation layer.

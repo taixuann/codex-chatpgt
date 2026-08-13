@@ -1,4 +1,0 @@
-interface:
-  display_name: "Guidance manager"
-  short_description: "Maintain scoped AGENTS.md behavior."
-  default_prompt: "Audit or update the nearest scoped AGENTS.md while preserving precedence and instruction locality."

@@ -1,0 +1,143 @@
+schema_version: 1
+id: CODEX-SKILL-CATALOG-20260813
+authority: documentation/OPERATING-WORKFLOW.md and Issue/PLAN contracts
+canonical_root: skills/
+explicit_overlay_root: skills/ (entries listed under noncanonical_overlays are not canonical admission)
+vendor_reference_roots:
+  - vendor-repos/
+  - skills-archive/
+retired_root: skill-archive/20260811-system-skill-cleanup/
+policy: >-
+  A package is canonical only when it is explicitly listed as KEEP and has
+  repository-grounded capability/utility evidence. All other packages remain
+  noncanonical until a bounded admission review promotes them.
+canonical_active:
+  - control-plane-audit
+  - external-handoff
+  - instruction-maintenance
+  - project-bootstrap
+  - runtime-adapter-management
+  - shared-session-closeout
+capability_keys:
+  control-plane-audit: control-plane-audit
+  external-handoff: external-handoff
+  instruction-maintenance: instruction-maintenance
+  project-bootstrap: project-bootstrap
+  runtime-adapter-management: runtime-adapter-management
+  shared-session-closeout: session-closeout
+dispositions:
+  KEEP:
+    - control-plane-audit
+    - external-handoff
+    - instruction-maintenance
+    - project-bootstrap
+    - runtime-adapter-management
+    - shared-session-closeout
+  ADAPT:
+    - api-and-interface-design
+    - ci-cd-and-automation
+    - code-review-and-quality
+    - code-simplification
+    - context-engineering
+    - debugging-and-error-recovery
+    - documentation-and-adrs
+    - git-workflow-and-versioning
+    - incremental-implementation
+    - observability-and-instrumentation
+    - planning-and-task-breakdown
+    - security-and-hardening
+    - spec-driven-development
+    - test-driven-development
+  EXPLICIT_ONLY:
+    - chatgpt-apps
+    - cli-creator
+    - deprecation-and-migration
+    - doubt-driven-development
+    - figma
+    - figma-code-connect-components
+    - figma-create-design-system-rules
+    - figma-create-new-file
+    - figma-generate-design
+    - figma-generate-library
+    - figma-implement-design
+    - figma-use
+    - frontend-ui-engineering
+    - idea-refine
+    - interview-me
+    - migrate-to-codex
+    - netlify-deploy
+    - performance-optimization
+    - render-deploy
+    - screenshot
+    - security-best-practices
+    - security-ownership-map
+    - security-threat-model
+    - shipping-and-launch
+    - socratic
+    - source-driven-development
+    - transcribe
+    - winui-app
+  MERGE:
+    - using-agent-skills
+  RETIRE:
+    - skill-retrospective
+noncanonical_overlays:
+  - {name: define-goal, path: skills/define-goal, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: docling-document-processing, path: skills/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: gh-address-comments, path: skills/gh-address-comments, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: json-canvas, path: skills/json-canvas, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-bases, path: skills/obsidian-bases, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-cli, path: skills/obsidian-cli, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-markdown, path: skills/obsidian-markdown, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: opencode-executor, path: skills/opencode-executor, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: ragflow-markdown-retrieval, path: skills/ragflow-markdown-retrieval, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: temperature-iv-analysis, path: skills/temperature-iv-analysis, disposition: REFERENCE_ONLY, local_only: true}
+evidence:
+  control-plane-audit:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Read-first audit procedure with deterministic validators and focused tests.
+    evidence_paths:
+      - skills/control-plane-audit/tests
+      - skills/control-plane-audit/scripts
+  external-handoff:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Bounded cross-runtime handoff procedure with approval, scope, and rollback boundaries.
+    evidence_paths:
+      - skills/external-handoff/SKILL.md
+  instruction-maintenance:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Scoped instruction locality and precedence procedure with explicit mutation boundary.
+    evidence_paths:
+      - skills/instruction-maintenance/SKILL.md
+  project-bootstrap:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: File-first bootstrap procedure backed by deterministic helper tests and dry-run/apply gates.
+    evidence_paths:
+      - skills/project-bootstrap/tests
+      - skills/project-bootstrap/scripts
+  runtime-adapter-management:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Agent adapter schema, scope, collision, dependency, and approval validation procedure.
+    evidence_paths:
+      - skills/runtime-adapter-management/scripts
+  shared-session-closeout:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Role-neutral acceptance and durable outcome recording procedure.
+    evidence_paths:
+      - skills/shared-session-closeout/SKILL.md
+notes:
+  - ADAPT packages are candidates for capability-specific refinement, not implicit activation.
+  - MERGE and RETIRE decisions remove meta-workflow duplication; source remains recoverable in Git history.
+  - Vendor/reference material is not copied into canonical active skills.

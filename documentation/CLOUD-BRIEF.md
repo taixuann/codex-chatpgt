@@ -80,10 +80,23 @@ proven.
   duplicate retrieval layer or wrapper skill was introduced, and the
   historical Ollama fallback remains out of scope.
   The latest explicitly approved local export also returned a sufficient
-  `wiki-evidence/v1` synthesis packet (5 evidence items, 5 source IDs, no
-  gaps); only metadata was retained and Wiki raw/knowledge files remained
-  unchanged. This is supplementary local evidence and does not alter the
-  conditional host-runtime boundary.
+  `wiki-evidence/v1` synthesis packet (5 evidence items across 3 distinct
+  source IDs, no gaps); only metadata was retained and Wiki raw/knowledge
+  files remained unchanged. A fresh host retry selected one `wiki.query` call
+  but was cancelled before a packet returned, so this remains supplementary
+  local evidence and does not alter the conditional host-runtime boundary.
+  The newest approval-confirmed local rerun returned 5 evidence items across
+  4 distinct source IDs with no gaps using the bounded biomaterial memristor
+  synthesis query. The Wiki validator again confirmed immutable sources
+  unchanged and no live knowledge changes; only packet metadata and
+  repository-relative provenance were retained.
+  The latest approval-confirmed MCP retry failed before returning a packet
+  with `KeyError: 'edges'` while loading the Wiki NetworkX graph index;
+  contract validation still passed and sources remained immutable. This is
+  `NOT_ASSESSED/BLOCKED` runtime/index evidence, not a successful export.
+  A fresh OpenCode model-execution attempt on a synthetic skill was rejected
+  by the host privacy guard before execution; direct OpenCode behavior remains
+  `NOT_ASSESSED`, while no-model catalog and precedence evidence remains valid.
 - Issue #14’s external qualification matrix is recorded with exact artifact
   refs/licenses and runtime-fit findings. The installed Codex/OpenAI creator
   is reused; Anthropic/OSS candidates remain reference/deferred.

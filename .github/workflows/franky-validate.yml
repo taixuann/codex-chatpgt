@@ -42,22 +42,43 @@ jobs:
 
       - name: Validate skill interfaces
         id: skills
-        run: python skills/franky-maintenance/scripts/validate_skill_interfaces.py skills
+        run: python skills/control-plane-audit/scripts/validate_skill_interfaces.py skills
+
+      - name: Validate skill catalog admission and utility evidence
+        id: skill_catalog
+        run: python skills/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml
+
+      - name: Validate tracked skill quality
+        id: skill_quality
+        run: |
+          while IFS= read -r skill_md; do
+            skill_dir="${skill_md%/SKILL.md}"
+            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
+          done < <(git ls-files 'skills/*/SKILL.md')
+
+      - name: Validate on-demand skill interfaces and quality
+        id: on_demand_quality
+        run: |
+          python skills/control-plane-audit/scripts/validate_skill_interfaces.py ops/on-demand-skills
+          while IFS= read -r skill_md; do
+            skill_dir="${skill_md%/SKILL.md}"
+            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
+          done < <(git ls-files 'ops/on-demand-skills/*/SKILL.md')
 
       - name: Validate agent adapters
         id: agents
         run: |
           for agent in agents/*.toml; do
-            test ! -s "$agent" || python skills/franky-agent-installer/scripts/validate_agent_toml.py "$agent"
+            test ! -s "$agent" || python skills/runtime-adapter-management/scripts/validate_agent_toml.py "$agent"
           done
 
       - name: Validate static skill-routing fixture
         id: routing
-        run: python skills/franky-maintenance/scripts/validate_skill_routing.py . skills/franky-maintenance/scripts/fixtures/skill-routing.yaml
+        run: python skills/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
 
       - name: Validate agent changelog
         id: changelog
-        run: python skills/franky-maintenance/scripts/validate_agent_changelog.py agents
+        run: python skills/control-plane-audit/scripts/validate_agent_changelog.py agents
 
       - name: Validate canonical task contract
         id: task_contract
@@ -78,15 +99,15 @@ jobs:
 
       - name: Validate audit-record template
         id: audit
-        run: python skills/franky-maintenance/scripts/validate_audit_record.py skills/franky-maintenance/templates/audit-record.yaml
+        run: python skills/control-plane-audit/scripts/validate_audit_record.py skills/control-plane-audit/templates/audit-record.yaml
 
       - name: Validate scheduled maintenance definition
         id: scheduler
-        run: python skills/franky-maintenance/scripts/validate_scheduler.py ops/schedulers/franky-personal-skill-maintenance.yaml
+        run: python skills/control-plane-audit/scripts/validate_scheduler.py ops/schedulers/franky-personal-skill-maintenance.yaml
 
       - name: Validate session inventory fixture
         id: inventory
-        run: python skills/franky-maintenance/scripts/run_session_inventory.py --root . --sessions-dir skills/franky-maintenance/scripts/fixtures --since-hours 24
+        run: python skills/control-plane-audit/scripts/run_session_inventory.py --root . --sessions-dir skills/control-plane-audit/scripts/fixtures --since-hours 24
 
       - name: Validate adaptive file-first bootstrap
         id: bootstrap
@@ -94,15 +115,15 @@ jobs:
 
       - name: Validate generic project-link capability
         id: project_link
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/install-project-link/tests -v
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s ops/on-demand-skills/install-project-link/tests -v
 
-      - name: Validate skill-routing fixture tests
+      - name: Validate maintenance skill tests
         id: routing_tests
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/franky-maintenance/tests -p 'test_skill_routing.py' -v
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane-audit/tests -v
 
       - name: Validate Git allowlist
         id: allowlist
-        run: python skills/franky-maintenance/scripts/validate_git_allowlist.py .
+        run: python skills/control-plane-audit/scripts/validate_git_allowlist.py .
 
       - name: Write validation summary
         if: always()
@@ -113,6 +134,9 @@ jobs:
             echo '| Check | Result |'
             echo '| --- | --- |'
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
+            echo '| Skill catalog admission | ${{ steps.skill_catalog.outcome }} |'
+            echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
+            echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
             echo '| Static skill-routing fixture | ${{ steps.routing.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'

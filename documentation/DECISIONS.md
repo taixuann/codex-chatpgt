@@ -132,3 +132,27 @@ install-workflow entries outside this repository's allowlist; this is an
 explicit #12 portability/ownership boundary, not a permission to mutate that
 external control plane. Those gates remain `NOT_ASSESSED`/conditional under
 #38 and #35.
+
+The deterministic skill-interface validator now resolves the Git-tracked
+package surface and validates all 10 tracked packages; ignored personal or
+plugin overlays are excluded. A disposable Codex fixture also demonstrated
+project-local activation, sibling selection, and a clear arithmetic negative,
+but this bounded evidence does not establish catalog-wide activation or
+real-skill utility lift.
+
+## D-011 — Skill admission is explicit and utility-gated (Issue #50)
+
+`manifests/skill-catalog.yaml` is the checked-in reconciliation of the live
+tracked skill surface. Every tracked package has exactly one disposition:
+`KEEP`, `ADAPT`, `EXPLICIT_ONLY`, `REFERENCE_ONLY`, `MERGE`, or `RETIRE`.
+Only `KEEP` packages with repository-grounded capability/utility evidence may
+appear in `canonical_active`; local overlays and vendor/reference roots are
+listed separately and are not silently promoted.
+
+The deterministic catalog validator is a CI gate. It checks completeness,
+duplicate ownership, canonical admission, evidence paths, and explicit
+`NOT_ASSESSED` limitations. Structural/package validation remains necessary
+but is not sufficient to claim utility or model-mediated routing behavior.
+Issue/PLAN and `OPERATING-WORKFLOW.md` remain semantic authority; the catalog
+does not create a routing service, workflow engine, or persona-owned skill
+namespace.
