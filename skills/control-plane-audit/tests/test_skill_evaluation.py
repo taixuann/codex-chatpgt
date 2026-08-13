@@ -65,6 +65,17 @@ class SkillEvaluationTests(unittest.TestCase):
         self.assertEqual(trace["usage"]["total_tokens"], 20)
         self.assertEqual(trace["commands"], ["pwd"])
 
+    def test_trace_parser_records_project_local_procedure_loads_and_derives_total(self):
+        module = load_module()
+        lines = [
+            '{"type":"item.completed","item":{"type":"command_execution","command":"sed -n 1,20p .agents/skills/demo/SKILL.md"}}',
+            '{"type":"item.completed","item":{"type":"agent_message","text":"done"}}',
+            '{"type":"turn.completed","usage":{"input_tokens":12,"output_tokens":8}}',
+        ]
+        trace = module.summarize_trace("\n".join(lines) + "\n", "")
+        self.assertEqual(trace["procedure_loads"], ["demo"])
+        self.assertEqual(trace["usage"]["total_tokens"], 20)
+
     def test_trace_parser_accepts_timeout_byte_buffers(self):
         module = load_module()
         trace = module.summarize_trace(b'{"type":"turn.started"}\n', b"network unavailable\n")
@@ -107,6 +118,28 @@ class SkillEvaluationTests(unittest.TestCase):
         self.assertEqual(record["actual"], "two")
         self.assertEqual(record["governance"], "OBSERVE -> PROPOSE -> REVIEW -> ACCEPT -> UPDATE")
         self.assertNotIn("catalog", record)
+
+    def test_aggregate_results_harvests_runtime_case_id(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "results.jsonl"
+            path.write_text(
+                json.dumps(
+                    {
+                        "case_id": "case-1",
+                        "prompt": "Do the thing",
+                        "expected": "one",
+                        "actual": "two",
+                        "status": "completed",
+                        "condition": "with",
+                        "run": 1,
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            summary = module.aggregate_results(path)
+        self.assertEqual(summary["regressions"][0]["case_id"], "case-1")
 
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@ import yaml
 
 GOVERNANCE = "OBSERVE -> PROPOSE -> REVIEW -> ACCEPT -> UPDATE"
 SELECTION_KEYS = {"selected_skill", "selected_skills", "skill", "skills"}
+SKILL_PATH_PATTERN = re.compile(r"(?:\.agents/skills|skills)/([A-Za-z0-9._-]+)/SKILL\.md")
 CANONICAL_ACTIVE = {
     "control-plane-audit",
     "external-handoff",
@@ -87,6 +88,7 @@ def summarize_trace(stdout: str, stderr: str) -> dict[str, Any]:
     usage: dict[str, int | float] = {}
     final_answer: str | None = None
     host_selection: Any = None
+    procedure_loads: set[str] = set()
     parse_errors: list[str] = []
 
     for line in stdout.splitlines():
@@ -122,6 +124,10 @@ def summarize_trace(stdout: str, stderr: str) -> dict[str, Any]:
                 host_selection = value
 
     stderr_lines = [line for line in stderr.splitlines() if line.strip()]
+    for command in commands:
+        procedure_loads.update(SKILL_PATH_PATTERN.findall(command))
+    if "total_tokens" not in usage and {"input_tokens", "output_tokens"} <= usage.keys():
+        usage["total_tokens"] = usage["input_tokens"] + usage["output_tokens"]
     has_error_event = any(event.get("type") == "error" for event in events)
     completed = any(event.get("type") == "turn.completed" for event in events)
     if host_selection is not None:
@@ -135,6 +141,7 @@ def summarize_trace(stdout: str, stderr: str) -> dict[str, Any]:
         "events": len(events),
         "final_answer": final_answer,
         "host_selection": host_selection,
+        "procedure_loads": sorted(procedure_loads),
         "selection_source": selection_source,
         "usage": usage,
         "commands": commands,
@@ -238,8 +245,8 @@ def utility_metrics(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 def regression_record(case: dict[str, Any], observation: dict[str, Any]) -> dict[str, Any]:
     return {
-        "case_id": case["id"],
-        "prompt": case["prompt"],
+        "case_id": case.get("id", case.get("case_id")),
+        "prompt": case.get("prompt", observation.get("prompt", "")),
         "expected": case.get("expected", "none"),
         "actual": observation.get("actual", "none"),
         "selection_source": observation.get("selection_source", "none"),
@@ -500,6 +507,7 @@ def main() -> int:
                             "reported_skill": _normalise_actual(report.get("selected_skill")),
                             "task_status": report.get("task_status"),
                             "selection_source": trace["selection_source"],
+                            "procedure_loads": trace["procedure_loads"],
                             "status": trace["status"],
                             "returncode": returncode,
                             "elapsed_seconds": round(elapsed, 3),
