@@ -37,6 +37,21 @@ provenance:
     usage: none
     task_result: none
     date: 2026-08-13
+  authorized_runtime_sample:
+    command: skills/control-plane-audit/scripts/run_skill_evaluation.py --mode benchmark --condition both --utility-only --runs 1 --timeout 45
+    status: PARTIAL_NOT_ASSESSED
+    artifact: .tmp/chatgpt-utility-sample-v2.jsonl
+    records: 12
+    completed_records: 7
+    blocked_timeouts: 5
+    observed_procedure_loads: [control-plane-audit, external-handoff, instruction-maintenance, project-bootstrap, runtime-adapter-management, shared-session-closeout]
+    with_completed: 4
+    without_completed: 3
+    paired_completed: 2
+    paired_interpretation: two completed pairs were redundancy candidates; no load-bearing winner was observed
+    host_selection_events: none exposed; procedure_loads are command-trace evidence and model self-report is retained separately
+    usage_and_latency: captured for completed records
+    date: 2026-08-13
 
 routing_benchmark:
   status: NOT_ASSESSED
@@ -52,12 +67,12 @@ routing_benchmark:
     - runtime-adapter-management
     - shared-session-closeout
   repeats_requested: 3
-  results: NOT_RUN
+  results: PARTIAL_NOT_ASSESSED; utility-only sample covered one direct case per canonical skill, not the 84-case co-loaded routing set
   metrics: [precision, recall, false_positive_rate, none_accuracy, confusion_matrix]
   stochastic_analysis: required when completed
 
 utility_ab:
-  status: NOT_ASSESSED
+  status: PARTIAL_NOT_ASSESSED
   protocol: same case, model, context, and read-only task; isolated WITH-SKILL and WITHOUT-SKILL homes
   with_condition: temporary home containing only the six candidates with implicit policy enabled for evaluation
   without_condition: temporary home with no ordinary skills
@@ -68,6 +83,13 @@ utility_ab:
     redundancy_candidate: WITH pass and WITHOUT pass
     harmful: WITH fail and WITHOUT pass
     overhead_review: required for every load-bearing result
+  sample:
+    records: 12
+    completed_pairs: 2
+    redundancy_candidates: 2
+    load_bearing_passes: 0
+    harmful_with_failures: 0
+    blocked_timeouts: 5
 
 efficiency_interference:
   status: NOT_ASSESSED
@@ -105,7 +127,8 @@ regression_harvesting:
   human_acceptance_required: true
 
 limitations:
-  - runtime probe has not completed a model turn in the current network environment
+  - host selection events are not exposed in the current JSONL trace; procedure-load commands are retained as bounded runtime evidence
+  - the utility sample is partial and timeout-affected; catalog-wide routing remains unassessed
   - static catalog and policy validation do not prove model-mediated routing
   - unsupported host selection telemetry remains NOT_ASSESSED
   - no universal router, graph database, or automatic optimizer is introduced

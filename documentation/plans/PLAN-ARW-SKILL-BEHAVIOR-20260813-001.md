@@ -59,11 +59,15 @@ Structural catalog evidence is not behavioral acceptance.
 
 ## Current evidence
 
-The local `codex-cli 0.146.0` probe reached `thread.started` and
-`turn.started`, but no `turn.completed`, host selection event, usage, or task
-result. Sampling failed while resolving or connecting to the configured
-`chatgpt.com` responses endpoint. The evidence manifest therefore remains
-`NOT_ASSESSED`; the static harness pass is not a behavioral pass.
+The authorized ChatGPT-only probe now completes bounded read-only turns in an
+isolated project-local `.agents/skills` tree. The initial 12-record utility
+sample completed 7 records and timed out 5 at the 45-second bound. Procedure
+loads were observed for all six canonical skills through command traces; the
+host did not expose a dedicated selection event, and model self-report remains
+separate from host evidence. Two WITH/WITHOUT pairs completed on both sides
+and were redundancy candidates; no load-bearing or harmful result was
+observed. The evidence manifest therefore remains `NOT_ASSESSED`: this is a
+partial, timeout-affected utility sample, not catalog-wide routing acceptance.
 
 ## Dependency gate
 
