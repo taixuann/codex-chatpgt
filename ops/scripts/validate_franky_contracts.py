@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import subprocess
 import sys
 
 import yaml
@@ -17,6 +18,20 @@ DEFAULT_TASK = ROOT / "ops/schemas/examples/franky-task.yaml"
 DEFAULT_RESULT = ROOT / "ops/schemas/examples/franky-result.yaml"
 DEFAULT_REPERTOIRE = ROOT / "manifests/agent-capability-repertoires.yaml"
 EXPECTED_AGENTS = {"franky", "feynman", "prometheus", "athena", "argus"}
+REQUIRED_AUTHORITY = {
+    "inspect_control_plane",
+    "propose_changes",
+    "modify_allowed_control_plane_files",
+    "run_validators",
+    "produce_acceptance_ready_evidence",
+}
+FORBIDDEN_AUTHORITY = {
+    "final_accept_own_change",
+    "modify_global_policy_without_review",
+    "change_agent_roles_without_decision",
+    "alter_validation_requirements",
+    "approve_runtime_security_changes",
+}
 
 
 def _validate(value: object, spec: dict, path: str) -> None:
@@ -29,6 +44,8 @@ def _validate(value: object, spec: dict, path: str) -> None:
         raise ValueError(f"{path}: expected non-empty string")
     if expected == "boolean" and not isinstance(value, bool):
         raise ValueError(f"{path}: expected boolean")
+    if expected == "integer" and (not isinstance(value, int) or isinstance(value, bool)):
+        raise ValueError(f"{path}: expected integer")
     if "const" in spec and value != spec["const"]:
         raise ValueError(f"{path}: expected {spec['const']!r}")
     if "enum" in spec and value not in spec["enum"]:
@@ -86,6 +103,19 @@ def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
     _validate_schema(task, TASK_SCHEMA, task_path)
     _validate_schema(result, RESULT_SCHEMA, result_path)
     repertoire = _validate_repertoire(repertoire_path)
+    if task["contract_version"]["major"] != 1:
+        raise ValueError("task.contract_version.major: unsupported major version")
+    if "franky.result.v1" not in task["accepted_result_versions"]:
+        raise ValueError("task.accepted_result_versions: franky.result.v1 is required")
+    if result["contract_version"]["major"] != task["contract_version"]["major"]:
+        raise ValueError("task/result contract major versions must match")
+    authority_matrix = task["authority_matrix"]
+    if not REQUIRED_AUTHORITY.issubset(set(authority_matrix["franky_can"])):
+        raise ValueError("authority_matrix.franky_can is missing a required authority")
+    if not FORBIDDEN_AUTHORITY.issubset(set(authority_matrix["franky_cannot"])):
+        raise ValueError("authority_matrix.franky_cannot is missing a required boundary")
+    if task["authority"]["architecture_change"] == "allowed" and task.get("review", {}).get("required") is not True:
+        raise ValueError("architecture-change request requires an explicit review flag")
     franky = repertoire["agents"]["franky"]
     approved = set(franky["primary_capabilities"])
     approved.update(franky["lifecycle_capabilities"])
@@ -100,6 +130,18 @@ def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
         raise ValueError(f"result.routing: not in Franky repertoire: {', '.join(unknown_routed)}")
     if task["request_id"] != result["request_id"]:
         raise ValueError("task/result request_id values must match")
+    expected_commit = result["evidence_freshness"]["source_commit"]
+    for index, item in enumerate(result["lifecycle"]["evidence"]):
+        provenance = item["provenance"]
+        if provenance["result"] != item["status"]:
+            raise ValueError(f"lifecycle evidence[{index}] provenance.result must match status")
+        if provenance["commit"] != expected_commit:
+            raise ValueError("lifecycle evidence provenance must share evidence_freshness.source_commit")
+    for name, evidence in result["runtime_evidence"].items():
+        if evidence.get("status") not in {"PASS", "BLOCKED", "NOT_ASSESSED"}:
+            raise ValueError(f"runtime_evidence.{name}: invalid status")
+        if not isinstance(evidence.get("evidence"), str) or not evidence["evidence"].strip():
+            raise ValueError(f"runtime_evidence.{name}: evidence is required")
     lifecycle = result["lifecycle"]
     expected_states = ["REQUEST", "CONTRACT", "ADMISSION", "ROUTING", "IMPACT", "EXECUTION", "VALIDATION", "CLOSURE", "ACCEPTANCE_READY"]
     evidence_states = [item["state"] for item in lifecycle["evidence"]]
@@ -124,6 +166,8 @@ def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
         raise ValueError("consequential result must route closure through shared-session-closeout")
     if lifecycle_capability is not None and lifecycle_capability not in franky["lifecycle_capabilities"]:
         raise ValueError(f"result.routing.lifecycle_capability: not in Franky repertoire: {lifecycle_capability}")
+    if lifecycle_capability is not None and not result["routing"].get("lifecycle_reason"):
+        raise ValueError("lifecycle routing requires an explanation")
     if consequential and result["routing"].get("impact_required") is not True:
         raise ValueError("consequential result must declare impact_required: true")
     impact_evidence = result["routing"].get("impact_evidence")
@@ -131,6 +175,9 @@ def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
         raise ValueError("consequential result must provide structured impact_evidence")
     if consequential and not result["routing"]["supporting_capabilities"]:
         raise ValueError("consequential result must include impact-triggered supporting capability")
+    supporting_reasons = result["routing"]["supporting_reasons"]
+    if {item["capability"] for item in supporting_reasons} != set(result["routing"]["supporting_capabilities"]):
+        raise ValueError("routing supporting reasons must explain exactly the supporting capabilities")
     if consequential and set(result["routing"]["supporting_capabilities"]) != set(impact_evidence["supporting_capabilities"]):
         raise ValueError("impact evidence must name exactly the routed supporting capabilities")
     if consequential and not impact_evidence["source_state"]:
@@ -160,8 +207,14 @@ def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
             raise ValueError("result cannot downgrade task-required independent review")
         if (task_review_required or result["review"]["required"]) and result["review"]["status"] != "PASS":
             raise ValueError("acceptance_ready result requires a completed independent review PASS")
-        if result["review"].get("reviewer", "").lower() in {"", "franky", "self", "agent"}:
-            raise ValueError("acceptance_ready result requires a non-self reviewer")
+        reviewer_id = result["review"]["reviewer_id"].lower()
+        reviewer_role = result["review"]["reviewer_role"]
+        if reviewer_id == "athena" and reviewer_role != "independent_reviewer":
+            raise ValueError("Athena reviewer must be bound as independent_reviewer")
+        if reviewer_id == "parent-control-plane" and reviewer_role != "parent_acceptance":
+            raise ValueError("parent reviewer must be bound as parent_acceptance")
+        if reviewer_id not in {"athena", "parent-control-plane"}:
+            raise ValueError("acceptance_ready result requires a bound non-self reviewer identity")
         not_assessed = [
             name for name, value in result["closure"].items() if value == "NOT_ASSESSED"
         ]
@@ -170,10 +223,33 @@ def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
         if any(item["status"] == "NOT_ASSESSED" for item in result["validation"]):
             if not result["unresolved"]["limitations"]:
                 raise ValueError("NOT_ASSESSED validation requires explicit limitations")
+        freshness = result["evidence_freshness"]
+        if not freshness["mutation_free_since_validation"] or freshness["invalidated_by_mutation"]:
+            raise ValueError("acceptance_ready evidence is stale after mutation")
+        for name, evidence in result["runtime_evidence"].items():
+            if evidence["status"] != "PASS" and not result["unresolved"]["limitations"]:
+                raise ValueError(f"runtime_evidence.{name} requires an explicit limitation")
+        if result["review"]["status"] == "PASS" and not result["review"]["scope"]:
+            raise ValueError("independent review PASS requires a declared scope")
     if result["status"] == "acceptance_ready" and any(
         value == "BLOCKED" for value in result["closure"].values()
     ):
         raise ValueError("acceptance_ready result cannot have a blocked closure surface")
+
+
+def _enforce_current_head(result_path: Path) -> None:
+    result = _load(result_path)
+    if result.get("status") != "acceptance_ready" or result.get("evidence_freshness", {}).get("source_commit") != "HEAD":
+        return
+    try:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], check=True, capture_output=True, text=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ValueError(f"cannot verify current Git state for HEAD-bound evidence: {exc}") from exc
+    if not head:
+        raise ValueError("cannot resolve current Git HEAD for evidence")
+    if dirty:
+        raise ValueError("acceptance_ready HEAD-bound evidence requires a clean working tree")
 
 
 def main() -> int:
@@ -184,6 +260,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         validate(args.task, args.result, args.repertoire)
+        _enforce_current_head(args.result)
     except (OSError, TypeError, ValueError, yaml.YAMLError) as exc:
         print(f"FAIL franky-contracts: {exc}")
         return 1

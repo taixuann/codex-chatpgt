@@ -46,6 +46,34 @@ class FrankyContractTests(unittest.TestCase):
             validate(task_path, result_path, DEFAULT_REPERTOIRE)
         tmp.cleanup()
 
+    def test_task_schema_rejects_missing_scope(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        task.pop("scope")
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "missing required field.*scope"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_task_schema_rejects_missing_authority(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        task.pop("authority")
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "missing required field.*authority"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_architecture_change_requires_review_flag(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        task["authority"]["architecture_change"] = "allowed"
+        task.pop("review")
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "architecture-change request"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
     def test_unexplained_not_assessed_cannot_be_acceptance_ready(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
         result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
@@ -85,9 +113,17 @@ class FrankyContractTests(unittest.TestCase):
     def test_acceptance_ready_requires_independent_review(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
         result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
-        result["review"] = {"required": True, "status": "PASS", "reviewer": "franky"}
+        result["review"] = {
+            "required": True,
+            "status": "PASS",
+            "reviewer": "franky",
+            "reviewer_id": "franky",
+            "reviewer_role": "independent_reviewer",
+            "scope": ["contract"],
+            "not_reviewed": [],
+        }
         tmp, task_path, result_path = self._write_case(task, result)
-        with self.assertRaisesRegex(ValueError, "non-self reviewer"):
+        with self.assertRaisesRegex(ValueError, "bound non-self reviewer"):
             validate(task_path, result_path, DEFAULT_REPERTOIRE)
         tmp.cleanup()
 
@@ -106,9 +142,17 @@ class FrankyContractTests(unittest.TestCase):
         result["closure"]["references"] = "BLOCKED"
         result["lifecycle"]["evidence"] = result["lifecycle"]["evidence"][:-1]
         result["lifecycle"]["evidence"][-1]["status"] = "BLOCKED"
+        result["lifecycle"]["evidence"][-1]["provenance"]["result"] = "BLOCKED"
         result["lifecycle"]["state"] = "CLOSURE"
         result["status"] = "blocked"
-        result["review"] = {"required": True, "status": "NOT_ASSESSED"}
+        result["review"] = {
+            "required": True,
+            "status": "NOT_ASSESSED",
+            "reviewer_id": "parent-control-plane",
+            "reviewer_role": "parent_acceptance",
+            "scope": ["contract"],
+            "not_reviewed": [],
+        }
         tmp, task_path, result_path = self._write_case(task, result)
         validate(task_path, result_path, DEFAULT_REPERTOIRE)
         tmp.cleanup()
@@ -134,7 +178,15 @@ class FrankyContractTests(unittest.TestCase):
     def test_result_cannot_downgrade_task_required_review(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
         result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
-        result["review"] = {"required": False, "status": "NOT_APPLICABLE", "reviewer": "Athena"}
+        result["review"] = {
+            "required": False,
+            "status": "NOT_APPLICABLE",
+            "reviewer": "Athena",
+            "reviewer_id": "athena",
+            "reviewer_role": "independent_reviewer",
+            "scope": ["contract"],
+            "not_reviewed": [],
+        }
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "downgrade"):
             validate(task_path, result_path, DEFAULT_REPERTOIRE)
@@ -146,10 +198,47 @@ class FrankyContractTests(unittest.TestCase):
         result["status"] = "blocked"
         result["lifecycle"] = {
             "state": "ROUTING",
-            "evidence": [{"state": "VALIDATION", "status": "BLOCKED", "source": "test"}],
+            "evidence": [{
+                "state": "VALIDATION",
+                "status": "BLOCKED",
+                "source": "test",
+                "provenance": {
+                    "source_state": "test",
+                    "commit": "HEAD",
+                    "observed_at": "2026-08-13T13:00:00Z",
+                    "result": "BLOCKED",
+                },
+            }],
         }
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "ordered evidence prefix"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_provenance_must_match_evidence_freshness_commit(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result["lifecycle"]["evidence"][0]["provenance"]["commit"] = "stale"
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "provenance must share"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_validation_after_mutation_invalidates_acceptance(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result["evidence_freshness"]["mutation_free_since_validation"] = False
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "stale after mutation"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_routing_requires_explanations(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result["routing"]["supporting_reasons"] = []
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "supporting reasons"):
             validate(task_path, result_path, DEFAULT_REPERTOIRE)
         tmp.cleanup()
 

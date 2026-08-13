@@ -178,3 +178,15 @@ persist workflow state, or replace the shared operating lifecycle. Consequential
 results must identify a primary capability, impact-triggered supporting
 capability, lifecycle closeout, closure evidence, and a non-self review PASS.
 `acceptance_ready` remains parent/reviewer evidence, never final acceptance.
+The task contract also carries a version compatibility declaration and a
+machine-checkable Franky authority matrix. Each result evidence item records
+source state, commit, timestamp, and result; freshness flags invalidate an
+acceptance claim after later mutation. Routing includes a reason for the
+primary, supporting, and lifecycle capabilities, and runtime evidence remains
+split across configuration, dispatch, skill loading, and mutation enforcement.
+When native skill loading is unavailable, the task packet is the tested
+fallback materialization path. Review records declare both scope and
+not-reviewed runtime behavior; evolution records explicitly say whether a
+promotion candidate exists.
+The checked-in example uses `source_commit: HEAD`; the validator resolves that
+reference and requires a clean checkout for an acceptance-ready claim.

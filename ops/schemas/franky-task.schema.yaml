@@ -5,11 +5,14 @@ additionalProperties: false
 required:
   - kind
   - version
+  - contract_version
+  - accepted_result_versions
   - request_id
   - objective
   - scope
   - intent
   - authority
+  - authority_matrix
   - required_capabilities
   - constraints
   - done_criteria
@@ -19,6 +22,18 @@ required:
 properties:
   kind: {const: franky.task.v1}
   version: {const: 1}
+  contract_version:
+    type: object
+    additionalProperties: false
+    required: [major, minor]
+    properties:
+      major: {type: integer, minimum: 1}
+      minor: {type: integer, minimum: 0}
+  accepted_result_versions:
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items: {type: string, minLength: 1}
   request_id: {type: string, minLength: 1}
   objective: {type: string, minLength: 1}
   scope:
@@ -44,6 +59,19 @@ properties:
       mutation: {enum: [allowed, denied, approval_required]}
       external_effects: {enum: [allowed, denied, approval_required]}
       architecture_change: {enum: [allowed, proposal_only, denied]}
+  authority_matrix:
+    type: object
+    additionalProperties: false
+    required: [franky_can, franky_cannot]
+    properties:
+      franky_can:
+        type: array
+        minItems: 1
+        items: {type: string, minLength: 1}
+      franky_cannot:
+        type: array
+        minItems: 1
+        items: {type: string, minLength: 1}
   required_capabilities: {type: array, items: {type: string}, minItems: 1}
   constraints: {type: array, items: {type: string}, minItems: 1}
   done_criteria: {type: array, items: {type: string}, minItems: 1}

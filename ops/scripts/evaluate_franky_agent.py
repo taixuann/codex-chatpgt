@@ -18,6 +18,41 @@ def classify(case: dict) -> dict:
     prompt = case["prompt"].lower()
     if case["invocation"] == "automatic":
         return {"admission": "parent_capability_first"}
+    if "pytorch" in prompt or "phd sop" in prompt:
+        return {
+            "admission": "route_out",
+            "route_target": "prometheus/research" if "pytorch" in prompt else "parent",
+        }
+    if case.get("fallback_required"):
+        packet = case.get("task_packet") or {}
+        required_capabilities = packet.get("required_capabilities") or []
+        if packet.get("kind") != "franky.task.v1" or "control-plane-audit" not in required_capabilities:
+            raise ValueError(f"{case['id']}: unavailable skill loading requires a Franky task packet with control-plane-audit")
+        return {
+            "admission": "in_scope",
+            "operation_class": "control_plane_audit",
+            "primary_capability": "control-plane-audit",
+            "supporting_capabilities": ["instruction-maintenance"],
+            "lifecycle_capability": "shared-session-closeout",
+            "fallback_capability_path": "task_packet",
+            "fallback_capability": "control-plane-audit",
+        }
+    if "rename skill" in prompt:
+        return {
+            "admission": "in_scope",
+            "operation_class": "skill_rename_with_documentation",
+            "primary_capability": "skill-authoring-and-quality",
+            "supporting_capabilities": ["instruction-maintenance"],
+            "lifecycle_capability": "shared-session-closeout",
+        }
+    if "fix skill description" in prompt:
+        return {
+            "admission": "in_scope",
+            "operation_class": "skill_contract_repair",
+            "primary_capability": "skill-authoring-and-quality",
+            "supporting_capabilities": [],
+            "lifecycle_capability": "shared-session-closeout",
+        }
     if "arrhenius" in prompt or "research project" in prompt:
         return {"admission": "route_out"}
     if "audit" in prompt:

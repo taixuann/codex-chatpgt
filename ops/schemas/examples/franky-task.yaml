@@ -1,5 +1,10 @@
 kind: franky.task.v1
 version: 1
+contract_version:
+  major: 1
+  minor: 1
+accepted_result_versions:
+  - franky.result.v1
 request_id: FRANKY-20260813-001
 objective: Implement the accepted Franky agent-first control-plane contract end-to-end.
 scope:
@@ -20,6 +25,19 @@ authority:
   mutation: allowed
   external_effects: denied
   architecture_change: proposal_only
+authority_matrix:
+  franky_can:
+    - inspect_control_plane
+    - propose_changes
+    - modify_allowed_control_plane_files
+    - run_validators
+    - produce_acceptance_ready_evidence
+  franky_cannot:
+    - final_accept_own_change
+    - modify_global_policy_without_review
+    - change_agent_roles_without_decision
+    - alter_validation_requirements
+    - approve_runtime_security_changes
 required_capabilities:
   - runtime-adapter-management
   - control-plane-audit

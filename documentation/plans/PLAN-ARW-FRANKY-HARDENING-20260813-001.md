@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-FRANKY-HARDENING-20260813-001
 issue: 57
-status: conditional-pass-pending-pr-ci-acceptance
+status: conditional-pass-pr-ci-repair-pending
 updated: 2026-08-13
 owner: parent-control-plane
 ---
@@ -38,6 +38,18 @@ advance state without evidence. A consequential result must identify:
 The parent or independent reviewer retains final acceptance and durable-state
 authority.
 
+`source_commit: HEAD` is a checked-in example reference, not a claim that a
+literal old SHA is current. The contract validator resolves it against the
+checkout and rejects `acceptance_ready` evidence when the working tree is
+dirty, so validation cannot silently survive a later mutation.
+
+The refinement closure adds only machine-checkable acceptance gates: contract
+compatibility and authority declarations, per-evidence provenance/freshness,
+routing explanations, negative routing/contract cases, repository-relative
+documentation impact review, split runtime evidence, tested task-packet
+fallback, explicit reviewer scope, and a recorded evolution disposition. These
+are evidence fields and validators, not a new router or workflow engine.
+
 ## Runtime evidence boundary
 
 The installed Codex probe reports independently:
@@ -60,17 +72,24 @@ host permission enforcement remains separate evidence.
 | Done criteria and stop conditions | UPDATED | task schema/example |
 | Thin result/evidence status | UPDATED | `ops/schemas/franky-result.schema.yaml` |
 | Ordered lifecycle evidence | UPDATED | result schema/example and validator |
+| Contract compatibility and authority matrix | UPDATED | task schema/example and validator |
+| Evidence provenance and freshness | UPDATED | result schema/example, validator, negative tests |
 | Primary/supporting/lifecycle routing | UPDATED | repertoire, evaluator, validator, fixture |
+| Routing explanations and negative benchmark | UPDATED | result schema, evaluator fixture |
 | Impact discovery evidence | UPDATED | result routing and control-plane audit skill |
 | Acceptance authority | UPDATED | Franky adapter, result validator, negative tests |
 | Issue #38 skill ownership | UNCHANGED_VALID | skill catalog/evidence and D-009/D-012 |
 | Runtime parsing | UPDATED | `probe_codex_agent_runtime.py`, CI parser step |
+| Runtime evidence split and unavailable-host handling | UPDATED | runtime probe, nested evidence output, test |
 | Actual dispatch behavior | NOT_ASSESSED | no completed observable child-agent trace |
 | `skills.config` behavior | NOT_ASSESSED | parser is not behavior proof |
 | Host mutation escalation | NOT_ASSESSED | contract gate is proven; host enforcement unavailable |
 | Canonical docs and references | UPDATED | `AGENTS.md`, `CURRENT.md`, `DECISIONS.md`, workflow docs |
+| Documentation impact and canonical paths | UPDATED | impact fixture/validator and agent changelog |
+| Fallback materialization proof | UPDATED | evaluator fallback case and Franky adapter guidance |
+| Reviewer scope and evolution disposition | UPDATED | result schema/example and validator |
 | Independent review | UPDATED | Athena final read-only re-review: conditional pass; no remaining High/Medium/Low findings |
-| PR acceptance evidence | PENDING | #57 follow-up branch/PR and hosted CI still required |
+| PR acceptance evidence | PENDING | PR #58 exists; repaired hosted CI must complete |
 
 ## Validation commands
 

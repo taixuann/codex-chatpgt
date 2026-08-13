@@ -9,11 +9,11 @@ Append-only record of governed agent adapter changes.
   workflow_id: FRANKY-HARDENING-AUDIT-V1
   reason: Harden the Issue #56 Franky task/result boundary with done criteria, ordered evidence, impact-bound routing, non-self review enforcement, and explicit runtime limitation reporting without introducing a workflow engine.
   changed_paths:
-    - /Users/tai/.codex/agents/franky.toml
-    - /Users/tai/.codex/agents/AGENTS.md
-    - /Users/tai/.codex/documentation/OPERATING-WORKFLOW.md
-    - /Users/tai/.codex/ops/schemas/franky-task.schema.yaml
-    - /Users/tai/.codex/ops/schemas/franky-result.schema.yaml
+    - agents/franky.toml
+    - agents/AGENTS.md
+    - documentation/OPERATING-WORKFLOW.md
+    - ops/schemas/franky-task.schema.yaml
+    - ops/schemas/franky-result.schema.yaml
   validation:
     - 26 ops/scripts unit tests
     - validate_franky_contracts.py
@@ -22,7 +22,7 @@ Append-only record of governed agent adapter changes.
     - Codex 0.147.0-alpha.6.5 parser PASS; actual dispatch, skills.config behavior, and host mutation escalation NOT_ASSESSED/BLOCKED
   approval:
     - Issue #57 audit scope and completion criteria
-  change_commit: pending; branch codex/issue-57-franky-hardening
+  change_commit: 81a1470; branch codex/issue-57-franky-hardening
   rollback:
     - Revert the Issue #57 hardening commit and restore the Issue #56 contract surfaces.
 ```
@@ -34,14 +34,14 @@ Append-only record of governed agent adapter changes.
   workflow_id: FRANKY-TASK-RESULT-V1
   reason: Add the bounded Franky task/result boundary, approved capability repertoire reference, one-call closure contract, explicit mutation escalation, and non-recursive acceptance-ready return semantics while preserving Issue #38 skill-quality ownership.
   changed_paths:
-    - /Users/tai/.codex/agents/franky.toml
-    - /Users/tai/.codex/agents/feynman.toml
-    - /Users/tai/.codex/agents/prometheus.toml
-    - /Users/tai/.codex/agents/athena.toml
-    - /Users/tai/.codex/agents/argus.toml
-    - /Users/tai/.codex/agents/AGENTS.md
-    - /Users/tai/.codex/agents/README.md
-    - /Users/tai/.codex/manifests/agent-capability-repertoires.yaml
+    - agents/franky.toml
+    - agents/feynman.toml
+    - agents/prometheus.toml
+    - agents/athena.toml
+    - agents/argus.toml
+    - agents/AGENTS.md
+    - agents/README.md
+    - manifests/agent-capability-repertoires.yaml
   validation:
     - validate_agent_toml.py for all active adapters
     - validate_franky_contracts.py
@@ -62,13 +62,13 @@ Append-only record of governed agent adapter changes.
   workflow_id: WF-FRANKY-CANONICAL
   reason: Add Argus exploration and Athena independent review adapters while preserving canonical Feynman, Prometheus, and Franky boundaries; migrate defaults to observed GPT-5.6 routing tiers.
   changed_paths:
-    - /Users/tai/.codex/agents/argus.toml
-    - /Users/tai/.codex/agents/athena.toml
-    - /Users/tai/.codex/agents/feynman.toml
-    - /Users/tai/.codex/agents/prometheus.toml
-    - /Users/tai/.codex/agents/franky.toml
-    - /Users/tai/.codex/agents/templates/agent.toml
-    - /Users/tai/.codex/agents/AGENTS.md
+    - agents/argus.toml
+    - agents/athena.toml
+    - agents/feynman.toml
+    - agents/prometheus.toml
+    - agents/franky.toml
+    - agents/templates/agent.toml
+    - agents/AGENTS.md
   validation:
     - validate_agent_toml.py for all active adapters and inert template
     - canonical Franky layout validator
@@ -87,9 +87,9 @@ Append-only record of governed agent adapter changes.
   workflow_id: WF-FRANKY-MAINTENANCE
   reason: Establish the workflow-first Franky adapter and versioned control-plane boundary.
   changed_paths:
-    - /Users/tai/.codex/agents/franky.toml
-    - /Users/tai/.codex/agents/README.md
-    - /Users/tai/.codex/agents/CHANGELOG.md
+    - agents/franky.toml
+    - agents/README.md
+    - agents/CHANGELOG.md
   validation:
     - validate_agent_toml.py
     - workflow layout validator
@@ -108,9 +108,9 @@ Append-only record of governed agent adapter changes.
   workflow_id: WF-FRANKY-MAINTENANCE
   reason: Set all local runtime adapters to the approved medium-cost baseline and add deterministic input/output/cache validation.
   changed_paths:
-    - /Users/tai/.codex/agents/franky.toml
-    - /Users/tai/.codex/agents/feynman.toml
-    - /Users/tai/.codex/agents/prometheus.toml
+    - agents/franky.toml
+    - agents/feynman.toml
+    - agents/prometheus.toml
   validation:
     - validate_agent_toml.py
     - validate_io_cache.py

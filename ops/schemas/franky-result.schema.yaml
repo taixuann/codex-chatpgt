@@ -5,9 +5,11 @@ additionalProperties: false
 required:
   - kind
   - version
+  - contract_version
   - request_id
   - status
   - lifecycle
+  - evidence_freshness
   - routing
   - changes
   - closure
@@ -15,9 +17,17 @@ required:
   - review
   - unresolved
   - evolution
+  - runtime_evidence
 properties:
   kind: {const: franky.result.v1}
   version: {const: 1}
+  contract_version:
+    type: object
+    additionalProperties: false
+    required: [major, minor]
+    properties:
+      major: {type: integer, minimum: 1}
+      minor: {type: integer, minimum: 0}
   request_id: {type: string, minLength: 1}
   status: {enum: [acceptance_ready, blocked, escalated, failed]}
   lifecycle:
@@ -33,22 +43,51 @@ properties:
         items:
           type: object
           additionalProperties: false
-          required: [state, status, source]
+          required: [state, status, source, provenance]
           properties:
             state:
               enum: [REQUEST, CONTRACT, ADMISSION, ROUTING, IMPACT, EXECUTION, VALIDATION, CLOSURE, ACCEPTANCE_READY]
             status: {enum: [PASS, BLOCKED, NOT_ASSESSED, NOT_APPLICABLE]}
             source: {type: string, minLength: 1}
             detail: {type: string}
+            provenance:
+              type: object
+              additionalProperties: false
+              required: [source_state, commit, observed_at, result]
+              properties:
+                source_state: {type: string, minLength: 1}
+                commit: {type: string, minLength: 1}
+                observed_at: {type: string, minLength: 1}
+                result: {enum: [PASS, BLOCKED, NOT_ASSESSED, NOT_APPLICABLE]}
+  evidence_freshness:
+    type: object
+    additionalProperties: false
+    required: [source_commit, validated_at, mutation_free_since_validation, invalidated_by_mutation]
+    properties:
+      source_commit: {type: string, minLength: 1}
+      validated_at: {type: string, minLength: 1}
+      mutation_free_since_validation: {type: boolean}
+      invalidated_by_mutation: {type: boolean}
   routing:
     type: object
     additionalProperties: false
-    required: [operation_class, primary_capability, supporting_capabilities]
+    required: [operation_class, primary_capability, primary_reason, supporting_capabilities, supporting_reasons]
     properties:
       operation_class: {type: string, minLength: 1}
       primary_capability: {type: string, minLength: 1}
+      primary_reason: {type: string, minLength: 1}
       supporting_capabilities: {type: array, items: {type: string}}
+      supporting_reasons:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required: [capability, reason]
+          properties:
+            capability: {type: string, minLength: 1}
+            reason: {type: string, minLength: 1}
       lifecycle_capability: {type: string, minLength: 1}
+      lifecycle_reason: {type: string, minLength: 1}
       impact_required: {type: boolean}
       impact_evidence:
         type: object
@@ -90,11 +129,15 @@ properties:
   review:
     type: object
     additionalProperties: false
-    required: [required, status]
+    required: [required, status, scope, not_reviewed, reviewer_id, reviewer_role]
     properties:
       required: {type: boolean}
       status: {enum: [PASS, NOT_ASSESSED, BLOCKED, NOT_APPLICABLE]}
       reviewer: {type: string}
+      reviewer_id: {type: string, minLength: 1}
+      reviewer_role: {enum: [independent_reviewer, parent_acceptance]}
+      scope: {type: array, items: {type: string}, minItems: 1}
+      not_reviewed: {type: array, items: {type: string}}
   unresolved:
     type: object
     additionalProperties: false
@@ -105,7 +148,30 @@ properties:
   evolution:
     type: object
     additionalProperties: false
-    required: [status]
+    required: [status, observation, candidate_improvements, promotion_required]
     properties:
       status: {enum: [NO_ACTION, PROPOSED, BLOCKED]}
-      observation: {type: string}
+      observation: {type: string, minLength: 1}
+      candidate_improvements: {type: array, items: {type: string}}
+      promotion_required: {type: boolean}
+  runtime_evidence:
+    type: object
+    additionalProperties: false
+    required: [configuration, dispatch, skill_loading, mutation]
+    properties:
+      configuration:
+        $ref: '#/$defs/runtimeEvidence'
+      dispatch:
+        $ref: '#/$defs/runtimeEvidence'
+      skill_loading:
+        $ref: '#/$defs/runtimeEvidence'
+      mutation:
+        $ref: '#/$defs/runtimeEvidence'
+$defs:
+  runtimeEvidence:
+    type: object
+    additionalProperties: false
+    required: [status, evidence]
+    properties:
+      status: {enum: [PASS, BLOCKED, NOT_ASSESSED]}
+      evidence: {type: string, minLength: 1}

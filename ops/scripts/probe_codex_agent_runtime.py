@@ -32,6 +32,8 @@ def run(command: list[str], timeout: int) -> tuple[int, str, str]:
         )
     except subprocess.TimeoutExpired as exc:
         return 124, exc.stdout or "", f"timeout after {timeout}s"
+    except OSError as exc:
+        return 127, "", f"runtime unavailable: {exc}"
     return completed.returncode, completed.stdout, completed.stderr
 
 
@@ -44,13 +46,14 @@ def probe(codex: str, live: bool, timeout: int) -> dict:
     result = {
         "codex": codex,
         "version": (version_out or version_err).strip(),
-        "config_parse": "PASS" if parse_code == 0 else "FAIL",
+        "config_parse": "PASS" if parse_code == 0 else ("NOT_ASSESSED" if parse_code == 127 else "FAIL"),
         "config_parse_evidence": (parse_out or parse_err).strip(),
         "native_mention_hook": "NOT_ASSESSED",
         "native_mention_evidence": "@franky is not a documented codex exec option; host alias behavior is separate from CLI parsing",
         "actual_dispatch": "NOT_ASSESSED",
         "actual_dispatch_limitation": "No completed observable child-agent dispatch trace was available.",
         "skills_config_behavior": "NOT_ASSESSED",
+        "skills_config_limitation": "No completed observable child-agent/skill-selection trace was available.",
         "mutation_escalation": "NOT_ASSESSED",
         "mutation_escalation_limitation": "The contract checks explicit mutation authority; host permission enforcement was not observable.",
         "live_turn": "NOT_RUN",
@@ -60,6 +63,12 @@ def probe(codex: str, live: bool, timeout: int) -> dict:
     if help_code != 0:
         result["help_error"] = (help_out or help_err).strip()
     if not live:
+        result["runtime_evidence"] = {
+            "configuration": {"status": result["config_parse"], "evidence": result["config_parse_evidence"] or "No parser evidence."},
+            "dispatch": {"status": result["actual_dispatch"], "evidence": result["actual_dispatch_limitation"]},
+            "skill_loading": {"status": result["skills_config_behavior"], "evidence": result["skills_config_limitation"]},
+            "mutation": {"status": result["mutation_escalation"], "evidence": result["mutation_escalation_limitation"]},
+        }
         return result
 
     code, stdout, stderr = run(
@@ -89,6 +98,12 @@ def probe(codex: str, live: bool, timeout: int) -> dict:
     else:
         result["skills_config_limitation"] = "No completed observable child-agent/skill-selection trace was available."
     result["live_exit_code"] = code
+    result["runtime_evidence"] = {
+        "configuration": {"status": result["config_parse"], "evidence": result["config_parse_evidence"] or "No parser evidence."},
+        "dispatch": {"status": result["actual_dispatch"], "evidence": result["actual_dispatch_limitation"]},
+        "skill_loading": {"status": result["skills_config_behavior"], "evidence": result["skills_config_limitation"]},
+        "mutation": {"status": result["mutation_escalation"], "evidence": result["mutation_escalation_limitation"]},
+    }
     return result
 
 
