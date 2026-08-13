@@ -6,7 +6,7 @@ metadata:
   review_interval_days: 90
 ---
 
-# Franky agent installer
+# Runtime adapter management
 
 ## Contract
 
@@ -21,9 +21,10 @@ Treat custom-agent files as runtime adapters, not as the canonical role
 registry.
 
 1. Decide personal scope (`~/.codex/agents/`) versus project scope
-   (`.codex/agents/`). Prefer project scope for AI Labs-specific roles.
-2. Require `name`, `description`, `model`, `model_reasoning_effort`,
-   `sandbox_mode`, and `developer_instructions` for AI Labs runtime adapters.
+   (`.codex/agents/`). Prefer project scope for repository-specific adapters.
+2. Require the adapter contract fields (`name`, `description`, `model`,
+   `model_reasoning_effort`, `sandbox_mode`, and `developer_instructions`)
+   for the selected runtime; do not hardcode a model or runtime in the skill.
 3. Check filename/name consistency, duplicate names, sandbox boundaries, and
    subagent restrictions before writing.
 4. Preserve the canonical semantic role in the authoritative role registry;
@@ -34,9 +35,9 @@ registry.
 Use the optional `templates/agent.toml` as the adapter template. Copy it to the
 target scope, replace the identity and role-specific instructions, then validate
 the instantiated file; never inspect an arbitrary installed agent as a template.
-The template uses the current Codex adapter default `gpt-5.6-luna` with medium
-reasoning as an example only; callers may select another supported model when
-the task contract justifies it. Routine operator work should not use `xhigh`.
+The template contains placeholders only. The caller supplies a supported model
+and reasoning setting from the selected runtime/task contract; the skill does
+not define model-routing policy.
 
 Copy `templates/agent.toml`, set `name` to the filename stem, fill the required
 runtime fields, and run `scripts/validate_agent_toml.py <path>`. Report the

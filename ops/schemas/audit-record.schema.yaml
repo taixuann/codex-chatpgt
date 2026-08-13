@@ -3,6 +3,6 @@ title: Franky audit record
 type: object
 required: [schema, version, audit_id, component_type, component_id, operation, scope, source, destination, inputs, outputs, cache, protected_paths, collisions, dependencies, overview, preview, rollback, status, findings]
 properties:
-  schema: {const: franky.audit}
+  schema: {const: control_plane.audit}
   version: {type: integer, minimum: 1}
   component_type: {type: string, enum: [skill, agent, workflow, cron, guidance, project_link, maintenance]}

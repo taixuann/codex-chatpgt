@@ -1,12 +1,12 @@
-schema: franky.audit
+schema: control_plane.audit
 version: 1
 audit_id: AUD-YYYYMMDD-NNN
 component_type: skill
 component_id: example
 operation: audit_component
 scope: explicit approved path scope
-source: /Users/tai/.codex
-destination: /Users/tai/.codex
+source: selected control-plane root
+destination: selected control-plane root
 inputs: {declared: [], resolved: [], valid: true}
 outputs: {declared: [], consumers: [], valid: true}
 cache: {mode: no-cache, path: null, valid: true}

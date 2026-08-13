@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run Franky-adapted quality gates against one skill package.
+"""Run repository quality gates against one skill package.
 
 Structural and security failures block a package. Evaluation and review-age
 metadata are advisory so existing skills remain compatible while gaining a

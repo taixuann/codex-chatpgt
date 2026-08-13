@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate an AI Labs Codex custom-agent TOML adapter."""
+"""Validate a Codex runtime-agent TOML adapter."""
 
 from __future__ import annotations
 

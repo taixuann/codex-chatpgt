@@ -32,7 +32,7 @@ def lock(lock_path: Path) -> None:
         lock_path.mkdir()
         (lock_path / "owner").write_text(f"pid={os.getpid()}\n", encoding="utf-8")
     except FileExistsError as exc:
-        raise ValueError(f"Franky maintenance lock already exists: {lock_path}") from exc
+        raise ValueError(f"control-plane maintenance lock already exists: {lock_path}") from exc
 
 def unlock(lock_path: Path) -> None:
     owner = lock_path / "owner"
@@ -88,7 +88,7 @@ def main() -> int:
         counters = {name: Counter() for name in ("skills", "failure_files", "correction_files", "unresolved_files")}; stats = Counter()
         if sessions.exists():
             for path in sessions.rglob("*"): inspect_file(path, sessions, cutoff, counters, stats)
-        result = {"schema": "franky.session-inventory", "version": 1, "generated_at": datetime.now(timezone.utc).isoformat(), "window_hours": args.since_hours, "source_root": str(sessions), "raw_content_included": False, "stats": dict(stats), "evidence": {"skill_use": [{"skill": k, "count": v} for k, v in counters["skills"].most_common()], "failure_file_count": len(counters["failure_files"]), "correction_file_count": len(counters["correction_files"]), "unresolved_file_count": len(counters["unresolved_files"])}, "policy": {"personal_skills_only": True, "new_skill_creation": False, "result_md": False}}
+        result = {"schema": "control_plane.session-inventory", "version": 1, "generated_at": datetime.now(timezone.utc).isoformat(), "window_hours": args.since_hours, "source_root": str(sessions), "raw_content_included": False, "stats": dict(stats), "evidence": {"skill_use": [{"skill": k, "count": v} for k, v in counters["skills"].most_common()], "failure_file_count": len(counters["failure_files"]), "correction_file_count": len(counters["correction_files"]), "unresolved_file_count": len(counters["unresolved_files"])}, "policy": {"personal_skills_only": True, "new_skill_creation": False, "result_md": False}}
         encoded = yaml.safe_dump(result, sort_keys=False)
         if str(args.output) == "-": sys.stdout.write(encoded)
         else: args.output.parent.mkdir(parents=True, exist_ok=True); args.output.write_text(encoded, encoding="utf-8")

@@ -6,7 +6,7 @@ metadata:
   review_interval_days: 90
 ---
 
-# Franky guidance manager
+# Instruction maintenance
 
 ## Contract
 

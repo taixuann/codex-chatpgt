@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Franky agent README and change-evidence contract.
+"""Validate the runtime-agent README and change-evidence contract.
 
 Runtime adapters are intentionally versionless; any historical version field
 in the append-only log is evidence metadata, not an adapter requirement.

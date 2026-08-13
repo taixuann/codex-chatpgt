@@ -1,17 +1,20 @@
 ---
 name: using-agent-skills
-description: Discovers and invokes agent skills. Use when starting a session or when you need to discover which skill applies to the current task. This is the meta-skill that governs how all other skills are discovered and invoked.
+description: Resolve a capability need to an existing skill when the caller explicitly requests skill discovery. Use for bounded catalog lookup only; do not use it to create a workflow, choose a persona, or run a multi-stage lifecycle.
 ---
 
-# Using Agent Skills
+# Skill discovery reference
 
 ## Overview
 
-Agent Skills is a collection of engineering workflow skills organized by development phase. Each skill encodes a specific process that senior engineers follow. This meta-skill helps you discover and apply the right skill for your current task.
+Skills are bounded capabilities. This reference helps a caller identify a
+candidate by capability; the Issue/PLAN and operating workflow remain the
+source of execution state and lifecycle authority.
 
 ## Skill Discovery
 
-When a task arrives, identify the development phase and apply the corresponding skill:
+When explicit skill discovery is requested, identify the capability and return
+one candidate or `NO_MATCH`:
 
 ```
 Task arrives
@@ -40,6 +43,9 @@ Task arrives
     ├── Adding logs/metrics/alerts? ───→ observability-and-instrumentation
     └── Deploying/launching? ─────────→ shipping-and-launch
 ```
+
+Do not chain this reference into an implicit phase lifecycle. Do not choose a
+persona, create a plan, delegate work, or require a sequence of other skills.
 
 ## Core Operating Behaviors
 
@@ -131,15 +137,18 @@ These are the subtle errors that look like productivity but create problems:
 
 1. **Check for an applicable skill before starting work.** Skills encode processes that prevent common mistakes.
 
-2. **Skills are workflows, not suggestions.** Follow the steps in order. Don't skip verification steps.
+2. **Skills are bounded procedures, not workflows.** The selected skill owns
+   only its stated capability and validation; Issue/PLAN owns sequencing.
 
-3. **Multiple skills can apply.** A feature implementation might involve `idea-refine` → `spec-driven-development` → `planning-and-task-breakdown` → `incremental-implementation` → `test-driven-development` → `code-review-and-quality` → `code-simplification` → `shipping-and-launch` in sequence.
+3. **Multiple skills may be relevant.** Return the smallest candidate set and
+   let the parent task contract decide sequencing; never impose a universal chain.
 
-4. **When in doubt, start with a spec.** If the task is non-trivial and there's no spec, begin with `spec-driven-development`.
+4. **When uncertain, report the ambiguity.** Do not silently convert an
+   underspecified task into a planning or workflow request.
 
-## Lifecycle Sequence
+## Example capability map (non-authoritative)
 
-For a complete feature, the typical skill sequence is:
+The following names are examples only; they do not define an execution sequence:
 
 ```
 1.  interview-me                → Extract what the user actually wants
@@ -160,7 +169,8 @@ For a complete feature, the typical skill sequence is:
 16. shipping-and-launch         → Deploy safely
 ```
 
-Not every task needs every skill. A bug fix might only need: `debugging-and-error-recovery` → `test-driven-development` → `code-review-and-quality`.
+Not every task needs a skill. The parent should use the smallest capability or
+none when ordinary reasoning and deterministic tools are sufficient.
 
 ## Quick Reference
 
