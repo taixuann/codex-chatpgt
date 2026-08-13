@@ -74,7 +74,6 @@ cases:
       supporting_capabilities: [instruction-maintenance]
   - id: fallback-task-packet
     invocation: explicit
-    fallback_required: true
     runtime_skill_loading: unavailable
     task_packet:
       kind: franky.task.v1
@@ -86,6 +85,18 @@ cases:
       admission: in_scope
       fallback_capability_path: task_packet
       fallback_capability: control-plane-audit
+  - id: fallback-task-packet-primary-only
+    invocation: explicit
+    runtime_skill_loading: unavailable
+    task_packet:
+      kind: franky.task.v1
+      required_capabilities:
+        - control-plane-audit
+    prompt: "@franky audit this control-plane skill with only the primary capability available"
+    expected:
+      admission: in_scope
+      supporting_capabilities: []
+      fallback_capability_path: task_packet
   - id: automatic-routing-is-parent-owned
     invocation: automatic
     prompt: "Update the bounded Codex instruction contract"

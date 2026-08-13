@@ -8,6 +8,7 @@ changed_paths:
   - documentation/DECISIONS.md
   - documentation/OPERATING-WORKFLOW.md
   - documentation/plans/PLAN-ARW-FRANKY-HARDENING-20260813-001.md
+  - documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml
   - ops/schemas/franky-task.schema.yaml
   - ops/schemas/franky-result.schema.yaml
   - ops/schemas/examples/franky-task.yaml
@@ -19,6 +20,8 @@ changed_paths:
   - ops/scripts/tests/test_franky_contracts.py
   - ops/scripts/tests/test_runtime_probe.py
   - ops/scripts/tests/test_documentation_impact.py
+  - ops/scripts/fixtures/athena-review-pass.yaml
+  - ops/scripts/fixtures/athena-review-request-changes.yaml
   - .github/workflows/franky-validate.yml
 reviewed_surfaces:
   - agent-guidance

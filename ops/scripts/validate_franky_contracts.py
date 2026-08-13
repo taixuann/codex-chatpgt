@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -97,7 +98,13 @@ def _validate_repertoire(path: Path) -> dict:
     return document
 
 
-def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
+def validate(
+    task_path: Path,
+    result_path: Path,
+    repertoire_path: Path,
+    *,
+    allow_fixture_review_record: bool = False,
+) -> None:
     task = _load(task_path)
     result = _load(result_path)
     _validate_schema(task, TASK_SCHEMA, task_path)
@@ -209,12 +216,37 @@ def validate(task_path: Path, result_path: Path, repertoire_path: Path) -> None:
             raise ValueError("acceptance_ready result requires a completed independent review PASS")
         reviewer_id = result["review"]["reviewer_id"].lower()
         reviewer_role = result["review"]["reviewer_role"]
+        if not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", result["review"]["review_session_id"].lower()):
+            raise ValueError("acceptance_ready result requires a review session identity")
         if reviewer_id == "athena" and reviewer_role != "independent_reviewer":
             raise ValueError("Athena reviewer must be bound as independent_reviewer")
         if reviewer_id == "parent-control-plane" and reviewer_role != "parent_acceptance":
             raise ValueError("parent reviewer must be bound as parent_acceptance")
         if reviewer_id not in {"athena", "parent-control-plane"}:
             raise ValueError("acceptance_ready result requires a bound non-self reviewer identity")
+        review_record = result["review"]["review_record"]
+        record_path = Path(review_record)
+        allowed_review_roots = ("documentation/reviews/",)
+        if allow_fixture_review_record:
+            allowed_review_roots += ("ops/scripts/fixtures/",)
+        if record_path.is_absolute() or ".." in record_path.parts or not review_record.startswith(allowed_review_roots):
+            raise ValueError("review_record must be a repository-relative independent review record")
+        record_file = ROOT / record_path
+        if not record_file.is_file():
+            raise ValueError("acceptance_ready result requires the referenced independent review record")
+        record = _load(record_file)
+        if record.get("kind") != "franky.independent-review.v1":
+            raise ValueError("review_record has the wrong contract kind")
+        if record.get("reviewer_id") != reviewer_id or record.get("reviewer_role") != reviewer_role:
+            raise ValueError("review_record reviewer identity does not match the result")
+        if record.get("review_session_id") != result["review"]["review_session_id"]:
+            raise ValueError("review_record session does not match the result")
+        if record.get("reviewed_source_commit") != expected_commit:
+            raise ValueError("review_record source commit does not match evidence freshness")
+        if record.get("outcome") != "PASS":
+            raise ValueError("acceptance_ready result requires a PASS independent review record")
+        if record.get("scope") != result["review"]["scope"] or record.get("not_reviewed") != result["review"]["not_reviewed"]:
+            raise ValueError("review_record scope does not match the result")
         not_assessed = [
             name for name, value in result["closure"].items() if value == "NOT_ASSESSED"
         ]

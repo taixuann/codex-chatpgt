@@ -15,11 +15,12 @@ Append-only record of governed agent adapter changes.
     - ops/schemas/franky-task.schema.yaml
     - ops/schemas/franky-result.schema.yaml
   validation:
-    - 26 ops/scripts unit tests
+    - 37 ops/scripts unit tests
     - validate_franky_contracts.py
     - evaluate_franky_agent.py
     - Athena independent read-only re-review: conditional pass; no remaining High/Medium/Low findings
     - Codex 0.147.0-alpha.6.5 parser PASS; actual dispatch, skills.config behavior, and host mutation escalation NOT_ASSESSED/BLOCKED
+    - Athena independent re-review: conditional pass; no remaining concrete findings
   approval:
     - Issue #57 audit scope and completion criteria
   change_commit: 81a1470; branch codex/issue-57-franky-hardening

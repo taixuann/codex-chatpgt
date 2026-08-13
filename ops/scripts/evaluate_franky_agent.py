@@ -23,7 +23,7 @@ def classify(case: dict) -> dict:
             "admission": "route_out",
             "route_target": "prometheus/research" if "pytorch" in prompt else "parent",
         }
-    if case.get("fallback_required"):
+    if case.get("runtime_skill_loading") == "unavailable":
         packet = case.get("task_packet") or {}
         required_capabilities = packet.get("required_capabilities") or []
         if packet.get("kind") != "franky.task.v1" or "control-plane-audit" not in required_capabilities:
@@ -32,7 +32,9 @@ def classify(case: dict) -> dict:
             "admission": "in_scope",
             "operation_class": "control_plane_audit",
             "primary_capability": "control-plane-audit",
-            "supporting_capabilities": ["instruction-maintenance"],
+            "supporting_capabilities": [
+                capability for capability in required_capabilities if capability != "control-plane-audit"
+            ],
             "lifecycle_capability": "shared-session-closeout",
             "fallback_capability_path": "task_packet",
             "fallback_capability": "control-plane-audit",

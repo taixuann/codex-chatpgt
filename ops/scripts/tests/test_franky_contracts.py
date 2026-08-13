@@ -8,13 +8,30 @@ from ops.scripts.validate_franky_contracts import (
     DEFAULT_REPERTOIRE,
     DEFAULT_RESULT,
     DEFAULT_TASK,
-    validate,
+    validate as validate_contract,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def validate(task_path, result_path, repertoire_path):
+    return validate_contract(
+        task_path,
+        result_path,
+        repertoire_path,
+        allow_fixture_review_record=True,
+    )
+
+
 class FrankyContractTests(unittest.TestCase):
+    def _validate(self, task_path, result_path):
+        return validate(
+            task_path,
+            result_path,
+            DEFAULT_REPERTOIRE,
+            allow_fixture_review_record=True,
+        )
+
     def test_contracts_remain_thin_and_non_executable(self):
         task_schema = yaml.safe_load((ROOT / "ops/schemas/franky-task.schema.yaml").read_text(encoding="utf-8"))
         result_schema = yaml.safe_load((ROOT / "ops/schemas/franky-result.schema.yaml").read_text(encoding="utf-8"))
@@ -37,9 +54,37 @@ class FrankyContractTests(unittest.TestCase):
         result_path.write_text(yaml.safe_dump(result, sort_keys=False), encoding="utf-8")
         return tmp, task_path, result_path
 
+    def _acceptance_result(self):
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        if result["lifecycle"]["state"] == "ACCEPTANCE_READY":
+            result["review"]["review_record"] = "ops/scripts/fixtures/athena-review-pass.yaml"
+            return result
+        result["status"] = "acceptance_ready"
+        result["lifecycle"]["state"] = "ACCEPTANCE_READY"
+        result["lifecycle"]["evidence"][-1]["status"] = "PASS"
+        result["lifecycle"]["evidence"][-1]["state"] = "CLOSURE"
+        result["lifecycle"]["evidence"][-1]["source"] = "closure-matrix"
+        result["lifecycle"]["evidence"][-1]["provenance"]["result"] = "PASS"
+        result["lifecycle"]["evidence"].append({
+            "state": "ACCEPTANCE_READY",
+            "status": "PASS",
+            "source": "parent-review-boundary",
+            "provenance": {
+                "source_state": "review-record",
+                "commit": "HEAD",
+                "observed_at": "2026-08-13T13:00:00Z",
+                "result": "PASS",
+            },
+        })
+        result["closure"]["proof"] = "PASS"
+        result["review"]["status"] = "PASS"
+        result["review"]["review_record"] = "ops/scripts/fixtures/athena-review-pass.yaml"
+        result["unresolved"]["blockers"] = []
+        return result
+
     def test_mutation_requires_explicit_authority(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         task["authority"]["mutation"] = "approval_required"
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "explicit mutation authority"):
@@ -76,7 +121,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_unexplained_not_assessed_cannot_be_acceptance_ready(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["closure"]["proof"] = "NOT_ASSESSED"
         result["unresolved"]["limitations"] = []
         tmp, task_path, result_path = self._write_case(task, result)
@@ -86,7 +131,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_lifecycle_result_uses_canonical_capability(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["routing"]["lifecycle_capability"] = "session-closeout"
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "shared-session-closeout"):
@@ -95,7 +140,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_nonconsequential_result_may_omit_lifecycle(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         task["intent"] = {"mode": "audit", "completion": "bounded"}
         result["routing"].pop("lifecycle_capability")
         tmp, task_path, result_path = self._write_case(task, result)
@@ -105,20 +150,22 @@ class FrankyContractTests(unittest.TestCase):
     def test_repertoire_rejects_unknown_capability_reference(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
         task["required_capabilities"].append("unregistered-capability")
-        tmp, task_path, result_path = self._write_case(task, yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8")))
+        tmp, task_path, result_path = self._write_case(task, self._acceptance_result())
         with self.assertRaisesRegex(ValueError, "not in Franky repertoire"):
             validate(task_path, result_path, DEFAULT_REPERTOIRE)
         tmp.cleanup()
 
     def test_acceptance_ready_requires_independent_review(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["review"] = {
             "required": True,
             "status": "PASS",
             "reviewer": "franky",
             "reviewer_id": "franky",
             "reviewer_role": "independent_reviewer",
+            "review_session_id": "019ffb72-d034-7193-aefb-f36a240b091f",
+            "review_record": "documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
             "scope": ["contract"],
             "not_reviewed": [],
         }
@@ -129,7 +176,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_acceptance_ready_requires_complete_lifecycle_evidence(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["lifecycle"]["evidence"] = result["lifecycle"]["evidence"][:-1]
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "ordered evidence"):
@@ -138,7 +185,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_acceptance_ready_rejects_blocked_closure(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["closure"]["references"] = "BLOCKED"
         result["lifecycle"]["evidence"] = result["lifecycle"]["evidence"][:-1]
         result["lifecycle"]["evidence"][-1]["status"] = "BLOCKED"
@@ -150,6 +197,8 @@ class FrankyContractTests(unittest.TestCase):
             "status": "NOT_ASSESSED",
             "reviewer_id": "parent-control-plane",
             "reviewer_role": "parent_acceptance",
+            "review_session_id": "019ffb72-d034-7193-aefb-f36a240b091f",
+            "review_record": "documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
             "scope": ["contract"],
             "not_reviewed": [],
         }
@@ -159,7 +208,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_consequential_routing_requires_supporting_capability(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["routing"]["supporting_capabilities"] = []
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "impact-triggered supporting"):
@@ -168,7 +217,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_impact_evidence_must_bind_to_validation_source_state(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["routing"]["impact_evidence"]["source_state"] = "stale-state"
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "match validation source_state"):
@@ -177,13 +226,15 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_result_cannot_downgrade_task_required_review(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["review"] = {
             "required": False,
             "status": "NOT_APPLICABLE",
             "reviewer": "Athena",
             "reviewer_id": "athena",
             "reviewer_role": "independent_reviewer",
+            "review_session_id": "019ffb72-d034-7193-aefb-f36a240b091f",
+            "review_record": "documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
             "scope": ["contract"],
             "not_reviewed": [],
         }
@@ -194,7 +245,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_blocked_result_requires_ordered_lifecycle_prefix(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["status"] = "blocked"
         result["lifecycle"] = {
             "state": "ROUTING",
@@ -217,7 +268,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_provenance_must_match_evidence_freshness_commit(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["lifecycle"]["evidence"][0]["provenance"]["commit"] = "stale"
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "provenance must share"):
@@ -226,7 +277,7 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_validation_after_mutation_invalidates_acceptance(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["evidence_freshness"]["mutation_free_since_validation"] = False
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "stale after mutation"):
@@ -235,10 +286,28 @@ class FrankyContractTests(unittest.TestCase):
 
     def test_routing_requires_explanations(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
-        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
         result["routing"]["supporting_reasons"] = []
         tmp, task_path, result_path = self._write_case(task, result)
         with self.assertRaisesRegex(ValueError, "supporting reasons"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_review_record_session_mismatch_is_rejected(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
+        result["review"]["review_session_id"] = "019ffb77-f475-7c43-b692-9fa3ad066580"
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "review_record session"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_review_record_request_changes_cannot_accept(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = self._acceptance_result()
+        result["review"]["review_record"] = "ops/scripts/fixtures/athena-review-request-changes.yaml"
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "PASS independent review record"):
             validate(task_path, result_path, DEFAULT_REPERTOIRE)
         tmp.cleanup()
 

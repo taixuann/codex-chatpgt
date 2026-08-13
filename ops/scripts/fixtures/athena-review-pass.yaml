@@ -1,0 +1,12 @@
+kind: franky.independent-review.v1
+review_id: ATHENA-FIXTURE-PASS-20260813
+reviewer_id: athena
+reviewer_role: independent_reviewer
+review_session_id: 019ffb72-d034-7193-aefb-f36a240b091f
+reviewed_source_commit: HEAD
+outcome: PASS
+scope: [contract, lifecycle, authority, routing, evidence]
+not_reviewed:
+  - live Codex dispatch
+  - native skills.config behavior
+  - host mutation escalation

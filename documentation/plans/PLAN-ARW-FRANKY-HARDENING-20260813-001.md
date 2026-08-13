@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-FRANKY-HARDENING-20260813-001
 issue: 57
-status: conditional-pass-pr-ci-repair-pending
+status: conditional-pass-ready-to-push
 updated: 2026-08-13
 owner: parent-control-plane
 ---
@@ -88,8 +88,8 @@ host permission enforcement remains separate evidence.
 | Documentation impact and canonical paths | UPDATED | impact fixture/validator and agent changelog |
 | Fallback materialization proof | UPDATED | evaluator fallback case and Franky adapter guidance |
 | Reviewer scope and evolution disposition | UPDATED | result schema/example and validator |
-| Independent review | UPDATED | Athena final read-only re-review: conditional pass; no remaining High/Medium/Low findings |
-| PR acceptance evidence | PENDING | PR #58 exists; repaired hosted CI must complete |
+| Independent review | UPDATED | Athena final read-only re-review: conditional pass; no remaining concrete findings; durable record |
+| PR acceptance evidence | PENDING | PR #58 exists; final repair commit and hosted CI must complete |
 
 ## Validation commands
 

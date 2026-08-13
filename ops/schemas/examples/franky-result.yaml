@@ -42,7 +42,7 @@ lifecycle:
       provenance: {source_state: working-tree:FRANKY-20260813-001, commit: HEAD, observed_at: '2026-08-13T13:00:00Z', result: PASS}
     - state: ACCEPTANCE_READY
       status: PASS
-      source: parent-review-boundary
+      source: independent-review-record
       provenance: {source_state: review-record, commit: HEAD, observed_at: '2026-08-13T13:00:00Z', result: PASS}
 evidence_freshness:
   source_commit: HEAD
@@ -99,6 +99,8 @@ review:
   reviewer: Athena independent read-only re-review
   reviewer_id: athena
   reviewer_role: independent_reviewer
+  review_session_id: 019ffb72-d034-7193-aefb-f36a240b091f
+  review_record: documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml
   scope:
     - contract
     - lifecycle

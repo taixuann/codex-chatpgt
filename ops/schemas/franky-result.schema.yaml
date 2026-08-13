@@ -129,13 +129,15 @@ properties:
   review:
     type: object
     additionalProperties: false
-    required: [required, status, scope, not_reviewed, reviewer_id, reviewer_role]
+    required: [required, status, scope, not_reviewed, reviewer_id, reviewer_role, review_session_id, review_record]
     properties:
       required: {type: boolean}
       status: {enum: [PASS, NOT_ASSESSED, BLOCKED, NOT_APPLICABLE]}
       reviewer: {type: string}
       reviewer_id: {type: string, minLength: 1}
       reviewer_role: {enum: [independent_reviewer, parent_acceptance]}
+      review_session_id: {type: string, pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'}
+      review_record: {type: string, minLength: 1}
       scope: {type: array, items: {type: string}, minItems: 1}
       not_reviewed: {type: array, items: {type: string}}
   unresolved:
