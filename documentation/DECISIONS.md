@@ -1,7 +1,7 @@
 ---
 id: DECISIONS-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-10
+updated: 2026-08-13
 ---
 
 # Architecture decisions
@@ -156,3 +156,17 @@ but is not sufficient to claim utility or model-mediated routing behavior.
 Issue/PLAN and `OPERATING-WORKFLOW.md` remain semantic authority; the catalog
 does not create a routing service, workflow engine, or persona-owned skill
 namespace.
+
+
+## D-012 — Canonical-main reconciliation before behavioral admission
+
+Issue #35's integration dependency is accepted. PR #53 reconciled the validated
+`codex/system-skill-consolidation` branch into `main` with merge commit
+`e1e05c096bb0912a9a3759f349ad97e3a5424e7d`; canonical-main control-plane
+validation run #163 passed. The reconciled `main` retains the independent
+planning commit and verifies 50 catalogued dispositions, six canonical active
+capabilities, and explicit noncanonical overlay boundaries.
+
+The separate behavioral phase remains owned by #38. No model-mediated routing,
+WITH/WITHOUT utility lift, or cross-runtime equivalence is inferred from this
+reconciliation. Antigravity migration remains outside scope.
