@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-SKILL-CATALOG-QUALITY-20260813-001
 issue: 50
-status: implemented-pending-remote-acceptance
+status: accepted-canonical-main
 scope: skill-catalog-routing-quality
 updated: 2026-08-13
 ---
@@ -48,3 +48,11 @@ Antigravity/runtime migration is deliberately excluded.
 - Focused catalog tests: PASS (3 tests).
 - Catalog validator: PASS (50 tracked packages, 6 canonical active).
 - Model-mediated runtime selection and real-skill utility lift: `NOT_ASSESSED`.
+
+
+## Canonical-main acceptance
+
+Accepted after Issue #35 reconciliation PR #53 merged into `main` at
+`e1e05c096bb0912a9a3759f349ad97e3a5424e7d`. Control-plane validation run
+#163 passed against the reconciled source. Behavioral runtime selection and
+real-skill utility lift remain `NOT_ASSESSED` and are owned by Issue #38.
