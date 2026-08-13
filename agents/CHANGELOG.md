@@ -3,6 +3,59 @@
 Append-only record of governed agent adapter changes.
 
 ```yaml
+- agent: franky-agent-first-hardening
+  version: 1.1.0
+  goal_id: ISSUE-57
+  workflow_id: FRANKY-HARDENING-AUDIT-V1
+  reason: Harden the Issue #56 Franky task/result boundary with done criteria, ordered evidence, impact-bound routing, non-self review enforcement, and explicit runtime limitation reporting without introducing a workflow engine.
+  changed_paths:
+    - /Users/tai/.codex/agents/franky.toml
+    - /Users/tai/.codex/agents/AGENTS.md
+    - /Users/tai/.codex/documentation/OPERATING-WORKFLOW.md
+    - /Users/tai/.codex/ops/schemas/franky-task.schema.yaml
+    - /Users/tai/.codex/ops/schemas/franky-result.schema.yaml
+  validation:
+    - 26 ops/scripts unit tests
+    - validate_franky_contracts.py
+    - evaluate_franky_agent.py
+    - Athena independent read-only re-review: conditional pass; no remaining High/Medium/Low findings
+    - Codex 0.147.0-alpha.6.5 parser PASS; actual dispatch, skills.config behavior, and host mutation escalation NOT_ASSESSED/BLOCKED
+  approval:
+    - Issue #57 audit scope and completion criteria
+  change_commit: pending; branch codex/issue-57-franky-hardening
+  rollback:
+    - Revert the Issue #57 hardening commit and restore the Issue #56 contract surfaces.
+```
+
+```yaml
+- agent: franky-agent-first-contract
+  version: 1.0.0
+  goal_id: ISSUE-56
+  workflow_id: FRANKY-TASK-RESULT-V1
+  reason: Add the bounded Franky task/result boundary, approved capability repertoire reference, one-call closure contract, explicit mutation escalation, and non-recursive acceptance-ready return semantics while preserving Issue #38 skill-quality ownership.
+  changed_paths:
+    - /Users/tai/.codex/agents/franky.toml
+    - /Users/tai/.codex/agents/feynman.toml
+    - /Users/tai/.codex/agents/prometheus.toml
+    - /Users/tai/.codex/agents/athena.toml
+    - /Users/tai/.codex/agents/argus.toml
+    - /Users/tai/.codex/agents/AGENTS.md
+    - /Users/tai/.codex/agents/README.md
+    - /Users/tai/.codex/manifests/agent-capability-repertoires.yaml
+  validation:
+    - validate_agent_toml.py for all active adapters
+    - validate_franky_contracts.py
+    - evaluate_franky_agent.py
+    - Athena independent read-only re-review: conditional pass; no High/Critical findings after bounded repairs
+    - codex 0.147.0-alpha.6.5 parser probe; live model behavior NOT_ASSESSED/BLOCKED by DNS
+  approval:
+    - Issue #56 scope and refinement comments
+  change_commit: not-created; working tree preserved for human review
+  rollback:
+    - Restore the prior adapter TOMLs and remove the Issue #56 repertoire/contract surfaces after review.
+```
+
+```yaml
 - agent: codex-first-routing
   version: 1.1.0
   goal_id: CHG-20260808-001

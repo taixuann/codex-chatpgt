@@ -1,0 +1,61 @@
+schema_version: 1
+id: FRANKY-AGENT-EVALUATION-20260813
+oracle_boundary: deterministic contract oracle only; not a runtime router
+cases:
+  - id: explicit-audit
+    invocation: explicit
+    prompt: "@franky audit this control-plane skill and report stale references"
+    expected:
+      admission: in_scope
+      operation_class: control_plane_audit
+      primary_capability: control-plane-audit
+      supporting_capabilities: [instruction-maintenance]
+      lifecycle_capability: shared-session-closeout
+  - id: explicit-skill-repair
+    invocation: explicit
+    mutation_authority: allowed
+    prompt: "@franky repair this skill contract end-to-end"
+    expected:
+      admission: in_scope
+      operation_class: skill_contract_repair
+      primary_capability: skill-authoring-and-quality
+      mutation_authority_required: true
+      supporting_capabilities: [control-plane-audit]
+      lifecycle_capability: shared-session-closeout
+  - id: explicit-agent-update
+    invocation: explicit
+    mutation_authority: allowed
+    prompt: "@franky update this Codex agent adapter"
+    expected:
+      admission: in_scope
+      operation_class: runtime_adapter_change
+      primary_capability: runtime-adapter-management
+      mutation_authority_required: true
+      supporting_capabilities: [control-plane-audit]
+      lifecycle_capability: shared-session-closeout
+  - id: explicit-skill-repair-without-authority
+    invocation: explicit
+    mutation_authority: denied
+    prompt: "@franky repair this skill contract"
+    expected:
+      admission: blocked_without_mutation_authority
+      operation_class: skill_contract_repair
+      primary_capability: skill-authoring-and-quality
+      mutation_authority_required: true
+  - id: explicit-out-of-scope
+    invocation: explicit
+    prompt: "@franky analyze an Arrhenius mechanism in the research project"
+    expected:
+      admission: route_out
+  - id: automatic-routing-is-parent-owned
+    invocation: automatic
+    prompt: "Update the bounded Codex instruction contract"
+    expected:
+      admission: parent_capability_first
+  - id: explicit-mutation-without-authority
+    invocation: explicit
+    mutation_authority: denied
+    prompt: "@franky repair this agent adapter"
+    expected:
+      admission: blocked_without_mutation_authority
+      operation_class: runtime_adapter_change

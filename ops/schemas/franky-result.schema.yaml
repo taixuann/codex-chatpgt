@@ -1,0 +1,111 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Franky bounded result contract
+type: object
+additionalProperties: false
+required:
+  - kind
+  - version
+  - request_id
+  - status
+  - lifecycle
+  - routing
+  - changes
+  - closure
+  - validation
+  - review
+  - unresolved
+  - evolution
+properties:
+  kind: {const: franky.result.v1}
+  version: {const: 1}
+  request_id: {type: string, minLength: 1}
+  status: {enum: [acceptance_ready, blocked, escalated, failed]}
+  lifecycle:
+    type: object
+    additionalProperties: false
+    required: [state, evidence]
+    properties:
+      state:
+        enum: [REQUEST, CONTRACT, ADMISSION, ROUTING, IMPACT, EXECUTION, VALIDATION, CLOSURE, ACCEPTANCE_READY]
+      evidence:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: false
+          required: [state, status, source]
+          properties:
+            state:
+              enum: [REQUEST, CONTRACT, ADMISSION, ROUTING, IMPACT, EXECUTION, VALIDATION, CLOSURE, ACCEPTANCE_READY]
+            status: {enum: [PASS, BLOCKED, NOT_ASSESSED, NOT_APPLICABLE]}
+            source: {type: string, minLength: 1}
+            detail: {type: string}
+  routing:
+    type: object
+    additionalProperties: false
+    required: [operation_class, primary_capability, supporting_capabilities]
+    properties:
+      operation_class: {type: string, minLength: 1}
+      primary_capability: {type: string, minLength: 1}
+      supporting_capabilities: {type: array, items: {type: string}}
+      lifecycle_capability: {type: string, minLength: 1}
+      impact_required: {type: boolean}
+      impact_evidence:
+        type: object
+        additionalProperties: false
+        required: [source_state, surfaces, supporting_capabilities]
+        properties:
+          source_state: {type: string, minLength: 1}
+          surfaces: {type: array, items: {type: string}, minItems: 1}
+          supporting_capabilities: {type: array, items: {type: string}, minItems: 1}
+  changes:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [path, action]
+      properties:
+        path: {type: string, minLength: 1}
+        action: {enum: [created, modified, deleted, unchanged_valid, not_applicable, blocked, not_assessed]}
+  closure:
+    type: object
+    additionalProperties: false
+    required: [implementation, canonical_state, references, proof]
+    properties:
+      implementation: {enum: [PASS, BLOCKED, NOT_ASSESSED, NOT_APPLICABLE]}
+      canonical_state: {enum: [PASS, BLOCKED, NOT_ASSESSED, NOT_APPLICABLE]}
+      references: {enum: [PASS, BLOCKED, NOT_ASSESSED, NOT_APPLICABLE]}
+      proof: {enum: [PASS, BLOCKED, NOT_ASSESSED, NOT_APPLICABLE]}
+  validation:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required: [check, status, source_state]
+      properties:
+        check: {type: string, minLength: 1}
+        status: {enum: [PASS, FAIL, BLOCKED, NOT_ASSESSED]}
+        source_state: {type: string, minLength: 1}
+  review:
+    type: object
+    additionalProperties: false
+    required: [required, status]
+    properties:
+      required: {type: boolean}
+      status: {enum: [PASS, NOT_ASSESSED, BLOCKED, NOT_APPLICABLE]}
+      reviewer: {type: string}
+  unresolved:
+    type: object
+    additionalProperties: false
+    required: [blockers, limitations]
+    properties:
+      blockers: {type: array, items: {type: string}}
+      limitations: {type: array, items: {type: string}}
+  evolution:
+    type: object
+    additionalProperties: false
+    required: [status]
+    properties:
+      status: {enum: [NO_ACTION, PROPOSED, BLOCKED]}
+      observation: {type: string}

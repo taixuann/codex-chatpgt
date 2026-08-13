@@ -58,6 +58,27 @@ validation: deterministic command or review criterion
 stop: completion or escalation condition
 ```
 
+The Franky-specific packet is serialized as `franky.task.v1`; its structured
+return is `franky.result.v1`. The result carries a thin ordered evidence
+envelope (`REQUEST` through `ACCEPTANCE_READY`), not an executable workflow
+engine. Franky may compose one primary capability, only impact-triggered
+supporting capabilities, and the lifecycle closeout capability for consequential
+work. It must not spawn recursively or independently system-accept its own
+consequential changes.
+
+The minimal global Codex baseline is repository-documented and validated in
+`../ops/schemas/examples/codex-agents-settings.toml`:
+
+```toml
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+interrupt_message = true
+```
+
+Runtime precedence is explicit spawn override → custom-agent setting →
+`[agents]` default → parent/session setting. The actual user config remains
+local runtime state and is not canonical repository state.
 Subagents do not re-plan the parent request, widen scope, or make final
 scientific/control-plane decisions. Skills provide procedure and expertise;
 agents provide execution topology and permission isolation.

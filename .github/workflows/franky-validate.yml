@@ -92,6 +92,26 @@ jobs:
           python ops/scripts/validate_task_contract.py ops/schemas/examples/task-contract.yaml
           python ops/scripts/validate_task_contract.py ops/schemas/examples/context-acquisition-task.yaml
 
+      - name: Validate Franky v1 task/result contracts and repertoires
+        id: franky_contracts
+        run: python ops/scripts/validate_franky_contracts.py
+
+      - name: Validate Codex global agent settings contract
+        id: codex_runtime_config
+        run: python ops/scripts/validate_codex_runtime_config.py ops/schemas/examples/codex-agents-settings.toml
+
+      - name: Evaluate Franky agent contract cases
+        id: franky_agent_eval
+        run: python ops/scripts/evaluate_franky_agent.py ops/scripts/fixtures/franky-agent-evaluation.yaml
+
+      - name: Run Franky contract and runtime tests
+        id: franky_tests
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s ops/scripts/tests -v
+
+      - name: Probe installed Codex runtime contract
+        id: codex_runtime_probe
+        run: python ops/scripts/probe_codex_agent_runtime.py
+
       - name: Validate bounded context packet
         id: context_packet
         run: |
@@ -148,6 +168,11 @@ jobs:
             echo '| Static skill-routing fixture | ${{ steps.routing.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
             echo '| Task contract | ${{ steps.task_contract.outcome }} |'
+            echo '| Franky v1 contracts and repertoires | ${{ steps.franky_contracts.outcome }} |'
+            echo '| Codex global agent settings | ${{ steps.codex_runtime_config.outcome }} |'
+            echo '| Franky agent contract evaluation | ${{ steps.franky_agent_eval.outcome }} |'
+            echo '| Franky contract and runtime tests | ${{ steps.franky_tests.outcome }} |'
+            echo '| Codex runtime contract probe | ${{ steps.codex_runtime_probe.outcome }} |'
             echo '| Bounded context packet | ${{ steps.context_packet.outcome }} |'
             echo '| Audit record | ${{ steps.audit.outcome }} |'
             echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'

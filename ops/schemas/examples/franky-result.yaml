@@ -1,0 +1,82 @@
+kind: franky.result.v1
+version: 1
+request_id: FRANKY-20260813-001
+status: acceptance_ready
+lifecycle:
+  state: ACCEPTANCE_READY
+  evidence:
+    - state: REQUEST
+      status: PASS
+      source: issue-56-scope
+    - state: CONTRACT
+      status: PASS
+      source: ops/schemas/examples/franky-task.yaml
+    - state: ADMISSION
+      status: PASS
+      source: ops/scripts/evaluate_franky_agent.py
+    - state: ROUTING
+      status: PASS
+      source: routing.primary-supporting-lifecycle
+    - state: IMPACT
+      status: PASS
+      source: skills/control-plane-audit/SKILL.md
+    - state: EXECUTION
+      status: PASS
+      source: current-working-tree
+    - state: VALIDATION
+      status: PASS
+      source: deterministic-validation-suite
+    - state: CLOSURE
+      status: PASS
+      source: closure-matrix
+    - state: ACCEPTANCE_READY
+      status: PASS
+      source: parent-review-boundary
+routing:
+  operation_class: agent_first_contract_implementation
+  primary_capability: runtime-adapter-management
+  supporting_capabilities:
+    - instruction-maintenance
+    - control-plane-audit
+  lifecycle_capability: shared-session-closeout
+  impact_required: true
+  impact_evidence:
+    source_state: working-tree:FRANKY-20260813-001
+    surfaces:
+      - implementation/config
+      - canonical-state
+      - references/documentation
+      - validation/proof
+    supporting_capabilities:
+      - control-plane-audit
+      - instruction-maintenance
+changes:
+  - path: agents/franky.toml
+    action: modified
+  - path: manifests/agent-capability-repertoires.yaml
+    action: created
+  - path: documentation/CURRENT.md
+    action: modified
+closure:
+  implementation: PASS
+  canonical_state: PASS
+  references: PASS
+  proof: PASS
+validation:
+  - check: python ops/scripts/validate_franky_contracts.py
+    status: PASS
+    source_state: working-tree:FRANKY-20260813-001
+  - check: python ops/scripts/evaluate_franky_agent.py ops/scripts/fixtures/franky-agent-evaluation.yaml
+    status: PASS
+    source_state: working-tree:FRANKY-20260813-001
+review:
+  required: true
+  status: PASS
+  reviewer: Athena independent read-only re-review
+unresolved:
+  blockers: []
+  limitations:
+    - model-mediated child-agent selection and native @franky dispatch were unavailable in the current network environment
+evolution:
+  status: NO_ACTION
+  observation: No new global router, workflow engine, or catch-all capability was justified.

@@ -157,7 +157,6 @@ Issue/PLAN and `OPERATING-WORKFLOW.md` remain semantic authority; the catalog
 does not create a routing service, workflow engine, or persona-owned skill
 namespace.
 
-
 ## D-012 — Canonical-main reconciliation before behavioral admission
 
 Issue #35's integration dependency is accepted. PR #53 reconciled the validated
@@ -170,3 +169,12 @@ capabilities, and explicit noncanonical overlay boundaries.
 The separate behavioral phase remains owned by #38. No model-mediated routing,
 WITH/WITHOUT utility lift, or cross-runtime equivalence is inferred from this
 reconciliation. Antigravity migration remains outside scope.
+## D-013 — Issue #57 hardens Franky evidence without adding a workflow engine
+
+The #57 audit keeps `franky.task.v1` and `franky.result.v1` as bounded
+invocation contracts. The result may carry one ordered evidence record for
+`REQUEST` through `ACCEPTANCE_READY`, but it does not execute transitions,
+persist workflow state, or replace the shared operating lifecycle. Consequential
+results must identify a primary capability, impact-triggered supporting
+capability, lifecycle closeout, closure evidence, and a non-self review PASS.
+`acceptance_ready` remains parent/reviewer evidence, never final acceptance.
