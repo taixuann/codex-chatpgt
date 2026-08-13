@@ -8,6 +8,15 @@ metadata:
 
 # Project Bootstrap
 
+## Contract
+
+- **Trigger:** a bounded request to initialize or minimally extend a project.
+- **Inputs:** target root, applicable instructions, requested artifacts, and approval for any apply step.
+- **Output:** validated artifact map and materialized files when explicitly approved.
+- **Boundary:** no guidance-only edits, link-only operations, migration, or lifecycle orchestration.
+- **Stop:** stop on ambiguous targets, unsafe paths, requested deletion/migration, or failed dry-run validation.
+- **Validation:** run the bundled deterministic preflight and re-read the resulting tree.
+
 Use this skill to turn a bounded project request into the smallest useful file
 surface. Keep reasoning and project-surface selection here; use the bundled
 script only for deterministic validation and materialization.

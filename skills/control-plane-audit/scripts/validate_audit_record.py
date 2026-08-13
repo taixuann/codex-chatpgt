@@ -12,7 +12,7 @@ def validate(data: object) -> None:
     if not isinstance(data, dict): raise ValueError("audit record must be a mapping")
     missing = REQUIRED - data.keys()
     if missing: raise ValueError(f"missing fields: {', '.join(sorted(missing))}")
-    if data["schema"] != "franky.audit" or not isinstance(data["version"], int) or data["version"] < 1: raise ValueError("invalid schema or version")
+    if data["schema"] != "control_plane.audit" or not isinstance(data["version"], int) or data["version"] < 1: raise ValueError("invalid schema or version")
     if data["component_type"] not in TYPES: raise ValueError("unsupported component_type")
     for key in ("audit_id", "component_id", "operation", "scope", "status"):
         if not isinstance(data[key], str) or not data[key].strip(): raise ValueError(f"{key} must be a non-empty string")
@@ -30,5 +30,5 @@ def main() -> int:
     parser = argparse.ArgumentParser(); parser.add_argument("record", type=Path); args = parser.parse_args()
     try: validate(yaml.safe_load(args.record.read_text(encoding="utf-8")))
     except (OSError, ValueError, yaml.YAMLError) as exc: print(f"FAIL {args.record}: {exc}"); return 1
-    print(f"OK {args.record}: franky.audit"); return 0
+    print(f"OK {args.record}: control_plane.audit"); return 0
 if __name__ == "__main__": sys.exit(main())

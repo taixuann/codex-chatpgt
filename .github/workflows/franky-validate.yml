@@ -44,6 +44,10 @@ jobs:
         id: skills
         run: python skills/control-plane-audit/scripts/validate_skill_interfaces.py skills
 
+      - name: Validate skill catalog admission and utility evidence
+        id: skill_catalog
+        run: python skills/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml
+
       - name: Validate tracked skill quality
         id: skill_quality
         run: |
@@ -130,6 +134,7 @@ jobs:
             echo '| Check | Result |'
             echo '| --- | --- |'
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
+            echo '| Skill catalog admission | ${{ steps.skill_catalog.outcome }} |'
             echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
             echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'

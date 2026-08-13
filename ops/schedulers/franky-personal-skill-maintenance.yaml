@@ -1,4 +1,4 @@
-schema: franky.scheduler
+schema: control_plane.scheduler
 version: 1
 id: franky-personal-skill-maintenance
 surface: chatgpt_scheduled_task
