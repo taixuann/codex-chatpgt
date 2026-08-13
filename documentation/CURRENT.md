@@ -1,7 +1,7 @@
 ---
 id: CURRENT-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-10
+updated: 2026-08-13
 ---
 
 # Current state
@@ -92,8 +92,8 @@ Current readiness:
   behavior but remains open for host-level runtime acceptance.
 - **#14** — the bounded external provenance/artifact/runtime-fit matrix is recorded in `PLAN-ARW-EXTERNAL-SKILLS-20260809-001.md`; installed Codex creator reuse is accepted and unqualified external catalogs remain reference/deferred.
 - **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. A fresh explicit `--disable skill_search` Codex baseline completed without a skill-tool event, while the model-visible catalog currently exposes 86 entries / 58 unique names with 13 duplicate-name groups. A new disposable fixture demonstrated project-local activation, sibling selection, and a clear arithmetic negative without exporting private host skill content. Real-skill utility lift, broad catalog co-loading, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`; the issue remains conditional.
-- **#35** — current repository skill dispositions and all seventeen retired Franky workflow YAMLs are recorded in `PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md`. The deterministic interface validator now covers all 10 Git-tracked packages. Disposable Codex/OpenCode probes confirm project-local activation/sibling selection, configured-path discovery, OpenCode project-local shadowing, and a 9-entry source-root swap; the external OpenCode overlay still exposes workflow-manager/install-workflow entries, so cross-runtime retirement remains a #12 boundary. The reconciliation remains conditional until broad host-observable co-loaded activation and cross-runtime behavior exist. No new target skill zoo or workflow engine was created here.
-- **#50** — the live tracked catalog is reconciled by `manifests/skill-catalog.yaml`: 50 tracked packages have exactly one disposition, 10 ignored local overlays are explicitly noncanonical, and six local governance procedures are canonical active only because they have repository-grounded capability/utility evidence. `validate_skill_catalog.py` is a CI gate; structural pass does not imply utility pass, and model-mediated runtime selection remains `NOT_ASSESSED`. ADAPT, EXPLICIT_ONLY, REFERENCE_ONLY, MERGE, and RETIRE entries remain outside canonical active routing until a bounded admission review. Antigravity migration is out of scope for #50.
+- **#35** — the system-skill consolidation is now canonical on `main` through PR #53 (merge commit `e1e05c096bb0912a9a3759f349ad97e3a5424e7d`). The reconciled branch preserved `main`'s independent planning commit, and canonical-main control-plane validation run #163 passed. The live catalog now reports 50 tracked dispositions, six canonical active capabilities, and explicit noncanonical overlay boundaries. Remaining model-mediated behavioral and cross-runtime gates are owned by #38 and remain explicitly `NOT_ASSESSED`; no Antigravity migration was included.
+- **#50** — accepted on canonical `main` through the #35 reconciliation. `manifests/skill-catalog.yaml` records 50 tracked packages with exactly one disposition, 10 ignored local overlays as explicitly noncanonical, and six canonical active governance capabilities. Structural and repository-grounded utility evidence pass; model-mediated runtime routing remains `NOT_ASSESSED` and is now advanced by #38. Antigravity migration remains out of scope.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in
