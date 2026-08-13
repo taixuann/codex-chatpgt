@@ -10,4 +10,4 @@ dependencies:
       transport: "streamable_http"
       url: "https://developers.openai.com/mcp"
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

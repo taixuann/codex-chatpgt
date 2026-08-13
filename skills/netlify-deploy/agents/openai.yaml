@@ -4,3 +4,6 @@ interface:
   icon_small: "./assets/netlify-small.svg"
   icon_large: "./assets/netlify.png"
   default_prompt: "Deploy this project to Netlify and return the preview URL, build settings, and any required fixes."
+
+policy:
+  allow_implicit_invocation: false

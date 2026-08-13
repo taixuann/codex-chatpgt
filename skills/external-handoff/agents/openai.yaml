@@ -2,3 +2,6 @@ interface:
   display_name: "External handoff"
   short_description: "Prepare approved cross-runtime handoffs."
   default_prompt: "Prepare a bounded cross-runtime handoff with explicit scope, evidence, approval, acceptance, and rollback; do not execute it."
+
+policy:
+  allow_implicit_invocation: false

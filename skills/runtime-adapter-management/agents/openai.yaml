@@ -2,3 +2,6 @@ interface:
   display_name: "Runtime adapter management"
   short_description: "Install approved Codex runtime adapters."
   default_prompt: "Validate and install an approved Codex runtime adapter with scope, collision, sandbox, and dependency checks."
+
+policy:
+  allow_implicit_invocation: false

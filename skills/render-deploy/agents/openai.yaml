@@ -12,3 +12,6 @@ dependencies:
       description: "Render MCP server"
       transport: "streamable_http"
       url: "https://mcp.render.com/mcp"
+
+policy:
+  allow_implicit_invocation: false

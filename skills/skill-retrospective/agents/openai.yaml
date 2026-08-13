@@ -2,3 +2,6 @@ interface:
   display_name: "Skill Retrospective"
   short_description: "Extract bounded lessons from completed work"
   default_prompt: "Review the completed workflow and propose any skill improvements without changing files."
+
+policy:
+  allow_implicit_invocation: false

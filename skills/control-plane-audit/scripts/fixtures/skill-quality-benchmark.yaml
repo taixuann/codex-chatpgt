@@ -1,0 +1,99 @@
+version: 1
+scope: canonical-six-co-loaded-skill-routing
+active_skills:
+  - control-plane-audit
+  - external-handoff
+  - instruction-maintenance
+  - project-bootstrap
+  - runtime-adapter-management
+  - shared-session-closeout
+cases:
+  - {id: audit-direct, kind: positive, style: direct, expected: control-plane-audit, prompt: Audit the approved Codex control-plane change read-first and report exact affected paths.}
+  - {id: audit-oblique, kind: positive, style: oblique, expected: control-plane-audit, prompt: Check whether the skills, agents, workflows, and schedules still agree after this maintenance change.}
+  - {id: audit-context, kind: positive, style: contextual, expected: control-plane-audit, prompt: A governed health check is requested; validate deterministic contracts before interpreting runtime behavior.}
+  - {id: audit-neighbor, kind: neighbor, style: neighbor, expected: control-plane-audit, neighbors: [external-handoff], prompt: Review a proposed control-plane update and identify validation evidence and unresolved references.}
+  - {id: audit-ambiguous, kind: ambiguous, style: contextual, expected: none, neighbors: [control-plane-audit, instruction-maintenance], prompt: Please improve the way this repository is managed.}
+  - {id: audit-negative-code, kind: negative, style: adjacent, expected: none, neighbors: [control-plane-audit], prompt: Fix the parser bug in the application and run its unit tests.}
+  - {id: audit-negative-docs, kind: negative, style: adjacent, expected: none, neighbors: [control-plane-audit, instruction-maintenance], prompt: Rewrite this README paragraph for clarity.}
+  - {id: audit-direct-validators, kind: positive, style: direct, expected: control-plane-audit, prompt: Run the selected control-plane validators and distinguish process pass from acceptance.}
+  - {id: audit-oblique-governance, kind: positive, style: oblique, expected: control-plane-audit, prompt: Determine whether this maintenance request has an approval and rollback boundary.}
+  - {id: audit-context-links, kind: positive, style: contextual, expected: control-plane-audit, prompt: Inspect the selected control-plane links and report stale or unresolved references.}
+  - {id: audit-direct-schedule, kind: positive, style: direct, expected: control-plane-audit, prompt: Validate the approved scheduler definition and its bounded execution scope.}
+  - {id: audit-oblique-impact, kind: positive, style: oblique, expected: control-plane-audit, prompt: Identify the producers and consumers affected by this control-plane contract change.}
+  - {id: audit-context-rollback, kind: positive, style: contextual, expected: control-plane-audit, prompt: Review the proposed maintenance operation for rollback metadata before it is applied.}
+  - {id: audit-none-science, kind: none, style: none, expected: none, prompt: Interpret the mechanism shown by these scientific measurements.}
+
+  - {id: handoff-direct, kind: positive, style: direct, expected: external-handoff, prompt: Prepare a bounded handoff for an external executor without executing it.}
+  - {id: handoff-oblique, kind: positive, style: oblique, expected: external-handoff, prompt: Package this approved work for a separate runtime with scope, acceptance, and rollback.}
+  - {id: handoff-context, kind: positive, style: contextual, expected: external-handoff, prompt: The task crosses a runtime boundary; write the executor packet and leave the human gate explicit.}
+  - {id: handoff-neighbor, kind: neighbor, style: neighbor, expected: external-handoff, neighbors: [shared-session-closeout], prompt: Transfer this bounded implementation to another executor and state what evidence it must return.}
+  - {id: handoff-ambiguous, kind: ambiguous, style: contextual, expected: none, neighbors: [external-handoff, shared-session-closeout], prompt: "Can someone else take care of this?"}
+  - {id: handoff-negative-audit, kind: negative, style: adjacent, expected: none, neighbors: [external-handoff, control-plane-audit], prompt: Audit the local skill catalog and report structural findings.}
+  - {id: handoff-negative-bootstrap, kind: negative, style: adjacent, expected: none, neighbors: [external-handoff, project-bootstrap], prompt: Create a new file-first project layout locally.}
+  - {id: handoff-direct-approval, kind: positive, style: direct, expected: external-handoff, prompt: Draft the external execution packet with explicit approval and acceptance gates.}
+  - {id: handoff-oblique-boundary, kind: positive, style: oblique, expected: external-handoff, prompt: Make this work portable to a different executor while preserving the local owner boundary.}
+  - {id: handoff-context-acceptance, kind: positive, style: contextual, expected: external-handoff, prompt: State the exact evidence and acceptance conditions the receiving executor must return.}
+  - {id: handoff-direct-rollback, kind: positive, style: direct, expected: external-handoff, prompt: Write the handoff rollback section for a bounded external execution.}
+  - {id: handoff-oblique-scope, kind: positive, style: oblique, expected: external-handoff, prompt: Separate what the remote executor may do from what remains with the local operator.}
+  - {id: handoff-context-provenance, kind: positive, style: contextual, expected: external-handoff, prompt: Preserve task provenance and unresolved questions while preparing the external packet.}
+  - {id: handoff-none-science, kind: none, style: none, expected: none, prompt: Compare two materials-science explanations and cite their evidence.}
+
+  - {id: instruction-direct, kind: positive, style: direct, expected: instruction-maintenance, prompt: Audit and update the nearest scoped AGENTS.md while preserving instruction precedence.}
+  - {id: instruction-oblique, kind: positive, style: oblique, expected: instruction-maintenance, prompt: Find the local guidance file that governs this directory and remove the conflicting rule.}
+  - {id: instruction-context, kind: positive, style: contextual, expected: instruction-maintenance, prompt: A repository behavior changed; maintain the scoped instructions without widening their authority.}
+  - {id: instruction-neighbor, kind: neighbor, style: neighbor, expected: instruction-maintenance, neighbors: [project-bootstrap], prompt: Repair the local guidance contract for a project setup workflow.}
+  - {id: instruction-ambiguous, kind: ambiguous, style: contextual, expected: none, neighbors: [instruction-maintenance, project-bootstrap], prompt: Make the project instructions better.}
+  - {id: instruction-negative-handoff, kind: negative, style: adjacent, expected: none, neighbors: [instruction-maintenance, external-handoff], prompt: Prepare a packet for another runtime to execute.}
+  - {id: instruction-negative-code, kind: negative, style: adjacent, expected: none, neighbors: [instruction-maintenance], prompt: Refactor this function without changing its behavior.}
+  - {id: instruction-direct-locality, kind: positive, style: direct, expected: instruction-maintenance, prompt: Check instruction locality and precedence before changing the repository guidance.}
+  - {id: instruction-oblique-boundary, kind: positive, style: oblique, expected: instruction-maintenance, prompt: Decide whether this rule belongs in the root or the nearest scoped guidance file.}
+  - {id: instruction-context-precedence, kind: positive, style: contextual, expected: instruction-maintenance, prompt: Resolve a conflict between root guidance and the nearest directory instructions.}
+  - {id: instruction-direct-audit, kind: positive, style: direct, expected: instruction-maintenance, prompt: Audit the scoped AGENTS.md files for precedence and locality violations.}
+  - {id: instruction-oblique-scope, kind: positive, style: oblique, expected: instruction-maintenance, prompt: Keep this repository rule local so it cannot silently govern unrelated projects.}
+  - {id: instruction-context-change, kind: positive, style: contextual, expected: instruction-maintenance, prompt: Update the instructions for this changed workflow and report what authority was preserved.}
+  - {id: instruction-none-science, kind: none, style: none, expected: none, prompt: Plot the experimental data and describe the trend.}
+
+  - {id: bootstrap-direct, kind: positive, style: direct, expected: project-bootstrap, prompt: Bootstrap a scientific file-first project with the smallest safe artifact map.}
+  - {id: bootstrap-oblique, kind: positive, style: oblique, expected: project-bootstrap, prompt: Set up the new analysis workspace with metadata, raw-data boundaries, and validation gates.}
+  - {id: bootstrap-context, kind: positive, style: contextual, expected: project-bootstrap, prompt: This is a greenfield scientific project; inspect first and create only the approved structure.}
+  - {id: bootstrap-neighbor, kind: neighbor, style: neighbor, expected: project-bootstrap, neighbors: [instruction-maintenance], prompt: Establish a new project and make its local guidance inherit the repository policy.}
+  - {id: bootstrap-ambiguous, kind: ambiguous, style: contextual, expected: none, neighbors: [project-bootstrap, instruction-maintenance], prompt: Please organize this project.}
+  - {id: bootstrap-negative-audit, kind: negative, style: adjacent, expected: none, neighbors: [project-bootstrap, control-plane-audit], prompt: Validate an existing control-plane maintenance operation.}
+  - {id: bootstrap-negative-edit, kind: negative, style: adjacent, expected: none, neighbors: [project-bootstrap], prompt: Add one field to this existing configuration file.}
+  - {id: bootstrap-direct-dryrun, kind: positive, style: direct, expected: project-bootstrap, prompt: Run the file-first bootstrap in dry-run mode and report the proposed paths.}
+  - {id: bootstrap-oblique-safety, kind: positive, style: oblique, expected: project-bootstrap, prompt: Create a reversible project skeleton while keeping raw inputs immutable.}
+  - {id: bootstrap-context-metadata, kind: positive, style: contextual, expected: project-bootstrap, prompt: Add the approved metadata and provenance files to a new scientific project.}
+  - {id: bootstrap-direct-validation, kind: positive, style: direct, expected: project-bootstrap, prompt: Validate the proposed project artifact map before materializing it.}
+  - {id: bootstrap-oblique-boundary, kind: positive, style: oblique, expected: project-bootstrap, prompt: Set up analysis folders without copying or rewriting the source dataset.}
+  - {id: bootstrap-context-reversible, kind: positive, style: contextual, expected: project-bootstrap, prompt: Bootstrap the project with an explicit dry-run and a reversible apply step.}
+  - {id: bootstrap-none-science, kind: none, style: none, expected: none, prompt: Explain the likely conduction mechanism from this I-V curve.}
+
+  - {id: adapter-direct, kind: positive, style: direct, expected: runtime-adapter-management, prompt: Validate and install the approved Codex runtime adapter with scope and collision checks.}
+  - {id: adapter-oblique, kind: positive, style: oblique, expected: runtime-adapter-management, prompt: Check whether this agent profile is safe to add without changing canonical roles or routing.}
+  - {id: adapter-context, kind: positive, style: contextual, expected: runtime-adapter-management, prompt: A new runtime adapter was approved; validate its schema, dependencies, and sandbox boundaries before installation.}
+  - {id: adapter-neighbor, kind: neighbor, style: neighbor, expected: runtime-adapter-management, neighbors: [external-handoff], prompt: Prepare an adapter for another executor and verify the installation contract.}
+  - {id: adapter-ambiguous, kind: ambiguous, style: contextual, expected: none, neighbors: [runtime-adapter-management, external-handoff], prompt: Add support for this other agent.}
+  - {id: adapter-negative-audit, kind: negative, style: adjacent, expected: none, neighbors: [runtime-adapter-management, control-plane-audit], prompt: Audit the current control-plane state and report findings.}
+  - {id: adapter-negative-code, kind: negative, style: adjacent, expected: none, neighbors: [runtime-adapter-management], prompt: Fix the failing Python unit test.}
+  - {id: adapter-direct-collision, kind: positive, style: direct, expected: runtime-adapter-management, prompt: Check adapter name collisions, scope, and dependencies before applying the approved profile.}
+  - {id: adapter-oblique-sandbox, kind: positive, style: oblique, expected: runtime-adapter-management, prompt: Verify this executor configuration cannot silently widen its filesystem or network authority.}
+  - {id: adapter-context-schema, kind: positive, style: contextual, expected: runtime-adapter-management, prompt: Validate the adapter TOML against the repository runtime contract before installation.}
+  - {id: adapter-direct-dependency, kind: positive, style: direct, expected: runtime-adapter-management, prompt: Check that the approved runtime adapter dependencies are available and bounded.}
+  - {id: adapter-oblique-owner, kind: positive, style: oblique, expected: runtime-adapter-management, prompt: Preserve the canonical role owner while adding this runtime-specific adapter.}
+  - {id: adapter-context-rollback, kind: positive, style: contextual, expected: runtime-adapter-management, prompt: Prepare the adapter installation audit with collision and rollback evidence.}
+  - {id: adapter-none-science, kind: none, style: none, expected: none, prompt: Summarize the results of this spectroscopy experiment.}
+
+  - {id: closeout-direct, kind: positive, style: direct, expected: shared-session-closeout, prompt: Close the governed session using acceptance evidence and record unresolved items.}
+  - {id: closeout-oblique, kind: positive, style: oblique, expected: shared-session-closeout, prompt: The work is finished; determine what durable outcome, provenance, and open risks must be recorded.}
+  - {id: closeout-context, kind: positive, style: contextual, expected: shared-session-closeout, prompt: A governed task reached its acceptance gate; prepare the correct durable closeout state.}
+  - {id: closeout-neighbor, kind: neighbor, style: neighbor, expected: shared-session-closeout, neighbors: [external-handoff], prompt: Record the result after an external executor returned its handoff evidence.}
+  - {id: closeout-ambiguous, kind: ambiguous, style: contextual, expected: none, neighbors: [shared-session-closeout, external-handoff], prompt: "We are done here; what next?"}
+  - {id: closeout-negative-audit, kind: negative, style: adjacent, expected: none, neighbors: [shared-session-closeout, control-plane-audit], prompt: Run a fresh control-plane audit and classify its findings.}
+  - {id: closeout-negative-code, kind: negative, style: adjacent, expected: none, neighbors: [shared-session-closeout], prompt: Implement the remaining feature and run tests.}
+  - {id: closeout-direct-evidence, kind: positive, style: direct, expected: shared-session-closeout, prompt: Map the completed task's evidence to its acceptance status and unresolved list.}
+  - {id: closeout-oblique-continuity, kind: positive, style: oblique, expected: shared-session-closeout, prompt: Leave the next session a concise, provenance-backed continuation point.}
+  - {id: closeout-context-status, kind: positive, style: contextual, expected: shared-session-closeout, prompt: Map the final evidence to completed, blocked, or unresolved session state.}
+  - {id: closeout-direct-record, kind: positive, style: direct, expected: shared-session-closeout, prompt: Write the durable closeout record for the accepted task.}
+  - {id: closeout-oblique-gate, kind: positive, style: oblique, expected: shared-session-closeout, prompt: Do not declare completion until the required human gate and evidence are recorded.}
+  - {id: closeout-context-provenance, kind: positive, style: contextual, expected: shared-session-closeout, prompt: Preserve the task provenance and unresolved risks in the session outcome.}
+  - {id: closeout-none-science, kind: none, style: none, expected: none, prompt: Design the next experiment for this materials question.}

@@ -7,6 +7,8 @@ on:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
+      - 'manifests/skill-catalog.yaml'
+      - 'manifests/skill-evidence.yaml'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
   pull_request:
@@ -47,6 +49,10 @@ jobs:
       - name: Validate skill catalog admission and utility evidence
         id: skill_catalog
         run: python skills/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml
+
+      - name: Validate behavioral skill evidence envelope
+        id: skill_evidence
+        run: python skills/control-plane-audit/scripts/validate_skill_evidence.py manifests/skill-evidence.yaml
 
       - name: Validate tracked skill quality
         id: skill_quality
@@ -135,6 +141,7 @@ jobs:
             echo '| --- | --- |'
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
             echo '| Skill catalog admission | ${{ steps.skill_catalog.outcome }} |'
+            echo '| Behavioral skill evidence envelope | ${{ steps.skill_evidence.outcome }} |'
             echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
             echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
