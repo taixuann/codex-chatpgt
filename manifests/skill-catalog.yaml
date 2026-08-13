@@ -82,16 +82,16 @@ dispositions:
   RETIRE:
     - skill-retrospective
 noncanonical_overlays:
-  - {name: define-goal, path: skills/define-goal, disposition: EXPLICIT_ONLY}
-  - {name: docling-document-processing, path: skills/docling-document-processing, disposition: EXPLICIT_ONLY}
-  - {name: gh-address-comments, path: skills/gh-address-comments, disposition: EXPLICIT_ONLY}
-  - {name: json-canvas, path: skills/json-canvas, disposition: EXPLICIT_ONLY}
-  - {name: obsidian-bases, path: skills/obsidian-bases, disposition: EXPLICIT_ONLY}
-  - {name: obsidian-cli, path: skills/obsidian-cli, disposition: EXPLICIT_ONLY}
-  - {name: obsidian-markdown, path: skills/obsidian-markdown, disposition: EXPLICIT_ONLY}
-  - {name: opencode-executor, path: skills/opencode-executor, disposition: EXPLICIT_ONLY}
-  - {name: ragflow-markdown-retrieval, path: skills/ragflow-markdown-retrieval, disposition: EXPLICIT_ONLY}
-  - {name: temperature-iv-analysis, path: skills/temperature-iv-analysis, disposition: REFERENCE_ONLY}
+  - {name: define-goal, path: skills/define-goal, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: docling-document-processing, path: skills/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: gh-address-comments, path: skills/gh-address-comments, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: json-canvas, path: skills/json-canvas, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-bases, path: skills/obsidian-bases, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-cli, path: skills/obsidian-cli, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-markdown, path: skills/obsidian-markdown, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: opencode-executor, path: skills/opencode-executor, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: ragflow-markdown-retrieval, path: skills/ragflow-markdown-retrieval, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: temperature-iv-analysis, path: skills/temperature-iv-analysis, disposition: REFERENCE_ONLY, local_only: true}
 evidence:
   control-plane-audit:
     utility: PASS

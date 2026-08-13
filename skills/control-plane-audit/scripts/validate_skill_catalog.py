@@ -88,7 +88,7 @@ def validate_catalog(root: Path, catalog: dict[str, Any], tracked: set[str]) -> 
         overlay_names.add(overlay["name"])
         if overlay["name"] in owners:
             errors.append(f"overlay cannot also be a tracked package: {overlay['name']}")
-        if not (root / overlay["path"]).exists():
+        if not overlay.get("local_only") and not (root / overlay["path"]).exists():
             errors.append(f"overlay path does not exist: {overlay['path']}")
 
     canonical = catalog.get("canonical_active")
