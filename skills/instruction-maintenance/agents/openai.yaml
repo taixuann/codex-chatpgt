@@ -2,3 +2,6 @@ interface:
   display_name: "Instruction maintenance"
   short_description: "Maintain scoped repository instructions."
   default_prompt: "Audit or update the nearest scoped AGENTS.md while preserving precedence and instruction locality."
+
+policy:
+  allow_implicit_invocation: false

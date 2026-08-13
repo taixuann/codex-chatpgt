@@ -40,6 +40,56 @@ def tracked_skill_names(root: Path) -> list[str]:
     return sorted(Path(path).parent.name for path in result.stdout.splitlines() if path)
 
 
+def invocation_policy(root: Path, name: str) -> bool | None:
+    """Return the host policy flag, or None when no adapter file exists."""
+    path = root / "skills" / name / "agents" / "openai.yaml"
+    if not path.exists():
+        return None
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    policy = data.get("policy")
+    if not isinstance(policy, dict) or "allow_implicit_invocation" not in policy:
+        return None
+    value = policy["allow_implicit_invocation"]
+    return value if isinstance(value, bool) else None
+
+
+def validate_invocation_policies(
+    root: Path,
+    catalog: dict[str, Any],
+    owners: dict[str, str],
+    evidence: dict[str, Any],
+    overlays: list[dict[str, Any]],
+) -> list[str]:
+    """Ensure catalog dispositions are reflected in the host invocation policy."""
+    errors: list[str] = []
+    overlay_dispositions = {
+        item["name"]: item["disposition"]
+        for item in overlays
+        if isinstance(item, dict) and item.get("name") and item.get("disposition")
+    }
+    all_names = {**owners, **overlay_dispositions}
+    for name, disposition in all_names.items():
+        policy_path = root / "skills" / name / "agents" / "openai.yaml"
+        value = invocation_policy(root, name)
+        if value is None:
+            if disposition != "RETIRE" and policy_path.exists():
+                errors.append(f"{name} requires boolean allow_implicit_invocation policy")
+            elif disposition not in {"RETIRE"} and name in owners:
+                errors.append(f"{name} requires agents/openai.yaml invocation policy")
+            continue
+
+        behavioral = evidence.get(name, {}).get("behavioral") if isinstance(evidence.get(name), dict) else None
+        should_enable = disposition == "KEEP" and behavioral == "PASS"
+        if should_enable and not value:
+            errors.append(f"{name} KEEP behavioral PASS requires allow_implicit_invocation true")
+        if not should_enable and value:
+            if disposition == "KEEP":
+                errors.append(f"{name} KEEP candidate must disable allow_implicit_invocation until behavioral PASS")
+            else:
+                errors.append(f"{name} {disposition}: allow_implicit_invocation must be false")
+    return errors
+
+
 def validate_catalog(root: Path, catalog: dict[str, Any], tracked: set[str]) -> list[str]:
     errors: list[str] = []
     if catalog.get("schema_version") != 1:
@@ -153,6 +203,8 @@ def validate_catalog(root: Path, catalog: dict[str, Any], tracked: set[str]) -> 
         for path in item.get("evidence_paths", []):
             if not (root / path).exists():
                 errors.append(f"{name} evidence path does not exist: {path}")
+
+    errors.extend(validate_invocation_policies(root, catalog, owners, evidence, overlays))
 
     return errors
 

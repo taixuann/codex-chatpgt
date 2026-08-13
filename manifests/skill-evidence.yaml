@@ -1,0 +1,111 @@
+schema_version: 1
+id: CODEX-SKILL-EVIDENCE-20260813
+scope: measured behavioral quality for the six canonical skill candidates and 14 ADAPT candidates
+authority: Issue #38 comment 5275215830; canonical-main admission remains gated by Issue #35
+status: NOT_ASSESSED
+
+invocation_policy:
+  host_field: skills/*/agents/openai.yaml:policy.allow_implicit_invocation
+  rules:
+    KEEP_without_behavioral_PASS: false
+    KEEP_with_behavioral_PASS: true
+    ADAPT: false
+    EXPLICIT_ONLY: false
+    REFERENCE_ONLY: false
+    MERGE: false
+    RETIRE: false
+  catalog_mutation: never automatic
+
+provenance:
+  repository: taixuann/codex-chatpgt
+  runtime: codex-cli 0.146.0
+  model: gpt-5.6-luna
+  configured_reasoning_effort: high
+  trace_format: codex exec --json JSONL
+  execution_sandbox: read-only
+  host_selection_evidence: host_trace only; final-answer self-report is not host evidence
+  first_probe:
+    command: codex exec --json --ephemeral --sandbox read-only --skip-git-repo-check
+    status: BLOCKED
+    observed: thread.started and turn.started envelopes; model/plugin/MCP network initialization failed before turn completion
+    date: 2026-08-13
+  harness_probe:
+    command: skills/control-plane-audit/scripts/run_skill_evaluation.py --mode benchmark --condition with --limit 1
+    status: BLOCKED
+    observed: 12 JSONL events and no turn.completed; websocket and HTTP sampling requests could not resolve or connect
+    selection_events: none
+    usage: none
+    task_result: none
+    date: 2026-08-13
+
+routing_benchmark:
+  status: NOT_ASSESSED
+  fixture: skills/control-plane-audit/scripts/fixtures/skill-quality-benchmark.yaml
+  cases: 84
+  cases_per_canonical_skill: 10
+  includes: [direct, oblique, contextual, adjacent-negative, nearest-neighbor, expected-none]
+  co_loaded_active_set:
+    - control-plane-audit
+    - external-handoff
+    - instruction-maintenance
+    - project-bootstrap
+    - runtime-adapter-management
+    - shared-session-closeout
+  repeats_requested: 3
+  results: NOT_RUN
+  metrics: [precision, recall, false_positive_rate, none_accuracy, confusion_matrix]
+  stochastic_analysis: required when completed
+
+utility_ab:
+  status: NOT_ASSESSED
+  protocol: same case, model, context, and read-only task; isolated WITH-SKILL and WITHOUT-SKILL homes
+  with_condition: temporary home containing only the six candidates with implicit policy enabled for evaluation
+  without_condition: temporary home with no ordinary skills
+  representative_cases: one direct case per canonical skill, selected by harness utility-only mode
+  scoring: [correctness, scope, artifacts, validation, side_effects, thrashing, tokens, latency]
+  interpretation:
+    load_bearing: WITH pass and WITHOUT fail
+    redundancy_candidate: WITH pass and WITHOUT pass
+    harmful: WITH fail and WITHOUT pass
+    overhead_review: required for every load-bearing result
+
+efficiency_interference:
+  status: NOT_ASSESSED
+  measures: [input_tokens, output_tokens, total_tokens, commands, tools, elapsed_seconds, false_positive_rate, neighbor_confusion]
+  no_universal_telemetry: true
+  no_self_edit_optimizer: true
+
+adapt_tournament:
+  status: NOT_ASSESSED
+  admission_rule: qualify only measured winners; ADAPT is not runtime deployment
+  first_round:
+    - debugging-and-error-recovery
+    - code-simplification
+    - test-driven-development
+  second_round_default_policy:
+    - git-workflow-and-versioning
+    - spec-driven-development
+    - planning-and-task-breakdown
+    - code-review-and-quality
+    - context-engineering
+  remaining_explicit_on_demand:
+    - api-and-interface-design
+    - ci-cd-and-automation
+    - documentation-and-adrs
+    - incremental-implementation
+    - observability-and-instrumentation
+    - security-and-hardening
+  promotion: NOT_ALLOWED without routing, utility, efficiency, and interference evidence
+
+regression_harvesting:
+  status: READY
+  record_shape: prompt -> expected -> actual_or_none -> observation
+  governance: OBSERVE -> PROPOSE -> REVIEW -> ACCEPT -> UPDATE
+  catalog_or_description_self_mutation: false
+  human_acceptance_required: true
+
+limitations:
+  - runtime probe has not completed a model turn in the current network environment
+  - static catalog and policy validation do not prove model-mediated routing
+  - unsupported host selection telemetry remains NOT_ASSESSED
+  - no universal router, graph database, or automatic optimizer is introduced

@@ -18,6 +18,77 @@ def load_module():
 
 
 class SkillCatalogTests(unittest.TestCase):
+    def _write_skill(self, root: Path, name: str, policy: str = "") -> None:
+        skill_dir = root / "skills" / name
+        (skill_dir / "agents").mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: A sufficiently specific skill description.\n---\n"
+            "# Contract\n\nTrigger\nInputs\nOutput\nBoundary\nStop\nValidation\n",
+            encoding="utf-8",
+        )
+        (skill_dir / "agents" / "openai.yaml").write_text(
+            "interface:\n  display_name: Test\n"
+            + (f"policy:\n  allow_implicit_invocation: {policy}\n" if policy else ""),
+            encoding="utf-8",
+        )
+
+    def test_non_keep_requires_implicit_invocation_disabled(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_skill(root, "one", "true")
+            catalog = {
+                "schema_version": 1,
+                "dispositions": {"EXPLICIT_ONLY": ["one"]},
+                "canonical_active": [],
+            }
+            errors = module.validate_catalog(root, catalog, {"one"})
+            self.assertTrue(any("allow_implicit_invocation must be false" in error for error in errors))
+
+    def test_keep_candidate_without_behavioral_pass_must_be_disabled(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_skill(root, "one", "true")
+            catalog = {
+                "schema_version": 1,
+                "dispositions": {"KEEP": ["one"]},
+                "canonical_active": ["one"],
+                "capability_keys": {"one": "one"},
+                "evidence": {
+                    "one": {
+                        "utility": "PASS",
+                        "structural": "PASS",
+                        "behavioral": "NOT_ASSESSED",
+                        "basis": "bounded evidence",
+                    }
+                },
+            }
+            errors = module.validate_catalog(root, catalog, {"one"})
+            self.assertTrue(any("KEEP candidate must disable" in error for error in errors))
+
+    def test_keep_with_behavioral_pass_may_enable_implicit_invocation(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_skill(root, "one", "true")
+            catalog = {
+                "schema_version": 1,
+                "dispositions": {"KEEP": ["one"]},
+                "canonical_active": ["one"],
+                "capability_keys": {"one": "one"},
+                "evidence": {
+                    "one": {
+                        "utility": "PASS",
+                        "structural": "PASS",
+                        "behavioral": "PASS",
+                        "basis": "bounded evidence",
+                    }
+                },
+            }
+            errors = module.validate_catalog(root, catalog, {"one"})
+            self.assertFalse(any("allow_implicit_invocation" in error for error in errors))
+
     def test_rejects_duplicate_or_missing_dispositions(self):
         module = load_module()
         with tempfile.TemporaryDirectory() as directory:

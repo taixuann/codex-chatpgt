@@ -4,3 +4,6 @@ interface:
   icon_small: "./assets/transcribe-small.svg"
   icon_large: "./assets/transcribe.png"
   default_prompt: "Transcribe this audio or video, include speaker labels when possible, and provide a clean summary."
+
+policy:
+  allow_implicit_invocation: false

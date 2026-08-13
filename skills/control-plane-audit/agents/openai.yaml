@@ -2,3 +2,6 @@ interface:
   display_name: "Control-plane audit"
   short_description: "Audit approved Codex control-plane changes."
   default_prompt: "Audit the selected Codex control-plane scope read-first, validate deterministic contracts, and report approval-bound changes."
+
+policy:
+  allow_implicit_invocation: false

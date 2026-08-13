@@ -6,3 +6,6 @@ interface:
   display_name: "Shared session closeout"
   short_description: "Close governed sessions with evidence."
   default_prompt: "Close or update this governed session using acceptance evidence, unresolved items, provenance, and the correct durable destination."
+
+policy:
+  allow_implicit_invocation: false
