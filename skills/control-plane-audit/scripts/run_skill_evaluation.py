@@ -500,6 +500,7 @@ def main() -> int:
                             "run": run,
                             "condition": condition,
                             "case_id": case["id"],
+                            "prompt": case["prompt"],
                             "kind": case.get("kind"),
                             "style": case.get("style"),
                             "expected": case["expected"],
