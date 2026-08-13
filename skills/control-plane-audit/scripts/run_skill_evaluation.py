@@ -276,10 +276,11 @@ Task prompt:
 {case['prompt']}
 
 The co-loaded candidate skill folders are: {skill_list}.
-This is the {mode} condition. Do not use tools, inspect files, modify files, or
-perform the task. Classify only what the host actually made available. If the
-host emitted a skill-selection event, report its exact folder name; otherwise
-report none and do not invent a selection from the task wording.
+This is the {mode} condition. Perform the task in a read-only way: do not
+modify files, create artifacts, or make external writes. For a write-oriented
+request, report the proposed change without applying it. After the bounded
+task, report the exact folder name only if the host exposed or loaded it; do
+not invent a selection from the task wording.
 
 Return exactly one JSON object and no Markdown:
 {{"selected_skill":"<folder name or none>","task_status":"pass or fail","reason":"one short sentence"}}
@@ -295,11 +296,15 @@ def evaluation_home(root: Path, condition: str, active_skills: list[str]) -> tem
     """Create an isolated skill home for one evaluation condition."""
     temporary = tempfile.TemporaryDirectory(prefix="codex-skill-eval-", dir=str(root / ".tmp"))
     home = Path(temporary.name)
-    source_home = Path(os.environ.get("CODEX_HOME", str(root)))
+    # Preserve the authenticated ChatGPT Codex credential when the caller has
+    # not overridden CODEX_HOME. The evaluator's temporary home must isolate
+    # skills, but it must not silently replace the host's auth source with the
+    # repository root (which normally has no auth.json).
+    source_home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
     _link_if_present(source_home / "auth.json", home / "auth.json")
     if condition == "with":
-        skill_root = home / "skills"
-        skill_root.mkdir()
+        skill_root = home / ".agents" / "skills"
+        skill_root.mkdir(parents=True)
         for name in active_skills:
             source = root / "skills" / name
             destination = skill_root / name
@@ -313,7 +318,7 @@ def evaluation_home(root: Path, condition: str, active_skills: list[str]) -> tem
             )
             policy.write_text(text, encoding="utf-8")
     else:
-        (home / "skills").mkdir()
+        (home / ".agents" / "skills").mkdir(parents=True)
     return temporary
 
 
@@ -349,7 +354,7 @@ def run_codex(
     try:
         process = subprocess.Popen(
             command,
-            cwd=root,
+            cwd=temporary_home.name,
             env=environment,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,

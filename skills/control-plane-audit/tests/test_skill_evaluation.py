@@ -1,8 +1,10 @@
 import importlib.util
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "run_skill_evaluation.py"
@@ -17,6 +19,39 @@ def load_module():
 
 
 class SkillEvaluationTests(unittest.TestCase):
+    def test_evaluation_home_uses_isolated_project_local_skill_tree(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            skill = root / "skills" / "demo"
+            skill.mkdir(parents=True)
+            (skill / "SKILL.md").write_text("demo", encoding="utf-8")
+            (skill / "agents").mkdir()
+            (skill / "agents" / "openai.yaml").write_text(
+                "policy:\n  allow_implicit_invocation: false\n", encoding="utf-8"
+            )
+            auth_home = root / "auth-source"
+            auth_home.mkdir()
+            (auth_home / "auth.json").write_text("{}", encoding="utf-8")
+            (root / ".tmp").mkdir()
+            with patch.dict(os.environ, {"CODEX_HOME": str(auth_home)}):
+                temporary = module.evaluation_home(root, "with", ["demo"])
+            try:
+                project_skill = Path(temporary.name) / ".agents" / "skills" / "demo"
+                self.assertTrue((project_skill / "SKILL.md").exists())
+                self.assertIn("allow_implicit_invocation: true", (project_skill / "agents" / "openai.yaml").read_text())
+                self.assertTrue((Path(temporary.name) / "auth.json").is_symlink())
+            finally:
+                temporary.cleanup()
+
+    def test_benchmark_prompt_requires_bounded_read_only_execution(self):
+        module = load_module()
+        prompt = module.benchmark_prompt(
+            {"prompt": "Audit the control plane"}, ["control-plane-audit"], "WITH-SKILL"
+        )
+        self.assertIn("Perform the task in a read-only way", prompt)
+        self.assertIn("modify files", prompt)
+
     def test_trace_parser_extracts_final_answer_usage_and_tool_events(self):
         module = load_module()
         lines = [
