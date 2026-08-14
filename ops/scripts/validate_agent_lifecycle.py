@@ -93,23 +93,58 @@ def validate_shared_contract(document: dict) -> None:
 
 
 def validate_evidence_chain(doc: dict) -> None:
-    evidence = {item.get("id") for item in doc.get("evidence", [])}
-    claims = {item.get("id") for item in doc.get("claims", [])}
-    reviews = {item.get("id") for item in doc.get("reviews", [])}
-    decisions = {item.get("id") for item in doc.get("decisions", [])}
-    for claim in doc.get("claims", []):
-        refs = set(claim.get("evidence_ids") or [])
-        if not refs or not refs.issubset(evidence):
-            raise ValueError(f"claim {claim.get('id')}: unsupported inference or missing evidence")
-    for review in doc.get("reviews", []):
-        if review.get("reviewer") == "athena" and review.get("outcome") == "PASS" and not set(review.get("claim_ids") or []).issubset(claims):
-            raise ValueError(f"review {review.get('id')}: missing claim evidence")
+    def records(name: str) -> dict:
+        values = doc.get(name, [])
+        if not isinstance(values, list):
+            raise ValueError(f"{name}: expected list")
+        result = {}
+        for index, item in enumerate(values):
+            if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not item["id"].strip():
+                raise ValueError(f"{name}[{index}]: non-empty string id required")
+            if item["id"] in result:
+                raise ValueError(f"{name}: duplicate id {item['id']}")
+            result[item["id"]] = item
+        return result
+
+    def references(item: dict, field: str, known: set[str]) -> set[str]:
+        value = item.get(field)
+        if not isinstance(value, list) or not value or any(not isinstance(ref, str) or not ref.strip() for ref in value):
+            raise ValueError(f"{item.get('id')}: {field} requires non-empty string identifiers")
+        result = set(value)
+        if len(result) != len(value) or not result.issubset(known):
+            raise ValueError(f"{item.get('id')}: {field} contains duplicate or unknown identifiers")
+        return result
+
+    evidence = records("evidence")
+    claims = records("claims")
+    reviews = records("reviews")
+    decisions = records("decisions")
+    for claim in claims.values():
+        references(claim, "evidence_ids", set(evidence))
+    for review in reviews.values():
+        references(review, "claim_ids", set(claims))
         if review.get("reviewer") == review.get("producer"):
             raise ValueError(f"review {review.get('id')}: producer cannot review its own artifact")
-    for decision in doc.get("decisions", []):
-        refs = set(decision.get("review_ids") or [])
-        if not refs or not refs.issubset(reviews):
-            raise ValueError(f"decision {decision.get('id')}: untracked review")
+    for decision in decisions.values():
+        references(decision, "review_ids", set(reviews))
+        references(decision, "claim_ids", set(claims))
+        if decision.get("outcome") not in {"ACCEPT", "REJECT"}:
+            raise ValueError(f"decision {decision.get('id')}: invalid outcome")
+    for artifact in doc.get("artifacts", []):
+        if artifact.get("lifecycle_state") != "ACCEPTED":
+            continue
+        artifact_evidence = references(artifact, "evidence_ids", set(evidence))
+        artifact_claims = references(artifact, "claim_ids", set(claims))
+        artifact_reviews = references(artifact, "review_ids", set(reviews))
+        if any(not references(claims[item], "evidence_ids", set(evidence)).issubset(artifact_evidence) for item in artifact_claims):
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: claims are not bound to artifact evidence")
+        if any(not references(reviews[item], "claim_ids", set(claims)).issubset(artifact_claims) for item in artifact_reviews):
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: reviews are not bound to artifact claims")
+        decision = decisions.get(artifact.get("decision_id"))
+        if not decision or set(decision["review_ids"]) != artifact_reviews or set(decision["claim_ids"]) != artifact_claims:
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: decision is not bound to artifact review and claim sets")
+        if decision.get("outcome") != "ACCEPT":
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: accepted artifact requires ACCEPT decision")
     for promotion in doc.get("promotions", []):
         artifact = next((a for a in doc.get("artifacts", []) if a.get("artifact_id") == promotion.get("artifact_id")), None)
         if not artifact:
@@ -117,7 +152,7 @@ def validate_evidence_chain(doc: dict) -> None:
         if promotion.get("target") == "canonical-state" and promotion.get("status") != "ALLOWED":
             raise ValueError("direct artifact-to-state promotion is not allowed")
         if promotion.get("status") == "ALLOWED":
-            decision = next((item for item in doc.get("decisions", []) if item.get("id") == promotion.get("decision_id")), None)
+            decision = decisions.get(promotion.get("decision_id"))
             if artifact.get("lifecycle_state") != "ACCEPTED" or not decision:
                 raise ValueError("artifact -> state promotion requires ACCEPTED artifact and decision")
             if artifact.get("decision_id") != promotion.get("decision_id") or decision.get("outcome") != "ACCEPT":

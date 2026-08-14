@@ -19,6 +19,8 @@ on:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
+      - 'manifests/agent-capability-repertoires.yaml'
+      - 'manifests/agent-contracts.yaml'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
 

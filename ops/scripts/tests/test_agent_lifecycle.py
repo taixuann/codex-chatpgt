@@ -27,6 +27,14 @@ class AgentLifecycleTests(unittest.TestCase):
             validator.validate_artifacts(doc)
             validator.validate_evidence_chain(doc)
 
+    def test_missing_ids_and_unrelated_chain_are_rejected(self):
+        with self.assertRaises(ValueError):
+            validator.validate_evidence_chain({"evidence": [{}], "claims": [], "reviews": [], "decisions": [], "artifacts": [], "promotions": []})
+        unrelated = {"artifacts": [{"artifact_id": "a", "lifecycle_state": "ACCEPTED", "owner": "parent", "producer": "prometheus", "reviewer": "athena", "authority_status": "accepted", "evidence_ids": ["e1"], "claim_ids": ["c1"], "review_ids": ["r1"], "decision_id": "d1"}], "evidence": [{"id": "e1"}, {"id": "e2"}], "claims": [{"id": "c1", "evidence_ids": ["e2"]}], "reviews": [{"id": "r1", "reviewer": "athena", "outcome": "PASS", "claim_ids": ["c1"]}], "decisions": [{"id": "d1", "review_ids": ["r1"], "claim_ids": ["c1"], "outcome": "ACCEPT"}], "promotions": []}
+        with self.assertRaises(ValueError):
+            validator.validate_artifacts(unrelated)
+            validator.validate_evidence_chain(unrelated)
+
 
 if __name__ == "__main__":
     unittest.main()
