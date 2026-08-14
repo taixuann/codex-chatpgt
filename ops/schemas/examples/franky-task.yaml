@@ -1,0 +1,74 @@
+kind: franky.task.v1
+version: 1
+contract_version:
+  major: 1
+  minor: 1
+accepted_result_versions:
+  - franky.result.v1
+request_id: FRANKY-20260813-001
+objective: Implement the accepted Franky agent-first control-plane contract end-to-end.
+scope:
+  repository: taixuann/codex-chatpgt
+  primary_targets:
+    - agents/franky.toml
+    - manifests/agent-capability-repertoires.yaml
+    - ops/schemas/franky-task.schema.yaml
+    - ops/schemas/franky-result.schema.yaml
+  excluded_targets:
+    - linked research-project contents
+    - credentials
+    - personal runtime config secrets
+intent:
+  mode: mutate
+  completion: end_to_end
+authority:
+  mutation: allowed
+  external_effects: denied
+  architecture_change: proposal_only
+authority_matrix:
+  franky_can:
+    - inspect_control_plane
+    - propose_changes
+    - modify_allowed_control_plane_files
+    - run_validators
+    - produce_acceptance_ready_evidence
+  franky_cannot:
+    - final_accept_own_change
+    - modify_global_policy_without_review
+    - change_agent_roles_without_decision
+    - alter_validation_requirements
+    - approve_runtime_security_changes
+required_capabilities:
+  - runtime-adapter-management
+  - control-plane-audit
+  - instruction-maintenance
+constraints:
+  - preserve Issue #38 skill admission and utility ownership
+  - preserve Issue #38 skill-quality evaluation boundaries
+  - do not create a router service, catch-all skill, or duplicate workflow engine
+  - keep Franky non-recursive and non-accepting of its own consequential changes
+done_criteria:
+  - all identified closure surfaces have an explicit disposition
+  - validation evidence is source-state-bound and reproducible
+  - parent or independent reviewer retains final acceptance authority
+required_outcomes:
+  - bounded parent-to-Franky task contract
+  - structured acceptance-ready Franky result contract
+  - canonical approved capability repertoires for all retained adapters
+  - runtime fallback when native skill scoping is not behaviorally verified
+  - reconciled documentation and current-state evidence
+acceptance_requirements:
+  - deterministic schema and repertoire validation
+  - agent-level selection, scope, and result-contract evaluation
+  - actual Codex runtime probe with NOT_ASSESSED on unavailable model behavior
+  - stale-reference and affected-surface closure evidence
+  - independent review when consequence or uncertainty justifies it
+stop_conditions:
+  - architecture ambiguity
+  - missing mutation authority
+  - scope expansion beyond bounded control-plane work
+  - repeated validation failure
+  - required runtime or external evidence unavailable for an affirmative claim
+review:
+  required: true
+  reason: Agent routing and acceptance boundaries are consequential control-plane behavior.

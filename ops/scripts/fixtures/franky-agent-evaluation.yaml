@@ -1,0 +1,111 @@
+schema_version: 1
+id: FRANKY-AGENT-EVALUATION-20260813
+oracle_boundary: deterministic contract oracle only; not a runtime router
+cases:
+  - id: explicit-audit
+    invocation: explicit
+    prompt: "@franky audit this control-plane skill and report stale references"
+    expected:
+      admission: in_scope
+      operation_class: control_plane_audit
+      primary_capability: control-plane-audit
+      supporting_capabilities: [instruction-maintenance]
+      lifecycle_capability: shared-session-closeout
+  - id: explicit-skill-repair
+    invocation: explicit
+    mutation_authority: allowed
+    prompt: "@franky repair this skill contract end-to-end"
+    expected:
+      admission: in_scope
+      operation_class: skill_contract_repair
+      primary_capability: skill-authoring-and-quality
+      mutation_authority_required: true
+      supporting_capabilities: [control-plane-audit]
+      lifecycle_capability: shared-session-closeout
+  - id: explicit-agent-update
+    invocation: explicit
+    mutation_authority: allowed
+    prompt: "@franky update this Codex agent adapter"
+    expected:
+      admission: in_scope
+      operation_class: runtime_adapter_change
+      primary_capability: runtime-adapter-management
+      mutation_authority_required: true
+      supporting_capabilities: [control-plane-audit]
+      lifecycle_capability: shared-session-closeout
+  - id: explicit-skill-repair-without-authority
+    invocation: explicit
+    mutation_authority: denied
+    prompt: "@franky repair this skill contract"
+    expected:
+      admission: blocked_without_mutation_authority
+      operation_class: skill_contract_repair
+      primary_capability: skill-authoring-and-quality
+      mutation_authority_required: true
+  - id: explicit-out-of-scope
+    invocation: explicit
+    prompt: "@franky analyze an Arrhenius mechanism in the research project"
+    expected:
+      admission: route_out
+  - id: explicit-pytorch-out-of-scope
+    invocation: explicit
+    prompt: "@franky optimize a PyTorch model"
+    expected:
+      admission: route_out
+      route_target: prometheus/research
+  - id: explicit-phd-sop-out-of-scope
+    invocation: explicit
+    prompt: "@franky change my PhD SOP"
+    expected:
+      admission: route_out
+      route_target: parent
+  - id: explicit-skill-description
+    invocation: explicit
+    prompt: "fix skill description"
+    expected:
+      admission: in_scope
+      primary_capability: skill-authoring-and-quality
+  - id: explicit-skill-and-doc-rename
+    invocation: explicit
+    prompt: "rename skill and update docs"
+    expected:
+      admission: in_scope
+      primary_capability: skill-authoring-and-quality
+      supporting_capabilities: [instruction-maintenance]
+  - id: fallback-task-packet
+    invocation: explicit
+    runtime_skill_loading: unavailable
+    task_packet:
+      kind: franky.task.v1
+      required_capabilities:
+        - control-plane-audit
+        - instruction-maintenance
+    prompt: "@franky audit this control-plane skill when native skill loading is unavailable"
+    expected:
+      admission: in_scope
+      fallback_capability_path: task_packet
+      fallback_capability: control-plane-audit
+  - id: fallback-task-packet-primary-only
+    invocation: explicit
+    runtime_skill_loading: unavailable
+    task_packet:
+      kind: franky.task.v1
+      required_capabilities:
+        - control-plane-audit
+    prompt: "@franky audit this control-plane skill with only the primary capability available"
+    expected:
+      admission: in_scope
+      supporting_capabilities: []
+      fallback_capability_path: task_packet
+  - id: automatic-routing-is-parent-owned
+    invocation: automatic
+    prompt: "Update the bounded Codex instruction contract"
+    expected:
+      admission: parent_capability_first
+  - id: explicit-mutation-without-authority
+    invocation: explicit
+    mutation_authority: denied
+    prompt: "@franky repair this agent adapter"
+    expected:
+      admission: blocked_without_mutation_authority
+      operation_class: runtime_adapter_change

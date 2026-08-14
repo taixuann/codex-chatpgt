@@ -210,6 +210,22 @@ Definitions:
 
 Do not choose an agent first and then force the task into that agent's available skills.
 
+There are two distinct entry modes:
+
+- An explicit named-agent request such as `@franky` selects that semantic agent
+  first, then runs its own admission, permission, and authority checks. The
+  request cannot force an out-of-scope task through the selected agent.
+- Without a named agent, retain capability-first routing and decide whether
+  delegation is useful only after the required capability is understood.
+
+For consequential Franky control-plane work, the parent may materialize the
+bounded `franky.task.v1` contract. Franky composes the minimum local capability
+path and returns `franky.result.v1` acceptance-ready evidence. The result may
+carry a thin ordered evidence envelope from request through closure, but it is
+not an executable workflow engine. This is an invocation boundary, not a
+universal router; the parent/reviewer retains final acceptance and durable-state
+promotion.
+
 ### 8. Skill invocation
 
 Use skills only when their declared purpose matches the task.
