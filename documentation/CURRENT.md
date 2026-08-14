@@ -27,6 +27,16 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 
 ## Accepted operating baseline
 
+The shared Argus/Prometheus/Athena hardening surface is now represented by
+`manifests/agent-contracts.yaml`, the existing capability repertoire, and the
+non-routing evaluator `ops/scripts/validate_agent_lifecycle.py`. The six
+versioned envelopes (`request.v1`, `context.v1`, `handoff.v1`, `result.v1`,
+`review.v1`, and `run.v1`) require provenance, evidence, claims, unknowns,
+conflicts, readiness, and validation status. Artifact promotion is accepted
+only through Evidence -> Claim -> Review -> Decision -> State; direct
+artifact-to-state promotion is rejected. Host-mediated dispatch, mutation
+enforcement, and model behavior remain `NOT_ASSESSED`.
+
 - Runtime guidance and bounded delegation policy: [`AGENTS.md`](../AGENTS.md).
 - Local cross-workspace discovery: when present, the ignored
   `$CODEX_HOME/ENVIRONMENT.md` map is read during fresh non-trivial orientation
@@ -37,7 +47,10 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 - Architecture decisions: [`DECISIONS.md`](DECISIONS.md).
 - Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).
 - Runtime adapter contracts: [`agents/AGENTS.md`](../agents/AGENTS.md).
-- Active skill surface: [`../skills/`](../skills/); [`../workflows/AGENTS.md`](../workflows/AGENTS.md) is policy only. The unconsumed Franky machine-workflow tree and `franky-workflow-organizer` package are retired and no longer discoverable.
+- Active skill surface: [`../skills/`](../skills/); workflow admission policy is
+  documented in [`../AGENTS.md`](../AGENTS.md). The unconsumed Franky
+  machine-workflow tree and `franky-workflow-organizer` package are retired and
+  no longer discoverable.
 - Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml); ordinary control-plane routing uses Issue/PLAN/task contracts rather than a machine workflow tree.
 - Historical change/audit evidence: [`../ops/changes/`](../ops/changes/). New ordinary work does not create a CHG wrapper unless a named consumer requires one.
 - Deterministic repository CI: [`../.github/workflows/franky-validate.yml`](../.github/workflows/franky-validate.yml), accepted through PR #18 and retained after #35 reconciliation. It validates active agents, skills, task contracts, schedulers, focused tests, routing fixtures, context packets, audit records, and the Git allowlist; no retired workflow tree is treated as runtime authority.

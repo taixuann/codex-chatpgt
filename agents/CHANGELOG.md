@@ -122,3 +122,8 @@ Append-only record of governed agent adapter changes.
   rollback:
     - Restore the previous adapter model and reasoning settings after approval.
 ```
+# 2026-08-14
+
+- Hardened Argus, Prometheus, and Athena boundaries with explicit consumers and
+  lifecycle stops; added shared contract/artifact evidence evaluator and
+  deterministic negative cases for Issues #68-#71.

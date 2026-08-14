@@ -1,0 +1,47 @@
+schema_version: 1
+kind: codex.agent-contract-registry.v1
+authority: AGENTS.md
+agents:
+  argus:
+    role: support_context_compiler
+    responsibility:
+      - context_compiler
+      - evidence_provenance_auditor
+      - handoff_generator
+    forbidden_actions:
+      - scientific_interpretation
+      - canonical_project_mutation
+      - global_policy_mutation
+    consumers: [parent_orchestrator, prometheus, athena]
+    lifecycle_boundary: REQUEST_CONTEXT_HANDOFF
+    authority_status: read_only
+    improvement_requests_only: true
+  prometheus:
+    role: implementation_quality_gate
+    responsibility:
+      - bounded_implementation
+      - documentation_artifact_lifecycle_audit
+      - deterministic_validation
+    forbidden_actions:
+      - replace_argus
+      - scientific_decision
+      - global_policy_mutation
+    consumers: [parent_orchestrator, athena]
+    lifecycle_boundary: HANDOFF_EXECUTION_VALIDATION_RESULT
+    authority_status: bounded_workspace_write
+    improvement_requests_only: true
+  athena:
+    role: independent_reviewer
+    responsibility:
+      - independent_review
+      - evidence_evaluation
+      - decision_support
+    forbidden_actions:
+      - implementation_mutation
+      - self_approval
+      - canonical_state_mutation
+      - global_policy_mutation
+    consumers: [parent_acceptance, prometheus]
+    lifecycle_boundary: RESULT_REVIEW_DECISION_SUPPORT
+    authority_status: read_only
+    improvement_requests_only: true
