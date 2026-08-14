@@ -25,6 +25,7 @@ ALLOWED_TRANSITIONS = {
     "INVALIDATED": set(),
 }
 AGENTS = {"argus", "prometheus", "athena"}
+INDEPENDENT_REVIEWERS = {"athena"}
 
 
 def _load(path: Path):
@@ -152,6 +153,11 @@ def validate_evidence_chain(doc: dict) -> None:
             raise ValueError(f"artifact {artifact.get('artifact_id')}: claims are not bound to artifact evidence")
         if any(not references(reviews[item], "claim_ids", set(claims)).issubset(artifact_claims) for item in artifact_reviews):
             raise ValueError(f"artifact {artifact.get('artifact_id')}: reviews are not bound to artifact claims")
+        if artifact.get("reviewer") not in INDEPENDENT_REVIEWERS:
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: reviewer is not a recognized independent reviewer")
+        reviewed_claims = set().union(*(set(reviews[item].get("claim_ids", [])) for item in artifact_reviews))
+        if reviewed_claims != artifact_claims:
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: reviews do not cover every promoted claim")
         if any(reviews[item].get("reviewer") != artifact.get("reviewer") or reviews[item].get("reviewer") == artifact.get("producer") or reviews[item].get("outcome") != "PASS" for item in artifact_reviews):
             raise ValueError(f"artifact {artifact.get('artifact_id')}: accepted artifact requires declared independent PASS reviewer")
         decision = decisions.get(artifact.get("decision_id"))
@@ -173,7 +179,7 @@ def validate_evidence_chain(doc: dict) -> None:
                 raise ValueError("promotion: accepted artifact must bind to an ACCEPT decision")
             if not set(artifact.get("evidence_ids") or []).issubset(evidence) or not set(artifact.get("claim_ids") or []).issubset(claims) or not set(artifact.get("review_ids") or []).issubset(reviews):
                 raise ValueError("promotion: incomplete Evidence -> Claim -> Review chain")
-            if not any(item.get("id") in set(artifact.get("review_ids") or []) and item.get("outcome") == "PASS" and item.get("reviewer") != artifact.get("producer") for item in doc.get("reviews", [])):
+            if not any(item.get("id") in set(artifact.get("review_ids") or []) and item.get("outcome") == "PASS" and item.get("reviewer") == artifact.get("reviewer") and item.get("reviewer") in INDEPENDENT_REVIEWERS and item.get("reviewer") != artifact.get("producer") for item in doc.get("reviews", [])):
                 raise ValueError("promotion: independent PASS review is required")
 
 

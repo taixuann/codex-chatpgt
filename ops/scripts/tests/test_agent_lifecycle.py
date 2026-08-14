@@ -46,6 +46,12 @@ class AgentLifecycleTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validator.validate_artifacts(doc)
 
+    def test_promoted_claims_require_complete_recognized_review_coverage(self):
+        doc = {"artifacts": [{"artifact_id": "a", "lifecycle_state": "ACCEPTED", "owner": "parent", "producer": "prometheus", "reviewer": "athena", "authority_status": "accepted", "previous_state": "REVIEWED", "evidence_ids": ["e1", "e2"], "claim_ids": ["c1", "c2"], "review_ids": ["r1"], "decision_id": "d1"}], "evidence": [{"id": "e1"}, {"id": "e2"}], "claims": [{"id": "c1", "evidence_ids": ["e1"]}, {"id": "c2", "evidence_ids": ["e2"]}], "reviews": [{"id": "r1", "reviewer": "bogus", "outcome": "PASS", "claim_ids": ["c1"]}], "decisions": [{"id": "d1", "review_ids": ["r1"], "claim_ids": ["c1", "c2"], "outcome": "ACCEPT"}], "promotions": [{"artifact_id": "a", "decision_id": "d1", "target": "canonical-state", "status": "ALLOWED"}]}
+        with self.assertRaises(ValueError):
+            validator.validate_artifacts(doc)
+            validator.validate_evidence_chain(doc)
+
 
 if __name__ == "__main__":
     unittest.main()
