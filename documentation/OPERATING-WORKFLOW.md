@@ -11,7 +11,9 @@ scope: general
 
 This document is the canonical human-readable description of the general operating workflow used by the control plane.
 
-It defines the default lifecycle for non-trivial work across cloud reasoning, GitHub coordination, local execution, validation, review, and durable state updates.
+It defines the executor-neutral lifecycle for non-trivial work entered through
+ChatGPT, Codex Cloud, local Codex, or another authorized executor. `AGENTS.md`
+is the runtime instruction entrypoint; this file remains the semantic authority.
 
 This is a semantic workflow specification, not a requirement to create a separate file, subagent, skill, or ceremony for every stage.
 
@@ -65,14 +67,14 @@ Do not create durable execution artifacts for raw ideas that are still being exp
 
 Determine the smallest authoritative context required for the task.
 
-Prefer progressive disclosure:
+Prefer progressive disclosure from the applicable entrypoint:
 
 ```text
-CLOUD-BRIEF
+scoped AGENTS / project entrypoint
   ↓
 CURRENT / DECISIONS
   ↓
-active Issue / PLAN
+active Issue / optional PLAN / PR / project task
   ↓
 HANDOFF / PR
   ↓
@@ -105,7 +107,7 @@ capability routing:
 identify repository/project and scope
 → apply scoped AGENTS instructions
 → read relevant CURRENT / DECISIONS
-→ resolve the active Issue / PLAN / PR / project task
+→ resolve the active Issue / optional PLAN / PR / project task when present
 → inspect live state only when correctness depends on it
 → test context sufficiency
 → acquire missing context through #2 only when material
@@ -162,8 +164,12 @@ Separate durable decisions from implementation design.
 
 - Accepted long-lived architecture decisions belong in `DECISIONS.md`.
 - Current accepted truth belongs in `CURRENT.md`.
-- An Issue defines what must become true.
-- A PLAN defines how the current Issue should be implemented using current evidence.
+- An Issue records `WHAT / WHY / SCOPE / ACCEPTANCE` when durable tracking adds
+  value; its objective normally represents the durable work goal.
+- Normal planning may remain in native runtime Plan mode. A committed PLAN is
+  an escalation artifact for consequential, long-running, multi-session,
+  architecture- or dependency-heavy, migration/rollback, or design-review-
+  sensitive work. It is not required for every Issue.
 
 Critique consequential plans for scope completeness, dependency order, unnecessary components, hidden coupling, validation gaps, rollback/recovery, and stronger simpler alternatives.
 
@@ -171,19 +177,24 @@ Critique consequential plans for scope completeness, dependency order, unnecessa
 
 Promote work from discussion into GitHub only when execution intent is stable enough to track.
 
-The default artifact chain is:
+Choose only the durable artifacts with a distinct consumer:
 
 ```text
 Chat / reasoning
   ↓
 Decision when needed
   ↓
-GitHub Issue
+GitHub Issue when durable tracking adds value
   ↓
-PLAN near execution time
+committed PLAN only when execution/resume/design review needs it
+  ↓
+one work-unit branch + one PR
 ```
 
-Do not create Issues for unresolved brainstorming. Do not create detailed future PLANs long before their dependencies provide real evidence.
+Small bounded work may proceed directly to one branch and PR when a separate
+Issue adds no tracking value. Do not create Issues for unresolved brainstorming,
+require a PLAN for every Issue, create a separate GOAL artifact for ordinary
+work, or persist runtime stages merely to mirror the lifecycle.
 
 ### 7. Capability routing
 
@@ -344,9 +355,9 @@ For repository implementation, the PR presents what actually changed and the evi
 A good PR should trace:
 
 ```text
-Issue intent
+Issue intent or other accepted work-unit objective
   ↓
-PLAN design
+PLAN design when a committed PLAN is justified
   ↓
 actual changes
   ↓
@@ -368,7 +379,7 @@ fresh canonical `main`:
 
 ```text
 main
-  → one Issue/work-unit branch
+  → one work-unit branch
   → one PR targeting main
   → validation / review where required
   → merge
@@ -384,7 +395,7 @@ bounded repair, review repair, and documentation reconciliation remain on the
 same branch and PR. Required checks must be rerun against its current head.
 
 Use a stacked branch only when an explicit dependency requires it and the
-Issue or PLAN records that dependency. A branch is temporary execution state,
+Issue, PR, or justified PLAN records that dependency. A branch is temporary execution state,
 not durable architecture; documentation follow-up, validation, reviewer fixes,
 and role handoffs do not independently justify another branch. Retire the
 implementation branch after merge and never leave an obsolete integration
@@ -411,11 +422,12 @@ Merge or explicitly accept only when material acceptance conditions are satisfie
 Completion of execution does not automatically mean acceptance of architecture or scientific interpretation.
 
 For repository work, evidence-based merge readiness means the current PR head
-matches the Issue and accepted scope, required deterministic checks pass,
+matches the accepted work-unit objective and scope, required deterministic
+checks pass,
 required review is satisfied, documentation and behavior agree, and material
 failures, uncertainty, deviations, and waivers are visible. After an authorized
-merge, verify the accepted result on `main`, close or link the owning Issue as
-appropriate, and delete the work-unit branch. A draft PR or passing CI run is
+merge, verify the accepted result on `main`, close or link an owning Issue when
+present, and delete the work-unit branch. A draft PR or passing CI run is
 not, by itself, authorization to merge.
 
 ### 15. Commit durable state / knowledge
@@ -425,8 +437,8 @@ Keep durable planes distinct:
 - `AGENTS.md` = operating rules and boundaries;
 - `CURRENT.md` = accepted current truth;
 - `DECISIONS.md` = accepted long-lived decisions;
-- Issue = intended future state / execution contract;
-- PLAN = current implementation design;
+- Issue = durable tracked intent / acceptance when tracking adds value;
+- PLAN = optional complex execution/resume/design-review contract;
 - PR = implementation and validation evidence;
 - memory = historical observations, failures, patterns, experience;
 - Wiki = consolidated reviewed knowledge;
@@ -457,10 +469,14 @@ finish implementation
 The evolution check asks whether execution exposed recurring/material context
 failure, routing ambiguity, guidance confusion, unnecessary ceremony, missing
 validation, repeated workaround, boundary failure, missing capability, or
-redundant component. The normal result is `NO ACTION`. Observations accumulate
-in existing Issue/PR/project owners; mature evidence hands to #11, and accepted
-system changes follow #15/general change lifecycle. Observation never directly
-mutates global policy or creates an Issue, skill, workflow, or agent.
+redundant component. The normal result is `NO CHANGE`. Observations accumulate
+in the PR, Issue comment, CI output, review finding, or project-local result where
+it naturally occurred; do not duplicate it into an evolution log, session store,
+or workflow-state database. Apply a recurrence/materiality check, then classify
+`NO CHANGE`, `DEFER`, `LOCALIZE`, `MODIFY`, `GENERALIZE`, or
+`SIMPLIFY-RETIRE`. Material proposals hand to #11 for review, and accepted
+changes follow #15/the general implementation lifecycle. Observation never
+directly mutates global policy or creates an Issue, skill, workflow, or agent.
 
 Negative evidence is valid: a skill, workflow, agent, validator, or rule may be
 a simplification/retirement candidate. Evaluator loops are admitted only for a
@@ -468,7 +484,10 @@ material task with a measurable criterion, plausible gain, justified cost, and
 explicit stop condition.
 
 A logical session is `objective + scope + accepted/live task state`, not a chat
-container. After acceptance, continue when the objective and context remain
+container or canonical database. Subagent threads are runtime execution context.
+Persist session artifacts only for an explicit provenance/reproducibility
+consumer; never mirror Issue, PR, CI, or review state into session files. After
+acceptance, continue when the objective and context remain
 healthy; reorient when state is stale/noisy; recommend a fresh logical session
 when the objective materially changes, reconstruction is safer, or independent
 review needs fresh judgment. Do not auto-close the chat or force a fixed turn
@@ -482,10 +501,10 @@ limit.
 | `OPERATING-WORKFLOW.md` | canonical human-readable general lifecycle semantics |
 | `CURRENT.md` | what is accepted as true now |
 | `DECISIONS.md` | accepted long-lived architecture choices and rationale |
-| GitHub Issue | what must become true, with scope and acceptance |
-| PLAN | how the current work will be implemented |
+| GitHub Issue | durable tracked intent: what/why/scope/acceptance, when useful |
+| PLAN | optional complex execution/resume/design-review contract |
 | PR | what changed and evidence that it meets acceptance |
-| HANDOFF | bounded cloud/local execution provenance when needed |
+| HANDOFF | bounded execution provenance only for an explicit consumer |
 | Skill | stable reusable procedure |
 | Machine-readable workflow | only when actual state/gate/runtime enforcement justifies one |
 

@@ -16,10 +16,6 @@ validation, and cloud handoff semantics explicit. Machine workflows remain
 policy-gated and are not active unless a real persisted-state consumer is
 proven.
 
-For a Cloud Operation Workflow Project Source, use the concise
-[`CLOUD-DURABLE-OUTCOME.md`](CLOUD-DURABLE-OUTCOME.md) procedure; it points back
-to the canonical lifecycle rather than duplicating it.
-
 ## Current state
 
 - The repository is public and contains only the allowlisted control-plane
@@ -31,8 +27,8 @@ to the canonical lifecycle rather than duplicating it.
 - Argus and Athena are bounded non-canonical support adapters.
 - Retired Franky wrappers and the unconsumed `workflows/franky/**` machine
   workflow tree are no longer discoverable. `workflows/AGENTS.md` remains the
-  policy boundary; Issue/PLAN/task contracts and retained skills provide the
-  active routing surface.
+  policy boundary; applicable Issues, optional PLANs, runtime task contracts,
+  and retained skills provide the active routing surface.
 - Issue #19 now has a bounded file-first bootstrap implementation in PR #20:
   adaptive artifact maps, dry-run/explicit apply, brownfield-safe updates,
   immutable `data/raw/` handling, and external Wiki/OpenScience references.

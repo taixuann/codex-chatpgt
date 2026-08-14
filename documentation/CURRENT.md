@@ -1,7 +1,7 @@
 ---
 id: CURRENT-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-13
+updated: 2026-08-14
 ---
 
 # Current state
@@ -38,7 +38,7 @@ The AI Labs registry remains authoritative and defines exactly three canonical p
 - Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).
 - Runtime adapter contracts: [`agents/AGENTS.md`](../agents/AGENTS.md).
 - Active skill surface: [`../skills/`](../skills/); [`../workflows/AGENTS.md`](../workflows/AGENTS.md) is policy only. The unconsumed Franky machine-workflow tree and `franky-workflow-organizer` package are retired and no longer discoverable.
-- Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml); ordinary control-plane routing uses Issue/PLAN/task contracts rather than a machine workflow tree.
+- Canonical task contract: [`../ops/schemas/task-contract.schema.yaml`](../ops/schemas/task-contract.schema.yaml); ordinary control-plane routing uses applicable Issues, optional PLANs, and runtime task contracts rather than a machine workflow tree.
 - Historical change/audit evidence: [`../ops/changes/`](../ops/changes/). New ordinary work does not create a CHG wrapper unless a named consumer requires one.
 - Deterministic repository CI: [`../.github/workflows/franky-validate.yml`](../.github/workflows/franky-validate.yml), accepted through PR #18 and retained after #35 reconciliation. It validates active agents, skills, task contracts, schedulers, focused tests, routing fixtures, context packets, audit records, and the Git allowlist; no retired workflow tree is treated as runtime authority.
 - The canonical task-contract schema is checked by
@@ -207,7 +207,11 @@ Current readiness:
 
 ## Planning state
 
-`documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
+`documentation/plans/` contains retained backlog/activation-aware PLANs for
+consequential architecture work with resume/design-review consumers. A PLAN is
+optional, does not imply execution readiness, and must not be created merely
+because an Issue exists. Retained PLAN status and activation gates remain
+authoritative and must be revalidated near execution against current evidence.
 
 Issue #2 and #17 now link to current live/revised PLANs; historical PR #3 is
 not an active proof fixture. #5 is accepted against the merged #2 contract;
@@ -218,6 +222,7 @@ host-level runtime acceptance remains explicitly open under #2/#6.
 The current design intentionally preserves semantic distinctions while delaying machinery:
 
 - no custom goal graph database;
+- no separate GOAL file or persisted Goal→Plan→Task→Run→Check hierarchy for ordinary work;
 - no one-Issue-per-task policy;
 - no workflow-per-persona/tool;
 - no active machine workflow without a proven persisted-state consumer;

@@ -1,7 +1,7 @@
 ---
 id: GOAL-PLAN-GRAPH-CODEX-CONTROL-PLANE
 status: proposed
-updated: 2026-08-09
+updated: 2026-08-14
 scope: shared-planning-semantics
 ---
 
@@ -13,7 +13,9 @@ This document defines the shared semantic model for connecting durable goals, li
 
 The goal is to prevent planning artifacts from becoming isolated documents that lose their relationship to prior intent, dependencies, later revisions, or downstream outcomes.
 
-This is a lightweight semantic model. It does not require a custom graph database, new orchestration engine, or one file per thought.
+This is a lightweight semantic model. It does not require a custom graph
+database, new orchestration engine, committed PLAN, separate GOAL file, or one
+persisted file per Goal, Plan, Task, Run, Check, or Result.
 
 ## Core principle
 
@@ -100,13 +102,14 @@ Issue dependency
 ≈ blocked-by / depends-on relationship where GitHub supports it
 
 PLAN file
-≈ living implementation design attached to the goal
+≈ optional implementation/resume/design-review contract for complex work
 
 PR
 ≈ implementation/evidence path showing what changed
 ```
 
-Do not create an Issue for every implementation task. Small tasks remain inside the PLAN.
+Do not create an Issue for every implementation task. Small bounded work may
+remain in runtime planning and proceed directly to one branch and PR.
 
 ## When a task becomes a goal/sub-goal
 
@@ -119,7 +122,8 @@ Promote a task into a durable goal/sub-goal only when at least one of these is t
 - it may proceed separately from the parent plan;
 - it produces a reusable capability or durable state change.
 
-Otherwise keep it inside the PLAN task DAG/checklist.
+Otherwise keep it in runtime planning or, when one is justified, the PLAN task
+DAG/checklist.
 
 ## Plan relationships
 
@@ -152,7 +156,8 @@ Use `supersedes` on the goal only when the durable intent itself materially chan
 
 ## Plan as living design contract
 
-A PLAN should remain current while implementation proceeds.
+A committed PLAN, when escalation criteria justify one, should remain current
+while implementation proceeds. Ordinary planning may remain in Codex Plan mode.
 
 When material discoveries change implementation design:
 
@@ -281,18 +286,22 @@ This connects the execution graph to knowledge without making the Wiki or RAG sy
 
 ## System-evolution integration
 
-Repeated operational friction or validated improvement opportunities may create system goals.
+Repeated/material operational friction or validated improvement opportunities
+may create system proposals; a reviewed proposal becomes tracked work only when
+durable implementation is justified.
 
 ```text
 OBSERVATION
  ↓
 repeated/material?
- ├─ no → keep as evidence
+ ├─ no → NO CHANGE / DEFER / LOCALIZE in the natural evidence owner
  └─ yes
       ↓
-GOAL-SYS-...
+proposal / review
+      ↓ accepted
+Issue objective
       ↓
-PLAN
+optional PLAN
       ↓
 CHANGE
       ↓

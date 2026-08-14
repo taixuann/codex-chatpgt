@@ -1,11 +1,14 @@
 # Handoff contract
 
-Create one concise Markdown handoff for each completed bounded execution:
+Create a concise Markdown handoff only when an explicit cross-context
+provenance or reproducibility consumer cannot use the Issue, PR, CI, review, or
+project-local result directly. Do not create one for every bounded execution or
+duplicate natural evidence owners.
 
 ```markdown
 ---
 id: HANDOFF-<PROJECT>-YYYYMMDD-NNN
-plan: <plan id or path>
+work_unit: <Issue, PR, or justified PLAN reference>
 status: completed | partial | blocked
 repository: <repository>
 branch: <branch>

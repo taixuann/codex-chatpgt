@@ -1,7 +1,7 @@
 ---
 id: SYSTEM-EVOLUTION-WORKFLOW
 status: proposed
-updated: 2026-08-09
+updated: 2026-08-14
 scope: workflow-family
 inherits: OPERATING-WORKFLOW-CODEX-CONTROL-PLANE
 ---
@@ -41,7 +41,7 @@ REUSE / RESEARCH EXISTING CAPABILITY
   ↓
 PROPOSE THE SMALLEST CHANGE
   ↓
-PLAN ↺ CRITIQUE
+PLAN ↺ CRITIQUE (runtime-native or committed when justified)
   ↓
 IMPLEMENT / CONFIGURE
   ↓
@@ -109,10 +109,15 @@ This workflow may produce evidence that a recurring pattern deserves broader cha
 ```text
 SYSTEM CHANGE OBSERVATION
   ↓
-record evidence
+retain evidence in its PR / Issue / CI / review / project-local owner
   ↓
 repeated/material pattern?
-  └─ if yes → Issue #11 self-evolution governance
+  ├─ no → NO CHANGE / DEFER / LOCALIZE
+  └─ yes → MODIFY / GENERALIZE / SIMPLIFY-RETIRE proposal
+                ↓
+             Issue #11 review
+                ↓ accepted
+             normal implementation lifecycle
 ```
 
 Issue #11 owns recurrence/materiality thresholds, proposal-first governance, project-local-first promotion, and acceptance of durable systemic evolution.
