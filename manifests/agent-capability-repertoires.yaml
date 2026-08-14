@@ -3,6 +3,20 @@ id: CODEX-AGENT-CAPABILITY-REPERTOIRES-20260813
 authority:
   primary: Issue #56
   skill_admission: Issue #38
+  canonical_role_registry: /Users/tai/ai-labs/ops/agents/agents.yaml
+  canonical_role_definitions: /Users/tai/ai-labs/ops/agents/{role}.md
+  repository_runtime_policy: AGENTS.md
+  repository_adapters: agents/*.toml
+  explanatory_documentation: documentation/
+  precedence:
+    - canonical_role_registry_and_definitions
+    - repository_adapters
+    - repository_runtime_policy
+    - explanatory_documentation
+  update_procedure: >-
+    Update the owning canonical definition first, then reconcile adapters and
+    documentation in one reviewed work unit; do not infer role changes from a
+    local adapter or create synchronization automation without a named consumer.
 semantics:
   repertoire: approved, eligible, and preferred capabilities; not exclusive skill ownership
   explicit_invocation: named-agent selection overrides selection only, never scope or authority

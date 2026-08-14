@@ -38,6 +38,15 @@ through the supported Franky role mechanism and workflow selection, not
 handled locally by the parent runtime; this is a guidance rule only and does
 not claim a hard platform hook.
 
+## Authority precedence
+
+Canonical role meaning comes from `/Users/tai/ai-labs/ops/agents/agents.yaml`
+and its role definitions. Repository `agents/*.toml` files are adapters only;
+this file is repository runtime policy; `documentation/` is explanatory; and
+`manifests/` records capability eligibility and support contracts rather than
+canonical roles. A conflict is a stop-and-escalate condition, not permission
+to merge the most convenient interpretation.
+
 ## Global operating kernel
 
 The canonical human-readable semantics for the shared lifecycle live in

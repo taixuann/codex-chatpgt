@@ -12,6 +12,7 @@ on:
       - 'manifests/agent-capability-repertoires.yaml'
       - 'manifests/agent-contracts.yaml'
       - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
+      - 'documentation/AGENT-BOUNDARIES.md'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
   pull_request:
@@ -22,6 +23,7 @@ on:
       - 'manifests/agent-capability-repertoires.yaml'
       - 'manifests/agent-contracts.yaml'
       - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
+      - 'documentation/AGENT-BOUNDARIES.md'
       - 'documentation/CURRENT.md'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
@@ -84,6 +86,10 @@ jobs:
           for agent in agents/*.toml; do
             test ! -s "$agent" || python skills/runtime-adapter-management/scripts/validate_agent_toml.py "$agent"
           done
+
+      - name: Validate canonical role boundaries
+        id: role_boundaries
+        run: python ops/scripts/validate_role_boundaries.py
 
       - name: Validate static skill-routing fixture
         id: routing
@@ -180,6 +186,7 @@ jobs:
             echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
             echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
+            echo '| Canonical role boundaries | ${{ steps.role_boundaries.outcome }} |'
             echo '| Static skill-routing fixture | ${{ steps.routing.outcome }} |'
             echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
             echo '| Task contract | ${{ steps.task_contract.outcome }} |'

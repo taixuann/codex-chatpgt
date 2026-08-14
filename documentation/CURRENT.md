@@ -47,6 +47,8 @@ enforcement, and model behavior remain `NOT_ASSESSED`.
 - Architecture decisions: [`DECISIONS.md`](DECISIONS.md).
 - Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).
 - Runtime adapter contracts: [`agents/AGENTS.md`](../agents/AGENTS.md).
+- Canonical role call boundaries and explicit runtime limitations:
+  [`AGENT-BOUNDARIES.md`](AGENT-BOUNDARIES.md).
 - Active skill surface: [`../skills/`](../skills/); workflow admission policy is
   documented in [`../AGENTS.md`](../AGENTS.md). The unconsumed Franky
   machine-workflow tree and `franky-workflow-organizer` package are retired and

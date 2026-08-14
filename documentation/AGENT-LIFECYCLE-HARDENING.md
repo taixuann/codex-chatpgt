@@ -11,6 +11,12 @@ Franky contracts. `manifests/agent-contracts.yaml` is the single semantic
 registry for the three support/implementation/review boundaries, while
 `manifests/agent-capability-repertoires.yaml` is the single capability list.
 
+Canonical role authority is separate: the AI Labs role registry and canonical
+definitions own Feynman, Prometheus, and Franky; local TOML files are adapters;
+the root `AGENTS.md` is repository runtime policy; and documentation is
+explanatory. See [`AGENT-BOUNDARIES.md`](AGENT-BOUNDARIES.md) for the call
+boundary and the four runtime limitations that remain `NOT_ASSESSED`.
+
 The shared envelopes are declared in
 `ops/schemas/shared-contracts.schema.yaml`: `request.v1`, `context.v1`,
 `handoff.v1`, `result.v1`, `review.v1`, and `run.v1`. Each carries provenance,
