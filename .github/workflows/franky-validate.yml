@@ -9,6 +9,9 @@ on:
       - 'skills/**'
       - 'manifests/skill-catalog.yaml'
       - 'manifests/skill-evidence.yaml'
+      - 'manifests/agent-capability-repertoires.yaml'
+      - 'manifests/agent-contracts.yaml'
+      - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
   pull_request:
@@ -95,6 +98,10 @@ jobs:
       - name: Validate Franky v1 task/result contracts and repertoires
         id: franky_contracts
         run: python ops/scripts/validate_franky_contracts.py
+
+      - name: Validate shared agent lifecycle and evidence contracts
+        id: agent_lifecycle
+        run: python ops/scripts/validate_agent_lifecycle.py ops/scripts/fixtures/agent-lifecycle.yaml
 
       - name: Validate Franky documentation impact
         id: franky_documentation_impact

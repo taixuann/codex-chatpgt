@@ -49,6 +49,8 @@ agents:
       - test-driven-development
       - incremental-implementation
       - code-simplification
+      - implementation-quality-gate
+      - documentation-artifact-lifecycle-audit
     lifecycle_capabilities:
       - shared-session-closeout
     conditional_capabilities:
@@ -57,26 +59,38 @@ agents:
     forbidden_capabilities:
       - control-plane-architecture-ownership
       - scientific-decision-making
+      - global-policy-mutation
+      - agent-contract-mutation
   athena:
     role_surface: support
     primary_capabilities:
       - code-review-and-quality
       - security-review
+      - evidence-evaluation
+      - decision-support
     lifecycle_capabilities: []
     conditional_capabilities: []
     external_or_runtime_dependencies: []
     forbidden_capabilities:
       - file-mutation
       - final-acceptance
+      - self-approval
+      - canonical-state-mutation
+      - global-policy-mutation
   argus:
     role_surface: support
     primary_capabilities:
       - bounded-repository-exploration
       - context-mapping
       - dependency-tracing
+      - evidence-provenance-audit
+      - handoff-generation
     lifecycle_capabilities: []
     conditional_capabilities: []
     external_or_runtime_dependencies: []
     forbidden_capabilities:
       - file-mutation
       - parent-plan-redesign
+      - scientific-interpretation
+      - canonical-state-mutation
+      - global-policy-mutation
