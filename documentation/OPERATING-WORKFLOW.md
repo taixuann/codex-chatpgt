@@ -1,7 +1,7 @@
 ---
 id: OPERATING-WORKFLOW-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-09
+updated: 2026-08-14
 scope: general
 ---
 
@@ -375,11 +375,13 @@ main
   → delete the implementation branch
 ```
 
-Before opening a branch, check whether an existing active branch already owns
-the work. Normally only one active implementation branch exists for the
-current work unit. Do not branch from another feature or integration branch by
-default, and do not create branch-per-agent or branch-per-reviewer variants.
-All roles may inspect, review, test, and repair on the same active branch.
+Before opening a branch, check whether an existing active branch or PR already
+owns the work. Normally only one active implementation branch and one draft PR
+exist for the current work unit. Do not branch from another feature or
+integration branch by default, and do not create branch-per-agent,
+branch-per-reviewer, or CI-repair variants. Implementation, CI diagnosis and
+bounded repair, review repair, and documentation reconciliation remain on the
+same branch and PR. Required checks must be rerun against its current head.
 
 Use a stacked branch only when an explicit dependency requires it and the
 Issue or PLAN records that dependency. A branch is temporary execution state,
@@ -407,6 +409,14 @@ The parent performs final synthesis and resolves conflicting worker/reviewer out
 Merge or explicitly accept only when material acceptance conditions are satisfied or consciously waived with rationale.
 
 Completion of execution does not automatically mean acceptance of architecture or scientific interpretation.
+
+For repository work, evidence-based merge readiness means the current PR head
+matches the Issue and accepted scope, required deterministic checks pass,
+required review is satisfied, documentation and behavior agree, and material
+failures, uncertainty, deviations, and waivers are visible. After an authorized
+merge, verify the accepted result on `main`, close or link the owning Issue as
+appropriate, and delete the work-unit branch. A draft PR or passing CI run is
+not, by itself, authorization to merge.
 
 ### 15. Commit durable state / knowledge
 

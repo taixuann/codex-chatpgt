@@ -1,7 +1,7 @@
 ---
 id: CLOUD-BRIEF-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-10
+updated: 2026-08-14
 repository: taixuann/codex-chatpgt
 branch: main
 ---
@@ -15,6 +15,10 @@ surface. Keep canonical role authority, generic handoffs/links, task
 validation, and cloud handoff semantics explicit. Machine workflows remain
 policy-gated and are not active unless a real persisted-state consumer is
 proven.
+
+For a Cloud Operation Workflow Project Source, use the concise
+[`CLOUD-DURABLE-OUTCOME.md`](CLOUD-DURABLE-OUTCOME.md) procedure; it points back
+to the canonical lifecycle rather than duplicating it.
 
 ## Current state
 
