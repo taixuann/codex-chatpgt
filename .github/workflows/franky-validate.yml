@@ -21,6 +21,8 @@ on:
       - 'skills/**'
       - 'manifests/agent-capability-repertoires.yaml'
       - 'manifests/agent-contracts.yaml'
+      - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
+      - 'documentation/CURRENT.md'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
 

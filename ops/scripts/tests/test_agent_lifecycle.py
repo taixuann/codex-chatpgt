@@ -35,6 +35,17 @@ class AgentLifecycleTests(unittest.TestCase):
             validator.validate_artifacts(unrelated)
             validator.validate_evidence_chain(unrelated)
 
+    def test_accepted_artifact_requires_matching_pass_reviewer(self):
+        doc = {"artifacts": [{"artifact_id": "a", "lifecycle_state": "ACCEPTED", "owner": "parent", "producer": "prometheus", "reviewer": "athena", "authority_status": "accepted", "previous_state": "REVIEWED", "evidence_ids": ["e"], "claim_ids": ["c"], "review_ids": ["r"], "decision_id": "d"}], "evidence": [{"id": "e"}], "claims": [{"id": "c", "evidence_ids": ["e"]}], "reviews": [{"id": "r", "reviewer": "prometheus", "outcome": "REQUEST_CHANGES", "claim_ids": ["c"]}], "decisions": [{"id": "d", "review_ids": ["r"], "claim_ids": ["c"], "outcome": "ACCEPT"}], "promotions": []}
+        with self.assertRaises(ValueError):
+            validator.validate_artifacts(doc)
+            validator.validate_evidence_chain(doc)
+
+    def test_non_draft_artifact_requires_predecessor(self):
+        doc = {"artifacts": [{"artifact_id": "a", "lifecycle_state": "VALIDATED", "owner": "parent", "producer": "prometheus", "reviewer": None, "authority_status": "process_validated", "evidence_ids": [], "claim_ids": [], "review_ids": []}]}
+        with self.assertRaises(ValueError):
+            validator.validate_artifacts(doc)
+
 
 if __name__ == "__main__":
     unittest.main()

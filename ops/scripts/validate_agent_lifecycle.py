@@ -54,6 +54,18 @@ def validate_agent_contracts(path: Path = CONTRACTS) -> dict:
     for name, forbidden in expected.items():
         if not forbidden.issubset(set(agents[name]["forbidden_actions"])):
             raise ValueError(f"agents.{name}: required forbidden action missing")
+    expected_meta = {
+        "argus": {"authority_status": "read_only", "improvement_requests_only": True, "lifecycle_boundary": "REQUEST_CONTEXT_HANDOFF", "consumers": {"parent_orchestrator", "prometheus", "athena"}},
+        "prometheus": {"authority_status": "bounded_workspace_write", "improvement_requests_only": True, "lifecycle_boundary": "HANDOFF_EXECUTION_VALIDATION_RESULT", "consumers": {"parent_orchestrator", "athena"}},
+        "athena": {"authority_status": "read_only", "improvement_requests_only": True, "lifecycle_boundary": "RESULT_REVIEW_DECISION_SUPPORT", "consumers": {"parent_acceptance", "prometheus"}},
+    }
+    for name, expected_entry in expected_meta.items():
+        entry = agents[name]
+        for field in ("authority_status", "improvement_requests_only", "lifecycle_boundary"):
+            if entry.get(field) != expected_entry[field]:
+                raise ValueError(f"agents.{name}.{field}: boundary contract mismatch")
+        if set(entry.get("consumers", [])) != expected_entry["consumers"]:
+            raise ValueError(f"agents.{name}.consumers: boundary contract mismatch")
     return doc
 
 
@@ -140,6 +152,8 @@ def validate_evidence_chain(doc: dict) -> None:
             raise ValueError(f"artifact {artifact.get('artifact_id')}: claims are not bound to artifact evidence")
         if any(not references(reviews[item], "claim_ids", set(claims)).issubset(artifact_claims) for item in artifact_reviews):
             raise ValueError(f"artifact {artifact.get('artifact_id')}: reviews are not bound to artifact claims")
+        if any(reviews[item].get("reviewer") != artifact.get("reviewer") or reviews[item].get("reviewer") == artifact.get("producer") or reviews[item].get("outcome") != "PASS" for item in artifact_reviews):
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: accepted artifact requires declared independent PASS reviewer")
         decision = decisions.get(artifact.get("decision_id"))
         if not decision or set(decision["review_ids"]) != artifact_reviews or set(decision["claim_ids"]) != artifact_claims:
             raise ValueError(f"artifact {artifact.get('artifact_id')}: decision is not bound to artifact review and claim sets")
@@ -188,6 +202,8 @@ def validate_artifacts(doc: dict) -> None:
         if state == "ACCEPTED" and not all(artifact.get(field) for field in ("evidence_ids", "claim_ids", "review_ids")):
             raise ValueError(f"artifact {artifact.get('artifact_id')}: accepted artifact requires complete evidence chain references")
         previous = artifact.get("previous_state")
+        if state != "DRAFT" and previous is None:
+            raise ValueError(f"artifact {artifact.get('artifact_id')}: non-DRAFT artifact requires previous_state")
         if previous is not None and state not in ALLOWED_TRANSITIONS.get(previous, set()):
             raise ValueError(f"artifact {artifact.get('artifact_id')}: invalid transition {previous} -> {state}")
 

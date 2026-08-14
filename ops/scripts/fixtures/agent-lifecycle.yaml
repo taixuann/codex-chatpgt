@@ -5,6 +5,7 @@ artifacts:
     owner: parent
     producer: prometheus
     reviewer: athena
+    previous_state: REVIEWED
     authority_status: accepted
     evidence_ids: [evidence-1]
     claim_ids: [claim-1]
