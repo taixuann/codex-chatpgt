@@ -101,3 +101,7 @@ not require a per-task `ops/changes` wrapper. Create
 consumer or explicit contract requires it; never create `result.md` by default.
 Architectural work and explicit promotion may use the full AI Labs goal-session
 contract. AI Labs is a proposed export target, not a live mirror of this tree.
+Use the default Git lifecycle in `documentation/OPERATING-WORKFLOW.md`: start
+one work-unit branch from fresh `main`, keep review and repair on that branch,
+target `main`, and delete the branch after merge. Do not create stacked or
+role-specific branches unless an Issue/PLAN records an explicit dependency.

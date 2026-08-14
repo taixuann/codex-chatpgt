@@ -361,6 +361,33 @@ review outcome
 
 A passing command or successful worker run is not, by itself, acceptance.
 
+### 12a. Default Git branch lifecycle
+
+For ordinary implementation work, use one temporary work-unit branch from
+fresh canonical `main`:
+
+```text
+main
+  → one Issue/work-unit branch
+  → one PR targeting main
+  → validation / review where required
+  → merge
+  → delete the implementation branch
+```
+
+Before opening a branch, check whether an existing active branch already owns
+the work. Normally only one active implementation branch exists for the
+current work unit. Do not branch from another feature or integration branch by
+default, and do not create branch-per-agent or branch-per-reviewer variants.
+All roles may inspect, review, test, and repair on the same active branch.
+
+Use a stacked branch only when an explicit dependency requires it and the
+Issue or PLAN records that dependency. A branch is temporary execution state,
+not durable architecture; documentation follow-up, validation, reviewer fixes,
+and role handoffs do not independently justify another branch. Retire the
+implementation branch after merge and never leave an obsolete integration
+branch as the base for future work.
+
 ### 13. Synthesize ↺ Final refine
 
 Before completion, compare the result against the original objective and check:
