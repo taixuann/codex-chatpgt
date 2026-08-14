@@ -1,0 +1,82 @@
+schema_version: 1
+id: CODEX-AGENT-CAPABILITY-REPERTOIRES-20260813
+authority:
+  primary: Issue #56
+  skill_admission: Issue #38
+semantics:
+  repertoire: approved, eligible, and preferred capabilities; not exclusive skill ownership
+  explicit_invocation: named-agent selection overrides selection only, never scope or authority
+  automatic_routing: capability-first parent routing remains separate from explicit invocation
+agents:
+  franky:
+    role_surface: canonical
+    primary_capabilities:
+      - control-plane-audit
+      - instruction-maintenance
+      - runtime-adapter-management
+      - external-handoff
+    lifecycle_capabilities:
+      - shared-session-closeout
+    conditional_capabilities:
+      - project-bootstrap
+    external_or_runtime_dependencies:
+      - capability: skill-authoring-and-quality
+        authority: Issue #38
+        preferred_resolution: builtin/system skill-creator when available and admitted
+        fallback: repository skill-quality contract or explicit handoff
+        runtime_availability: MUST_PROBE
+    forbidden_capabilities:
+      - research-project-contents
+      - recursive-subagent-orchestration
+      - consequential-self-acceptance
+  feynman:
+    role_surface: canonical
+    primary_capabilities:
+      - scientific-research-evidence
+      - source-verification
+      - methodology-review
+    lifecycle_capabilities:
+      - shared-session-closeout
+    conditional_capabilities: []
+    external_or_runtime_dependencies: []
+    forbidden_capabilities:
+      - project-mutation
+      - final-scientific-acceptance
+  prometheus:
+    role_surface: canonical
+    primary_capabilities:
+      - debugging-and-error-recovery
+      - test-driven-development
+      - incremental-implementation
+      - code-simplification
+    lifecycle_capabilities:
+      - shared-session-closeout
+    conditional_capabilities:
+      - code-review-and-quality
+    external_or_runtime_dependencies: []
+    forbidden_capabilities:
+      - control-plane-architecture-ownership
+      - scientific-decision-making
+  athena:
+    role_surface: support
+    primary_capabilities:
+      - code-review-and-quality
+      - security-review
+    lifecycle_capabilities: []
+    conditional_capabilities: []
+    external_or_runtime_dependencies: []
+    forbidden_capabilities:
+      - file-mutation
+      - final-acceptance
+  argus:
+    role_surface: support
+    primary_capabilities:
+      - bounded-repository-exploration
+      - context-mapping
+      - dependency-tracing
+    lifecycle_capabilities: []
+    conditional_capabilities: []
+    external_or_runtime_dependencies: []
+    forbidden_capabilities:
+      - file-mutation
+      - parent-plan-redesign
