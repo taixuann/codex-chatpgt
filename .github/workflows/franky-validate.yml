@@ -95,6 +95,10 @@ jobs:
         id: feynman_v1
         run: python ops/scripts/validate_feynman_v1.py ops/scripts/fixtures/feynman-v1.yaml --qualification ops/scripts/fixtures/feynman-v1-qualification.yaml
 
+      - name: Validate Personal Wiki v1 artifact boundary
+        id: personal_wiki
+        run: python ops/scripts/validate_personal_wiki_artifact.py ops/schemas/examples/personal-wiki-artifact.yaml
+
       - name: Validate static skill-routing fixture
         id: routing
         run: python skills/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
