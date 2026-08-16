@@ -1,7 +1,7 @@
 ---
 id: DECISIONS-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-13
+updated: 2026-08-16
 ---
 
 # Architecture decisions
@@ -207,3 +207,27 @@ resolved by silently promoting a local adapter or manifest.
 shared evidence, artifact, and lifecycle boundaries only. It is not a global
 role registry and does not duplicate the richer Franky contracts or define the
 canonical Feynman role.
+
+## D-016 — Feynman v1 boundary is accepted without runtime overclaim
+
+The bounded Feynman v1 slice is accepted after codex-chatpgt PR #76 and the
+selected-project binding in research-projects PR #22. Feynman owns scientific
+reasoning, evidence calibration, hypothesis/method critique, and bounded
+scientific communication intent. Argus owns context and provenance
+preparation; Prometheus owns implementation and execution; Athena owns
+independent review; and the human owner remains final scientific authority.
+
+The three reusable scientific procedures remain `ADAPT` candidates rather than
+canonical `KEEP` skills. Scientific Wiki remains an on-demand evidence
+capability owned by Issue #7; Personal Wiki is a reusable context plane whose
+runtime is not yet assessed. No automatic Personal Wiki synchronization,
+bidirectional mutation, knowledge graph/database, or Scientific Wiki
+replacement is introduced. Native dispatch, skill materialization/runtime,
+host mutation/permission enforcement, and human scientific acceptance remain
+`NOT_ASSESSED`.
+
+Future Personal Wiki MCP work, if separately authorized, may provide reusable
+personal scientific context for the Feynman context plane, knowledge retrieval,
+and promotion proposals. It does not include automatic synchronization,
+bidirectional mutation, a knowledge graph/database, or replacement of the
+Scientific Wiki capability.
