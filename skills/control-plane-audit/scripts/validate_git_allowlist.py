@@ -26,6 +26,7 @@ ALLOWED_SKILL_PACKAGES = frozenset({
     "security-best-practices", "security-ownership-map", "security-threat-model", "sentry", "shipping-and-launch",
     "skill-retrospective", "socratic", "source-driven-development", "spec-driven-development", "speech",
     "test-driven-development", "transcribe", "using-agent-skills", "vercel-deploy", "winui-app",
+    "scientific-evidence-synthesis", "hypothesis-and-test-design", "scientific-method-critique",
 })
 ALLOWED_SKILL_SHARED_PREFIXES = ("skills/references/",)
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials")

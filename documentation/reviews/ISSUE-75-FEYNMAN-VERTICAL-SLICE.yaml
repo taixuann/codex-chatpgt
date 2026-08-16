@@ -1,0 +1,52 @@
+kind: feynman.vertical-slice.v1
+slice_id: FEYNMAN-ISSUE75-20260816-001
+issue: https://github.com/taixuann/codex-chatpgt/issues/75
+source_repository: taixuann/research-projects
+source_commit: 75adf7caf92b90290c92ec102796626ed3668e23
+project_scope: active-projects/res_volatile-polydopamine
+question: >-
+  Do the validated temperature-dependent DC-IV/Arrhenius artifacts establish a
+  unique physical conduction mechanism under the declared measurement
+  conditions?
+binding:
+  manifest: .agents/manifest.yaml#bindings.feynman
+  project_rules: active-projects/res_volatile-polydopamine/AGENTS.md
+  current_state: active-projects/res_volatile-polydopamine/documentation/CURRENT.md
+  decisions: active-projects/res_volatile-polydopamine/documentation/DECISIONS.md
+  study: active-projects/res_volatile-polydopamine/studies/reliability/temperature-dependent-iv-transport/study.yaml
+  method: .agents/analysis-methods/conduction-mechanism-analysis/method.yaml
+  result: active-projects/res_volatile-polydopamine/studies/reliability/temperature-dependent-iv-transport/analysis/v003/analysis.yaml
+  project_knowledge: active-projects/res_volatile-polydopamine/documentation/knowledge/
+knowledge_context:
+  personal_wiki:
+    status: NOT_ASSESSED
+    action: valid_fallback_to_declared_project_evidence
+  scientific_wiki:
+    status: NOT_USED
+    rationale: supplied project method/result evidence was sufficient to abstain
+evidence:
+  observations:
+    - ref: active-projects/res_volatile-polydopamine/studies/reliability/temperature-dependent-iv-transport/analysis/v003/analysis.yaml
+      detail: fit diagnostics have n=3 and R2 values from 0.331 to 0.869; scientific_acceptance is not_assessed
+  sourced_claims:
+    - ref: .agents/analysis-methods/conduction-mechanism-analysis/method.yaml
+      detail: declared method forbids automatic physical-mechanism selection and requires competing-model comparison/abstention
+  inferences:
+    - detail: current artifacts support a temperature-dependent transport diagnostic, not a unique mechanism
+  hypotheses:
+    - detail: multiple descriptive transport candidates remain viable pending discriminating evidence
+  uncertainties:
+    - detail: geometry, model discrimination, and human scientific review remain unresolved
+  unsupported_or_unknown:
+    - detail: no established physical conduction mechanism is licensed by this slice
+status: REQUIRES_ADDITIONAL_MEASUREMENT
+claim_calibration:
+  strongest_licensed_claim: descriptive temperature-conditioned transport diagnostic
+  prohibited_claim: unique physical conduction mechanism
+next_discriminating_test: >-
+  Use the project method contract to compare explicitly eligible candidates with
+  declared geometry/state/branch context and additional diagnostics; do not rank
+  a mechanism from fit score alone.
+documentation_action: NO_ACTION
+project_mutation: none
+human_authority: required_for_scientific_acceptance

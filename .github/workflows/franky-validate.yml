@@ -91,6 +91,10 @@ jobs:
         id: role_boundaries
         run: python ops/scripts/validate_role_boundaries.py
 
+      - name: Validate Feynman v1 behavioral fixtures
+        id: feynman_v1
+        run: python ops/scripts/validate_feynman_v1.py ops/scripts/fixtures/feynman-v1.yaml --qualification ops/scripts/fixtures/feynman-v1-qualification.yaml
+
       - name: Validate static skill-routing fixture
         id: routing
         run: python skills/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml

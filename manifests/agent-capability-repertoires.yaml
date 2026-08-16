@@ -54,6 +54,27 @@ agents:
       - methodology-critique
       - hypothesis-gap-analysis
       - source-verification
+    global_reusable_procedures:
+      - name: scientific-evidence-synthesis
+        admission: ADAPT
+        path: skills/scientific-evidence-synthesis
+      - name: hypothesis-and-test-design
+        admission: ADAPT
+        path: skills/hypothesis-and-test-design
+      - name: scientific-method-critique
+        admission: ADAPT
+        path: skills/scientific-method-critique
+    knowledge_capabilities:
+      personal_wiki:
+        role: reusable_context
+        runtime_availability: MUST_PROBE
+      scientific_wiki:
+        role: on_demand_literature_evidence
+        authority: Issue #7
+        runtime_availability: MUST_PROBE
+    project_local_procedures:
+      resolution: project_manifest
+      copied_into_global_repository: false
     lifecycle_capabilities:
       - shared-session-closeout
     conditional_capabilities: []

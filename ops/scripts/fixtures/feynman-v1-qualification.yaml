@@ -1,0 +1,62 @@
+kind: feynman.behavior-qualification.v1
+native_runtime: NOT_ASSESSED
+execution: bounded_packet_review
+validator:
+  name: ops/scripts/validate_feynman_v1.py
+  version: feynman-v1-qualification.v1
+  revision: 6ed5b2aa1f26c8f04af54d1cef3b9584b0e3adb7
+cases:
+  - id: mechanism-fit-does-not-identify
+    packet:
+      context: {project_manifest: .agents/manifest.yaml}
+      evidence:
+        - {provenance: result.yaml, supports: [mechanism]}
+      claim: {id: mechanism, type: mechanistic, fit_r2: 0.999}
+      alternatives: [candidate-a, candidate-b]
+    captured_output:
+      status: REQUIRES_ADDITIONAL_MEASUREMENT
+      alternatives_preserved: true
+      abstained: true
+      route: HUMAN
+  - id: missing-project-context
+    packet:
+      context: {}
+      evidence: []
+      claim: {id: c1, type: descriptive}
+    captured_output:
+      status: INSUFFICIENT_EVIDENCE
+      alternatives_preserved: true
+      abstained: true
+      route: ARGUS
+  - id: missing-evidence-provenance
+    packet:
+      context: {project_manifest: .agents/manifest.yaml}
+      evidence: [{supports: [c1]}]
+      claim: {id: c1, type: descriptive}
+    captured_output:
+      status: INSUFFICIENT_EVIDENCE
+      alternatives_preserved: true
+      abstained: true
+      route: ARGUS
+  - id: implementation-gap
+    packet:
+      context: {project_manifest: .agents/manifest.yaml}
+      evidence: [{provenance: result.yaml, supports: [c1]}]
+      claim: {id: c1, type: descriptive}
+      implementation: {ready: false}
+    captured_output:
+      status: INSUFFICIENT_EVIDENCE
+      alternatives_preserved: true
+      abstained: true
+      route: PROMETHEUS
+  - id: independent-review-gap
+    packet:
+      context: {project_manifest: .agents/manifest.yaml}
+      evidence: [{provenance: result.yaml, supports: [c1]}]
+      claim: {id: c1, type: descriptive}
+      review: {required: true, independent: false}
+    captured_output:
+      status: INSUFFICIENT_EVIDENCE
+      alternatives_preserved: true
+      abstained: true
+      route: ATHENA

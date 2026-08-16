@@ -48,6 +48,9 @@ dispositions:
     - security-and-hardening
     - spec-driven-development
     - test-driven-development
+    - scientific-evidence-synthesis
+    - hypothesis-and-test-design
+    - scientific-method-critique
   EXPLICIT_ONLY:
     - chatgpt-apps
     - cli-creator
