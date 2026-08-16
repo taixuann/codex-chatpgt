@@ -3,6 +3,72 @@
 Append-only record of governed agent adapter changes.
 
 ```yaml
+- agent: canonical-role-boundary-audit
+  version: 1.1.0
+  goal_id: CONTROL-PLANE-BOUNDARY-AUDIT
+  workflow_id: BOUNDED-CONTROL-PLANE-HARDENING
+  reason: Reconcile post-PR-72 authority and lifecycle documentation, scope the shared lifecycle manifest, define the Feynman v1 scientific boundary, and enforce read-only permissions for Argus and Athena adapters.
+  changed_paths:
+    - AGENTS.md
+    - agents/AGENTS.md
+    - agents/argus.toml
+    - agents/athena.toml
+    - agents/feynman.toml
+    - documentation/AGENT-BOUNDARIES.md
+    - documentation/AGENT-LIFECYCLE-HARDENING.md
+    - documentation/CURRENT.md
+    - documentation/DECISIONS.md
+    - manifests/agent-capability-repertoires.yaml
+    - manifests/agent-contracts.yaml
+    - ops/scripts/validate_role_boundaries.py
+    - ops/scripts/validate_agent_lifecycle.py
+    - ops/scripts/tests/test_role_boundaries.py
+    - ops/scripts/tests/test_agent_lifecycle.py
+  validation:
+    - validate_role_boundaries.py
+    - validate_agent_lifecycle.py
+    - 51 ops/scripts unit tests
+    - GitHub Issues #68-#71 reconciled against merged PR #72
+    - Feynman v1 contract tracked by Issue #75
+  approval:
+    - bounded post-lifecycle reconciliation and scientific-agent contract preparation
+  change_commit: not-created; pending PR publication
+  rollback:
+    - Revert this work unit; merged PR #72 lifecycle semantics remain intact.
+```
+
+```yaml
+- agent: canonical-role-boundary-audit
+  version: 1.0.0
+  goal_id: CONTROL-PLANE-BOUNDARY-AUDIT
+  workflow_id: BOUNDED-CONTROL-PLANE-HARDENING
+  reason: Clarify canonical-role authority, complete canonical adapter contracts, document non-overlapping call boundaries, and add a deterministic boundary validator without adding an agent framework or workflow engine.
+  changed_paths:
+    - agents/feynman.toml
+    - agents/prometheus.toml
+    - agents/franky.toml
+    - agents/AGENTS.md
+    - AGENTS.md
+    - skills/AGENTS.md
+    - manifests/agent-capability-repertoires.yaml
+    - documentation/AGENT-BOUNDARIES.md
+    - documentation/AGENT-LIFECYCLE-HARDENING.md
+    - documentation/CURRENT.md
+    - ops/scripts/validate_role_boundaries.py
+    - ops/scripts/tests/test_role_boundaries.py
+    - .github/workflows/franky-validate.yml
+  validation:
+    - validate_role_boundaries.py
+    - 47 ops/scripts unit tests
+    - lifecycle, Franky, task, skill, adapter, allowlist, and diff checks
+  approval:
+    - bounded control-plane hardening scope
+  change_commit: not-created; pending PR publication
+  rollback:
+    - Revert this work unit; canonical role authority remains in the AI Labs registry and definitions.
+```
+
+```yaml
 - agent: franky-agent-first-hardening
   version: 1.1.0
   goal_id: ISSUE-57

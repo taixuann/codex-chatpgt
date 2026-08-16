@@ -34,8 +34,10 @@ def _load(path: Path):
 
 def validate_agent_contracts(path: Path = CONTRACTS) -> dict:
     doc = _load(path)
-    if doc.get("kind") != "codex.agent-contract-registry.v1":
-        raise ValueError("agent registry: wrong kind")
+    if doc.get("kind") != "codex.shared-lifecycle-agent-contracts.v1":
+        raise ValueError("agent registry: wrong scoped lifecycle kind")
+    if doc.get("scope") != "argus_prometheus_athena_shared_lifecycle_slice":
+        raise ValueError("agent registry: scope must be the shared Argus/Prometheus/Athena lifecycle slice")
     agents = doc.get("agents") or {}
     if set(agents) != AGENTS:
         raise ValueError(f"agent registry: expected exactly {sorted(AGENTS)}")

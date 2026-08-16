@@ -1,15 +1,23 @@
 ---
 id: AGENT-LIFECYCLE-HARDENING
-status: conditionally-validated
-updated: 2026-08-14
+status: accepted_deterministic_with_runtime_limits
+updated: 2026-08-16
 ---
 
 # Argus, Prometheus, and Athena hardening
 
 This control-plane slice keeps lifecycle execution in the existing task and
-Franky contracts. `manifests/agent-contracts.yaml` is the single semantic
-registry for the three support/implementation/review boundaries, while
-`manifests/agent-capability-repertoires.yaml` is the single capability list.
+Franky contracts. `manifests/agent-contracts.yaml` is explicitly scoped to the
+Argus/Prometheus/Athena shared lifecycle slice; it is not a global role
+registry. `manifests/agent-capability-repertoires.yaml` records capability
+eligibility and forbidden boundaries, not canonical role authority.
+
+Canonical deployment role identity is separate: the external AI Labs registry
+is used when available, while its absolute local path is runtime-only and the
+portable semantic reference is `agents/AGENTS.md` plus
+`AGENT-BOUNDARIES.md`. Local TOML files are adapters; the root `AGENTS.md` is
+repository runtime policy; and documentation is explanatory. The four host
+runtime limitations remain `NOT_ASSESSED`.
 
 The shared envelopes are declared in
 `ops/schemas/shared-contracts.schema.yaml`: `request.v1`, `context.v1`,
@@ -33,6 +41,7 @@ chain `Evidence -> Claim -> Review -> Decision -> State`.
 | #70 | Athena contract, review/evidence capabilities, independent-review boundary | PASS (deterministic) |
 | #71 | Shared envelopes, artifact states, evidence chain, seven negative evaluator cases | PASS (deterministic) |
 
-Host-mediated agent selection, model behavior, native skill loading, and
-runtime mutation enforcement remain `NOT_ASSESSED`; this repository does not
-claim those from static contracts or no-model tests.
+Host-mediated agent selection, native skill loading/model-mediated selection,
+runtime mutation enforcement, and host permission enforcement remain
+`NOT_ASSESSED`; this repository does not claim those from static contracts or
+no-model tests.

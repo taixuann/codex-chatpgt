@@ -3,6 +3,12 @@
 Skills are reusable agent-facing capabilities, not personas, workflows, or
 deterministic commands disguised as procedures.
 
+A skill may describe a capability and its bounded procedure only. It must not
+define an agent, select a persona, encode a lifecycle/workflow, own project
+logic, or silently mutate canonical policy. Agent identity belongs to the
+canonical role registry and its adapters; lifecycle and gates belong to the
+operating workflow and task contracts.
+
 The checked-in admission surface is `../manifests/skill-catalog.yaml`. A
 package may be structurally valid and still be noncanonical. Only packages in
 its `canonical_active` list are canonical active capabilities; all other

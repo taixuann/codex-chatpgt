@@ -190,3 +190,20 @@ not-reviewed runtime behavior; evolution records explicitly say whether a
 promotion candidate exists.
 The checked-in example uses `source_commit: HEAD`; the validator resolves that
 reference and requires a clean checkout for an acceptance-ready claim.
+
+## D-014 — External role registry is a deployment dependency, not portable repository authority
+
+The external AI Labs registry supplies canonical role identity when the
+deployment runtime is connected. Its absolute local path is runtime-only and
+must not be treated as portable repository state. `agents/AGENTS.md` and
+`documentation/AGENT-BOUNDARIES.md` provide the repository's portable semantic
+reference; `agents/*.toml` remain adapters. A conflict is escalated rather than
+resolved by silently promoting a local adapter or manifest.
+
+## D-015 — Shared lifecycle contracts are explicitly scoped
+
+`manifests/agent-contracts.yaml` is the
+`argus_prometheus_athena_shared_lifecycle_slice` contract registry. It covers
+shared evidence, artifact, and lifecycle boundaries only. It is not a global
+role registry and does not duplicate the richer Franky contracts or define the
+canonical Feynman role.

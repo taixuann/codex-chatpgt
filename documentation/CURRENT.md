@@ -1,7 +1,7 @@
 ---
 id: CURRENT-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-13
+updated: 2026-08-16
 ---
 
 # Current state
@@ -12,7 +12,10 @@ This repository is the Codex-first control plane and cloud coordination bridge. 
 
 ## Canonical role authority
 
-The AI Labs registry remains authoritative and defines exactly three canonical planning roles:
+The external AI Labs registry supplies deployment role identity when available;
+its absolute local path is runtime-only. The portable repository semantic
+reference is `agents/AGENTS.md` and `AGENT-BOUNDARIES.md`. Exactly three
+canonical planning roles remain:
 
 | Role | Ownership | Adapter |
 | --- | --- | --- |
@@ -34,8 +37,25 @@ versioned envelopes (`request.v1`, `context.v1`, `handoff.v1`, `result.v1`,
 `review.v1`, and `run.v1`) require provenance, evidence, claims, unknowns,
 conflicts, readiness, and validation status. Artifact promotion is accepted
 only through Evidence -> Claim -> Review -> Decision -> State; direct
-artifact-to-state promotion is rejected. Host-mediated dispatch, mutation
-enforcement, and model behavior remain `NOT_ASSESSED`.
+artifact-to-state promotion is rejected. Native host agent selection/dispatch,
+native skill loading/model-mediated selection, runtime mutation enforcement,
+and host permission enforcement remain `NOT_ASSESSED`.
+
+## Documentation ownership map
+
+| Document | Classification | Authority |
+| --- | --- | --- |
+| `CURRENT.md` | CANONICAL | accepted current repository state |
+| `DECISIONS.md` | CANONICAL | accepted architecture decisions |
+| `OPERATING-WORKFLOW.md` | CANONICAL | shared lifecycle semantics |
+| `AGENT-LIFECYCLE-HARDENING.md` | HISTORICAL_SUPPORT | merged lifecycle evidence and limitations |
+| `CLOUD-BRIEF.md` | CANONICAL | progressive-disclosure cloud entrypoint |
+| `GOAL-PLAN-GRAPH.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #17 |
+| `RESEARCH-KNOWLEDGE-WORKFLOW.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #16 |
+| `SYSTEM-EVOLUTION-WORKFLOW.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #15 |
+
+No document in this map overrides the authority order in `AGENTS.md`; no
+redundant document was removed in this reconciliation.
 
 - Runtime guidance and bounded delegation policy: [`AGENTS.md`](../AGENTS.md).
 - Local cross-workspace discovery: when present, the ignored
@@ -47,6 +67,8 @@ enforcement, and model behavior remain `NOT_ASSESSED`.
 - Architecture decisions: [`DECISIONS.md`](DECISIONS.md).
 - Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).
 - Runtime adapter contracts: [`agents/AGENTS.md`](../agents/AGENTS.md).
+- Canonical role call boundaries and explicit runtime limitations:
+  [`AGENT-BOUNDARIES.md`](AGENT-BOUNDARIES.md).
 - Active skill surface: [`../skills/`](../skills/); workflow admission policy is
   documented in [`../AGENTS.md`](../AGENTS.md). The unconsumed Franky
   machine-workflow tree and `franky-workflow-organizer` package are retired and
@@ -107,8 +129,10 @@ Current readiness:
 - **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. A fresh explicit `--disable skill_search` Codex baseline completed without a skill-tool event, while the model-visible catalog currently exposes 86 entries / 58 unique names with 13 duplicate-name groups. A new disposable fixture demonstrated project-local activation, sibling selection, and a clear arithmetic negative without exporting private host skill content. Real-skill utility lift, broad catalog co-loading, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`; the issue remains conditional.
 - **#35** — the system-skill consolidation is now canonical on `main` through PR #53 (merge commit `e1e05c096bb0912a9a3759f349ad97e3a5424e7d`). The reconciled branch preserved `main`'s independent planning commit, and canonical-main control-plane validation run #163 passed. The live catalog now reports 50 tracked dispositions, six canonical active capabilities, and explicit noncanonical overlay boundaries. Remaining model-mediated behavioral and cross-runtime gates are owned by #38 and remain explicitly `NOT_ASSESSED`; no Antigravity migration was included.
 - **#50** — accepted on canonical `main` through the #35 reconciliation. `manifests/skill-catalog.yaml` records 50 tracked packages with exactly one disposition, 10 ignored local overlays as explicitly noncanonical, and six canonical active governance capabilities. Structural and repository-grounded utility evidence pass; model-mediated runtime routing remains `NOT_ASSESSED` and is now advanced by #38. Antigravity migration remains out of scope.
-- **#56** — the bounded Franky agent-first implementation is present under `PLAN-ARW-FRANKY-AGENT-FIRST-20260813-001.md`; #57 is the separate hardening/audit pass. All five retained adapters reference one approved/eligible capability repertoire, Franky has explicit one-call closure and mutation-escalation boundaries, and the contracts now require done criteria, ordered evidence, impact evidence, and non-self review before `acceptance_ready`. Native `@franky` dispatch, model-mediated per-agent `skills.config`, and host mutation escalation remain explicitly runtime-gated.
-- **#57** — hardening is conditionally passed after Athena re-review: thin/non-executable versioned contracts, machine-checkable authority, ordered source-provenance evidence with freshness invalidation, reasoned primary/supporting/lifecycle routing, canonical documentation-impact review, negative benchmarks, explicit fallback proof, scoped independent review, and split runtime evidence are implemented. PR #58 is open; hosted CI is being re-run after a bounded runtime-probe repair. Native dispatch, `skills.config`, and host mutation enforcement remain `NOT_ASSESSED`.
+- **#56** — the bounded Franky agent-first implementation and deterministic hardening are accepted; native `@franky` dispatch, model-mediated per-agent `skills.config`, and host enforcement remain runtime-gated under the still-active issue.
+- **#57** — closed after PR #58 (merge commit `6fd67dc`) satisfied its deterministic acceptance criteria. Host runtime surfaces remain explicitly `NOT_ASSESSED` outside this issue's accepted scope.
+- **#68–#71** — Argus, Prometheus, Athena, and shared lifecycle hardening are accepted on `main` through PR #72 (merge commit `a01e26d`). The deterministic lifecycle evaluator, scoped support contracts, artifact states, evidence chain, and review gates are accepted; host-mediated selection/loading/mutation/permission behavior remains `NOT_ASSESSED`.
+- **#75** — Feynman v1 is intentionally open: the issue defines the scientific-agent contract, bounded source routing, evidence semantics, evaluator cases, and one real project-local vertical slice. It does not promote a scientific conclusion or copy project state into this repository.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in

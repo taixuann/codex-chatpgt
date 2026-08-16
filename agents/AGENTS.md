@@ -1,8 +1,11 @@
 # Codex agent configuration guide
 
-This directory contains runtime adapters. The canonical semantic roles remain
-defined by `/Users/tai/ai-labs/ops/agents/agents.yaml`; adapters must not
-rename, merge, or repurpose those roles.
+This directory contains runtime adapters. The external AI Labs registry is the
+deployment authority for canonical role identity when available, but its
+absolute local path is runtime-only and not portable repository authority. The
+portable semantic reference is this file plus
+`documentation/AGENT-BOUNDARIES.md`; adapters must not rename, merge, or
+repurpose roles.
 
 ## Runtime adapters
 
@@ -21,6 +24,31 @@ canonical role registry and cannot own an independent workflow.
 Support adapters may be used only as bounded leaf workers under the selected
 canonical role and workflow. If a task needs a new capability, add or reuse a
 skill first; do not create a new role merely to hold domain expertise.
+
+## Authority precedence and update procedure
+
+The authority chain is intentionally one-way:
+
+1. The external AI Labs deployment registry and definitions, when available,
+   supply canonical role identity for deployment. The local path
+   `/Users/tai/ai-labs/ops/agents/agents.yaml` is a runtime hint only.
+2. This file and `documentation/AGENT-BOUNDARIES.md` are the portable semantic
+   reference for the three roles and their boundaries.
+3. `agents/*.toml` are runtime adapters. They may express permission, input,
+   output, delegation, and escalation boundaries, but they cannot create,
+   rename, or redefine a canonical role.
+4. Root `AGENTS.md` is runtime policy for this repository and cannot override
+   the canonical registry or expand adapter authority.
+5. `documentation/` explains accepted semantics and evidence; it is not a
+   runtime authority and cannot override the registry, adapters, or policy.
+6. `manifests/` records capability eligibility and bounded support contracts;
+   it is not a second canonical role registry.
+
+If these surfaces disagree, stop and report the conflict. Update the owning
+external definition when deployment semantics are changing, then reconcile the
+portable reference, adapter, and explanatory documentation in one reviewed
+work unit. Do not add synchronization automation or silently infer a
+canonical-role change from a local adapter edit.
 
 The retained adapters have distinct agent-specific reasons:
 

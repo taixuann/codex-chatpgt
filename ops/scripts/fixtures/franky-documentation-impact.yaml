@@ -1,10 +1,16 @@
 kind: franky.documentation-impact.v1
 changed_paths:
+  - AGENTS.md
+  - agents/feynman.toml
+  - agents/prometheus.toml
   - agents/franky.toml
   - agents/AGENTS.md
   - agents/CHANGELOG.md
   - manifests/agent-capability-repertoires.yaml
+  - skills/AGENTS.md
   - documentation/CURRENT.md
+  - documentation/AGENT-BOUNDARIES.md
+  - documentation/AGENT-LIFECYCLE-HARDENING.md
   - documentation/DECISIONS.md
   - documentation/OPERATING-WORKFLOW.md
   - documentation/plans/PLAN-ARW-FRANKY-HARDENING-20260813-001.md
@@ -17,6 +23,8 @@ changed_paths:
   - ops/scripts/evaluate_franky_agent.py
   - ops/scripts/probe_codex_agent_runtime.py
   - ops/scripts/validate_franky_documentation_impact.py
+  - ops/scripts/validate_role_boundaries.py
+  - ops/scripts/tests/test_role_boundaries.py
   - ops/scripts/tests/test_franky_contracts.py
   - ops/scripts/tests/test_runtime_probe.py
   - ops/scripts/tests/test_documentation_impact.py
