@@ -108,9 +108,11 @@ unit suite. Verify live #60/#62 state with GitHub CLI before publication.
 
 ## Deferred items
 
-Native host dispatch, skill loading, mutation/permission enforcement, full
-session continuation evidence, approval-state enforcement, and scientific
-acceptance remain deferred or `NOT_ASSESSED` under their owning issues.
+Native host dispatch, runtime materialization, native skill loading, host
+permissions, mutation enforcement, Personal Wiki runtime, Scientific Wiki
+runtime, full session continuation evidence, approval-state enforcement, and
+scientific acceptance remain deferred or `NOT_ASSESSED` under their owning
+issues.
 
 ## Plan critique and non-goals
 

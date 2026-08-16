@@ -219,3 +219,12 @@ separate workflow engine is not part of this contract. Full operational and
 approval acceptance remains open under #62 and #60; static documentation does
 not establish native host dispatch, skill loading, mutation, or permission
 enforcement.
+
+## D-017 — Role boundaries remain distinct during lifecycle stabilization
+
+Feynman owns scientific reasoning, evidence calibration, and methodology
+critique. Argus owns context and provenance preparation. Prometheus owns
+bounded execution and tooling validation. Athena owns independent review.
+Human authority remains final for scientific and repository acceptance. These
+boundaries do not grant any role native dispatch, skill loading, mutation, or
+permission enforcement.
