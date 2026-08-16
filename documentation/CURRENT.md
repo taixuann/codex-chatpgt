@@ -138,7 +138,6 @@ Current readiness:
   merge. The Operation Workflow control-plane foundation is stabilized, not
   complete; runtime execution evidence depends on #56. #60 owns approval and
   remote validation hardening. Native host behavior remains `NOT_ASSESSED`.
-- **#75** — Feynman v1 is intentionally open: the issue defines the scientific-agent contract, bounded source routing, evidence semantics, evaluator cases, and one real project-local vertical slice. It does not promote a scientific conclusion or copy project state into this repository. PR #77 is open and is not treated as merged state.
 
 ## Milestone roadmap
 
@@ -171,6 +170,7 @@ scientific question → Feynman reasoning → knowledge/context retrieval
 ```
 
 This milestone does not implement a full Scientific Wiki platform.
+- **#75** — the bounded Feynman v1 slice is complete through codex-chatpgt PR #76 (merge `4ef68b27a5f7649eddb8ae8efa51779854767bdb`) and research-projects PR #22 (merge `dddf5e54e5b5000df14e4f3f556b746e97edf645`). It establishes the two-mode read-only adapter, three ADAPT scientific procedures, policy guardrails, bounded packet qualification, selected-project binding, and the reviewed DC-IV vertical proof. Native dispatch, native skill loading/materialization, Personal Wiki runtime, host mutation/permission enforcement, and human scientific acceptance remain `NOT_ASSESSED`; the scientific result remains `REQUIRES_ADDITIONAL_MEASUREMENT` with no mechanism promotion. Future Feynman extensions remain tracked by Issue #75 and related capability Issues.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in

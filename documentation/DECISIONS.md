@@ -228,3 +228,26 @@ bounded execution and tooling validation. Athena owns independent review.
 Human authority remains final for scientific and repository acceptance. These
 boundaries do not grant any role native dispatch, skill loading, mutation, or
 permission enforcement.
+## D-018 — Feynman v1 boundary is accepted without runtime overclaim
+
+The bounded Feynman v1 slice is accepted after codex-chatpgt PR #76 and the
+selected-project binding in research-projects PR #22. Feynman owns scientific
+reasoning, evidence calibration, hypothesis/method critique, and bounded
+scientific communication intent. Argus owns context and provenance
+preparation; Prometheus owns implementation and execution; Athena owns
+independent review; and the human owner remains final scientific authority.
+
+The three reusable scientific procedures remain `ADAPT` candidates rather than
+canonical `KEEP` skills. Scientific Wiki remains an on-demand evidence
+capability owned by Issue #7; Personal Wiki is a reusable context plane whose
+runtime is not yet assessed. No automatic Personal Wiki synchronization,
+bidirectional mutation, knowledge graph/database, or Scientific Wiki
+replacement is introduced. Native dispatch, skill materialization/runtime,
+host mutation/permission enforcement, and human scientific acceptance remain
+`NOT_ASSESSED`.
+
+Future Personal Wiki MCP work, if separately authorized, may provide reusable
+personal scientific context for the Feynman context plane, knowledge retrieval,
+and promotion proposals. It does not include automatic synchronization,
+bidirectional mutation, a knowledge graph/database, or replacement of the
+Scientific Wiki capability.
