@@ -3,7 +3,7 @@ review_id: ATHENA-ISSUE-75-20260816-001
 reviewer_id: athena
 reviewer_role: independent_reviewer
 reviewed_source_commit: 56d26202034d1448a4c3ecde346a354684b9558c
-reviewed_control_plane_commit: 19f558d Materialize bounded Feynman v1 procedures
+reviewed_control_plane_commit: 6ed5b2aa1f26c8f04af54d1cef3b9584b0e3adb7
 target: documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml
 outcome: CONDITIONAL_PASS
 criteria:
@@ -16,7 +16,7 @@ criteria:
   final_scientific_acceptance: NOT_ASSESSED
 findings: []
 limitations:
-  - native Feynman dispatch and skill materialization remain NOT_ASSESSED
+  - native Feynman dispatch and skill materialization/runtime remain NOT_ASSESSED; packet qualification is bounded and repository-grounded
   - Personal Wiki runtime availability was not probed in this slice
   - no human scientific acceptance was attempted
 scope:
@@ -24,6 +24,7 @@ scope:
   - declared method/result provenance
   - claim calibration
   - abstention and next-test routing
+  - bounded packet-based observable qualification
 not_reviewed:
   - raw-data mutation or new analysis execution
   - project canonical-state promotion
