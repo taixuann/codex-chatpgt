@@ -114,6 +114,44 @@ runtime, full session continuation evidence, approval-state enforcement, and
 scientific acceptance remain deferred or `NOT_ASSESSED` under their owning
 issues.
 
+## Closure evidence audit
+
+The current work unit provides a reproducible partial lifecycle trace:
+
+```text
+request (closure objective)
+→ Issue #62
+→ this PLAN
+→ codex/operation-workflow-v1-stabilization
+→ PR #78
+→ hosted `validate` check: PASS
+→ review: pending
+→ merge: pending
+→ reconciliation: pending
+```
+
+This is evidence through CI only; it is not a claim that the full lifecycle
+has completed. The branch is three commits ahead of the latest `origin/main`
+and contains only the intended documentation files.
+
+A fresh bounded context packet was generated read-only from the explicit
+allowlist. It recovered the repository instructions, `CURRENT.md`,
+`DECISIONS.md`, the canonical operating workflow, and this PLAN with no
+conflicts. Its only uncertainty was the unavailable native runtime dispatch
+trace. This demonstrates deterministic context recovery, not a native session
+manager or memory system.
+
+The minimal materialization contract oracle passed 13 Franky cases and the
+Codex `[agents]` configuration parser passed. The installed runtime probe
+reported configuration `PASS`, while native dispatch, skill loading, and host
+mutation enforcement remained `NOT_ASSESSED`.
+
+The existing Feynman vertical artifact and Athena review provide one bounded
+scientific evidence/reasoning/review slice. That slice explicitly records
+Scientific Wiki as `NOT_USED` because declared project evidence was sufficient;
+therefore the combined #7 + #59 + #61 proof is not complete and those issue
+acceptance claims must not be closed from this artifact alone.
+
 ## Plan critique and non-goals
 
 This is deliberately a thin documentation/state reconciliation. It does not
