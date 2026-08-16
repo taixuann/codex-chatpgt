@@ -3,6 +3,35 @@
 Append-only record of governed agent adapter changes.
 
 ```yaml
+- agent: feynman-v1-materialization
+  version: 1.0.0
+  goal_id: ISSUE-75
+  workflow_id: BOUNDED-FEYNMAN-V1-MATERIALIZATION
+  reason: Add compact Personal Knowledge/Project Scientist boundaries, three noncanonical reusable scientific procedures, controlled adversarial fixtures, and a project-manifest binding without duplicating project research machinery.
+  changed_paths:
+    - agents/feynman.toml
+    - manifests/agent-capability-repertoires.yaml
+    - manifests/skill-catalog.yaml
+    - skills/scientific-evidence-synthesis/SKILL.md
+    - skills/hypothesis-and-test-design/SKILL.md
+    - skills/scientific-method-critique/SKILL.md
+    - ops/scripts/validate_feynman_v1.py
+    - ops/scripts/fixtures/feynman-v1.yaml
+    - ops/scripts/tests/test_feynman_v1.py
+    - documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml
+    - documentation/reviews/ISSUE-75-ATHENA-REVIEW.yaml
+  validation:
+    - feynman-v1 controlled fixtures
+    - 54 ops/scripts unit tests
+    - project manifest validation and 52 project .agents tests
+  approval:
+    - Issue #75 execution slice v1
+  change_commit: pending PR publication
+  rollback:
+    - Revert this work unit; project-owned procedures and state remain unchanged.
+```
+
+```yaml
 - agent: canonical-role-boundary-audit
   version: 1.1.0
   goal_id: CONTROL-PLANE-BOUNDARY-AUDIT

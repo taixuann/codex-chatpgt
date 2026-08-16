@@ -46,3 +46,10 @@ The following remain explicitly `NOT_ASSESSED` in v1:
 
 No configuration check or documentation statement should be presented as proof
 of any of these runtime behaviors.
+
+Feynman has two bounded operating modes: Personal Knowledge uses reusable
+context without treating model memory as evidence; Project Scientist binds to
+the owning project manifest before consequential reasoning, with project
+authority outranking Personal Wiki context and Scientific Wiki used only for
+on-demand literature evidence. Project-local analysis, execution, rendering,
+and acceptance procedures remain owned by the project.
