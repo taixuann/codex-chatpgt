@@ -26,6 +26,9 @@ class RoleBoundaryTests(unittest.TestCase):
         for section in validator.FEYNMAN_SECTIONS:
             with self.subTest(section=section):
                 self.assertIn(section, instructions)
+        self.assertIn("OPTIONAL for general", instructions)
+        self.assertIn("method contract is REQUIRED", instructions)
+        self.assertIn("unsupported_or_unknown", instructions)
 
     def test_support_adapter_cannot_be_write_capable(self):
         path = ROOT / "agents/argus.toml"
