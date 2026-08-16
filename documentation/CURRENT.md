@@ -28,7 +28,7 @@ canonical planning roles remain:
 - Argus: internal repository/context exploration.
 - Athena: independent review and critique.
 
-## Accepted operating baseline
+## Stabilized control-plane foundation
 
 The shared Argus/Prometheus/Athena hardening surface is now represented by
 `manifests/agent-contracts.yaml`, the existing capability repertoire, and the
@@ -39,7 +39,8 @@ conflicts, readiness, and validation status. Artifact promotion is accepted
 only through Evidence -> Claim -> Review -> Decision -> State; direct
 artifact-to-state promotion is rejected. Native host agent selection/dispatch,
 native skill loading/model-mediated selection, runtime mutation enforcement,
-and host permission enforcement remain `NOT_ASSESSED`.
+and host permission enforcement remain `NOT_ASSESSED`; runtime evidence for a
+complete end-to-end workflow remains pending.
 
 ## Documentation ownership map
 

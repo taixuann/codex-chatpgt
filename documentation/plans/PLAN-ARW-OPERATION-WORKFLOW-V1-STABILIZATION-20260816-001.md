@@ -8,6 +8,13 @@ issue: "#62"
 
 # Operation Workflow v1 stabilization
 
+## Objective
+
+Reconcile the repository's current control-plane documentation with the live
+Issue/PR lifecycle so a new work unit can identify its authority, follow the
+Issue → optional PLAN → PR → CI/review → merge path, and record post-merge
+state without implying unavailable runtime behavior.
+
 ## Confirmed baseline
 
 This pass starts from `origin/main` at merged PR #76 (`4ef68b2`). PR #72
@@ -24,6 +31,23 @@ Human request → Issue → optional PLAN → one branch/PR → CI/tests
 The current repository does not expose native host traces for agent selection,
 skill loading, runtime mutation enforcement, or host permissions. Those remain
 `NOT_ASSESSED` and are not upgraded by static validation.
+
+## Scope
+
+- `CURRENT.md` and `DECISIONS.md` wording and ownership reconciliation.
+- This stabilization plan as the single execution design for the documentation
+  change.
+- Live ownership clarification for Issues #60 and #62, without closing either.
+- Deterministic documentation, lifecycle, role-boundary, and diff validation.
+
+## Non-goals
+
+- No implementation or runtime changes.
+- No new agent, skill, workflow engine, router, memory layer, graph system, or
+  MCP runtime.
+- No scientific interpretation or project-specific research logic.
+- No claim of native dispatch, skill loading, permission enforcement, or full
+  runtime workflow completion.
 
 ## Issue classification
 
@@ -64,6 +88,29 @@ is closed by this documentation-only reconciliation.
    Athena reviews independently; Human authority accepts or rejects.
 4. Run deterministic repository validation and report host/runtime gaps as
    `NOT_ASSESSED`.
+
+## Acceptance criteria
+
+- `CURRENT.md` describes a stabilized control-plane foundation and explicitly
+  says runtime evidence remains pending.
+- `DECISIONS.md` records Issue-first and PLAN-conditional semantics without
+  creating a mandatory artifact family.
+- #62 is the parent lifecycle integration owner; #60 is a dependency for
+  runtime context/session continuation and approval/validation hardening.
+- No issue is closed without its own acceptance evidence.
+- The changed documentation passes the repository validators and diff checks.
+
+## Validation
+
+Run `git diff --check`, the role-boundary, Feynman, and lifecycle validators,
+the skill/catalog/allowlist/changelog checks, and the focused `ops/scripts`
+unit suite. Verify live #60/#62 state with GitHub CLI before publication.
+
+## Deferred items
+
+Native host dispatch, skill loading, mutation/permission enforcement, full
+session continuation evidence, approval-state enforcement, and scientific
+acceptance remain deferred or `NOT_ASSESSED` under their owning issues.
 
 ## Plan critique and non-goals
 
