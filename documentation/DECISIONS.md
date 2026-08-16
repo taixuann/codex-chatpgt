@@ -1,7 +1,7 @@
 ---
 id: DECISIONS-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-13
+updated: 2026-08-16
 ---
 
 # Architecture decisions
@@ -207,3 +207,15 @@ resolved by silently promoting a local adapter or manifest.
 shared evidence, artifact, and lifecycle boundaries only. It is not a global
 role registry and does not duplicate the richer Franky contracts or define the
 canonical Feynman role.
+
+## D-016 — Operation Workflow v1 remains Issue-first and PLAN-conditional
+
+The shared operating lifecycle uses the smallest durable GitHub surface that
+matches the work: a human request becomes an Issue, a PLAN is retained when
+the work is consequential, one branch carries one work unit and its PR, CI and
+review provide evidence, and merge is followed by `CURRENT.md`/
+`DECISIONS.md` reconciliation. A mandatory GOAL/PLAN/session database or
+separate workflow engine is not part of this contract. Full operational and
+approval acceptance remains open under #62 and #60; static documentation does
+not establish native host dispatch, skill loading, mutation, or permission
+enforcement.

@@ -51,7 +51,7 @@ and host permission enforcement remain `NOT_ASSESSED`.
 | `AGENT-LIFECYCLE-HARDENING.md` | HISTORICAL_SUPPORT | merged lifecycle evidence and limitations |
 | `CLOUD-BRIEF.md` | CANONICAL | progressive-disclosure cloud entrypoint |
 | `GOAL-PLAN-GRAPH.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #17 |
-| `RESEARCH-KNOWLEDGE-WORKFLOW.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #16 |
+| `RESEARCH-KNOWLEDGE-WORKFLOW.md` | SUPERSEDED_SUPPORT | full research/knowledge proof is now scoped under Issue #75 |
 | `SYSTEM-EVOLUTION-WORKFLOW.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #15 |
 
 No document in this map overrides the authority order in `AGENTS.md`; no
@@ -88,7 +88,7 @@ The shared operating lifecycle remains capability-first, bounded, validation-ori
 The following documents exist as proposed shared semantics and are **not yet accepted runtime truth merely because they are documented**:
 
 - [`SYSTEM-EVOLUTION-WORKFLOW.md`](SYSTEM-EVOLUTION-WORKFLOW.md) — System Configuration and Change workflow; proof tracked by #15.
-- [`RESEARCH-KNOWLEDGE-WORKFLOW.md`](RESEARCH-KNOWLEDGE-WORKFLOW.md) — Research and Knowledge workflow; proof tracked by #16.
+- [`RESEARCH-KNOWLEDGE-WORKFLOW.md`](RESEARCH-KNOWLEDGE-WORKFLOW.md) — historical research/knowledge workflow support; Issue #16 is superseded by #75.
 - [`GOAL-PLAN-GRAPH.md`](GOAL-PLAN-GRAPH.md) — Goal–Plan linking semantics; minimal proof tracked by #17.
 
 Ownership boundaries currently intended for proof:
@@ -132,7 +132,11 @@ Current readiness:
 - **#56** — the bounded Franky agent-first implementation and deterministic hardening are accepted; native `@franky` dispatch, model-mediated per-agent `skills.config`, and host enforcement remain runtime-gated under the still-active issue.
 - **#57** — closed after PR #58 (merge commit `6fd67dc`) satisfied its deterministic acceptance criteria. Host runtime surfaces remain explicitly `NOT_ASSESSED` outside this issue's accepted scope.
 - **#68–#71** — Argus, Prometheus, Athena, and shared lifecycle hardening are accepted on `main` through PR #72 (merge commit `a01e26d`). The deterministic lifecycle evaluator, scoped support contracts, artifact states, evidence chain, and review gates are accepted; host-mediated selection/loading/mutation/permission behavior remains `NOT_ASSESSED`.
-- **#75** — Feynman v1 is intentionally open: the issue defines the scientific-agent contract, bounded source routing, evidence semantics, evaluator cases, and one real project-local vertical slice. It does not promote a scientific conclusion or copy project state into this repository.
+- **#62** — Operation Workflow v1 stabilization is documented as Issue-first,
+  PLAN-conditional, one-work-unit-branch, CI/review-gated, and reconciled after
+  merge. The operational proof remains open; #60 owns approval and remote
+  validation hardening. Native host behavior remains `NOT_ASSESSED`.
+- **#75** — Feynman v1 is intentionally open: the issue defines the scientific-agent contract, bounded source routing, evidence semantics, evaluator cases, and one real project-local vertical slice. It does not promote a scientific conclusion or copy project state into this repository. PR #77 is open and is not treated as merged state.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in
