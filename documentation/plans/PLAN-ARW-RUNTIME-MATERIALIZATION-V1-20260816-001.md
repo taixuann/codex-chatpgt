@@ -1,6 +1,6 @@
 ---
 id: PLAN-ARW-RUNTIME-MATERIALIZATION-V1-20260816-001
-status: proposed
+status: active
 updated: 2026-08-16
 owner: Prometheus
 issue: "#56"
@@ -84,6 +84,18 @@ Output:
 - A passing contract oracle may be mistaken for native runtime proof.
 - Mutation tests may validate repository policy without proving host permissions.
 - Provider/runtime availability may block a repeatable execution.
+
+## Proof result
+
+The deterministic slice now resolves `franky` with the canonical
+`control-plane-audit` skill, executes a read-only audit boundary, and emits a
+`VALIDATED` artifact with request identity, agent/skill identity, provenance,
+lifecycle state, and validation result. A mutation request with
+`mutate: false` emits `REJECT`; invalid skill, missing provenance, and illegal
+artifact transitions are covered by focused tests.
+
+This is repository-level policy and artifact proof only. It does not prove
+native host dispatch, native skill loading, or host OS permission enforcement.
 
 ## Exit state
 
