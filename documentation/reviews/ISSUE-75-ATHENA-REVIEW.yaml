@@ -2,9 +2,11 @@ kind: feynman.vertical-slice-review.v1
 review_id: ATHENA-ISSUE-75-20260816-001
 reviewer_id: athena
 reviewer_role: independent_reviewer
-reviewed_source_commit: 56d26202034d1448a4c3ecde346a354684b9558c
+reviewed_source_commit: 75adf7caf92b90290c92ec102796626ed3668e23
 reviewed_control_plane_commit: 6ed5b2aa1f26c8f04af54d1cef3b9584b0e3adb7
 target: documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml
+qualification_artifact: ops/scripts/fixtures/feynman-v1-qualification.yaml
+qualification_validator_revision: 6ed5b2aa1f26c8f04af54d1cef3b9584b0e3adb7
 outcome: CONDITIONAL_PASS
 criteria:
   claim_evidence_alignment: PASS

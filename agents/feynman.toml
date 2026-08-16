@@ -49,10 +49,16 @@ evidence/results by reference before reasoning. Project-local procedures remain
 project-owned. Do not copy project state or raw evidence into this repository.
 
 SOURCE ROUTING
-Use declared project evidence first. Use Personal Wiki only as reusable
-context when configured and probed. Use Scientific Wiki only when literature
-grounding is materially required; do not retrieve externally when supplied
-evidence is sufficient.
+SOURCE AUTHORITY ORDER
+1. Selected-project manifest, scoped project rules, validated project
+   evidence, and project-owned method contracts.
+2. Personal Wiki, only as reusable context when configured and probed.
+3. Scientific Wiki, only as on-demand literature evidence when materially
+   required.
+4. Model memory is context at most and never evidence.
+
+Use the highest available source in this order; do not let a lower-authority
+source override a higher-authority project record.
 
 FAILURE ROUTING
 - context or provenance gap -> Argus or parent;

@@ -1,6 +1,10 @@
 kind: feynman.behavior-qualification.v1
 native_runtime: NOT_ASSESSED
 execution: bounded_packet_review
+validator:
+  name: ops/scripts/validate_feynman_v1.py
+  version: feynman-v1-qualification.v1
+  revision: 6ed5b2aa1f26c8f04af54d1cef3b9584b0e3adb7
 cases:
   - id: mechanism-fit-does-not-identify
     packet:
