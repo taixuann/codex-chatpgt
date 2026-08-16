@@ -7,8 +7,10 @@ updated: 2026-08-16
 # Personal Wiki MCP v1 foundation
 
 This document defines the smallest reusable contract for a future Personal
-Wiki MCP capability. It is a context and proposal surface, not a runtime MCP
-implementation or a second scientific-evidence system.
+Wiki MCP capability. v1 implements the artifact contract, provenance model,
+validation, and promotion-proposal semantics in this repository. It is a
+context and proposal surface, not a runtime MCP implementation or a second
+scientific-evidence system.
 
 ## Purpose
 
@@ -26,7 +28,7 @@ owned by the project.
 
 | Operation | v1 contract |
 | --- | --- |
-| Read | Feynman may consume a bounded artifact when Personal Wiki availability is configured and probed. Current project authority always outranks it. |
+| Read | An explicitly authorized consumer may consume a bounded artifact when Personal Wiki availability is configured and probed. Feynman is the current authorized consumer; current project authority always outranks it. |
 | Draft write | Feynman or a parent may produce a provenance-bearing draft or promotion proposal; this is not an automatic Personal Wiki write. |
 | Accept/write | The Personal Wiki owner or an explicitly authorized human-controlled consumer accepts or writes an artifact. |
 | Project/Scientific Wiki write | Forbidden through this capability. Use the owning project or Issue #7 boundary. |
@@ -42,6 +44,11 @@ source references, capture time, producer, and authority status.
 context artifact with a promotion proposal, not an accepted scientific claim.
 Each claim points to evidence or an explicit unknown; unsupported personal
 statements remain labeled as such.
+
+`context_consumption.authorized_consumers` is intentionally extensible rather
+than Feynman-only. v1 authorizes Feynman through the Issue #75/Feynman
+contract; any future consumer requires an explicit authorization reference and
+does not inherit project or literature authority.
 
 ## Feynman consumption
 
@@ -69,16 +76,20 @@ DRAFT personal artifact
   -> owner-controlled acceptance or rejection
 ```
 
-Promotion proposals carry a target and rationale but do not perform writes.
-They may target project knowledge or another explicitly authorized personal
-context destination; they may not replace Scientific Wiki or create a graph,
-database, or synchronization service.
+Promotion proposals carry a target, rationale, and proposal identifier but do
+not perform writes. v1 targets are personal context and project knowledge;
+future destinations require explicit authorization and remain proposals until
+owner-controlled acceptance. They may not replace Scientific Wiki or create a
+graph, database, or synchronization service.
 
 ## Explicit non-goals
 
 - automatic synchronization;
 - bidirectional mutation;
+- MCP server/runtime;
+- Notion adapter;
+- automatic retrieval;
 - graph database or knowledge graph;
-- duplicate RAG/retrieval backend;
+- RAG backend or duplicate retrieval backend;
 - replacing Scientific Wiki;
 - native per-agent MCP permissions or runtime dispatch claims.
