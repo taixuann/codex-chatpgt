@@ -17,6 +17,8 @@ output_artifact:
     authority: issue-56
   lifecycle_state: VALIDATED
   validation_result: PASS
+  previous_state: DRAFT
+  transition: DRAFT->VALIDATED
   execution:
     action: audit
     status: PASS
