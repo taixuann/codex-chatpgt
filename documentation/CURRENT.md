@@ -135,9 +135,42 @@ Current readiness:
 - **#68–#71** — Argus, Prometheus, Athena, and shared lifecycle hardening are accepted on `main` through PR #72 (merge commit `a01e26d`). The deterministic lifecycle evaluator, scoped support contracts, artifact states, evidence chain, and review gates are accepted; host-mediated selection/loading/mutation/permission behavior remains `NOT_ASSESSED`.
 - **#62** — Operation Workflow v1 stabilization is documented as Issue-first,
   PLAN-conditional, one-work-unit-branch, CI/review-gated, and reconciled after
-  merge. The operational proof remains open; #60 owns approval and remote
-  validation hardening. Native host behavior remains `NOT_ASSESSED`.
+  merge. The Operation Workflow control-plane foundation is stabilized, not
+  complete; runtime execution evidence depends on #56. #60 owns approval and
+  remote validation hardening. Native host behavior remains `NOT_ASSESSED`.
 - **#75** — Feynman v1 is intentionally open: the issue defines the scientific-agent contract, bounded source routing, evidence semantics, evaluator cases, and one real project-local vertical slice. It does not promote a scientific conclusion or copy project state into this repository. PR #77 is open and is not treated as merged state.
+
+## Milestone roadmap
+
+### Milestone A — Operation Workflow Control Plane v1
+
+**Status:** READY after PR #78 merge. The scope is the request lifecycle,
+Issue/PLAN/PR flow, deterministic validation, ownership, and state
+reconciliation. This milestone does not claim runtime agent behavior.
+
+### Milestone B — Runtime Materialization v1
+
+**Owner:** #56. Prove the minimum chain:
+
+```text
+agent contract → runtime loading → skill resolution → execution
+→ artifact output → validation
+```
+
+No orchestration platform, model router, or autonomous-agent framework is in
+scope. The next bounded execution plan is
+`PLAN-ARW-RUNTIME-MATERIALIZATION-V1-20260816-001.md`.
+
+### Milestone C — Scientific Agent Loop v1
+
+**Owners:** #7, #59, #61. Prove one bounded example:
+
+```text
+scientific question → Feynman reasoning → knowledge/context retrieval
+→ Argus provenance/context → artifact → Athena review
+```
+
+This milestone does not implement a full Scientific Wiki platform.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in
