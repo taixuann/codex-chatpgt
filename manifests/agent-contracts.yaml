@@ -1,6 +1,11 @@
 schema_version: 1
-kind: codex.agent-contract-registry.v1
-authority: AGENTS.md
+kind: codex.shared-lifecycle-agent-contracts.v1
+scope: argus_prometheus_athena_shared_lifecycle_slice
+description: >-
+  Shared evidence, artifact, and lifecycle boundary contracts for Argus,
+  Prometheus, and Athena. This is not the global canonical role registry and
+  does not define Franky or Feynman contracts.
+authority: AGENTS.md and documentation/AGENT-LIFECYCLE-HARDENING.md
 agents:
   argus:
     role: support_context_compiler

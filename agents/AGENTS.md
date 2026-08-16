@@ -1,8 +1,11 @@
 # Codex agent configuration guide
 
-This directory contains runtime adapters. The canonical semantic roles remain
-defined by `/Users/tai/ai-labs/ops/agents/agents.yaml`; adapters must not
-rename, merge, or repurpose those roles.
+This directory contains runtime adapters. The external AI Labs registry is the
+deployment authority for canonical role identity when available, but its
+absolute local path is runtime-only and not portable repository authority. The
+portable semantic reference is this file plus
+`documentation/AGENT-BOUNDARIES.md`; adapters must not rename, merge, or
+repurpose roles.
 
 ## Runtime adapters
 
@@ -26,23 +29,26 @@ skill first; do not create a new role merely to hold domain expertise.
 
 The authority chain is intentionally one-way:
 
-1. `/Users/tai/ai-labs/ops/agents/agents.yaml` and its canonical role
-   definitions are the source of truth for the three planning roles:
-   Feynman, Prometheus, and Franky.
-2. `agents/*.toml` are runtime adapters. They may express permission, input,
+1. The external AI Labs deployment registry and definitions, when available,
+   supply canonical role identity for deployment. The local path
+   `/Users/tai/ai-labs/ops/agents/agents.yaml` is a runtime hint only.
+2. This file and `documentation/AGENT-BOUNDARIES.md` are the portable semantic
+   reference for the three roles and their boundaries.
+3. `agents/*.toml` are runtime adapters. They may express permission, input,
    output, delegation, and escalation boundaries, but they cannot create,
    rename, or redefine a canonical role.
-3. Root `AGENTS.md` is runtime policy for this repository and cannot override
+4. Root `AGENTS.md` is runtime policy for this repository and cannot override
    the canonical registry or expand adapter authority.
-4. `documentation/` explains accepted semantics and evidence; it is not a
+5. `documentation/` explains accepted semantics and evidence; it is not a
    runtime authority and cannot override the registry, adapters, or policy.
-5. `manifests/` records capability eligibility and bounded support contracts;
+6. `manifests/` records capability eligibility and bounded support contracts;
    it is not a second canonical role registry.
 
 If these surfaces disagree, stop and report the conflict. Update the owning
-canonical registry/definition first, then reconcile the adapter and explanatory
-documentation in one reviewed work unit. Do not add synchronization automation
-or silently infer a canonical-role change from a local adapter edit.
+external definition when deployment semantics are changing, then reconcile the
+portable reference, adapter, and explanatory documentation in one reviewed
+work unit. Do not add synchronization automation or silently infer a
+canonical-role change from a local adapter edit.
 
 The retained adapters have distinct agent-specific reasons:
 

@@ -1,8 +1,11 @@
 # Codex operator workbench
 
 This is the Codex-first operator workbench for the three canonical roles:
-Feynman, Prometheus, and Franky. The authoritative role registry is
-`/Users/tai/ai-labs/ops/agents/agents.yaml`; do not invent or merge roles.
+Feynman, Prometheus, and Franky. The external AI Labs registry supplies the
+deployment role identity; its absolute local path is runtime-only and is not a
+portable repository authority. The portable semantic reference is
+`agents/AGENTS.md` plus `documentation/AGENT-BOUNDARIES.md`; do not invent or
+merge roles.
 
 Select exactly one role and one workflow before governed work:
 
@@ -40,12 +43,16 @@ not claim a hard platform hook.
 
 ## Authority precedence
 
-Canonical role meaning comes from `/Users/tai/ai-labs/ops/agents/agents.yaml`
-and its role definitions. Repository `agents/*.toml` files are adapters only;
-this file is repository runtime policy; `documentation/` is explanatory; and
-`manifests/` records capability eligibility and support contracts rather than
-canonical roles. A conflict is a stop-and-escalate condition, not permission
-to merge the most convenient interpretation.
+Canonical deployment role identity comes from the external AI Labs registry
+when that runtime is available. The absolute path
+`/Users/tai/ai-labs/ops/agents/agents.yaml` is a local runtime/deployment hint,
+not portable repository state. Repository `agents/AGENTS.md` and
+`documentation/AGENT-BOUNDARIES.md` provide the portable semantic reference;
+`agents/*.toml` files are adapters only; this file is repository runtime
+policy; `documentation/` is explanatory; and `manifests/` records capability
+eligibility and bounded support contracts rather than canonical roles. A
+conflict is a stop-and-escalate condition, not permission to merge the most
+convenient interpretation.
 
 ## Global operating kernel
 

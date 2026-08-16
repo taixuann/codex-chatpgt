@@ -7,8 +7,10 @@ updated: 2026-08-14
 # Canonical roles and support boundaries
 
 This document explains the call boundary; it does not define a new role
-registry or workflow. Canonical role meaning remains owned by the AI Labs
-registry and definitions named in [`../agents/AGENTS.md`](../agents/AGENTS.md).
+registry or workflow. The external AI Labs registry supplies deployment role
+identity when available, while this repository's portable semantic reference
+is [`../agents/AGENTS.md`](../agents/AGENTS.md) and this document. The absolute
+`/Users/tai/ai-labs/...` path is runtime-only and is not portable authority.
 
 ## When to call each role
 

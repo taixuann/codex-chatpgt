@@ -3,13 +3,16 @@ id: CODEX-AGENT-CAPABILITY-REPERTOIRES-20260813
 authority:
   primary: Issue #56
   skill_admission: Issue #38
-  canonical_role_registry: /Users/tai/ai-labs/ops/agents/agents.yaml
-  canonical_role_definitions: /Users/tai/ai-labs/ops/agents/{role}.md
+  canonical_role_registry: external_ai_labs_deployment_registry
+  canonical_role_definitions: external_ai_labs_deployment_definitions
+  portable_role_reference: agents/AGENTS.md and documentation/AGENT-BOUNDARIES.md
+  local_runtime_registry_path: /Users/tai/ai-labs/ops/agents/agents.yaml
   repository_runtime_policy: AGENTS.md
   repository_adapters: agents/*.toml
   explanatory_documentation: documentation/
   precedence:
-    - canonical_role_registry_and_definitions
+    - external_deployment_registry_when_available
+    - portable_repository_role_reference
     - repository_adapters
     - repository_runtime_policy
     - explanatory_documentation
@@ -46,9 +49,11 @@ agents:
   feynman:
     role_surface: canonical
     primary_capabilities:
-      - scientific-research-evidence
+      - scientific-reasoning
+      - evidence-synthesis
+      - methodology-critique
+      - hypothesis-gap-analysis
       - source-verification
-      - methodology-review
     lifecycle_capabilities:
       - shared-session-closeout
     conditional_capabilities: []
