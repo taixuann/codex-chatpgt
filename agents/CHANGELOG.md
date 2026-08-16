@@ -3,6 +3,28 @@
 Append-only record of governed agent adapter changes.
 
 ```yaml
+- agent: feynman-v1-qualification-hardening
+  version: 1.0.1
+  goal_id: ISSUE-75
+  workflow_id: BOUNDED-FEYNMAN-V1-MATERIALIZATION
+  reason: Reframe deterministic cases as policy guardrails, add bounded packet-based observable qualification, and retain native runtime limits explicitly.
+  changed_paths:
+    - ops/scripts/validate_feynman_v1.py
+    - ops/scripts/fixtures/feynman-v1.yaml
+    - ops/scripts/fixtures/feynman-v1-qualification.yaml
+    - ops/scripts/tests/test_feynman_v1.py
+    - .github/workflows/franky-validate.yml
+  validation:
+    - policy guardrail and packet qualification checks
+    - 56 ops/scripts unit tests
+  approval:
+    - Issue #75 review hardening
+  change_commit: pending PR update
+  rollback:
+    - Revert this work unit; project-owned procedures and state remain unchanged.
+```
+
+```yaml
 - agent: feynman-v1-materialization
   version: 1.0.0
   goal_id: ISSUE-75

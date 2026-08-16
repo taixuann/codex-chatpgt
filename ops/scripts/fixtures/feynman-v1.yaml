@@ -1,4 +1,4 @@
-kind: feynman.behavior-fixtures.v1
+kind: feynman.policy-fixtures.v1
 cases:
   - id: supported-evidence
     evidence:

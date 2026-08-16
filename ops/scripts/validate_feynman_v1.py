@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Deterministic guardrails for the bounded Feynman v1 behavior fixtures.
+"""Deterministic guardrails and bounded packet qualification for Feynman v1.
 
-This checks calibration, provenance/routing signals, and adversarial shape. It
-does not decide whether a scientific conclusion is true.
+The policy fixtures check calibration, provenance/routing signals, and
+adversarial shape. The qualification packets exercise a small bounded response
+surface against evidence/context packets. Neither decides scientific truth or
+proves native host dispatch.
 """
 from __future__ import annotations
 
@@ -59,8 +61,8 @@ def evaluate_case(case: dict) -> dict[str, str]:
 
 def validate(path: Path) -> None:
     document = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if document.get("kind") != "feynman.behavior-fixtures.v1":
-        raise ValueError("fixture kind must be feynman.behavior-fixtures.v1")
+    if document.get("kind") != "feynman.policy-fixtures.v1":
+        raise ValueError("fixture kind must be feynman.policy-fixtures.v1")
     cases = document.get("cases")
     if not isinstance(cases, list) or not cases:
         raise ValueError("cases must be a non-empty list")
@@ -78,16 +80,65 @@ def validate(path: Path) -> None:
             raise ValueError(f"{case_id}: expected {expected}, got {actual}")
 
 
+def qualify_packet(packet: dict) -> dict[str, object]:
+    """Produce bounded observable outputs from a scientific context packet."""
+    context = packet.get("context") or {}
+    evidence = packet.get("evidence") or []
+    claim = packet.get("claim") or {}
+    alternatives = packet.get("alternatives") or []
+    review = packet.get("review") or {}
+    implementation = packet.get("implementation") or {}
+
+    if not context.get("project_manifest") or any(not item.get("provenance") for item in evidence):
+        return {"status": "INSUFFICIENT_EVIDENCE", "alternatives_preserved": True, "abstained": True, "route": "ARGUS"}
+    if implementation.get("ready") is False:
+        return {"status": "INSUFFICIENT_EVIDENCE", "alternatives_preserved": True, "abstained": True, "route": "PROMETHEUS"}
+    if review.get("required") and not review.get("independent"):
+        return {"status": "INSUFFICIENT_EVIDENCE", "alternatives_preserved": True, "abstained": True, "route": "ATHENA"}
+    if claim.get("type") == "mechanistic" and claim.get("fit_r2", 0) >= 0.98 and len(alternatives) > 1:
+        return {"status": "REQUIRES_ADDITIONAL_MEASUREMENT", "alternatives_preserved": True, "abstained": True, "route": "HUMAN"}
+    if any(item.get("conflicts") for item in evidence):
+        return {"status": "CONFLICTING_EVIDENCE", "alternatives_preserved": True, "abstained": True, "route": "ATHENA"}
+    supported = any(claim.get("id") in (item.get("supports") or []) for item in evidence)
+    return {"status": "SUPPORTED" if supported else "INSUFFICIENT_EVIDENCE", "alternatives_preserved": bool(alternatives), "abstained": not supported, "route": "NONE" if supported else "HUMAN"}
+
+
+def validate_qualification(path: Path) -> None:
+    """Validate captured bounded outputs against their supplied packets."""
+    document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if document.get("kind") != "feynman.behavior-qualification.v1":
+        raise ValueError("qualification kind must be feynman.behavior-qualification.v1")
+    if document.get("native_runtime") != "NOT_ASSESSED":
+        raise ValueError("native runtime qualification must remain NOT_ASSESSED")
+    cases = document.get("cases")
+    if not isinstance(cases, list) or not cases:
+        raise ValueError("qualification cases must be a non-empty list")
+    seen: set[str] = set()
+    for case in cases:
+        case_id = case.get("id")
+        if not isinstance(case_id, str) or not case_id or case_id in seen:
+            raise ValueError("qualification case ids must be non-empty and unique")
+        seen.add(case_id)
+        packet = case.get("packet") or {}
+        captured = case.get("captured_output") or {}
+        actual = qualify_packet(packet)
+        if actual != captured:
+            raise ValueError(f"{case_id}: captured output {captured} != bounded result {actual}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("fixture", type=Path)
+    parser.add_argument("--qualification", type=Path)
     args = parser.parse_args()
     try:
         validate(args.fixture)
+        if args.qualification:
+            validate_qualification(args.qualification)
     except (OSError, TypeError, ValueError, yaml.YAMLError) as exc:
         print(f"FAIL feynman-v1: {exc}")
         return 1
-    print("OK feynman-v1: controlled calibration, adversarial, and routing fixtures")
+    print("OK feynman-v1: policy guardrails and bounded packet qualification")
     return 0
 
 

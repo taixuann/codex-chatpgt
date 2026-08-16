@@ -2,7 +2,7 @@ kind: feynman.vertical-slice.v1
 slice_id: FEYNMAN-ISSUE75-20260816-001
 issue: https://github.com/taixuann/codex-chatpgt/issues/75
 source_repository: taixuann/research-projects
-source_commit: 56d26202034d1448a4c3ecde346a354684b9558c
+source_commit: 75adf7caf92b90290c92ec102796626ed3668e23
 project_scope: active-projects/res_volatile-polydopamine
 question: >-
   Do the validated temperature-dependent DC-IV/Arrhenius artifacts establish a

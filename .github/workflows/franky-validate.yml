@@ -93,7 +93,7 @@ jobs:
 
       - name: Validate Feynman v1 behavioral fixtures
         id: feynman_v1
-        run: python ops/scripts/validate_feynman_v1.py ops/scripts/fixtures/feynman-v1.yaml
+        run: python ops/scripts/validate_feynman_v1.py ops/scripts/fixtures/feynman-v1.yaml --qualification ops/scripts/fixtures/feynman-v1-qualification.yaml
 
       - name: Validate static skill-routing fixture
         id: routing

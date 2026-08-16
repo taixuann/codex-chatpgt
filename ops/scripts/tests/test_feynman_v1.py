@@ -18,6 +18,24 @@ class FeynmanV1Tests(unittest.TestCase):
     def test_context_gap_routes_to_argus(self):
         self.assertEqual(validator.evaluate_case({"failure": "context_gap"})["route"], "ARGUS")
 
+    def test_packet_qualification_preserves_alternatives_and_abstains(self):
+        packet = {
+            "context": {"project_manifest": ".agents/manifest.yaml"},
+            "evidence": [{"provenance": "result.yaml", "supports": ["mechanism"]}],
+            "claim": {"id": "mechanism", "type": "mechanistic", "fit_r2": 0.999},
+            "alternatives": ["candidate-a", "candidate-b"],
+        }
+        self.assertEqual(validator.qualify_packet(packet), {
+            "status": "REQUIRES_ADDITIONAL_MEASUREMENT",
+            "alternatives_preserved": True,
+            "abstained": True,
+            "route": "HUMAN",
+        })
+
+    def test_packet_qualification_routes_context_gap(self):
+        packet = {"context": {}, "evidence": [], "claim": {"id": "c1", "type": "descriptive"}}
+        self.assertEqual(validator.qualify_packet(packet)["route"], "ARGUS")
+
 
 if __name__ == "__main__":
     unittest.main()
