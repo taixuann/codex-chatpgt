@@ -146,6 +146,12 @@ skills/external-handoff/*
 !skills/vercel-deploy/**
 !skills/winui-app/
 !skills/winui-app/**
+!skills/scientific-evidence-synthesis/
+!skills/scientific-evidence-synthesis/**
+!skills/hypothesis-and-test-design/
+!skills/hypothesis-and-test-design/**
+!skills/scientific-method-critique/
+!skills/scientific-method-critique/**
 !skills/skill-retrospective/
 !skills/skill-retrospective/**
 !skills/control-plane-audit/scripts/fixtures/
