@@ -3,6 +3,7 @@ review_id: ATHENA-ISSUE-75-20260816-001
 reviewer_id: athena
 reviewer_role: independent_reviewer
 reviewed_source_commit: 56d26202034d1448a4c3ecde346a354684b9558c
+reviewed_control_plane_commit: 19f558d Materialize bounded Feynman v1 procedures
 target: documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml
 outcome: CONDITIONAL_PASS
 criteria:
