@@ -88,11 +88,13 @@ Output:
 ## Proof result
 
 The deterministic slice now resolves `franky` with the canonical
-`control-plane-audit` skill, executes a read-only audit boundary, and emits a
-`VALIDATED` artifact with request identity, agent/skill identity, provenance,
-lifecycle state, and validation result. A mutation request with
-`mutate: false` emits `REJECT`; invalid skill, missing provenance, and illegal
-artifact transitions are covered by focused tests.
+`control-plane-audit` skill, executes only the supported `audit` boundary, and
+emits a `VALIDATED` artifact with request identity, agent/skill identity,
+provenance, lifecycle state, validation result, and explicit
+`DRAFT->VALIDATED` transition evidence. A mutation request with `mutate: false`
+emits `REJECT`; invalid actions, mismatched input identity, malformed
+permissions, invalid skills, missing provenance, and illegal artifact
+transitions are covered by focused tests.
 
 This is repository-level policy and artifact proof only. It does not prove
 native host dispatch, native skill loading, or host OS permission enforcement.

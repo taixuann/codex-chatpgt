@@ -62,9 +62,23 @@ class RuntimeMaterializationTests(unittest.TestCase):
             validate_artifact(artifact)
 
     def test_forbidden_mutation_is_rejected(self):
-        output = execute(self.context(), self.input_artifact(), request_id="req-56-002", mutation_requested=True)
+        output = execute(self.context(), self.input_artifact(), request_id="req-56-001", mutation_requested=True)
         self.assertEqual(output["validation_result"], "REJECT")
         self.assertEqual(output["execution"]["reason"], "mutation_not_authorized")
+
+    def test_unsupported_action_is_rejected(self):
+        with self.assertRaisesRegex(MaterializationError, "unsupported execution action"):
+            execute(self.context(), self.input_artifact(), request_id="req-56-001", action="linked-project-write")
+
+    def test_input_identity_must_match_context(self):
+        artifact = self.input_artifact()
+        artifact["agent"] = "prometheus"
+        with self.assertRaisesRegex(MaterializationError, "identity"):
+            execute(self.context(), artifact, request_id="req-56-001")
+
+    def test_non_boolean_permission_is_rejected(self):
+        with self.assertRaisesRegex(MaterializationError, "permission values must be boolean"):
+            self.context(mutate="false")
 
     def test_invalid_artifact_transition(self):
         with self.assertRaisesRegex(MaterializationError, "invalid artifact transition"):

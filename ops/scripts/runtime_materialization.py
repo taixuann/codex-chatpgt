@@ -25,6 +25,7 @@ REQUIRED_ARTIFACT_FIELDS = {
     "validation_result",
 }
 ALLOWED_TRANSITIONS = {"DRAFT": {"VALIDATED"}, "VALIDATED": set()}
+SUPPORTED_ACTIONS = {"audit"}
 
 
 class MaterializationError(ValueError):
@@ -63,6 +64,8 @@ def resolve_context(
     """Resolve one compatible agent/skill pair into an execution context."""
     if not authority or not isinstance(permissions, dict):
         raise MaterializationError("authority and permissions are required")
+    if any(type(value) is not bool for value in permissions.values()):
+        raise MaterializationError("permission values must be boolean")
     agent_data = _load_agent(agents_root / f"{agent}.toml", agent)
     catalog = _load_catalog(catalog_path)
     active = set(catalog.get("canonical_active") or [])
@@ -100,6 +103,9 @@ def validate_artifact(artifact: dict[str, Any]) -> None:
         raise MaterializationError("unknown artifact lifecycle state")
     if artifact["validation_result"] not in {"PASS", "REJECT"}:
         raise MaterializationError("artifact validation_result must be PASS or REJECT")
+    if artifact["lifecycle_state"] == "VALIDATED":
+        if artifact.get("previous_state") != "DRAFT" or artifact.get("transition") != "DRAFT->VALIDATED":
+            raise MaterializationError("validated artifact requires DRAFT->VALIDATED transition evidence")
 
 
 def transition_artifact(artifact: dict[str, Any], target: str) -> dict[str, Any]:
@@ -121,10 +127,18 @@ def execute(
     mutation_requested: bool = False,
 ) -> dict[str, Any]:
     """Execute a deterministic audit boundary and emit a validated artifact."""
+    if action not in SUPPORTED_ACTIONS:
+        raise MaterializationError(f"unsupported execution action: {action}")
+    if type(mutation_requested) is not bool:
+        raise MaterializationError("mutation_requested must be boolean")
     validate_artifact(input_artifact)
     if input_artifact["lifecycle_state"] != "DRAFT":
         raise MaterializationError("input artifact must be DRAFT")
-    if mutation_requested and not context["permissions"].get("mutate", False):
+    if input_artifact["request_id"] != request_id:
+        raise MaterializationError("input artifact request_id does not match execution request")
+    if input_artifact["agent"] != context["agent"] or input_artifact["skill"] != context["skill"]:
+        raise MaterializationError("input artifact identity does not match resolved context")
+    if mutation_requested and context["permissions"].get("mutate") is not True:
         return {
             "request_id": request_id,
             "agent": context["agent"],
@@ -146,6 +160,8 @@ def execute(
         },
         "lifecycle_state": "DRAFT",
         "validation_result": "PASS",
+        "previous_state": "DRAFT",
+        "transition": "DRAFT->VALIDATED",
         "execution": {"action": action, "status": "PASS", "mutation": False},
     }
     return transition_artifact(output, "VALIDATED")
