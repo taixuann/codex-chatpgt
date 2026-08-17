@@ -251,3 +251,14 @@ personal scientific context for the Feynman context plane, knowledge retrieval,
 and promotion proposals. It does not include automatic synchronization,
 bidirectional mutation, a knowledge graph/database, or replacement of the
 Scientific Wiki capability.
+
+## D-019 — Merge readiness requires current review, decision, and authorization
+
+CI success and executor completion are evidence inputs, not acceptance. A
+merge-readiness record must carry explicit review, decision, and authorization
+outcomes bound to the current head commit. `APPROVED`, `REJECTED`, and
+`CHANGES_REQUESTED` remain distinct review/decision outcomes. Material
+unresolved findings block readiness unless an authorized human waiver records
+both the authority and rationale. This is a deterministic evaluator boundary,
+not a new workflow or approval platform; native host merge enforcement remains
+`NOT_ASSESSED`.

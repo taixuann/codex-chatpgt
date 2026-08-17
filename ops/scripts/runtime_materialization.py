@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import hashlib
+import json
 import tomllib
 from typing import Any
 
@@ -113,6 +114,8 @@ def transition_artifact(artifact: dict[str, Any], target: str) -> dict[str, Any]
     if target not in ALLOWED_TRANSITIONS.get(current, set()):
         raise MaterializationError(f"invalid artifact transition: {current} -> {target}")
     updated = dict(artifact)
+    updated["previous_state"] = current
+    updated["transition"] = f"{current}->{target}"
     updated["lifecycle_state"] = target
     validate_artifact(updated)
     return updated
@@ -138,6 +141,16 @@ def execute(
         raise MaterializationError("input artifact request_id does not match execution request")
     if input_artifact["agent"] != context["agent"] or input_artifact["skill"] != context["skill"]:
         raise MaterializationError("input artifact identity does not match resolved context")
+    if context["permissions"].get("read") is not True:
+        return {
+            "request_id": request_id,
+            "agent": context["agent"],
+            "skill": context["skill"],
+            "provenance": {"source": "runtime_materialization", "input_request": request_id},
+            "lifecycle_state": "DRAFT",
+            "validation_result": "REJECT",
+            "execution": {"action": action, "status": "REJECT", "reason": "read_not_authorized"},
+        }
     if mutation_requested and context["permissions"].get("mutate") is not True:
         return {
             "request_id": request_id,
@@ -148,7 +161,13 @@ def execute(
             "validation_result": "REJECT",
             "execution": {"action": action, "status": "REJECT", "reason": "mutation_not_authorized"},
         }
-    digest = hashlib.sha256(repr(sorted(input_artifact.items())).encode("utf-8")).hexdigest()
+    canonical_input = json.dumps(
+        input_artifact,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    digest = hashlib.sha256(canonical_input).hexdigest()
     output = {
         "request_id": request_id,
         "agent": context["agent"],
@@ -160,8 +179,6 @@ def execute(
         },
         "lifecycle_state": "DRAFT",
         "validation_result": "PASS",
-        "previous_state": "DRAFT",
-        "transition": "DRAFT->VALIDATED",
         "execution": {"action": action, "status": "PASS", "mutation": False},
     }
     return transition_artifact(output, "VALIDATED")

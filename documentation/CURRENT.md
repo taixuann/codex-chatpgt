@@ -118,23 +118,26 @@ Current readiness:
   deterministic helper and colocated tests. No workflow or second
   `file-workbench` skill exists.
 
-- **#2** — bounded context acquisition is implemented and merged through PR #33
+- **#2** — bounded context acquisition is complete for its deterministic v1
+  contract and is conditionally closed. It was implemented and merged through PR #33
   (`edf446c`). The explicit-allowlist packet helper, schema-valid task fixture,
   deterministic tests, and hosted CI step are accepted as the v1 procedure.
   A fresh read-only run against the current `/Users/tai/ai-labs` baseline
   produced 3 canonical and 4 repository-evidence entries with no conflicts or
   uncertainties. Host-observable parent-resume/adapter traces remain
-  unavailable, so the Issue is conditionally passed as v1 for deterministic
-  behavior but remains open for host-level runtime acceptance.
+  unavailable; native parent-resume and adapter-selection remain NOT_ASSESSED
+  and are delegated to #31/#56 rather than blocking the deterministic v1 closure.
 - **#14** — the bounded external provenance/artifact/runtime-fit matrix is recorded in `PLAN-ARW-EXTERNAL-SKILLS-20260809-001.md`; installed Codex creator reuse is accepted and unqualified external catalogs remain reference/deferred.
 - **#38** — the installed Codex/OpenAI creator was exercised through Phases A–M and dogfooded on `franky-guidance-manager`. A fresh explicit `--disable skill_search` Codex baseline completed without a skill-tool event, while the model-visible catalog currently exposes 86 entries / 58 unique names with 13 duplicate-name groups. A new disposable fixture demonstrated project-local activation, sibling selection, and a clear arithmetic negative without exporting private host skill content. Real-skill utility lift, broad catalog co-loading, dynamic security, and direct OpenCode behavior remain `NOT_ASSESSED`; the issue remains conditional.
 - **#35** — the system-skill consolidation is now canonical on `main` through PR #53 (merge commit `e1e05c096bb0912a9a3759f349ad97e3a5424e7d`). The reconciled branch preserved `main`'s independent planning commit, and canonical-main control-plane validation run #163 passed. The live catalog now reports 50 tracked dispositions, six canonical active capabilities, and explicit noncanonical overlay boundaries. Remaining model-mediated behavioral and cross-runtime gates are owned by #38 and remain explicitly `NOT_ASSESSED`; no Antigravity migration was included.
 - **#50** — accepted on canonical `main` through the #35 reconciliation. `manifests/skill-catalog.yaml` records 50 tracked packages with exactly one disposition, 10 ignored local overlays as explicitly noncanonical, and six canonical active governance capabilities. Structural and repository-grounded utility evidence pass; model-mediated runtime routing remains `NOT_ASSESSED` and is now advanced by #38. Antigravity migration remains out of scope.
 - **#56** — the minimum repository-level materialization slice now resolves the
-  Franky contract to canonical `control-plane-audit`, executes a deterministic
-  read-only boundary, emits a provenance-bearing `VALIDATED` artifact, and
-  rejects unauthorized mutation. Native `@franky` dispatch, native skill
-  loading, and host enforcement remain `NOT_ASSESSED` under the still-active
+  Franky contract to canonical `control-plane-audit`, requires explicit read
+  permission, executes a deterministic read-only boundary, emits a
+  provenance-bearing `VALIDATED` artifact, records lifecycle transitions in
+  the transition function, and rejects unauthorized mutation. Canonical
+  nested provenance hashing is stable. Native `@franky` dispatch, native
+  skill loading, and host enforcement remain `NOT_ASSESSED` under the still-active
   issue.
 - **#57** — closed after PR #58 (merge commit `6fd67dc`) satisfied its deterministic acceptance criteria. Host runtime surfaces remain explicitly `NOT_ASSESSED` outside this issue's accepted scope.
 - **#68–#71** — Argus, Prometheus, Athena, and shared lifecycle hardening are accepted on `main` through PR #72 (merge commit `a01e26d`). The deterministic lifecycle evaluator, scoped support contracts, artifact states, evidence chain, and review gates are accepted; host-mediated selection/loading/mutation/permission behavior remains `NOT_ASSESSED`.
@@ -143,6 +146,8 @@ Current readiness:
   merge. The Operation Workflow control-plane foundation is stabilized, not
   complete; runtime execution evidence depends on #56. #60 owns approval and
   remote validation hardening. Native host behavior remains `NOT_ASSESSED`.
+- **#46** — superseded by the bounded owners #2, #17, #31, #56, #60, and #62;
+  no distinct context-graph runtime capability is accepted for implementation.
 
 ## Milestone roadmap
 
@@ -175,7 +180,16 @@ scientific question → Feynman reasoning → knowledge/context retrieval
 ```
 
 This milestone does not implement a full Scientific Wiki platform.
-- **#75** — the bounded Feynman v1 slice is complete through codex-chatpgt PR #76 (merge `4ef68b27a5f7649eddb8ae8efa51779854767bdb`) and research-projects PR #22 (merge `dddf5e54e5b5000df14e4f3f556b746e97edf645`). It establishes the two-mode read-only adapter, three ADAPT scientific procedures, policy guardrails, bounded packet qualification, selected-project binding, and the reviewed DC-IV vertical proof. Native dispatch, native skill loading/materialization, Personal Wiki runtime, host mutation/permission enforcement, and human scientific acceptance remain `NOT_ASSESSED`; the scientific result remains `REQUIRES_ADDITIONAL_MEASUREMENT` with no mechanism promotion. Future Feynman extensions remain tracked by Issue #75 and related capability Issues.
+- **#75** — the bounded Feynman v1 slice is conditionally complete and closed through
+  codex-chatpgt PR #76 (merge `4ef68b27a5f7649eddb8ae8efa51779854767bdb`) and
+  research-projects PR #22 (merge `dddf5e54e5b5000df14e4f3f556b746e97edf645`).
+  It establishes the two-mode read-only adapter, three ADAPT scientific
+  procedures, policy guardrails, bounded packet qualification, selected-project
+  binding, and the reviewed DC-IV vertical proof. Native dispatch, native skill
+  loading/materialization, Personal Wiki runtime, host mutation/permission
+  enforcement, and human scientific acceptance remain `NOT_ASSESSED`; the
+  scientific result remains `REQUIRES_ADDITIONAL_MEASUREMENT` with no mechanism
+  promotion. Future extensions remain with #7, #47, #56, and #61.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in
@@ -197,8 +211,11 @@ This milestone does not implement a full Scientific Wiki platform.
   expose unrelated environment/vendor warnings (stale model-cache schema,
   optional plugin manifest fields, rollout-db fallback, skill-description
   budget truncation, and an unavailable optional Computer Use MCP). These are
-  recorded as runtime observations, not silently counted as acceptance.
-- **#10** — the Graph Engineering pilot has conditionally passed the selected
+  recorded as runtime observations, not silently counted as acceptance. The
+  deterministic v1 review gate is conditionally closed; native adapter and
+  parent-resume traces remain `NOT_ASSESSED` under #31/#56/#61.
+- **#10** — the Graph Engineering pilot has conditionally passed and is closed
+  for its selected
   read-only integration slice. It consumed the merged #2 helper in
   read-only mode. An earlier live Issue comment records 2 canonical + 3
   repository-evidence entries; the current rerun intentionally used a broader
@@ -207,8 +224,8 @@ This milestone does not implement a full Scientific Wiki platform.
   and the selected project/instruction file hashes were unchanged before and
   after execution. It found no project override, lifecycle adapter,
   project-specific skill/agent, or evolution signal (`NO ACTION`). This
-  remains conditional only for host-runtime limitations; the exact rerun hashes
-  and review disposition are recorded in the #6 review PLAN.
+  Host-runtime limitations remain `NOT_ASSESSED` and are owned by #31/#56; the
+  exact rerun hashes and review disposition are recorded in the #6 review PLAN.
 - **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#7** — the production Wiki Scientific Evidence MCP is registered once in
