@@ -28,7 +28,7 @@ canonical planning roles remain:
 - Argus: internal repository/context exploration.
 - Athena: independent review and critique.
 
-## Accepted operating baseline
+## Stabilized control-plane foundation
 
 The shared Argus/Prometheus/Athena hardening surface is now represented by
 `manifests/agent-contracts.yaml`, the existing capability repertoire, and the
@@ -39,7 +39,8 @@ conflicts, readiness, and validation status. Artifact promotion is accepted
 only through Evidence -> Claim -> Review -> Decision -> State; direct
 artifact-to-state promotion is rejected. Native host agent selection/dispatch,
 native skill loading/model-mediated selection, runtime mutation enforcement,
-and host permission enforcement remain `NOT_ASSESSED`.
+and host permission enforcement remain `NOT_ASSESSED`; runtime evidence for a
+complete end-to-end workflow remains pending.
 
 ## Documentation ownership map
 
@@ -51,7 +52,7 @@ and host permission enforcement remain `NOT_ASSESSED`.
 | `AGENT-LIFECYCLE-HARDENING.md` | HISTORICAL_SUPPORT | merged lifecycle evidence and limitations |
 | `CLOUD-BRIEF.md` | CANONICAL | progressive-disclosure cloud entrypoint |
 | `GOAL-PLAN-GRAPH.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #17 |
-| `RESEARCH-KNOWLEDGE-WORKFLOW.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #16 |
+| `RESEARCH-KNOWLEDGE-WORKFLOW.md` | SUPERSEDED_SUPPORT | full research/knowledge proof is now scoped under Issue #75 |
 | `SYSTEM-EVOLUTION-WORKFLOW.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #15 |
 
 No document in this map overrides the authority order in `AGENTS.md`; no
@@ -88,15 +89,15 @@ The shared operating lifecycle remains capability-first, bounded, validation-ori
 The following documents exist as proposed shared semantics and are **not yet accepted runtime truth merely because they are documented**:
 
 - [`SYSTEM-EVOLUTION-WORKFLOW.md`](SYSTEM-EVOLUTION-WORKFLOW.md) — System Configuration and Change workflow; proof tracked by #15.
-- [`RESEARCH-KNOWLEDGE-WORKFLOW.md`](RESEARCH-KNOWLEDGE-WORKFLOW.md) — Research and Knowledge workflow; proof tracked by #16.
+- [`RESEARCH-KNOWLEDGE-WORKFLOW.md`](RESEARCH-KNOWLEDGE-WORKFLOW.md) — historical research/knowledge workflow support; Issue #16 is superseded by #75.
 - [`GOAL-PLAN-GRAPH.md`](GOAL-PLAN-GRAPH.md) — Goal–Plan linking semantics; minimal proof tracked by #17.
 
 Ownership boundaries currently intended for proof:
 
 - #15 owns **how bounded system changes are handled**.
 - #11 owns **when repeated/material evidence may become durable self-evolution**.
-- #16 owns the **full research/knowledge lifecycle**.
-- #7 owns only **external scientific evidence acquisition/critique capability** used by #16 when needed.
+- #75 owns the **Feynman scientific operating layer**; the historical #16 research/knowledge workflow is superseded.
+- #7 owns only **external scientific evidence acquisition/critique capability** used by Feynman when needed.
 
 ## Current execution sequence
 
@@ -132,7 +133,44 @@ Current readiness:
 - **#56** — the bounded Franky agent-first implementation and deterministic hardening are accepted; native `@franky` dispatch, model-mediated per-agent `skills.config`, and host enforcement remain runtime-gated under the still-active issue.
 - **#57** — closed after PR #58 (merge commit `6fd67dc`) satisfied its deterministic acceptance criteria. Host runtime surfaces remain explicitly `NOT_ASSESSED` outside this issue's accepted scope.
 - **#68–#71** — Argus, Prometheus, Athena, and shared lifecycle hardening are accepted on `main` through PR #72 (merge commit `a01e26d`). The deterministic lifecycle evaluator, scoped support contracts, artifact states, evidence chain, and review gates are accepted; host-mediated selection/loading/mutation/permission behavior remains `NOT_ASSESSED`.
-- **#75** — Feynman v1 is intentionally open: the issue defines the scientific-agent contract, bounded source routing, evidence semantics, evaluator cases, and one real project-local vertical slice. It does not promote a scientific conclusion or copy project state into this repository.
+- **#62** — Operation Workflow v1 stabilization is documented as Issue-first,
+  PLAN-conditional, one-work-unit-branch, CI/review-gated, and reconciled after
+  merge. The Operation Workflow control-plane foundation is stabilized, not
+  complete; runtime execution evidence depends on #56. #60 owns approval and
+  remote validation hardening. Native host behavior remains `NOT_ASSESSED`.
+
+## Milestone roadmap
+
+### Milestone A — Operation Workflow Control Plane v1
+
+**Status:** READY after PR #78 merge. The scope is the request lifecycle,
+Issue/PLAN/PR flow, deterministic validation, ownership, and state
+reconciliation. This milestone does not claim runtime agent behavior.
+
+### Milestone B — Runtime Materialization v1
+
+**Owner:** #56. Prove the minimum chain:
+
+```text
+agent contract → runtime loading → skill resolution → execution
+→ artifact output → validation
+```
+
+No orchestration platform, model router, or autonomous-agent framework is in
+scope. The next bounded execution plan is
+`PLAN-ARW-RUNTIME-MATERIALIZATION-V1-20260816-001.md`.
+
+### Milestone C — Scientific Agent Loop v1
+
+**Owners:** #7, #59, #61. Prove one bounded example:
+
+```text
+scientific question → Feynman reasoning → knowledge/context retrieval
+→ Argus provenance/context → artifact → Athena review
+```
+
+This milestone does not implement a full Scientific Wiki platform.
+- **#75** — the bounded Feynman v1 slice is complete through codex-chatpgt PR #76 (merge `4ef68b27a5f7649eddb8ae8efa51779854767bdb`) and research-projects PR #22 (merge `dddf5e54e5b5000df14e4f3f556b746e97edf645`). It establishes the two-mode read-only adapter, three ADAPT scientific procedures, policy guardrails, bounded packet qualification, selected-project binding, and the reviewed DC-IV vertical proof. Native dispatch, native skill loading/materialization, Personal Wiki runtime, host mutation/permission enforcement, and human scientific acceptance remain `NOT_ASSESSED`; the scientific result remains `REQUIRES_ADDITIONAL_MEASUREMENT` with no mechanism promotion. Future Feynman extensions remain tracked by Issue #75 and related capability Issues.
 - **#17** — PLAN exists but its initial proof must piggyback on a future #2
   implementation PR; the closed draft PR #3 is not an active proof.
 - **#5** — accepted through the bounded execution/closure record in
