@@ -211,9 +211,9 @@ canonical Feynman role.
 ## D-016 — Operation Workflow v1 remains Issue-first and PLAN-conditional
 
 The shared operating lifecycle uses the smallest durable GitHub surface that
-matches the work: a human request becomes an Issue, a PLAN is retained when
-the work is consequential, one branch carries one work unit and its PR, CI and
-review provide evidence, and merge is followed by `CURRENT.md`/
+matches the work: an execution-ready repository work unit becomes an Issue, a
+PLAN is retained when the work is consequential, one branch carries one work
+unit and its PR, CI and review provide evidence, and merge is followed by `CURRENT.md`/
 `DECISIONS.md` reconciliation. A mandatory GOAL/PLAN/session database or
 separate workflow engine is not part of this contract. Full operational and
 approval acceptance remains open under #62 and #60; static documentation does

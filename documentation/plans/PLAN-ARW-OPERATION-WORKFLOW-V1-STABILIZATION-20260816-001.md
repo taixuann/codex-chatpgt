@@ -56,7 +56,7 @@ skill loading, runtime mutation enforcement, or host permissions. Those remain
 - #5 bounded execution and deterministic closure (accepted through PR #33).
 - #68–#71 lifecycle hardening (accepted through PR #72).
 - #74 role-boundary hardening (merged).
-- #76 Personal Wiki v1 foundation (merged).
+- #75 Feynman v1, merged through codex-chatpgt PR #76 and research-projects PR #22.
 
 ### Superseded
 

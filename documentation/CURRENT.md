@@ -96,8 +96,8 @@ Ownership boundaries currently intended for proof:
 
 - #15 owns **how bounded system changes are handled**.
 - #11 owns **when repeated/material evidence may become durable self-evolution**.
-- #16 owns the **full research/knowledge lifecycle**.
-- #7 owns only **external scientific evidence acquisition/critique capability** used by #16 when needed.
+- #75 owns the **Feynman scientific operating layer**; the historical #16 research/knowledge workflow is superseded.
+- #7 owns only **external scientific evidence acquisition/critique capability** used by Feynman when needed.
 
 ## Current execution sequence
 
