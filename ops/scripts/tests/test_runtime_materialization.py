@@ -66,6 +66,26 @@ class RuntimeMaterializationTests(unittest.TestCase):
         self.assertEqual(output["validation_result"], "REJECT")
         self.assertEqual(output["execution"]["reason"], "mutation_not_authorized")
 
+    def test_audit_requires_read_permission(self):
+        output = execute(
+            self.context(read=False), self.input_artifact(), request_id="req-56-001"
+        )
+        self.assertEqual(output["validation_result"], "REJECT")
+        self.assertEqual(output["execution"]["reason"], "read_not_authorized")
+
+    def test_audit_rejects_missing_read_permission(self):
+        context = resolve_context(
+            agent="franky",
+            skill="control-plane-audit",
+            authority="issue-56",
+            permissions={"mutate": False},
+            agents_root=ROOT / "agents",
+            catalog_path=ROOT / "manifests/skill-catalog.yaml",
+        )
+        output = execute(context, self.input_artifact(), request_id="req-56-001")
+        self.assertEqual(output["validation_result"], "REJECT")
+        self.assertEqual(output["execution"]["reason"], "read_not_authorized")
+
     def test_unsupported_action_is_rejected(self):
         with self.assertRaisesRegex(MaterializationError, "unsupported execution action"):
             execute(self.context(), self.input_artifact(), request_id="req-56-001", action="linked-project-write")
@@ -83,6 +103,23 @@ class RuntimeMaterializationTests(unittest.TestCase):
     def test_invalid_artifact_transition(self):
         with self.assertRaisesRegex(MaterializationError, "invalid artifact transition"):
             transition_artifact(self.input_artifact(), "ACCEPTED")
+
+    def test_transition_artifact_records_transition_evidence(self):
+        output = transition_artifact(self.input_artifact(), "VALIDATED")
+        self.assertEqual(output["previous_state"], "DRAFT")
+        self.assertEqual(output["transition"], "DRAFT->VALIDATED")
+
+    def test_nested_mapping_order_does_not_change_digest(self):
+        first = self.input_artifact()
+        second = self.input_artifact()
+        first["provenance"] = {"source": "fixture", "nested": {"a": 1, "b": 2}}
+        second["provenance"] = {"nested": {"b": 2, "a": 1}, "source": "fixture"}
+        first_output = execute(self.context(), first, request_id="req-56-001")
+        second_output = execute(self.context(), second, request_id="req-56-001")
+        self.assertEqual(
+            first_output["provenance"]["input_digest"],
+            second_output["provenance"]["input_digest"],
+        )
 
     def test_checked_in_artifact_evidence_is_valid(self):
         fixture = yaml.safe_load(

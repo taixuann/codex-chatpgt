@@ -1,0 +1,17 @@
+# Retained incident evidence: PR #80 merged while material findings from its
+# predecessor review had not been re-reviewed on the replacement head.
+head_commit: 53d6d9c6a4666a12ca97faff3cb538319de31e4a
+ci_status: PASS
+executor_status: DONE
+review:
+  outcome: APPROVED
+  head_commit: a46341b
+  unresolved_material_findings:
+    - predecessor-review-findings-not-current-head-reviewed
+decision:
+  outcome: APPROVED
+  head_commit: a46341b
+authorization:
+  status: AUTHORIZED
+  authorized_by: human
+  rationale: merge was explicitly authorized after hosted checks
