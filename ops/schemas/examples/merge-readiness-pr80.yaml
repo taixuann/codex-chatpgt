@@ -3,15 +3,53 @@
 head_commit: 53d6d9c6a4666a12ca97faff3cb538319de31e4a
 ci_status: PASS
 executor_status: DONE
+current:
+  artifact_id: runtime-materialization-v1
+  action: merge
+  scope_digest: scope-53d6d9c
+  evidence_digest: evidence-53d6d9c
+  upstream_ids: [agent-contracts-v1]
 review:
   outcome: APPROVED
   head_commit: a46341b
+  reviewer: athena
   unresolved_material_findings:
     - predecessor-review-findings-not-current-head-reviewed
 decision:
+  id: decision-pr80-predecessor
   outcome: APPROVED
   head_commit: a46341b
+  reviewer: human
+  decision_reason: predecessor review accepted before replacement-head audit
+  decision_at: "2026-08-17T00:00:00Z"
+  revision: predecessor
+  artifact_id: runtime-materialization-v1
+  action: merge
+  scope_digest: scope-a46341b
+  evidence_digest: evidence-a46341b
+  upstream_ids: [agent-contracts-v1]
+decision_history:
+  - id: decision-pr80-predecessor
+    outcome: APPROVED
+    head_commit: a46341b
+    reviewer: human
+    decision_reason: predecessor review accepted before replacement-head audit
+    decision_at: "2026-08-17T00:00:00Z"
+    revision: predecessor
+    artifact_id: runtime-materialization-v1
+    action: merge
+    scope_digest: scope-a46341b
+    evidence_digest: evidence-a46341b
+    upstream_ids: [agent-contracts-v1]
 authorization:
   status: AUTHORIZED
   authorized_by: human
   rationale: merge was explicitly authorized after hosted checks
+  authorized_at: "2026-08-17T00:01:00Z"
+  decision_id: decision-pr80-predecessor
+  head_commit: a46341b
+  artifact_id: runtime-materialization-v1
+  action: merge
+  scope_digest: scope-a46341b
+  evidence_digest: evidence-a46341b
+  upstream_ids: [agent-contracts-v1]
