@@ -41,6 +41,7 @@ def record(**overrides):
             "head_commit": "abc123",
             "reviewer": "athena",
             "unresolved_material_findings": [],
+            **current,
         },
         "decision": latest,
         "decision_history": [
@@ -66,11 +67,12 @@ class MergeReadinessTests(unittest.TestCase):
         self.assertEqual(evaluate_merge_readiness(record())["status"], "READY")
 
     def test_unresolved_material_review_blocks_merge(self):
+        base = record()
         result = evaluate_merge_readiness(
             record(review={
+                **base["review"],
                 "outcome": "APPROVED",
                 "head_commit": "abc123",
-                "reviewer": "athena",
                 "unresolved_material_findings": ["P1"],
             })
         )
@@ -81,9 +83,9 @@ class MergeReadinessTests(unittest.TestCase):
         result = evaluate_merge_readiness(
             record(
                 review={
+                    **base["review"],
                     "outcome": "APPROVED",
                     "head_commit": "abc123",
-                    "reviewer": "athena",
                     "unresolved_material_findings": ["P1"],
                 },
                 authorization={**base["authorization"], "status": "WAIVED", "rationale": "human accepted limitation"},
@@ -92,11 +94,12 @@ class MergeReadinessTests(unittest.TestCase):
         self.assertEqual(result["status"], "READY")
 
     def test_stale_review_blocks_merge(self):
+        base = record()
         result = evaluate_merge_readiness(
             record(review={
+                **base["review"],
                 "outcome": "APPROVED",
                 "head_commit": "old456",
-                "reviewer": "athena",
                 "unresolved_material_findings": [],
             })
         )
@@ -115,7 +118,7 @@ class MergeReadinessTests(unittest.TestCase):
             latest = decision(outcome=outcome)
             result = evaluate_merge_readiness(
                 record(
-                    review={"outcome": outcome, "head_commit": "abc123", "reviewer": "athena", "unresolved_material_findings": []},
+                    review={**base["review"], "outcome": outcome, "unresolved_material_findings": []},
                     decision=latest,
                     decision_history=[base["decision_history"][0], latest],
                 )
@@ -137,6 +140,18 @@ class MergeReadinessTests(unittest.TestCase):
             result = evaluate_merge_readiness(record(current=current))
             self.assertEqual(result["status"], "NOT_MERGE_READY")
             self.assertTrue(any("decision binding is stale" in reason for reason in result["reasons"]))
+
+    def test_current_head_review_must_bind_to_current_snapshot(self):
+        for field, changed in (
+            ("artifact_id", "other-artifact"),
+            ("scope_digest", "other-scope"),
+            ("upstream_ids", ["other-contract"]),
+        ):
+            base = record()
+            review = {**base["review"], field: changed}
+            result = evaluate_merge_readiness(record(review=review))
+            self.assertEqual(result["status"], "NOT_MERGE_READY")
+            self.assertTrue(any("review binding is stale" in reason for reason in result["reasons"]))
 
     def test_decision_requires_human_metadata_and_append_only_history(self):
         base = record()

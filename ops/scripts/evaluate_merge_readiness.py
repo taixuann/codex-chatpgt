@@ -119,6 +119,7 @@ def evaluate_merge_readiness(record: dict[str, Any]) -> dict[str, Any]:
             reasons.append(f"current snapshot requires non-empty {field}")
     if not _identifier_list(current.get("upstream_ids")):
         reasons.append("current snapshot upstream_ids must be a duplicate-free list of non-empty identifiers")
+    reasons.extend(_binding_reasons("review", review, current, record.get("head_commit")))
     reasons.extend(_binding_reasons("decision", decision, current, record.get("head_commit")))
 
     if authorization.get("status") not in AUTHORIZATION_STATUSES:

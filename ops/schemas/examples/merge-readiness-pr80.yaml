@@ -13,6 +13,11 @@ review:
   outcome: APPROVED
   head_commit: a46341b
   reviewer: athena
+  artifact_id: runtime-materialization-v1
+  action: merge
+  scope_digest: scope-a46341b
+  evidence_digest: evidence-a46341b
+  upstream_ids: [agent-contracts-v1]
   unresolved_material_findings:
     - predecessor-review-findings-not-current-head-reviewed
 decision:
