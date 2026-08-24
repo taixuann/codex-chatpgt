@@ -1,12 +1,18 @@
 ---
 id: PLAN-ARW-OPERATION-WORKFLOW-V1-STABILIZATION-20260816-001
-status: active
-updated: 2026-08-16
+status: superseded
+updated: 2026-08-24
 owner: Prometheus
 issue: "#62"
 ---
 
-# Operation Workflow v1 stabilization
+# Operation Workflow v1 stabilization (historical support)
+
+This plan is retained as historical support for the merged PR #78/#81
+reconciliation. It is not active execution authority: PR #78 and its review,
+merge, and cleanup are complete, PR #77/#79 were superseded, and the remaining
+approval/runtime follow-up belongs to Issues #60/#62 and their current work
+units.
 
 ## Objective
 
@@ -17,9 +23,9 @@ state without implying unavailable runtime behavior.
 
 ## Confirmed baseline
 
-This pass starts from `origin/main` at merged PR #76 (`4ef68b2`). PR #72
-(Argus/Prometheus/Athena hardening) and PR #74 (role-boundary hardening) are
-also merged. PR #77 is still open and is not treated as merged state.
+This pass started from the pre-reconciliation baseline and is preserved only
+as historical provenance. The canonical current baseline is `origin/main`
+after PR #81 merge (`be067bd`); PR #77/#78/#79 are no longer open work.
 
 The canonical lifecycle is documented in `documentation/OPERATING-WORKFLOW.md`:
 
@@ -70,12 +76,11 @@ skill loading, runtime mutation enforcement, or host permissions. Those remain
 - #60 remains the approval/remote-validation hardening dependency for a fully
   accepted lifecycle, including negative human decisions.
 
-### Active roadmap / conditional proof
+### Historical roadmap / conditional proof
 
-#2, #6, #7, #8, #9, #10, #11, #12, #14, #15, #17, #31, #38, #44, #46, #47,
-#48, #49, #56, #59, #61, and #75 remain open or conditional according to the
-live issue state. Their scopes are not silently merged into #62 and no issue
-is closed by this documentation-only reconciliation.
+#7, #8, #9, #11, #12, #14, #15, #17, #31, #38, #44, #47, #48, #49, #56,
+#59, #60, #61, and #62 remain open or conditional according to live issue
+state. This historical plan does not change their ownership or acceptance.
 
 ## Accepted plan
 
@@ -114,7 +119,7 @@ runtime, full session continuation evidence, approval-state enforcement, and
 scientific acceptance remain deferred or `NOT_ASSESSED` under their owning
 issues.
 
-## Closure evidence audit
+## Historical closure evidence audit
 
 The current work unit provides a reproducible partial lifecycle trace:
 
@@ -125,14 +130,13 @@ request (closure objective)
 → codex/operation-workflow-v1-stabilization
 → PR #78
 → hosted `validate` check: PASS
-→ review: pending
-→ merge: pending
-→ reconciliation: pending
+→ PR #81 repair/reconciliation
+→ merge commit `be067bd`
+→ branch cleanup and Issue reconciliation
 ```
 
-This is evidence through CI only; it is not a claim that the full lifecycle
-has completed. The branch is three commits ahead of the latest `origin/main`
-and contains only the intended documentation files.
+This is historical evidence for the stabilization work; current approval,
+runtime, and scientific-loop gaps remain owned by their active Issues.
 
 A fresh bounded context packet was generated read-only from the explicit
 allowlist. It recovered the repository instructions, `CURRENT.md`,

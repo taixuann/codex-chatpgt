@@ -256,9 +256,11 @@ Scientific Wiki capability.
 
 CI success and executor completion are evidence inputs, not acceptance. A
 merge-readiness record must carry explicit review, decision, and authorization
-outcomes bound to the current head commit. `APPROVED`, `REJECTED`, and
-`CHANGES_REQUESTED` remain distinct review/decision outcomes. Material
-unresolved findings block readiness unless an authorized human waiver records
-both the authority and rationale. This is a deterministic evaluator boundary,
-not a new workflow or approval platform; native host merge enforcement remains
-`NOT_ASSESSED`.
+outcomes bound to the current head and bounded artifact/action/scope/evidence
+snapshot. `APPROVED`, `REJECTED`, and `CHANGES_REQUESTED` remain distinct
+review/decision outcomes. Human decisions require reviewer, reason, timestamp,
+revision, and an ordered decision history whose current entry matches the
+active decision. Material unresolved findings block readiness unless an
+authorized human waiver records both the authority and rationale. This is a
+deterministic evaluator boundary, not a new workflow or approval platform;
+native host merge enforcement remains `NOT_ASSESSED`.

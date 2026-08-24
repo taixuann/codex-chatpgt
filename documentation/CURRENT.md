@@ -146,6 +146,12 @@ Current readiness:
   merge. The Operation Workflow control-plane foundation is stabilized, not
   complete; runtime execution evidence depends on #56. #60 owns approval and
   remote validation hardening. Native host behavior remains `NOT_ASSESSED`.
+- **#60** — deterministic approval hardening is now represented by the
+  merge-readiness evaluator: `APPROVED`, `REJECTED`, and `CHANGES_REQUESTED`
+  are distinct; decisions require reviewer/reason/timestamp/revision/history;
+  review, decision, and authorization bind the current head and bounded
+  artifact/action/scope/evidence/upstream snapshot; stale or malformed records
+  are rejected. Native continuation/state recovery remains `NOT_ASSESSED`.
 - **#46** — superseded by the bounded owners #2, #17, #31, #56, #60, and #62;
   no distinct context-graph runtime capability is accepted for implementation.
 
@@ -190,8 +196,10 @@ This milestone does not implement a full Scientific Wiki platform.
   enforcement, and human scientific acceptance remain `NOT_ASSESSED`; the
   scientific result remains `REQUIRES_ADDITIONAL_MEASUREMENT` with no mechanism
   promotion. Future extensions remain with #7, #47, #56, and #61.
-- **#17** — PLAN exists but its initial proof must piggyback on a future #2
-  implementation PR; the closed draft PR #3 is not an active proof.
+- **#17** — minimal Goal/PLAN linkage remains proposed. The earlier dependency
+  on a future #2 implementation PR is obsolete because #2 is conditionally
+  closed; the next proof must bind a current Issue/PLAN/PR/result work unit.
+  The closed draft PR #3 is not active evidence.
 - **#5** — accepted through the bounded execution/closure record in
   `PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`. PR #33 is the bounded
   change surface; its induced failure/repair, impact frontier, syntactic and
@@ -306,9 +314,9 @@ This milestone does not implement a full Scientific Wiki platform.
 
 `documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
 
-Issue #2 and #17 now link to current live/revised PLANs; historical PR #3 is
-not an active proof fixture. #5 is accepted against the merged #2 contract;
-host-level runtime acceptance remains explicitly open under #2/#6.
+Issue #17 links to its current PLAN; historical PR #3 is not an active proof
+fixture. #2 and #5 are accepted for their deterministic contracts; host-level
+runtime acceptance remains explicitly `NOT_ASSESSED` under #31/#56/#8.
 
 ## Anti-overengineering state
 
