@@ -86,9 +86,14 @@ scientific_wiki:
     interface: python3 .rag/wiki.py query --json
     repository: taixuann/wiki
     source_commit: 1798998bd004838de4ad8ff18563b59823c07cf3
+    source_root: science-wiki
+    source_id_basis: relative_to_source_root
     contract_version: wiki-evidence/v1
     query_intent: relation
     retrieval_mode: hybrid
+    transport_observed: local_cli
+    mcp_integration: NOT_ASSESSED
+    native_agent_selection: NOT_ASSESSED
     query: >-
       For temperature-dependent DC-IV measurements in polydopamine-based
       two-terminal devices, what evidence distinguishes thermally activated
@@ -100,7 +105,8 @@ scientific_wiki:
       source_count: 4
       gaps: []
       sufficiency: sufficient
-      retained: source identifiers, chunk identifiers, and packet metadata only
+      retained: source identifiers, chunk identifiers, packet metadata, and response digest only
+      output_sha256: 857a19e432c9fb458847475ea16216e5109b3e486dcef23310a42e1b067994c2
     evidence_sources:
       - source_id: sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md
         git_blob: 2db02fef42f4fd28cef3c77c4a89656db604e6b1
@@ -114,6 +120,7 @@ scientific_wiki:
     limitations:
       - packet return sufficiency does not establish a mechanism for the project device
       - returned coverage reported missing measurement and result roles for the specific project question
+      - local CLI success is not evidence of MCP integration or native agent selection
   negative_no_literature_needed_case:
     status: PASS
     purpose: project-evidence-only abstention on the current mechanism question
