@@ -107,7 +107,7 @@ scientific_wiki:
       sufficiency: sufficient
       retained: canonical response bytes, source identifiers, chunk identifiers, and packet metadata
       output_artifact: documentation/reviews/evidence/PDA-TEMPERATURE-IV-20260824-WIKI-QUERY.json
-      output_sha256: 8623d8cd68730cecc1045d7edcb83e3aa5c3e85410c2560ea88e9214cfd8be71
+      output_sha256: 73938aee9131d4e1ce8a894667e83aaa21e2c6c96a388b091f8f326391e21232
     evidence_sources:
       - source_id: sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md
         git_blob: 07f8ef4fc2cfaacfd4f08683c9a9d042370a84cb
