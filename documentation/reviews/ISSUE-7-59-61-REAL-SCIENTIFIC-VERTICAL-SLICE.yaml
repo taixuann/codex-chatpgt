@@ -105,9 +105,13 @@ scientific_wiki:
       source_count: 4
       gaps: []
       sufficiency: sufficient
-      retained: source identifiers, chunk identifiers, packet metadata, and response digest only
-      output_sha256: 857a19e432c9fb458847475ea16216e5109b3e486dcef23310a42e1b067994c2
+      retained: canonical response bytes, source identifiers, chunk identifiers, and packet metadata
+      output_artifact: documentation/reviews/evidence/PDA-TEMPERATURE-IV-20260824-WIKI-QUERY.json
+      output_sha256: 8623d8cd68730cecc1045d7edcb83e3aa5c3e85410c2560ea88e9214cfd8be71
     evidence_sources:
+      - source_id: sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md
+        git_blob: 07f8ef4fc2cfaacfd4f08683c9a9d042370a84cb
+        chunk_id: paulsen-2020-organic-mixed-ionic-electronic#nature-materials#chunk_113
       - source_id: sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md
         git_blob: 2db02fef42f4fd28cef3c77c4a89656db604e6b1
         chunk_id: varol-2023-electropolymerization-polydopamine-electrode-supported#experimental-section#chunk_68
@@ -119,7 +123,7 @@ scientific_wiki:
         chunk_id: zhong-2025-electropolymerized-dopamine-memristors-threshold#bio-inspired-protonic-memristor-devices-#chunk_12
     limitations:
       - packet return sufficiency does not establish a mechanism for the project device
-      - returned coverage reported missing measurement and result roles for the specific project question
+      - retrieval gaps=[] means no retrieval failure, not that the project question has no scientific gap; returned coverage reports missing measurement and result roles
       - local CLI success is not evidence of MCP integration or native agent selection
   negative_no_literature_needed_case:
     status: PASS

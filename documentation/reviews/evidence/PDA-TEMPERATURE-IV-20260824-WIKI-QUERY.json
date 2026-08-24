@@ -1,0 +1,356 @@
+{
+  "contract_version": "wiki-evidence/v1",
+  "query": "For temperature-dependent DC-IV measurements in polydopamine-based two-terminal devices, what evidence distinguishes thermally activated ionic/proton transport from electronic injection or Schottky-like conduction, and which discriminating measurements are needed before assigning a unique mechanism?",
+  "intent": "relation",
+  "type": "complex",
+  "query_model": {
+    "class": "experimental_discriminator",
+    "public_intent": "relation",
+    "normalized_query": "For temperature-dependent DC-IV measurements in polydopamine-based two-terminal devices, what evidence distinguishes thermally activated ionic/proton transport from electronic injection or Schottky-like conduction, and which discriminating measurements are needed before assigning a unique mechanism? polydopamine",
+    "aliases": [
+      {
+        "surface": "polydopamine",
+        "canonical": "polydopamine",
+        "reason": "canonical_term"
+      }
+    ],
+    "canonical_terms": [
+      "polydopamine"
+    ],
+    "evidence_needed": [
+      "method",
+      "measurement",
+      "result"
+    ],
+    "comparison_axes": [],
+    "constraints": {
+      "retrieval_expansions": []
+    },
+    "route": "bounded_decomposition",
+    "subqueries": [
+      "polydopamine evidence",
+      "ion permeability measurement evidence",
+      "electrochemical impedance cyclic voltammetry evidence"
+    ]
+  },
+  "retrieval": {
+    "mode": "hybrid",
+    "diversity": "document",
+    "subquery_count": 3,
+    "expansion_count": 0
+  },
+  "evidence": [
+    {
+      "source_id": "sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md",
+      "source_family": "paulsen-2020",
+      "chunk_id": "paulsen-2020-organic-mixed-ionic-electronic#nature-materials#chunk_113",
+      "text": "69. Rivnay, J. et\u00a0al. Organic electrochemical transistors for cell-based impedance sensing. Appl. Phys. Lett. 106 , 043301 (2015). 70. Trefz, D. et\u00a0al. Electrochemical investigations of the N-type semiconducting polymer P(NDI2OD-T2) and its monomer: new insights in the reduction behavior. J. Phys. Chem. C 119 , 22760-22771 (2015). 71. Kaake, L. G. &amp; Zhu, X.-Y. Charge transport, nanostructure, and the mott insulator-to-metal transition in poly(3-hexylthiophene). J. Phys. Chem. C 112 , 16174-1",
+      "score": 0.04771,
+      "relations": [],
+      "section": "nature-materials",
+      "subsection": null,
+      "section_path": [
+        "nature-materials"
+      ],
+      "entities": {
+        "materials": [
+          "pedot"
+        ],
+        "devices": [
+          "transistor"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "impedance",
+          "raman"
+        ]
+      }
+    },
+    {
+      "source_id": "sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md",
+      "source_family": "varol-2023",
+      "chunk_id": "varol-2023-electropolymerization-polydopamine-electrode-supported#experimental-section#chunk_68",
+      "text": "Ionic Transport Experiments by Cyclic Voltammetry and Peak Current Density Quantification. Cyclic voltammetry measurements were performed by using an Autolab PGSTAT302N potentiostat from Metrohm Autolab BV operated by Nova 2.0 software called Nova 2.0. The pore transport was analyzed by using electrolytes consisting of 100 mmol/L KCl and 1 mmol/L [Fe(CN)6] 3 -/4 -, or 1 mmol/L [Ru(NH3)6] 2+/3+ as negatively or positively charged probe molecules. The pH values of the electrolyte solutions were ad",
+      "score": 0.042118,
+      "relations": [],
+      "section": "experimental-section",
+      "subsection": null,
+      "section_path": [
+        "experimental-section"
+      ],
+      "scientific_role": "method",
+      "entities": {
+        "materials": [
+          "ito"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "cyclic voltammetry"
+        ]
+      }
+    },
+    {
+      "source_id": "sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md",
+      "source_family": "zhou-2022",
+      "chunk_id": "zhou-2022-natural-biomaterial-memristor-bearing#introduction#chunk_5",
+      "text": "(FTO/PDA/Ag) and Fig. 4c, 4d (FTO/PDA-12M/Ag). The thicknesses of the films were about 219 (for FTO/PDA/Ag) and 210 nm (FTO/PDA-12M/Ag). The XRD patterns of PDA before and after protonating  are  displayed  in  Fig.  4e,  the  good  consistence  before  and  after  fabricating  of  FTO substrate hints their maintenance of crystalline states. Besides, the diffraction peak at 2\u03b8=21.35\u00b0 shifts  to  higher  angles  with  the  elevated  pH  (PDA-6M:  23.69\u00b0,  PDA-9M:  24.56\u00b0,  PDA-12M: 25.17\u00b0), imply",
+      "score": 0.025806,
+      "relations": [],
+      "section": "introduction",
+      "subsection": null,
+      "section_path": [
+        "introduction"
+      ],
+      "entities": {
+        "materials": [
+          "polydopamine",
+          "pda"
+        ],
+        "devices": [
+          "memristor",
+          "memristive",
+          "resistive memory"
+        ],
+        "mechanisms": [
+          "resistive switching",
+          "sclc"
+        ],
+        "measurements": [
+          "i-v",
+          "uv-vis",
+          "temperature",
+          "humidity",
+          "retention",
+          "endurance",
+          "conductivity",
+          "resistance"
+        ]
+      },
+      "provenance": {
+        "figure": "4c"
+      }
+    },
+    {
+      "source_id": "sources/raw/markdown/zhong-2025-electropolymerized-dopamine-memristors-threshold.md",
+      "source_family": "zhong-2025",
+      "chunk_id": "zhong-2025-electropolymerized-dopamine-memristors-threshold#bio-inspired-protonic-memristor-devices-#chunk_12",
+      "text": "based on electroforming metal oxides, 4 phase-change memory, or resistive switching on heterojunction structures. 5-10 Memristors can be constructed as two-terminal devices with an MIM structure, in which  an  ion  or  mixed  ion-electron  conducting  material  ( I ) is sandwiched  between  two  electron  conductors  ( M )  that  act  as electrodes (Fig. 1). 9 At each MI interface, electron transport occurs through redox processes together with blockage of the ionic current at the electrode inte",
+      "score": 0.01194,
+      "relations": [],
+      "section": "bio-inspired-protonic-memristor-devices-",
+      "subsection": null,
+      "section_path": [
+        "bio-inspired-protonic-memristor-devices-"
+      ],
+      "entities": {
+        "devices": [
+          "memristor"
+        ],
+        "mechanisms": [
+          "redox",
+          "resistive switching"
+        ]
+      },
+      "provenance": {
+        "figure": "1"
+      }
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel-gao-hiruma-001",
+      "from_source_id": "sources/notes/gao-2014-ion-permeability-of-polydopamine.md",
+      "to_source_id": "sources/notes/hiruma-2019-bioinspired-protonic-memristor-devices.md",
+      "relation": "related",
+      "rationale": "Both source notes describe ion or proton transport in a functional material system, but they study different materials and device architectures.",
+      "status": "candidate",
+      "confidence": "low",
+      "provenance": [
+        "gao-2014-ion-permeability-of-polydopamine#summary#chunk_1",
+        "hiruma-2019-bioinspired-protonic-memristor-devices#abstract#chunk_3"
+      ]
+    }
+  ],
+  "gaps": [],
+  "sufficiency": {
+    "status": "sufficient",
+    "decision": "return_packet",
+    "reason": "grounded evidence was returned; scientific acceptance remains with OpenScience/human review",
+    "classification": null,
+    "source_count": 4,
+    "observed_roles": [
+      "method"
+    ],
+    "missing_roles": [
+      "measurement",
+      "result"
+    ]
+  },
+  "coverage": {
+    "evidence_items": 4,
+    "source_count": 4,
+    "lexical_hits": 120
+  },
+  "stats": {
+    "bm25_hits": 120,
+    "vector_hits": 120,
+    "graph_hits": 20
+  },
+  "results": [
+    {
+      "source": "sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md",
+      "chunk_id": "paulsen-2020-organic-mixed-ionic-electronic#nature-materials#chunk_113",
+      "section": "nature-materials",
+      "subsection": null,
+      "section_path": [
+        "nature-materials"
+      ],
+      "scientific_role": null,
+      "entities": {
+        "materials": [
+          "pedot"
+        ],
+        "devices": [
+          "transistor"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "impedance",
+          "raman"
+        ]
+      },
+      "provenance": {},
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0477,
+      "text_snippet": "69. Rivnay, J. et\u00a0al. Organic electrochemical transistors for cell-based impedance sensing. Appl. Phys. Lett. 106 , 043301 (2015). 70. Trefz, D. et\u00a0al. Electrochemical investigations of the N-type semiconducting polymer P(NDI2OD-T2) and its monomer: new insights in the reduction behavior. J. Phys. C"
+    },
+    {
+      "source": "sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md",
+      "chunk_id": "varol-2023-electropolymerization-polydopamine-electrode-supported#experimental-section#chunk_68",
+      "section": "experimental-section",
+      "subsection": null,
+      "section_path": [
+        "experimental-section"
+      ],
+      "scientific_role": "method",
+      "entities": {
+        "materials": [
+          "ito"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "cyclic voltammetry"
+        ]
+      },
+      "provenance": {},
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0421,
+      "text_snippet": "Ionic Transport Experiments by Cyclic Voltammetry and Peak Current Density Quantification. Cyclic voltammetry measurements were performed by using an Autolab PGSTAT302N potentiostat from Metrohm Autolab BV operated by Nova 2.0 software called Nova 2.0. The pore transport was analyzed by using electr"
+    },
+    {
+      "source": "sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md",
+      "chunk_id": "zhou-2022-natural-biomaterial-memristor-bearing#introduction#chunk_5",
+      "section": "introduction",
+      "subsection": null,
+      "section_path": [
+        "introduction"
+      ],
+      "scientific_role": null,
+      "entities": {
+        "materials": [
+          "polydopamine",
+          "pda"
+        ],
+        "devices": [
+          "memristor",
+          "memristive",
+          "resistive memory"
+        ],
+        "mechanisms": [
+          "resistive switching",
+          "sclc"
+        ],
+        "measurements": [
+          "i-v",
+          "uv-vis",
+          "temperature",
+          "humidity",
+          "retention",
+          "endurance",
+          "conductivity",
+          "resistance"
+        ]
+      },
+      "provenance": {
+        "figure": "4c"
+      },
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0258,
+      "text_snippet": "(FTO/PDA/Ag) and Fig. 4c, 4d (FTO/PDA-12M/Ag). The thicknesses of the films were about 219 (for FTO/PDA/Ag) and 210 nm (FTO/PDA-12M/Ag). The XRD patterns of PDA before and after protonating  are  displayed  in  Fig.  4e,  the  good  consistence  before  and  after  fabricating  of  FTO substrate hin"
+    },
+    {
+      "source": "sources/raw/markdown/zhong-2025-electropolymerized-dopamine-memristors-threshold.md",
+      "chunk_id": "zhong-2025-electropolymerized-dopamine-memristors-threshold#bio-inspired-protonic-memristor-devices-#chunk_12",
+      "section": "bio-inspired-protonic-memristor-devices-",
+      "subsection": null,
+      "section_path": [
+        "bio-inspired-protonic-memristor-devices-"
+      ],
+      "scientific_role": null,
+      "entities": {
+        "devices": [
+          "memristor"
+        ],
+        "mechanisms": [
+          "redox",
+          "resistive switching"
+        ]
+      },
+      "provenance": {
+        "figure": "1"
+      },
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0119,
+      "text_snippet": "based on electroforming metal oxides, 4 phase-change memory, or resistive switching on heterojunction structures. 5-10 Memristors can be constructed as two-terminal devices with an MIM structure, in which  an  ion  or  mixed  ion-electron  conducting  material  ( I ) is sandwiched  between  two  ele"
+    }
+  ],
+  "citation_map": {
+    "sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md": [
+      "paulsen-2020-organic-mixed-ionic-electronic#nature-materials#chunk_113"
+    ],
+    "sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md": [
+      "varol-2023-electropolymerization-polydopamine-electrode-supported#experimental-section#chunk_68"
+    ],
+    "sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md": [
+      "zhou-2022-natural-biomaterial-memristor-bearing#introduction#chunk_5"
+    ],
+    "sources/raw/markdown/zhong-2025-electropolymerized-dopamine-memristors-threshold.md": [
+      "zhong-2025-electropolymerized-dopamine-memristors-threshold#bio-inspired-protonic-memristor-devices-#chunk_12"
+    ]
+  }
+}
+
