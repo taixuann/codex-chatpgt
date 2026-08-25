@@ -1,12 +1,12 @@
 ---
 id: PLAN-ARW-PERSISTENT-MEMORY-20260809-001
 issue: 9
-status: active-experimental
-activation_gate: user-approved-bounded-reuse-experiment-2026-08-10
+status: not-planned
+activation_gate: new-measured-continuity-or-targeted-retrieval-need
 scope: persistent-memory-promotion
 preferred_candidate: agentmemory
 candidate_status: experimental-substrate-only
-updated: 2026-08-10
+updated: 2026-08-25
 ---
 
 # Objective
