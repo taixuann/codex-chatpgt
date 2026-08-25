@@ -178,7 +178,8 @@ scope. The next bounded execution plan is
 
 ### Milestone C — Scientific Agent Loop v1
 
-**Owners:** #7, #59, #61. Prove one bounded example:
+**Owners:** #7 remains active; #59 and #61 semantic v1 contracts are
+completed. The retained bounded example is:
 
 ```text
 scientific question → Feynman reasoning → knowledge/context retrieval
@@ -196,10 +197,9 @@ This milestone does not implement a full Scientific Wiki platform.
   enforcement, and human scientific acceptance remain `NOT_ASSESSED`; the
   scientific result remains `REQUIRES_ADDITIONAL_MEASUREMENT` with no mechanism
   promotion. Future extensions remain with #7, #47, #56, and #61.
-- **#17** — minimal Goal/PLAN linkage remains proposed. The earlier dependency
-  on a future #2 implementation PR is obsolete because #2 is conditionally
-  closed; the next proof must bind a current Issue/PLAN/PR/result work unit.
-  The closed draft PR #3 is not active evidence.
+- **#17** — NOT_PLANNED/superseded for the current horizon. The earlier
+  #2-resumption/PR #3 proof path is obsolete; no current consumer justifies
+  graph machinery beyond Issue/optional PLAN/PR links.
 - **#5** — accepted through the bounded execution/closure record in
   `PLAN-ARW-EXECUTION-VALIDATION-20260809-001.md`. PR #33 is the bounded
   change surface; its induced failure/repair, impact frontier, syntactic and
@@ -234,7 +234,10 @@ This milestone does not implement a full Scientific Wiki platform.
   project-specific skill/agent, or evolution signal (`NO ACTION`). This
   Host-runtime limitations remain `NOT_ASSESSED` and are owned by #31/#56; the
   exact rerun hashes and review disposition are recorded in the #6 review PLAN.
-- **#15** — evidence-collecting. Reactive path now has one accepted real slice through PR #18 (GitHub Actions validation repair/hardening); the workflow family is still open because a representative proactive system-change path and broader reuse/change-surface evidence remain unproven.
+- **#15** — completed for the v1 workflow family. PR #18 supplies the
+  reactive slice; PRs #72, #82, and #84 supply bounded proactive
+  control-plane improvement, validation, review, repair, and reconciliation
+  evidence without introducing a duplicate lifecycle.
 - **#16** — inventory-first; select one real research task and inspect existing Wiki/Personal Wiki/RAG-BM25/OpenScience/Typst interfaces before implementation.
 - **#7** — the production Wiki Scientific Evidence MCP is registered once in
   the local global Codex configuration. With the user's bounded data-export
@@ -280,43 +283,41 @@ This milestone does not implement a full Scientific Wiki platform.
   contrastive routing fixture distinguishes metadata evidence from behavioral
   runtime selection. Hosted CI passed; behavioral selection remains an
   explicit runtime limitation.
-- **#31 Phase A** — session-continuity semantics are conditionally passed
-  through PR #32
-  (`2cf7b80`). Fresh orientation, event-driven selective reorientation,
+- **#31** — semantic v1 completed through PR #32 and the #10 pilot.
+  Native host hooks remain NOT_ASSESSED as recorded below.
+  Fresh orientation, event-driven selective reorientation,
   authority ordering, failure reclassification, acceptance-before-learning,
   bounded evolution observation, and logical-session continuation guidance are
   now part of the canonical operating surface. The #10 pilot returned
   `NO ACTION` for evolution observation and produced no natural reorientation
   event. No session manager, checkpoint
-  store, evolution database, or new skill/workflow was added. Issue #31 stays
-  open for empirical runtime acceptance; the available Codex probe does not
-  expose AGENTS load timing, automatic closeout, compaction internals, or
-  custom adapter selection.
-- **#7/#8/#11/#12** — backlog PLANs remain gated by their own runtime evidence.
-  For #12 specifically, a bounded OpenCode overlay handoff is recorded in
-  `PLAN-ARW-PORTABILITY-20260809-001.md` as `NOT_EXECUTED`; the external
-  checkout is dirty and requires owner confirmation before any mutation.
-- **#9** — user-authorized **experimental activation** is now running on the
-  existing AgentMemory `0.9.28` substrate with the eight-tool core surface,
-  zero-LLM/BM25-only mode, auto-compress off, and context injection off.
-  Phase A–E probes completed: healthy durable service, Codex/OpenCode
-  smart-search calls, bounded three-observation capture fixture, restart
-  persistence, diagnostics/reconciliation, useful/no-recall, stale-conflict
-  precedence, scope-isolation and latency checks. Native host capture is not
-  proven (OpenCode session gap observed), and unscoped memory still leaks
-  across `.codex` and `/tmp/unrelated-project` filters. #9 is therefore
-  `active-experimental`, non-blocking and non-canonical; normal mandatory
-  orientation remains gated on scope isolation, consolidation, provenance,
-  contradiction handling and a repeated continuity/retrieval gap. No memory
-  layer, workflow, agent, mirror or auto-promotion path was added.
+  store, evolution database, or new skill/workflow was added. Native AGENTS
+  timing, automatic closeout, compaction, parent-resume, and adapter
+  selection remain NOT_ASSESSED and do not block the semantic v1 disposition.
+- **#9** — NOT_PLANNED for the current horizon. The existing AgentMemory
+  experiment remains non-canonical and activation requires a new measured
+  continuity need; no mandatory memory layer or auto-promotion path exists.
+- **#12** — NOT_PLANNED for the current horizon. Portability remains a future
+  trigger under #4 until an authorized secondary-harness task exists.
+
+### Phase A backlog reconciliation — 2026-08-25
+
+- **#59** and **#61** are completed for their bounded semantic v1 contracts;
+  native Argus/Athena dispatch and skill loading remain NOT_ASSESSED.
+- **#62** remains open with one blocker: no demonstrated second repository
+  consuming the portable lifecycle procedure. PRs #78–#84 prove the complete
+  single-repository work-unit chain.
+- **#9**, **#12**, and **#17** are NOT_PLANNED/superseded until a real
+  activation consumer appears. Phase B/C Issues were not changed.
 
 ## Planning state
 
 `documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
 
-Issue #17 links to its current PLAN; historical PR #3 is not an active proof
-fixture. #2 and #5 are accepted for their deterministic contracts; host-level
-runtime acceptance remains explicitly `NOT_ASSESSED` under #31/#56/#8.
+Issue #17 is NOT_PLANNED/superseded for the current horizon; historical PR #3
+is not an active proof fixture. #2 and #5 are accepted for their deterministic
+contracts; host-level runtime acceptance remains explicitly `NOT_ASSESSED`
+under #56/#8.
 
 ## Anti-overengineering state
 
