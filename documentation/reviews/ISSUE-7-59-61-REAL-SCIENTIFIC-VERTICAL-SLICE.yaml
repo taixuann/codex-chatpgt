@@ -16,6 +16,42 @@ project_context:
   repository: taixuann/research-projects
   source_commit: 75adf7caf92b90290c92ec102796626ed3668e23
   project_scope: active-projects/res_volatile-polydopamine
+  authority_sources:
+    - path: active-projects/res_volatile-polydopamine/project.yaml
+      git_blob: eafe1d11dd5d4114c04a4e67a35144106c7ab374
+      role: project_manifest
+    - path: AGENTS.md
+      git_blob: e518bb70aac69c5fc81a3e935e51465d6a2dfb13
+      role: repository_authority
+    - path: .agents/manifest.yaml
+      git_blob: 8343be90ccd18d964b16497aaf2c07366465b6d5
+      role: project_manifest
+    - path: .agents/CURRENT.md
+      git_blob: 433886362c05f078366ae9327242fc6ce4888ead
+      role: project_root_current_state
+    - path: .agents/DECISIONS.md
+      git_blob: 41b4a38c42aa09ac393af3a402b8c87d22ae9315
+      role: project_root_decisions
+    - path: active-projects/res_volatile-polydopamine/AGENTS.md
+      git_blob: b375c1e356c007c12c896926e6a0f6341a48974e
+      role: project_scope_authority
+    - path: active-projects/res_volatile-polydopamine/documentation/CURRENT.md
+      git_blob: 258314bbf6631ae24a95440b45d7cc872e82ecf3
+      role: project_current_state
+    - path: active-projects/res_volatile-polydopamine/documentation/DECISIONS.md
+      git_blob: f9cf8b17d399d7893efafa071b497152fa80d8fb
+      role: project_decisions
+    - path: active-projects/res_volatile-polydopamine/documentation/artifact-matrix.yaml
+      git_blob: 894ffe3d5e5fc70b59583239020f3cb6428501d4
+      role: artifact_authority
+    - path: active-projects/res_volatile-polydopamine/studies/AGENTS.md
+      git_blob: 9c625c5a123ef8784b2ffc8ac70bc800bc9bfeb7
+      role: study_scope_authority
+    - path: active-projects/res_volatile-polydopamine/studies/reliability/AGENTS.md
+      git_blob: 1cb0c30e1c672f6040813cd85ad81adbcfb2aa7e
+      role: reliability_scope_authority
+  authority_status: PINNED_AND_VERIFIED
+  authority_not_assessed: []
   sources:
     - path: active-projects/res_volatile-polydopamine/studies/reliability/temperature-dependent-iv-transport/study.yaml
       git_blob: b29c60fbd325984ad142ea31eab1f308205d63a8
@@ -146,5 +182,8 @@ lifecycle:
   project_mutation: none
   canonical_state_promotion: none
   scientific_acceptance: NOT_ASSESSED
-  athena_review: PENDING
+  athena_review:
+    status: CONDITIONAL_PASS
+    artifact: documentation/reviews/ISSUE-7-59-61-ATHENA-REVIEW.yaml
+    reviewed_target_digest: sha256:f41ef4d1364a1bf6ed8f991f23bede0d0e04dac88fca47baa330d0242e60b964
   human_authority: required
