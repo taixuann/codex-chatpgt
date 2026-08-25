@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -19,7 +20,11 @@ REQUIRED_AUTHORITY_PATHS = {
     "active-projects/res_volatile-polydopamine/AGENTS.md",
     "active-projects/res_volatile-polydopamine/documentation/CURRENT.md",
     "active-projects/res_volatile-polydopamine/documentation/DECISIONS.md",
+    "active-projects/res_volatile-polydopamine/documentation/artifact-matrix.yaml",
+    "active-projects/res_volatile-polydopamine/studies/AGENTS.md",
+    "active-projects/res_volatile-polydopamine/studies/reliability/AGENTS.md",
 }
+SHA1 = re.compile(r"^[0-9a-f]{40}$")
 
 
 def _target_digest(packet: dict) -> str:
@@ -38,6 +43,8 @@ def validate(packet_path: Path, review_path: Path) -> None:
     if packet.get("kind") != "feynman.real-scientific-vertical-slice.v1":
         raise ValueError("unexpected vertical-slice kind")
     context = packet.get("project_context") or {}
+    if not SHA1.fullmatch(str(context.get("source_commit", ""))):
+        raise ValueError("project source_commit must be a 40-character SHA-1")
     if context.get("authority_status") != "PINNED_AND_VERIFIED":
         raise ValueError("project authority is not pinned and verified")
     authorities = context.get("authority_sources") or []
@@ -45,9 +52,15 @@ def validate(packet_path: Path, review_path: Path) -> None:
     missing = REQUIRED_AUTHORITY_PATHS - set(entries)
     if missing:
         raise ValueError(f"missing authority provenance: {sorted(missing)}")
+    if len(entries) != len(authorities):
+        raise ValueError("authority provenance paths must be unique")
+    blobs = []
     for path, item in entries.items():
-        if not path or not item.get("git_blob") or not item.get("role"):
+        if not path or not SHA1.fullmatch(str(item.get("git_blob", ""))) or not item.get("role"):
             raise ValueError(f"incomplete authority provenance: {path}")
+        blobs.append(item["git_blob"])
+    if len(blobs) != len(set(blobs)):
+        raise ValueError("authority provenance blobs must be unique")
     lifecycle_review = (packet.get("lifecycle") or {}).get("athena_review") or {}
     if lifecycle_review.get("status") == "PENDING":
         raise ValueError("Athena review remains pending")
@@ -60,6 +73,12 @@ def validate(packet_path: Path, review_path: Path) -> None:
         raise ValueError("review targets a different packet")
     if review.get("reviewed_target_revision") != digest:
         raise ValueError("persisted review targets a stale packet revision")
+    if review.get("reviewed_project_commit") != context["source_commit"]:
+        raise ValueError("review project commit is not bound to packet project commit")
+    for field in ("review_class", "criteria_refs", "evidence_refs", "coverage", "limitations", "not_assessed"):
+        value = review.get(field)
+        if not value or (isinstance(value, (list, dict)) and not value):
+            raise ValueError(f"review field is required: {field}")
     if review.get("reviewer_id") != "athena" or review.get("recommendation") not in {"PASS", "CONDITIONAL_PASS"}:
         raise ValueError("review is not an independent Athena recommendation")
     if (packet.get("lifecycle") or {}).get("scientific_acceptance") != "NOT_ASSESSED":
