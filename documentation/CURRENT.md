@@ -53,7 +53,7 @@ complete end-to-end workflow remains pending.
 | `CLOUD-BRIEF.md` | CANONICAL | progressive-disclosure cloud entrypoint |
 | `GOAL-PLAN-GRAPH.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #17 |
 | `RESEARCH-KNOWLEDGE-WORKFLOW.md` | SUPERSEDED_SUPPORT | full research/knowledge proof is now scoped under Issue #75 |
-| `SYSTEM-EVOLUTION-WORKFLOW.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #15 |
+| `SYSTEM-EVOLUTION-WORKFLOW.md` | ACCEPTED | v1 evidence reconciled through PRs #18, #72, #82, and #84 |
 
 No document in this map overrides the authority order in `AGENTS.md`; no
 redundant document was removed in this reconciliation.
@@ -88,7 +88,7 @@ The shared operating lifecycle remains capability-first, bounded, validation-ori
 
 The following documents exist as proposed shared semantics and are **not yet accepted runtime truth merely because they are documented**:
 
-- [`SYSTEM-EVOLUTION-WORKFLOW.md`](SYSTEM-EVOLUTION-WORKFLOW.md) — System Configuration and Change workflow; proof tracked by #15.
+- [`SYSTEM-EVOLUTION-WORKFLOW.md`](SYSTEM-EVOLUTION-WORKFLOW.md) — accepted System Configuration and Change workflow v1.
 - [`RESEARCH-KNOWLEDGE-WORKFLOW.md`](RESEARCH-KNOWLEDGE-WORKFLOW.md) — historical research/knowledge workflow support; Issue #16 is superseded by #75.
 - [`GOAL-PLAN-GRAPH.md`](GOAL-PLAN-GRAPH.md) — Goal–Plan linking semantics; minimal proof tracked by #17.
 
@@ -294,9 +294,9 @@ This milestone does not implement a full Scientific Wiki platform.
   store, evolution database, or new skill/workflow was added. Native AGENTS
   timing, automatic closeout, compaction, parent-resume, and adapter
   selection remain NOT_ASSESSED and do not block the semantic v1 disposition.
-- **#9** — NOT_PLANNED for the current horizon. The existing AgentMemory
-  experiment remains non-canonical and activation requires a new measured
-  continuity need; no mandatory memory layer or auto-promotion path exists.
+- **#9** — NOT_PLANNED for the current horizon. Historical AgentMemory
+  evidence remains non-canonical; activation requires a new measured
+  continuity need and no mandatory memory layer or auto-promotion path exists.
 - **#12** — NOT_PLANNED for the current horizon. Portability remains a future
   trigger under #4 until an authorized secondary-harness task exists.
 

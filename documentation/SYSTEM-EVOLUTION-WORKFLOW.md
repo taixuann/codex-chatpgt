@@ -1,7 +1,7 @@
 ---
 id: SYSTEM-EVOLUTION-WORKFLOW
-status: proposed
-updated: 2026-08-09
+status: accepted
+updated: 2026-08-25
 scope: workflow-family
 inherits: OPERATING-WORKFLOW-CODEX-CONTROL-PLANE
 ---
