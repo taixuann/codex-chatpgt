@@ -1,0 +1,350 @@
+{
+  "contract_version": "wiki-evidence/v1",
+  "query": "For temperature-dependent DC-IV measurements in polydopamine-based two-terminal devices, what evidence distinguishes thermally activated ionic/proton transport from electronic injection or Schottky-like conduction, and which discriminating measurements are needed before assigning a unique mechanism?",
+  "intent": "relation",
+  "type": "complex",
+  "query_model": {
+    "class": "experimental_discriminator",
+    "public_intent": "relation",
+    "normalized_query": "For temperature-dependent DC-IV measurements in polydopamine-based two-terminal devices, what evidence distinguishes thermally activated ionic/proton transport from electronic injection or Schottky-like conduction, and which discriminating measurements are needed before assigning a unique mechanism? polydopamine",
+    "aliases": [
+      {
+        "surface": "polydopamine",
+        "canonical": "polydopamine",
+        "reason": "canonical_term"
+      }
+    ],
+    "canonical_terms": [
+      "polydopamine"
+    ],
+    "evidence_needed": [
+      "method",
+      "measurement",
+      "result"
+    ],
+    "comparison_axes": [],
+    "constraints": {
+      "retrieval_expansions": []
+    },
+    "route": "bounded_decomposition",
+    "subqueries": [
+      "polydopamine evidence",
+      "ion permeability measurement evidence",
+      "electrochemical impedance cyclic voltammetry evidence"
+    ]
+  },
+  "retrieval": {
+    "mode": "hybrid",
+    "diversity": "document",
+    "subquery_count": 3,
+    "expansion_count": 0
+  },
+  "evidence": [
+    {
+      "source_id": "sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md",
+      "git_blob": "07f8ef4fc2cfaacfd4f08683c9a9d042370a84cb",
+      "source_family": "paulsen-2020",
+      "chunk_id": "paulsen-2020-organic-mixed-ionic-electronic#nature-materials#chunk_113",
+      "score": 0.04771,
+      "relations": [],
+      "section": "nature-materials",
+      "subsection": null,
+      "section_path": [
+        "nature-materials"
+      ],
+      "entities": {
+        "materials": [
+          "pedot"
+        ],
+        "devices": [
+          "transistor"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "impedance",
+          "raman"
+        ]
+      }
+    },
+    {
+      "source_id": "sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md",
+      "git_blob": "2db02fef42f4fd28cef3c77c4a89656db604e6b1",
+      "source_family": "varol-2023",
+      "chunk_id": "varol-2023-electropolymerization-polydopamine-electrode-supported#experimental-section#chunk_68",
+      "score": 0.042118,
+      "relations": [],
+      "section": "experimental-section",
+      "subsection": null,
+      "section_path": [
+        "experimental-section"
+      ],
+      "scientific_role": "method",
+      "entities": {
+        "materials": [
+          "ito"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "cyclic voltammetry"
+        ]
+      }
+    },
+    {
+      "source_id": "sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md",
+      "git_blob": "22d58fd57bd3982a197a64b1ba6973f6134b050b",
+      "source_family": "zhou-2022",
+      "chunk_id": "zhou-2022-natural-biomaterial-memristor-bearing#introduction#chunk_5",
+      "score": 0.025806,
+      "relations": [],
+      "section": "introduction",
+      "subsection": null,
+      "section_path": [
+        "introduction"
+      ],
+      "entities": {
+        "materials": [
+          "polydopamine",
+          "pda"
+        ],
+        "devices": [
+          "memristor",
+          "memristive",
+          "resistive memory"
+        ],
+        "mechanisms": [
+          "resistive switching",
+          "sclc"
+        ],
+        "measurements": [
+          "i-v",
+          "uv-vis",
+          "temperature",
+          "humidity",
+          "retention",
+          "endurance",
+          "conductivity",
+          "resistance"
+        ]
+      },
+      "provenance": {
+        "figure": "4c"
+      }
+    },
+    {
+      "source_id": "sources/raw/markdown/zhong-2025-electropolymerized-dopamine-memristors-threshold.md",
+      "git_blob": "268d145e02e4ac1e6a723b08870d051fac9b4ee2",
+      "source_family": "zhong-2025",
+      "chunk_id": "zhong-2025-electropolymerized-dopamine-memristors-threshold#bio-inspired-protonic-memristor-devices-#chunk_12",
+      "score": 0.01194,
+      "relations": [],
+      "section": "bio-inspired-protonic-memristor-devices-",
+      "subsection": null,
+      "section_path": [
+        "bio-inspired-protonic-memristor-devices-"
+      ],
+      "entities": {
+        "devices": [
+          "memristor"
+        ],
+        "mechanisms": [
+          "redox",
+          "resistive switching"
+        ]
+      },
+      "provenance": {
+        "figure": "1"
+      }
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel-gao-hiruma-001",
+      "from_source_id": "sources/notes/gao-2014-ion-permeability-of-polydopamine.md",
+      "to_source_id": "sources/notes/hiruma-2019-bioinspired-protonic-memristor-devices.md",
+      "relation": "related",
+      "status": "candidate",
+      "confidence": "low",
+      "provenance": [
+        "gao-2014-ion-permeability-of-polydopamine#summary#chunk_1",
+        "hiruma-2019-bioinspired-protonic-memristor-devices#abstract#chunk_3"
+      ]
+    }
+  ],
+  "gaps": [],
+  "sufficiency": {
+    "status": "sufficient",
+    "decision": "return_packet",
+    "reason": "grounded evidence was returned; scientific acceptance remains with OpenScience/human review",
+    "classification": null,
+    "source_count": 4,
+    "observed_roles": [
+      "method"
+    ],
+    "missing_roles": [
+      "measurement",
+      "result"
+    ]
+  },
+  "coverage": {
+    "evidence_items": 4,
+    "source_count": 4,
+    "lexical_hits": 120
+  },
+  "stats": {
+    "bm25_hits": 120,
+    "vector_hits": 120,
+    "graph_hits": 20
+  },
+  "results": [
+    {
+      "source": "sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md",
+      "chunk_id": "paulsen-2020-organic-mixed-ionic-electronic#nature-materials#chunk_113",
+      "section": "nature-materials",
+      "subsection": null,
+      "section_path": [
+        "nature-materials"
+      ],
+      "scientific_role": null,
+      "entities": {
+        "materials": [
+          "pedot"
+        ],
+        "devices": [
+          "transistor"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "impedance",
+          "raman"
+        ]
+      },
+      "provenance": {},
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0477
+    },
+    {
+      "source": "sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md",
+      "chunk_id": "varol-2023-electropolymerization-polydopamine-electrode-supported#experimental-section#chunk_68",
+      "section": "experimental-section",
+      "subsection": null,
+      "section_path": [
+        "experimental-section"
+      ],
+      "scientific_role": "method",
+      "entities": {
+        "materials": [
+          "ito"
+        ],
+        "mechanisms": [
+          "redox"
+        ],
+        "measurements": [
+          "cyclic voltammetry"
+        ]
+      },
+      "provenance": {},
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0421
+    },
+    {
+      "source": "sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md",
+      "chunk_id": "zhou-2022-natural-biomaterial-memristor-bearing#introduction#chunk_5",
+      "section": "introduction",
+      "subsection": null,
+      "section_path": [
+        "introduction"
+      ],
+      "scientific_role": null,
+      "entities": {
+        "materials": [
+          "polydopamine",
+          "pda"
+        ],
+        "devices": [
+          "memristor",
+          "memristive",
+          "resistive memory"
+        ],
+        "mechanisms": [
+          "resistive switching",
+          "sclc"
+        ],
+        "measurements": [
+          "i-v",
+          "uv-vis",
+          "temperature",
+          "humidity",
+          "retention",
+          "endurance",
+          "conductivity",
+          "resistance"
+        ]
+      },
+      "provenance": {
+        "figure": "4c"
+      },
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0258
+    },
+    {
+      "source": "sources/raw/markdown/zhong-2025-electropolymerized-dopamine-memristors-threshold.md",
+      "chunk_id": "zhong-2025-electropolymerized-dopamine-memristors-threshold#bio-inspired-protonic-memristor-devices-#chunk_12",
+      "section": "bio-inspired-protonic-memristor-devices-",
+      "subsection": null,
+      "section_path": [
+        "bio-inspired-protonic-memristor-devices-"
+      ],
+      "scientific_role": null,
+      "entities": {
+        "devices": [
+          "memristor"
+        ],
+        "mechanisms": [
+          "redox",
+          "resistive switching"
+        ]
+      },
+      "provenance": {
+        "figure": "1"
+      },
+      "relations": [],
+      "methods": [
+        "bm25",
+        "lexical_fallback"
+      ],
+      "score": 0.0119
+    }
+  ],
+  "citation_map": {
+    "sources/raw/markdown/paulsen-2020-organic-mixed-ionic-electronic.md": [
+      "paulsen-2020-organic-mixed-ionic-electronic#nature-materials#chunk_113"
+    ],
+    "sources/raw/markdown/varol-2023-electropolymerization-polydopamine-electrode-supported.md": [
+      "varol-2023-electropolymerization-polydopamine-electrode-supported#experimental-section#chunk_68"
+    ],
+    "sources/raw/markdown/zhou-2022-natural-biomaterial-memristor-bearing.md": [
+      "zhou-2022-natural-biomaterial-memristor-bearing#introduction#chunk_5"
+    ],
+    "sources/raw/markdown/zhong-2025-electropolymerized-dopamine-memristors-threshold.md": [
+      "zhong-2025-electropolymerized-dopamine-memristors-threshold#bio-inspired-protonic-memristor-devices-#chunk_12"
+    ]
+  }
+}
