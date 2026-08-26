@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import re
 import subprocess
 import sys
 
 
-ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/control-plane-audit/", "skills/runtime-adapter-management/", "skills/instruction-maintenance/", "skills/project-bootstrap/", "skills/external-handoff/", "skills/shared-session-closeout/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/", "ops/on-demand-skills/")
+ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/control-plane-audit/", "skills/runtime-adapter-management/", "skills/instruction-maintenance/", "skills/project-bootstrap/", "skills/external-handoff/", "skills/shared-session-closeout/", "skills/session-packet-management/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/", "ops/on-demand-skills/")
 ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "skills/ADDYOSMANI-AGENT-SKILLS-LICENSE", "workflows/AGENTS.md"}
 ALLOWED_SKILL_PACKAGES = frozenset({
     "api-and-interface-design", "aspnet-core", "browser-testing-with-devtools", "chatgpt-apps",
@@ -26,14 +27,21 @@ ALLOWED_SKILL_PACKAGES = frozenset({
     "security-best-practices", "security-ownership-map", "security-threat-model", "sentry", "shipping-and-launch",
     "skill-retrospective", "socratic", "source-driven-development", "spec-driven-development", "speech",
     "test-driven-development", "transcribe", "using-agent-skills", "vercel-deploy", "winui-app",
-    "scientific-evidence-synthesis", "hypothesis-and-test-design", "scientific-method-critique",
+    "scientific-evidence-synthesis", "hypothesis-and-test-design", "scientific-method-critique", "session-packet-management",
 })
 ALLOWED_SKILL_SHARED_PREFIXES = ("skills/references/",)
-FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials")
+FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials", "token")
+TRACKED_SESSION_PREFIXES = ("documentation/sessions/",)
+SESSION_ID = r"[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}"
+TRACKED_SESSION_PATH = re.compile(
+    rf"^documentation/sessions/{SESSION_ID}/(?:session\.yaml|context\.md|spec\.md|plan\.md|task\.md|franky\.ticket\.yaml|franky\.results\.yaml|references\.yaml|\.rag/manifest\.yaml)$"
+)
 
 
 def is_allowed_path(path: str) -> bool:
     """Return whether a tracked path belongs to an admitted repository surface."""
+    if path.startswith(TRACKED_SESSION_PREFIXES):
+        return bool(TRACKED_SESSION_PATH.fullmatch(path))
     if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
         return True
     if path.startswith(ALLOWED_SKILL_SHARED_PREFIXES):
@@ -54,7 +62,9 @@ def main() -> int:
         for path in paths:
             if not is_allowed_path(path):
                 raise ValueError(f"tracked path outside allowlist: {path}")
-            if any(marker in path for marker in FORBIDDEN_MARKERS):
+            protected_marker = any(marker in path for marker in FORBIDDEN_MARKERS)
+            tracked_packet = bool(TRACKED_SESSION_PATH.fullmatch(path))
+            if protected_marker and not tracked_packet:
                 raise ValueError(f"sensitive path is tracked: {path}")
     except (OSError, subprocess.CalledProcessError, ValueError) as exc:
         print(f"FAIL {args.root}: {exc}")

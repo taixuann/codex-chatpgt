@@ -1,0 +1,43 @@
+# Copy into the packet after execution and replace the example values.
+# Validate against ops/schemas/franky-result.schema.yaml and the Franky contract validator.
+kind: franky.result.v1
+version: 1
+contract_version: {major: 1, minor: 1}
+request_id: FRANKY-20260826-SESSION-001
+status: blocked
+lifecycle:
+  state: REQUEST
+  evidence:
+    - state: REQUEST
+      status: PASS
+      source: franky.ticket.yaml
+      provenance: {source_state: session-packet, commit: uncommitted, observed_at: '2026-08-26T00:00:00Z', result: PASS}
+evidence_freshness: {source_commit: uncommitted, validated_at: '2026-08-26T00:00:00Z', mutation_free_since_validation: true, invalidated_by_mutation: false}
+routing:
+  operation_class: bounded_session_audit
+  primary_capability: control-plane-audit
+  primary_reason: Deterministic audit and validation are required.
+  supporting_capabilities: []
+  supporting_reasons: []
+  impact_required: false
+changes: [{path: session-packet, action: unchanged_valid}]
+closure: {implementation: NOT_APPLICABLE, canonical_state: NOT_ASSESSED, references: PASS, proof: NOT_ASSESSED}
+validation: [{check: session packet validator, status: PASS, source_state: session-packet}]
+review:
+  required: false
+  status: NOT_ASSESSED
+  scope: [packet metadata and evidence links]
+  not_reviewed: [human acceptance]
+  reviewer_id: parent-control-plane
+  reviewer_role: parent_acceptance
+  review_session_id: 00000000-0000-0000-0000-000000000000
+  review_record: documentation/reviews/pending.yaml
+unresolved:
+  blockers: [Replace example values and complete the approved task.]
+  limitations: [This is a template, not an acceptance claim.]
+evolution: {status: NO_ACTION, observation: Template only; no evolution decision made., candidate_improvements: [], promotion_required: false}
+runtime_evidence:
+  configuration: {status: NOT_ASSESSED, evidence: Template does not probe host configuration.}
+  dispatch: {status: NOT_ASSESSED, evidence: Template does not prove native dispatch.}
+  skill_loading: {status: NOT_ASSESSED, evidence: Template does not prove native skill loading.}
+  mutation: {status: NOT_ASSESSED, evidence: Template does not prove host mutation enforcement.}
