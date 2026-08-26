@@ -255,7 +255,7 @@ layer, mirror, hook package, or canonical-state mutation is introduced.
 - Useful historical recall returned three bounded results for the `.codex`
   project; the unrelated query returned zero results.
 - The stale-conflict fixture returned the historical note claiming that #9 was
-  accepted, while the live canonical plan reads `status: active-experimental`,
+  accepted, while the then-current plan still carried the historical `active-experimental` status,
   not accepted/mandatory.
   The reconciliation decision keeps canonical plan state authoritative; the
   stale fixture does not override it.
