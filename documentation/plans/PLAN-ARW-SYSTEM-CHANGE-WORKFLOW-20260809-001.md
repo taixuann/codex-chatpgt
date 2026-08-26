@@ -1,12 +1,18 @@
 ---
 id: PLAN-ARW-SYSTEM-CHANGE-WORKFLOW-20260809-001
 issue: 15
-status: evidence-collecting
-activation_gate: representative-system-change-slices
+status: accepted
+activation_gate: satisfied-by-representative-system-change-slices
 scope: system-configuration-change-workflow
 ---
 
 # Objective
+
+This plan is retained as the accepted v1 evidence record for Issue #15.
+Reactive evidence is preserved by PR #18; proactive control-plane change,
+reuse/smallest-surface selection, validation, review, repair, and reconciliation
+are preserved by PRs #72, #82, and #84. No additional workflow machinery is
+required.
 
 Prove the System Configuration and Change workflow by applying it to real reactive and proactive control-plane changes, without creating a second execution framework or swallowing #11 self-evolution governance.
 
