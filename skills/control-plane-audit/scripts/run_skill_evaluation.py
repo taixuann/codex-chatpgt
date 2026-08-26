@@ -132,6 +132,8 @@ def summarize_trace(stdout: str, stderr: str) -> dict[str, Any]:
     completed = any(event.get("type") == "turn.completed" for event in events)
     if host_selection is not None:
         selection_source = "host_trace"
+    elif len(procedure_loads) == 1:
+        selection_source = "procedure_load_trace"
     elif final_answer:
         selection_source = "final_response_self_report"
     else:
@@ -182,10 +184,14 @@ def _normalise_actual(value: Any) -> str:
 
 
 def actual_from_trace(trace: dict[str, Any], tracked: set[str]) -> str:
-    """Use host selection only; self-report is retained but not promoted."""
-    if trace.get("selection_source") != "host_trace":
+    """Use host selection or an observed single procedure load, never self-report."""
+    if trace.get("selection_source") == "host_trace":
+        actual = _normalise_actual(trace.get("host_selection"))
+        return actual if actual == "none" or actual in tracked else "unknown"
+    if trace.get("selection_source") != "procedure_load_trace":
         return "none"
-    actual = _normalise_actual(trace.get("host_selection"))
+    loads = trace.get("procedure_loads", [])
+    actual = _normalise_actual(loads[0] if len(loads) == 1 else "unknown")
     return actual if actual == "none" or actual in tracked else "unknown"
 
 
