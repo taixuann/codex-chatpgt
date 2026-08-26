@@ -1,0 +1,35 @@
+kind: personal-wiki.artifact.v1
+id: pw-v1-arrhenius-heuristic-001
+title: Arrhenius fit is a diagnostic, not mechanism identification
+artifact_state: DRAFT
+owner: personal_wiki_owner
+producer: feynman
+authority_status: PERSONAL_CONTEXT_ONLY
+provenance:
+  source_refs:
+    - codex-chatpgt:documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml
+  captured_at: 2026-08-16T00:00:00Z
+  source_state: merged-main
+  source_commit: 4ef68b27a5f7649eddb8ae8efa51779854767bdb
+claims:
+  - id: c1
+    category: personal_understanding
+    statement: A strong fit does not by itself identify a unique conduction mechanism.
+    evidence_refs:
+      - codex-chatpgt:documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml#claim_calibration
+  - id: c2
+    category: uncertainty
+    statement: Additional discriminating measurements are required before mechanism promotion.
+    evidence_refs:
+      - codex-chatpgt:documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml#next_discriminating_test
+context_consumption:
+  authorized_consumers: [feynman]
+  authorization_ref: codex-chatpgt#75/feynman-v1
+  use: reusable_context
+  project_authority_overrides: true
+promotion:
+  status: PROPOSED
+  target: personal_context
+  rationale: Reusable claim-calibration heuristic; retain project provenance.
+  proposal_id: pw-promotion-001
+  write_performed: false
