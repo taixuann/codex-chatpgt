@@ -156,7 +156,7 @@ review:
 unresolved:
   blockers: [Independent Athena review and parent acceptance are pending.]
   limitations:
-    - "The session-packet-management package is untracked in the shared worktree; catalog validation remains a parent-stream condition. The structure stream owns documentation/AGENT-BOUNDARIES.md; this acceptance repair also owns the result record and shared result schema. Other ledger entries are pre_existing/observed. .rag/manifest.yaml is observed_ignored and not owned. No ownership is claimed for observed paths."
+    - "The .rag/manifest.yaml file is a derived ignored artifact and is not portable evidence. The structure stream owns documentation/AGENT-BOUNDARIES.md; other ledger entries are pre_existing/observed. No ownership is claimed for observed paths."
 evolution: {status: NO_ACTION, observation: No real consumer justified a manifest index or merged control-plane registry., candidate_improvements: [], promotion_required: false}
 runtime_evidence:
   configuration: {status: NOT_ASSESSED, evidence: Static repository contracts only; host configuration was not changed.}

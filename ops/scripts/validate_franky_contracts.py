@@ -134,6 +134,10 @@ def _ledger_states(repository_root: Path) -> dict[str, str]:
 
 
 def _governed_snapshot_token(repository_root: Path) -> str:
+    head = subprocess.run(
+        ["git", "-C", str(repository_root), "rev-parse", "HEAD"],
+        check=True, capture_output=True, text=True,
+    ).stdout.strip()
     records = subprocess.run(
         ["git", "-C", str(repository_root), "status", "--porcelain", "--untracked-files=all"],
         check=True, capture_output=True, text=True,
@@ -143,7 +147,7 @@ def _governed_snapshot_token(repository_root: Path) -> str:
         for path in (repository_root / "documentation/sessions").glob("*/franky.results.yaml")
         if path.is_file()
     }
-    material: list[str] = []
+    material: list[str] = [f"HEAD {head}"]
     for record in records:
         path = record[3:]
         if " -> " in path:
@@ -180,6 +184,16 @@ def _validate_freshness(result: dict, result_path: Path, repository_root: Path |
             raise ValueError("working-tree evidence requires a Git repository root")
         if freshness["source_commit"] != _governed_snapshot_token(root):
             raise ValueError("working-tree evidence snapshot token does not match live governed snapshot")
+    elif re.fullmatch(r"[0-9a-f]{40}", freshness["source_commit"].lower()):
+        root = repository_root or _git_root(result_path.parent)
+        if root is not None:
+            try:
+                subprocess.run(
+                    ["git", "-C", str(root), "cat-file", "-e", f"{freshness['source_commit']}^{{commit}}"],
+                    check=True, capture_output=True, text=True,
+                )
+            except (OSError, subprocess.CalledProcessError) as exc:
+                raise ValueError("evidence_freshness.source_commit is not a commit in the repository") from exc
 
 
 def _validate_change_ledger(result: dict, result_path: Path, repository_root: Path | None) -> None:

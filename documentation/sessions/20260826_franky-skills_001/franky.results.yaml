@@ -13,7 +13,7 @@ lifecycle:
     - {state: IMPACT, status: PASS, source: skills and session packet scope, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
     - {state: EXECUTION, status: PASS, source: skills/external-handoff/SKILL.md, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
     - {state: VALIDATION, status: PASS, source: 'quick_validate, quality, interface, routing, and focused tests', provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: CLOSURE, status: BLOCKED, source: catalog test, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: BLOCKED}}
+    - {state: CLOSURE, status: BLOCKED, source: independent review and parent acceptance boundary, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: BLOCKED}}
 evidence_freshness: {source_commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', validated_at: '2026-08-26T21:46:38+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
 routing:
   operation_class: bounded_skill_layer_audit
@@ -123,7 +123,7 @@ validation:
     status: PASS
     source_state: packet
   - {check: "python3 skills/external-handoff/scripts/run_non_interactive_handoff.py --repo-root /Users/tai/.codex echo safe", status: PASS, source_state: packet}
-  - {check: "python3 skills/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml", status: BLOCKED, source_state: packet}
+  - {check: "python3 skills/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml", status: PASS, source_state: integrated-tree}
   - {check: "python3 ops/scripts/validate_franky_contracts.py --print-snapshot-token --repository-root /Users/tai/.codex", status: PASS, source_state: packet}
   - {check: "rollback evidence NOT_ASSESSED: no restoration executed. Inventory: git status --short --untracked-files=all --ignored. Tracked patch command: git diff --binary -- skills/external-handoff skills/session-packet-management .gitignore documentation/sessions/20260826_franky-skills_001 > /private/tmp/franky-skills-tracked.patch. Untracked per-path patch command: git ls-files --others --exclude-standard -z | xargs -0 -n1 git diff --no-index --binary /dev/null > /private/tmp/franky-skills-untracked.patch; git diff returns 1 for each untracked path and xargs may return 123. Ignored or derived files, including .rag/manifest.yaml and the ignored external-handoff reference guide, are not restorable by these patches. Manual removal/recovery requires parent approval and per-path backup review; no removal or restoration executed.", status: NOT_ASSESSED, source_state: packet}
 review:
@@ -137,9 +137,9 @@ review:
   review_record: documentation/reviews/pending.yaml
 unresolved:
   blockers:
-    - "New session-packet-management package is not tracked, so catalog completeness cannot pass until parent handles the staging/commit boundary; independent review is pending."
+    - "Independent Athena review and parent acceptance are pending."
   limitations:
-    - "Native dispatch, native skill loading, and host permission enforcement are NOT_ASSESSED. Current acceptance-run ownership is limited to external-handoff/SKILL.md, external-handoff/scripts/run_non_interactive_handoff.py, external-handoff/tests/test_runner.py, and this result record. All other ledger entries are pre_existing/observed; the ignored external-handoff reference guide and .rag/manifest.yaml are observed_ignored. No ownership is claimed for observed paths."
+    - "Native dispatch, native skill loading, and host permission enforcement are NOT_ASSESSED. The .rag/manifest.yaml file is a derived ignored artifact and is not portable evidence. No ownership is claimed for observed paths."
 evolution: {status: NO_ACTION, observation: No additional recurring skill-layer friction was established beyond the repaired root-scope guidance gap., candidate_improvements: [], promotion_required: false}
 runtime_evidence:
   configuration: {status: NOT_ASSESSED, evidence: Static repository configuration only; native host configuration was not probed.}

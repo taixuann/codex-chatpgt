@@ -25,7 +25,7 @@ constraints:
 done_criteria:
   - Distinct manifests/ops ownership is documented.
   - Agent descriptions remain bounded and Prometheus remains general.
-  - Dedicated packet has reciprocal links, ticket, result, references, and RAG manifest.
+  - Dedicated packet has reciprocal links, ticket, result, references, and records the derived local RAG manifest as nonportable evidence.
   - Deterministic validation evidence is recorded with runtime limitations.
 required_outcomes: [KISS structure finding, scoped documentation update, reproducible validation evidence]
 acceptance_requirements: [Independent Athena review and parent acceptance before promotion.]
