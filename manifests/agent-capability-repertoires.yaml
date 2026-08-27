@@ -32,6 +32,7 @@ agents:
       - instruction-maintenance
       - runtime-adapter-management
       - external-handoff
+      - session-packet-management
     lifecycle_capabilities:
       - shared-session-closeout
     conditional_capabilities:

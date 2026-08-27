@@ -74,7 +74,25 @@ class SkillEvaluationTests(unittest.TestCase):
         ]
         trace = module.summarize_trace("\n".join(lines) + "\n", "")
         self.assertEqual(trace["procedure_loads"], ["demo"])
+        self.assertEqual(trace["selection_source"], "procedure_load_trace")
         self.assertEqual(trace["usage"]["total_tokens"], 20)
+
+    def test_actual_from_trace_accepts_single_procedure_load_but_not_self_report(self):
+        module = load_module()
+        self.assertEqual(
+            module.actual_from_trace(
+                {"selection_source": "procedure_load_trace", "procedure_loads": ["demo"]},
+                {"demo"},
+            ),
+            "demo",
+        )
+        self.assertEqual(
+            module.actual_from_trace(
+                {"selection_source": "final_response_self_report", "procedure_loads": []},
+                {"demo"},
+            ),
+            "none",
+        )
 
     def test_trace_parser_accepts_timeout_byte_buffers(self):
         module = load_module()

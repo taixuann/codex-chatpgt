@@ -17,6 +17,7 @@ canonical_active:
   - instruction-maintenance
   - project-bootstrap
   - runtime-adapter-management
+  - session-packet-management
   - shared-session-closeout
 capability_keys:
   control-plane-audit: control-plane-audit
@@ -24,6 +25,7 @@ capability_keys:
   instruction-maintenance: instruction-maintenance
   project-bootstrap: project-bootstrap
   runtime-adapter-management: runtime-adapter-management
+  session-packet-management: session-packet-management
   shared-session-closeout: session-closeout
 dispositions:
   KEEP:
@@ -32,6 +34,7 @@ dispositions:
     - instruction-maintenance
     - project-bootstrap
     - runtime-adapter-management
+    - session-packet-management
     - shared-session-closeout
   ADAPT:
     - api-and-interface-design
@@ -133,6 +136,17 @@ evidence:
     basis: Agent adapter schema, scope, collision, dependency, and approval validation procedure.
     evidence_paths:
       - skills/runtime-adapter-management/scripts
+  session-packet-management:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Role-neutral provenance-linked session packet procedure with explicit repository-local targets, Franky contract compatibility, and derived-index boundaries.
+    evidence_paths:
+      - skills/session-packet-management/SKILL.md
+      - skills/session-packet-management/references/packet-contract.md
+      - skills/session-packet-management/templates
+      - skills/session-packet-management/scripts
+      - skills/session-packet-management/tests
   shared-session-closeout:
     utility: PASS
     structural: PASS

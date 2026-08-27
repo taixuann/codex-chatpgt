@@ -16,15 +16,19 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 class RuntimeMaterializationTests(unittest.TestCase):
-    def context(self, **permissions):
+    def context(self, skill="control-plane-audit", **permissions):
         return resolve_context(
             agent="franky",
-            skill="control-plane-audit",
+            skill=skill,
             authority="issue-56",
             permissions={"read": True, "mutate": False, **permissions},
             agents_root=ROOT / "agents",
             catalog_path=ROOT / "manifests/skill-catalog.yaml",
         )
+
+    def test_session_packet_management_is_admitted_for_franky(self):
+        context = self.context(skill="session-packet-management")
+        self.assertEqual(context["skill"], "session-packet-management")
 
     def input_artifact(self):
         return {

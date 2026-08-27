@@ -78,6 +78,7 @@ def resolve_context(
             "instruction-maintenance",
             "runtime-adapter-management",
             "external-handoff",
+            "session-packet-management",
             "shared-session-closeout",
         },
     }

@@ -29,7 +29,9 @@ skill does not execute the external action implicitly.
 3. List prerequisites, validation commands, rollback, unresolved risks, and
    the expected evidence returned by the executor.
 4. If a non-interactive runner is explicitly approved, use the bundled runner
-   and preserve its stdout/stderr as handoff evidence.
+   with an executable plus separate argv tokens (never a shell command string)
+   and preserve its stdout/stderr as handoff evidence. Shell operators,
+   pipelines, redirections, and shell expansion are rejected.
 
 Never include credentials, ask an executor to bypass sandboxing, or expand
 scope because a handoff is inconvenient.
