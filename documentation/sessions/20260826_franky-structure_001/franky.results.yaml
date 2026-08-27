@@ -10,38 +10,38 @@ lifecycle:
       status: PASS
       source: franky.ticket.yaml
       detail: Bounded structure task and exclusions are explicit; mutation authority is granted by the current user-authorized thread/request, while final acceptance and promotion remain gated.
-      provenance: {source_state: working-tree, commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+      provenance: {source_state: working-tree, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
     - state: CONTRACT
       status: PASS
       source: ops/schemas/franky-task.schema.yaml
       detail: Ticket fields conform to franky.task.v1.
-      provenance: {source_state: working-tree, commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+      provenance: {source_state: working-tree, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
     - state: ADMISSION
       status: PASS
       source: agents/franky.toml
       detail: Control-plane maintenance is in Franky's bounded role scope.
-      provenance: {source_state: working-tree, commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+      provenance: {source_state: working-tree, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
     - state: ROUTING
       status: PASS
       source: manifests/agent-capability-repertoires.yaml
       detail: Primary control-plane audit with bounded instruction and adapter support.
-      provenance: {source_state: working-tree, commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+      provenance: {source_state: working-tree, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
     - state: IMPACT
       status: PASS
       source: documentation/AGENT-BOUNDARIES.md
       detail: Declarative and executable surfaces are now explicitly distinguished.
-      provenance: {source_state: working-tree, commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+      provenance: {source_state: working-tree, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
     - state: EXECUTION
       status: PASS
       source: current-working-tree
       detail: Human approval evidence is recorded in context.md and plan.md for the assigned bounded guidance and packet repair; staging, commit, push, archive, deletion, and final acceptance remain unauthorized.
-      provenance: {source_state: working-tree, commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+      provenance: {source_state: working-tree, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
     - state: VALIDATION
       status: PASS
       source: deterministic-validation-suite
       detail: Recorded below; packet and scoped control-plane validators pass.
-      provenance: {source_state: working-tree, commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
-evidence_freshness: {source_commit: 'working-tree:governed-834dc67109a9ff56d9b2ec997d39d3e7113fdc2a92d7e7b9174717dccb6199cd', validated_at: '2026-08-26T22:33:59+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
+      provenance: {source_state: working-tree, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+evidence_freshness: {source_commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', validated_at: '2026-08-26T22:33:59+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
 routing:
   operation_class: control_plane_structure_reconciliation
   primary_capability: control-plane-audit
