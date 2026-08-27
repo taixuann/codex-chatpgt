@@ -11,6 +11,13 @@ SHELL_TOKENS = {";", "|", "||", "&", "&&", ">", ">>", "<", "`"}
 CANONICAL_ORIGINS = {"git@github.com:taixuann/codex-chatpgt.git", "https://github.com/taixuann/codex-chatpgt.git"}
 INSTALLED_CONTROL_PLANE_ROOT = Path(__file__).resolve().parents[3]
 
+
+def _canonical_origin(value: str) -> str:
+    value = value.strip().rstrip("/")
+    if value.startswith("git@github.com:"):
+        value = "https://github.com/" + value.split(":", 1)[1]
+    return value.removesuffix(".git")
+
 def _verified_root(candidate: Path) -> Path:
     candidate = candidate.expanduser().resolve()
     if candidate != INSTALLED_CONTROL_PLANE_ROOT:
@@ -37,7 +44,7 @@ def _verified_root(candidate: Path) -> Path:
         origin = subprocess.run(["git", "-C", str(candidate), "remote", "get-url", "origin"], check=True, capture_output=True, text=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError) as exc:
         raise RuntimeError(f"control-plane root must be a Git repository with an origin: {candidate}") from exc
-    if Path(git_root).resolve() != candidate or origin not in CANONICAL_ORIGINS:
+    if Path(git_root).resolve() != candidate or _canonical_origin(origin) not in {_canonical_origin(item) for item in CANONICAL_ORIGINS}:
         raise RuntimeError(f"control-plane root Git identity is not canonical: {candidate}")
     return candidate
 
