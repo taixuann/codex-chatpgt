@@ -6,15 +6,15 @@ status: blocked
 lifecycle:
   state: CLOSURE
   evidence:
-    - {state: REQUEST, status: PASS, source: franky.ticket.yaml, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: CONTRACT, status: PASS, source: skills/AGENTS.md, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: ADMISSION, status: PASS, source: manifests/skill-catalog.yaml, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: ROUTING, status: PASS, source: static skill-routing fixture, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: IMPACT, status: PASS, source: skills and session packet scope, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: EXECUTION, status: PASS, source: skills/external-handoff/SKILL.md, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: VALIDATION, status: PASS, source: 'quick_validate, quality, interface, routing, and focused tests', provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
-    - {state: CLOSURE, status: BLOCKED, source: independent review and parent acceptance boundary, provenance: {source_state: packet, commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', observed_at: '2026-08-26T21:46:38+07:00', result: BLOCKED}}
-evidence_freshness: {source_commit: 'working-tree:governed-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', validated_at: '2026-08-26T21:46:38+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
+    - {state: REQUEST, status: PASS, source: franky.ticket.yaml, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
+    - {state: CONTRACT, status: PASS, source: skills/AGENTS.md, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
+    - {state: ADMISSION, status: PASS, source: manifests/skill-catalog.yaml, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
+    - {state: ROUTING, status: PASS, source: static skill-routing fixture, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
+    - {state: IMPACT, status: PASS, source: skills and session packet scope, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
+    - {state: EXECUTION, status: PASS, source: skills/external-handoff/SKILL.md, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
+    - {state: VALIDATION, status: PASS, source: 'quick_validate, quality, interface, routing, and focused tests', provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
+    - {state: CLOSURE, status: BLOCKED, source: independent review and parent acceptance boundary, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: BLOCKED}}
+evidence_freshness: {source_commit: '353adaba22896471821a239daac14cece332283f', validated_at: '2026-08-26T21:46:38+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
 routing:
   operation_class: bounded_skill_layer_audit
   primary_capability: control-plane-audit
