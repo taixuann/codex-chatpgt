@@ -99,6 +99,10 @@ jobs:
         id: personal_wiki
         run: python ops/scripts/validate_personal_wiki_artifact.py ops/schemas/examples/personal-wiki-artifact.yaml
 
+      - name: Validate reversible documentation archive index
+        id: archive_index
+        run: python ops/scripts/validate_archive_index.py documentation/archive/20260826/ARCHIVE-INDEX.yaml
+
       - name: Validate static skill-routing fixture
         id: routing
         run: python skills/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
@@ -204,6 +208,7 @@ jobs:
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
             echo '| Skill catalog admission | ${{ steps.skill_catalog.outcome }} |'
             echo '| Behavioral skill evidence envelope | ${{ steps.skill_evidence.outcome }} |'
+            echo '| Reversible documentation archive index | ${{ steps.archive_index.outcome }} |'
             echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
             echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'

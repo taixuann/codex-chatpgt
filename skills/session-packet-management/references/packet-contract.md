@@ -11,7 +11,7 @@ schema. Use YAML for machine-consumed records and Markdown for human review.
 kind: codex.session-packet.v1
 session_id: 20260826_migration-codex_001
 repository_root: /absolute/repository/path
-target_root: documentation/sessions/20260826_migration-codex_001
+packet_root: documentation/sessions/20260826_migration-codex_001
 canonical_records:
   issue: null
   plan: null

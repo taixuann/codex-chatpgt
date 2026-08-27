@@ -16,6 +16,9 @@ def validate(path: Path) -> None:
         raise ValueError(f"missing required fields: {sorted(missing)}")
     if document["kind"] != "personal-wiki.artifact.v1":
         raise ValueError("unsupported artifact kind")
+    for field in ("id", "title"):
+        if not isinstance(document[field], str) or not document[field]:
+            raise ValueError(f"{field} must be a non-empty string")
     if document["artifact_state"] not in {"DRAFT", "REVIEWED", "SUPERSEDED", "ARCHIVED"}:
         raise ValueError("invalid artifact state")
     if document["owner"] != "personal_wiki_owner":
@@ -47,6 +50,18 @@ def validate(path: Path) -> None:
     claims = document["claims"]
     if not isinstance(claims, list) or not claims:
         raise ValueError("claims must be non-empty")
+    for claim in claims:
+        if not isinstance(claim, dict):
+            raise ValueError("each claim must be a mapping")
+        for field in ("id", "category", "statement", "evidence_refs"):
+            if field not in claim:
+                raise ValueError(f"claim missing required field: {field}")
+        if claim["category"] not in {"personal_understanding", "hypothesis", "uncertainty", "unsupported_or_unknown"}:
+            raise ValueError(f"{claim['id']}: invalid claim category")
+        if not isinstance(claim["statement"], str) or not claim["statement"]:
+            raise ValueError(f"{claim['id']}: statement must be a non-empty string")
+        if not isinstance(claim["evidence_refs"], list):
+            raise ValueError(f"{claim['id']}: evidence_refs must be a list")
     ids = [claim.get("id") for claim in claims]
     if any(not isinstance(claim_id, str) or not claim_id for claim_id in ids) or len(ids) != len(set(ids)):
         raise ValueError("claim ids must be non-empty and unique")
@@ -54,6 +69,12 @@ def validate(path: Path) -> None:
         if not isinstance(claim.get("evidence_refs"), list):
             raise ValueError(f"{claim['id']}: evidence_refs must be present, even for uncertainty")
     promotion = document["promotion"]
+    if not isinstance(promotion, dict):
+        raise ValueError("promotion must be a mapping")
+    if not isinstance(promotion.get("target"), str) or not promotion["target"]:
+        raise ValueError("promotion.target must be a non-empty string")
+    if not isinstance(promotion.get("write_performed"), bool):
+        raise ValueError("promotion.write_performed must be boolean")
     if promotion.get("status") not in {"NONE", "PROPOSED", "REJECTED", "ACCEPTED"}:
         raise ValueError("invalid promotion status")
     if promotion.get("target") == "scientific_wiki":
