@@ -1,7 +1,7 @@
 kind: codex.session-packet.v1
 schema_version: 1
 session_id: 20260826_franky-skills_001
-repository_root: /Users/tai/.codex
+repository_root: .
 packet_root: documentation/sessions/20260826_franky-skills_001
 canonical_records:
   issue: null

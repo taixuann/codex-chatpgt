@@ -7,6 +7,7 @@ import argparse
 import importlib.util
 from pathlib import Path
 import re
+import subprocess
 import sys
 from urllib.parse import urlparse
 
@@ -90,9 +91,20 @@ def validate(packet: Path) -> None:
         raise PacketError("session.yaml repository_root is required")
     if not isinstance(packet_root, str) or not packet_root:
         raise PacketError("session.yaml packet_root is required")
-    repository_path = Path(repository_root).expanduser()
+    if repository_root == ".":
+        try:
+            repository_path = Path(
+                subprocess.run(
+                    ["git", "-C", str(packet), "rev-parse", "--show-toplevel"],
+                    check=True, capture_output=True, text=True,
+                ).stdout.strip()
+            ).resolve()
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise PacketError("session.yaml repository_root '.' requires a Git checkout") from exc
+    else:
+        repository_path = Path(repository_root).expanduser()
     if not repository_path.is_absolute() or not repository_path.is_dir():
-        raise PacketError("session.yaml repository_root must be an existing absolute directory")
+        raise PacketError("session.yaml repository_root must be '.' or an existing absolute directory")
     if Path(packet_root).is_absolute():
         raise PacketError("session.yaml packet_root must be relative to repository_root")
     expected_packet = (repository_path / packet_root).resolve()
