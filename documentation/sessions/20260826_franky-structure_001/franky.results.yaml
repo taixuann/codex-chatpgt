@@ -41,7 +41,7 @@ lifecycle:
       source: deterministic-validation-suite
       detail: Recorded below; packet and scoped control-plane validators pass.
       provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
-evidence_freshness: {source_commit: '353adaba22896471821a239daac14cece332283f', validated_at: '2026-08-26T22:33:59+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
+evidence_freshness: {source_commit: '353adaba22896471821a239daac14cece332283f', validated_at: '2026-08-26T22:33:59+07:00', mutation_free_since_validation: false, invalidated_by_mutation: true}
 routing:
   operation_class: control_plane_structure_reconciliation
   primary_capability: control-plane-audit
@@ -156,7 +156,7 @@ review:
 unresolved:
   blockers: [Independent Athena review and parent acceptance are pending.]
   limitations:
-    - "The .rag/manifest.yaml file is a derived ignored artifact and is not portable evidence. The structure stream owns documentation/AGENT-BOUNDARIES.md; other ledger entries are pre_existing/observed. No ownership is claimed for observed paths."
+    - "This packet is historical evidence validated at 353adab; later integration and portability commits invalidate freshness. The .rag/manifest.yaml file is a derived ignored artifact and is not portable evidence. The structure stream owns documentation/AGENT-BOUNDARIES.md; other ledger entries are pre_existing/observed. No ownership is claimed for observed paths."
 evolution: {status: NO_ACTION, observation: No real consumer justified a manifest index or merged control-plane registry., candidate_improvements: [], promotion_required: false}
 runtime_evidence:
   configuration: {status: NOT_ASSESSED, evidence: Static repository contracts only; host configuration was not changed.}

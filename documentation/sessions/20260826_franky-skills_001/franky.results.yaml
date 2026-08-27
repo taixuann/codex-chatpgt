@@ -14,7 +14,7 @@ lifecycle:
     - {state: EXECUTION, status: PASS, source: skills/external-handoff/SKILL.md, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
     - {state: VALIDATION, status: PASS, source: 'quick_validate, quality, interface, routing, and focused tests', provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: PASS}}
     - {state: CLOSURE, status: BLOCKED, source: independent review and parent acceptance boundary, provenance: {source_state: packet, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T21:46:38+07:00', result: BLOCKED}}
-evidence_freshness: {source_commit: '353adaba22896471821a239daac14cece332283f', validated_at: '2026-08-26T21:46:38+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
+evidence_freshness: {source_commit: '353adaba22896471821a239daac14cece332283f', validated_at: '2026-08-26T21:46:38+07:00', mutation_free_since_validation: false, invalidated_by_mutation: true}
 routing:
   operation_class: bounded_skill_layer_audit
   primary_capability: control-plane-audit
@@ -139,7 +139,7 @@ unresolved:
   blockers:
     - "Independent Athena review and parent acceptance are pending."
   limitations:
-    - "Native dispatch, native skill loading, and host permission enforcement are NOT_ASSESSED. The .rag/manifest.yaml file is a derived ignored artifact and is not portable evidence. No ownership is claimed for observed paths."
+    - "This packet is historical evidence validated at 353adab; later integration and portability commits invalidate freshness. Native dispatch, native skill loading, and host permission enforcement are NOT_ASSESSED. The .rag/manifest.yaml file is a derived ignored artifact and is not portable evidence. No ownership is claimed for observed paths."
 evolution: {status: NO_ACTION, observation: No additional recurring skill-layer friction was established beyond the repaired root-scope guidance gap., candidate_improvements: [], promotion_required: false}
 runtime_evidence:
   configuration: {status: NOT_ASSESSED, evidence: Static repository configuration only; native host configuration was not probed.}
