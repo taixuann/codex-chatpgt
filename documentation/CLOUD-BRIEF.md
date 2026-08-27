@@ -122,21 +122,13 @@ proven.
   workflow-manager/install-workflow entries; repository retirement therefore
   does not claim cross-runtime retirement, and activation/cross-runtime
   behavior remain conditional under #12.
-- Issue #9 is now **experimentally active** on the existing AgentMemory `0.9.28`
-  service. The daemon runs zero-LLM/BM25-only with context injection and
-  auto-compress off, and its MCP surface is explicitly limited to eight core
-  tools. Phase A–E evidence covers health, Codex/OpenCode recall calls,
-  bounded capture, restart persistence, diagnostics/reconciliation, recall and
-  no-recall, stale canonical precedence, isolation leakage and local latency.
-  Native host capture/consolidation remains unproven; diagnostics still report
-  an unscoped memory and project filters return it for unrelated paths. The
-  activation is therefore non-blocking and non-canonical: keep for bounded
-  experiments, but do not make it mandatory orientation or promote memories
-  until the remaining gates are independently evidenced. No memory skill,
-  workflow, agent, mirror or auto-promotion path was added.
-- The #12 portability handoff for the external OpenCode overlay is prepared
-  but `NOT_EXECUTED`: its checkout is dirty and owner confirmation/rollback
-  evidence are required before any external mutation.
+- Issue #9 is **NOT_PLANNED for the current horizon**. Historical AgentMemory
+  0.9.28 reconnaissance and Phase A–E experiment evidence are retained as
+  non-canonical support, but no mandatory memory runtime, memory skill,
+  workflow, agent, mirror, or auto-promotion path exists. Reactivation requires
+  a new measured continuity/retrieval need.
+- The #12 portability handoff remains historical `NOT_EXECUTED`; portability
+  is not currently active without an authorized secondary-harness consumer.
 
 ## Read next
 

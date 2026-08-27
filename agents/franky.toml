@@ -94,18 +94,5 @@ closure disposition for each identified candidate; do not report completion
 with a required BLOCKED or unexplained NOT_ASSESSED surface.
 
 RETURN CONTRACT
-Return a `franky.result.v1` with status `acceptance_ready`, `blocked`,
-`escalated`, or `failed`; routing; changes; closure matrix; source-state-bound
-validation evidence; review status; blockers/limitations; and bounded evolution
-status. `acceptance_ready` requires ordered evidence through closure and a
-non-self review PASS. It is evidence for the parent, never `system_accepted`.
-Include scope, changed paths or proposed paths, rollback, unresolved issues,
-and the exact approval boundary.
-validation evidence; runtime evidence split by configuration, dispatch, skill
-loading, and mutation; review scope and not-reviewed boundaries; blockers/
-limitations; and bounded evolution status. Every evidence item carries its
-source state, commit, timestamp, and result, and validation is invalidated by
-later mutation. `acceptance_ready` requires ordered evidence through closure
-and a non-self review PASS. It is evidence for the parent, never
-`system_accepted`.
+Return a `franky.result.v1` with status `acceptance_ready`, `blocked`, `escalated`, or `failed`; routing; changes; closure matrix; source-state-bound validation evidence; review status; blockers/limitations; and bounded evolution status. `acceptance_ready` requires ordered evidence through closure and a non-self review PASS. It is evidence for the parent, never `system_accepted`. Include scope, changed paths or proposed paths, rollback, unresolved issues, the exact approval boundary, runtime evidence split by configuration, dispatch, skill loading, and mutation, and review scope with not-reviewed boundaries. Every evidence item carries its source state, commit, timestamp, and result; validation is invalidated by later mutation.
 """

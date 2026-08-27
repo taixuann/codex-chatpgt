@@ -95,6 +95,14 @@ jobs:
         id: feynman_v1
         run: python ops/scripts/validate_feynman_v1.py ops/scripts/fixtures/feynman-v1.yaml --qualification ops/scripts/fixtures/feynman-v1-qualification.yaml
 
+      - name: Validate Personal Wiki v1 artifact boundary
+        id: personal_wiki
+        run: python ops/scripts/validate_personal_wiki_artifact.py ops/schemas/examples/personal-wiki-artifact.yaml
+
+      - name: Validate reversible documentation archive index
+        id: archive_index
+        run: python ops/scripts/validate_archive_index.py documentation/archive/20260826/ARCHIVE-INDEX.yaml
+
       - name: Validate static skill-routing fixture
         id: routing
         run: python skills/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
@@ -172,6 +180,19 @@ jobs:
         id: routing_tests
         run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane-audit/tests -v
 
+      - name: Validate supporting skill tests
+        id: supporting_skill_tests
+        run: |
+          set -euo pipefail
+          for test_dir in \
+            skills/external-handoff/tests \
+            skills/instruction-maintenance/tests \
+            skills/runtime-adapter-management/tests \
+            skills/session-packet-management/tests \
+            skills/shared-session-closeout/tests; do
+            PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s "$test_dir" -v
+          done
+
       - name: Validate Git allowlist
         id: allowlist
         run: python skills/control-plane-audit/scripts/validate_git_allowlist.py .
@@ -187,6 +208,7 @@ jobs:
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
             echo '| Skill catalog admission | ${{ steps.skill_catalog.outcome }} |'
             echo '| Behavioral skill evidence envelope | ${{ steps.skill_evidence.outcome }} |'
+            echo '| Reversible documentation archive index | ${{ steps.archive_index.outcome }} |'
             echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
             echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
@@ -207,6 +229,7 @@ jobs:
             echo '| Adaptive file-first bootstrap | ${{ steps.bootstrap.outcome }} |'
             echo '| Generic project-link capability | ${{ steps.project_link.outcome }} |'
             echo '| Skill-routing fixture tests | ${{ steps.routing_tests.outcome }} |'
+            echo '| Supporting skill tests | ${{ steps.supporting_skill_tests.outcome }} |'
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
             echo 'Legacy/retired root workflow files are not validated as canonical contracts.'

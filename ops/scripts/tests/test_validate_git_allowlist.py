@@ -39,6 +39,18 @@ class GitAllowlistTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertFalse(validate_git_allowlist.is_allowed_path(path))
 
+    def test_session_packets_allow_only_declared_artifacts(self):
+        root = "documentation/sessions/20260826_example-work_001/"
+        for name in ("session.yaml", "context.md", "plan.md", "task.md", "references.yaml", ".rag/manifest.yaml"):
+            with self.subTest(name=name):
+                self.assertTrue(validate_git_allowlist.is_allowed_path(root + name))
+
+    def test_session_packets_reject_sensitive_or_unknown_files(self):
+        root = "documentation/sessions/20260826_example-work_001/"
+        for name in ("credentials.yaml", "token.txt", "config.toml", "notes.txt", ".rag/index.sqlite"):
+            with self.subTest(name=name):
+                self.assertFalse(validate_git_allowlist.is_allowed_path(root + name))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,12 +1,12 @@
 ---
 id: PLAN-ARW-PERSISTENT-MEMORY-20260809-001
 issue: 9
-status: active-experimental
-activation_gate: user-approved-bounded-reuse-experiment-2026-08-10
+status: not-planned
+activation_gate: new-measured-continuity-or-targeted-retrieval-need
 scope: persistent-memory-promotion
 preferred_candidate: agentmemory
 candidate_status: experimental-substrate-only
-updated: 2026-08-10
+updated: 2026-08-25
 ---
 
 # Objective
@@ -255,7 +255,7 @@ layer, mirror, hook package, or canonical-state mutation is introduced.
 - Useful historical recall returned three bounded results for the `.codex`
   project; the unrelated query returned zero results.
 - The stale-conflict fixture returned the historical note claiming that #9 was
-  accepted, while the live canonical plan reads `status: active-experimental`,
+  accepted, while the then-current plan still carried the historical `active-experimental` status,
   not accepted/mandatory.
   The reconciliation decision keeps canonical plan state authoritative; the
   stale fixture does not override it.

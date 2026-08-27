@@ -1,0 +1,28 @@
+kind: codex.documentation-archive.v1
+archive_id: 20260826
+created_at: '2026-08-26T00:00:00Z'
+authority: documentation/CURRENT.md and documentation/DECISIONS.md
+policy:
+  preserved_in_place:
+    - normative operating guidance
+    - accepted current state and decisions
+    - active or evidence-collecting plans
+    - plans with unresolved inbound references
+  movement: reversible archive only; no deletion
+entries:
+  - original_path: documentation/plans/PLAN-ARW-ANTHROPIC-SKILLS-INTAKE-20260811-001.md
+    archived_path: documentation/archive/20260826/plans/PLAN-ARW-ANTHROPIC-SKILLS-INTAKE-20260811-001.md
+    status: implemented
+    reason: terminal plan with no tracked inbound references
+  - original_path: documentation/plans/PLAN-ARW-OPERATION-WORKFLOW-V1-STABILIZATION-20260816-001.md
+    archived_path: documentation/archive/20260826/plans/PLAN-ARW-OPERATION-WORKFLOW-V1-STABILIZATION-20260816-001.md
+    status: superseded
+    reason: explicitly superseded and no tracked inbound references
+  - original_path: documentation/plans/PLAN-ARW-SKILL-WORKFLOW-RATIONALIZATION-20260809-001.md
+    archived_path: documentation/archive/20260826/plans/PLAN-ARW-SKILL-WORKFLOW-RATIONALIZATION-20260809-001.md
+    status: completed
+    reason: terminal plan with no tracked inbound references
+  - original_path: documentation/plans/PLAN-ARW-SYSTEM-SKILLS-RUNTIME-OVERLAY-20260811-001.md
+    archived_path: documentation/archive/20260826/plans/PLAN-ARW-SYSTEM-SKILLS-RUNTIME-OVERLAY-20260811-001.md
+    status: completed
+    reason: terminal plan with no tracked inbound references

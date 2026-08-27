@@ -25,8 +25,12 @@ skills/external-handoff/*
 !skills/external-handoff/SKILL.md
 !skills/external-handoff/agents/
 !skills/external-handoff/agents/openai.yaml
+!skills/external-handoff/tests/
+!skills/external-handoff/tests/**
 !skills/shared-session-closeout/
 !skills/shared-session-closeout/**
+!skills/session-packet-management/
+!skills/session-packet-management/**
 !skills/ADDYOSMANI-AGENT-SKILLS-LICENSE
 !skills/api-and-interface-design/
 !skills/api-and-interface-design/**
@@ -193,6 +197,8 @@ ops/on-demand-skills/install-project-link/tests/*
 
 # Security boundary: never publish credentials, runtime state, or local stores.
 # These rules are intentionally last so they override any broad allowlist above.
+**/__pycache__/
+**/*.pyc
 **/.env
 **/.env.*
 **/*secret*
@@ -216,3 +222,9 @@ ops/on-demand-skills/install-project-link/tests/*
 **/cache/**
 **/attachments/**
 **/backups/**
+
+# Structured Codex session packets are tracked evidence; derived indexes remain ignored.
+!documentation/sessions/
+!documentation/sessions/**
+documentation/sessions/**/.rag/
+documentation/sessions/**/.rag/**
