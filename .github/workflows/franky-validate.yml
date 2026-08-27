@@ -44,6 +44,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # Session evidence may bind to an earlier commit in this reviewed
+          # integration branch; retain history so the validator can verify it.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
