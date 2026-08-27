@@ -25,6 +25,9 @@ skills/external-handoff/*
 !skills/external-handoff/SKILL.md
 !skills/external-handoff/agents/
 !skills/external-handoff/agents/openai.yaml
+!skills/external-handoff/scripts/
+skills/external-handoff/scripts/*
+!skills/external-handoff/scripts/run_non_interactive_handoff.py
 !skills/external-handoff/tests/
 !skills/external-handoff/tests/**
 !skills/shared-session-closeout/
@@ -162,8 +165,6 @@ skills/external-handoff/*
 !skills/control-plane-audit/scripts/fixtures/session-valid.jsonl
 !skills/control-plane-audit/scripts/fixtures/session-malformed.jsonl
 !skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
-!workflows/
-!workflows/AGENTS.md
 !manifests/
 !manifests/**
 !ops/

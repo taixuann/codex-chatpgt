@@ -1,0 +1,33 @@
+kind: franky.task.v1
+version: 1
+contract_version: {major: 1, minor: 1}
+accepted_result_versions: [franky.result.v1]
+request_id: FRANKY-20260826-STRUCTURE-001
+objective: Reconcile the KISS ownership boundary between declarative manifests and executable ops, review control-plane agent guidance, and record a linked evidence packet.
+scope:
+  repository: taixuann/codex-chatpgt
+  primary_targets: [AGENTS.md, agents, documentation/AGENT-BOUNDARIES.md, documentation/DECISIONS.md, documentation/CLOUD-BRIEF.md, documentation/plans, manifests, ops, documentation/sessions/20260826_franky-structure_001]
+  excluded_targets: [skills, linked project contents, credentials, runtime/private sessions, remotes, staging, push, deletion]
+intent: {mode: mutate, completion: bounded}
+authority:
+  mutation: allowed
+  external_effects: denied
+  architecture_change: proposal_only
+authority_matrix:
+  franky_can: [inspect_control_plane, propose_changes, modify_allowed_control_plane_files, run_validators, produce_acceptance_ready_evidence]
+  franky_cannot: [final_accept_own_change, modify_global_policy_without_review, change_agent_roles_without_decision, alter_validation_requirements, approve_runtime_security_changes]
+required_capabilities: [control-plane-audit, instruction-maintenance, runtime-adapter-management, session-packet-management, shared-session-closeout]
+constraints:
+  - Preserve canonical role and Issue/PLAN/PR authority.
+  - Keep manifests declarative and ops executable; do not add a mega-manifest or workflow engine.
+  - Preserve ops/changes and do not accept archive moves in this packet.
+  - Do not edit skills; report any skills-layer issue to the parent.
+done_criteria:
+  - Distinct manifests/ops ownership is documented.
+  - Agent descriptions remain bounded and Prometheus remains general.
+  - Dedicated packet has reciprocal links, ticket, result, references, and RAG manifest.
+  - Deterministic validation evidence is recorded with runtime limitations.
+required_outcomes: [KISS structure finding, scoped documentation update, reproducible validation evidence]
+acceptance_requirements: [Independent Athena review and parent acceptance before promotion.]
+stop_conditions: [Authority conflict, protected path, missing provenance, validation failure, or request to widen scope.]
+review: {required: true, reason: Independent Athena review is required before acceptance.}

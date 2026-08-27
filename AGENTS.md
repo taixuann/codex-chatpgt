@@ -26,9 +26,10 @@ contract. Their presence under `agents/` must not be interpreted as a change to
 the AI Labs role registry.
 
 No active machine workflow is installed for the specialized
-`franky_control_plane` scope. `workflows/AGENTS.md` is the admission policy;
-ordinary Franky operations use Issue/PLAN/task contracts plus retained
-skills/scripts. The global semantic lifecycle remains
+`franky_control_plane` scope. Admission is governed by the repository role,
+skill, and lifecycle guidance in `agents/AGENTS.md`, `skills/AGENTS.md`, and
+`documentation/OPERATING-WORKFLOW.md`; ordinary Franky operations use
+Issue/PLAN/task contracts plus retained skills/scripts. The global semantic lifecycle remains
 `documentation/OPERATING-WORKFLOW.md`. Historical Franky workflow YAMLs are
 retired and are not runtime authority.
 
@@ -104,8 +105,8 @@ Keep operating guidance, accepted state, decisions, plans, historical memory,
 compiled Wiki knowledge, and raw source evidence distinct. Memory strengthens
 context but never replaces canonical state or evidence; promote changes only by
 `OBSERVE → PROPOSE → REVIEW → ACCEPT → UPDATE`. Detailed role/delegation rules
-live in `agents/AGENTS.md`, skill rules in `skills/AGENTS.md`, and workflow
-admission rules in `workflows/AGENTS.md`.
+live in `agents/AGENTS.md`, skill rules in `skills/AGENTS.md`, and lifecycle
+admission rules in `documentation/OPERATING-WORKFLOW.md`.
 
 Keep `.system`, logs, sessions, caches, databases, credentials, config, and
 linked project contents outside the Codex Git allowlist. Session content is

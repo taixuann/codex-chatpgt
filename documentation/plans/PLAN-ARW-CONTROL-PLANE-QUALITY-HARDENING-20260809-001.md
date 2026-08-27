@@ -352,7 +352,7 @@ Likely responsibilities:
 - root: authority, repo-wide invariants, orientation path, broad parent/subagent boundaries, global mutation/Git safety, durable-state rules;
 - `agents/AGENTS.md`: profile/role/delegation rules;
 - `skills/AGENTS.md`: skill existence/naming/discovery/locality/quality rules;
-- `workflows/AGENTS.md`: workflow admission, consumer/state/gate and validator rules;
+- `workflows/AGENTS.md`: workflow admission, consumer/state/gate and validator rules (as proposed in this 2026-08-09 historical plan; not current policy);
 - `ops/AGENTS.md`: only genuinely shared deterministic machinery rules.
 
 Do not optimize to a hard line count. Optimize semantic density and progressive disclosure. Do not duplicate the full `OPERATING-WORKFLOW.md` lifecycle into AGENTS files.

@@ -1,7 +1,7 @@
 ---
 id: DECISIONS-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-16
+updated: 2026-08-26
 ---
 
 # Architecture decisions
@@ -112,9 +112,11 @@ and proportional outcome decision. The current package dispositions are:
 
 All seventeen `workflows/franky/**` YAMLs are retired because no named
 dispatcher, persisted state, recovery/resume implementation, or independent
-consumer was found. `workflows/AGENTS.md` remains the admission policy for a
-future real machine workflow. Issue/PLAN/task contracts and retained skills
-are the active routing surface; no replacement workflow engine is introduced.
+consumer was found. Repository role, skill, and lifecycle guidance in
+`agents/AGENTS.md`, `skills/AGENTS.md`, and
+`documentation/OPERATING-WORKFLOW.md` governs any future machine workflow
+admission. Issue/PLAN/task contracts and retained skills are the active routing
+surface; no replacement workflow engine is introduced.
 
 ## D-010 — Runtime catalog evidence is conditional, not semantic authority
 

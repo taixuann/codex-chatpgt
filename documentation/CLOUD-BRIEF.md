@@ -1,7 +1,7 @@
 ---
 id: CLOUD-BRIEF-CODEX-CONTROL-PLANE
 status: active
-updated: 2026-08-10
+updated: 2026-08-26
 repository: taixuann/codex-chatpgt
 branch: main
 ---
@@ -26,9 +26,9 @@ proven.
   Labs registry.
 - Argus and Athena are bounded non-canonical support adapters.
 - Retired Franky wrappers and the unconsumed `workflows/franky/**` machine
-  workflow tree are no longer discoverable. `workflows/AGENTS.md` remains the
-  policy boundary; Issue/PLAN/task contracts and retained skills provide the
-  active routing surface.
+  workflow tree are no longer discoverable. Repository role, skill, and
+  lifecycle guidance remains the policy boundary; Issue/PLAN/task contracts
+  and retained skills provide the active routing surface.
 - Issue #19 now has a bounded file-first bootstrap implementation in PR #20:
   adaptive artifact maps, dry-run/explicit apply, brownfield-safe updates,
   immutable `data/raw/` handling, and external Wiki/OpenScience references.

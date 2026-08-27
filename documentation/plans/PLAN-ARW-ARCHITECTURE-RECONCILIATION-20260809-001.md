@@ -19,7 +19,8 @@ predates the creator-gated #35 reconciliation and must not be read as the
 current workflow catalog. D-009 and
 `PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md` supersede the historical `KEEP`
 rows: all seventeen unconsumed `workflows/franky/**` YAMLs are now retired,
-and only `workflows/AGENTS.md` remains as admission policy. The semantic
+and only `workflows/AGENTS.md` remained as admission policy at the time of this
+2026-08-09 plan; this is historical evidence, not current policy. The semantic
 Agent/Skill/Script/Workflow model below remains valid as a design record.
 
 # Starting State

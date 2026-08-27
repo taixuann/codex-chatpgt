@@ -52,7 +52,6 @@ project_context:
       role: reliability_scope_authority
   authority_status: PINNED_AND_VERIFIED
   authority_not_assessed: []
->>>>>>> main
   sources:
     - path: active-projects/res_volatile-polydopamine/studies/reliability/temperature-dependent-iv-transport/study.yaml
       git_blob: b29c60fbd325984ad142ea31eab1f308205d63a8

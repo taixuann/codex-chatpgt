@@ -138,6 +138,7 @@ def validate(packet: Path) -> None:
             raise PacketError(f"artifact-map path for {key} must be {expected}")
 
     frontmatter_links: dict[str, dict[str, list[str]]] = {}
+    artifact_link_names: dict[str, dict[str, list[str]]] = {}
     for name in sorted(REQUIRED | OPTIONAL):
         path = packet / name
         if not path.exists():
@@ -157,6 +158,7 @@ def validate(packet: Path) -> None:
             if not isinstance(provenance, dict) or not provenance.get("source_commit") or not provenance.get("observed_at") or not provenance.get("recorded_by"):
                 raise PacketError(f"provenance source_commit, observed_at, and recorded_by are required: {name}")
             frontmatter_links[name] = {"upstream": [], "downstream": []}
+            artifact_link_names[name] = {"upstream": [], "downstream": []}
             for direction in ("upstream", "downstream"):
                 links = metadata.get(direction, [])
                 if not isinstance(links, list):
@@ -166,6 +168,7 @@ def validate(packet: Path) -> None:
                     _check_link(path, link, optional=optional_link)
                     if isinstance(link, str):
                         target_name = Path(link).name
+                        artifact_link_names[name][direction].append(target_name)
                         if target_name in ARTIFACT_META:
                             frontmatter_links[name][direction].append(target_name)
         elif name in {"franky.ticket.yaml", "franky.results.yaml"}:
@@ -236,7 +239,7 @@ def validate(packet: Path) -> None:
     if ticket.exists():
         if artifacts.get("ticket") != "franky.ticket.yaml" or artifacts.get("results") != "franky.results.yaml":
             raise PacketError("ticket and result files must be declared in the artifact map")
-        task_links = frontmatter_links.get("task.md", {})
+        task_links = artifact_link_names.get("task.md", {})
         if "franky.ticket.yaml" not in task_links.get("upstream", []) or "franky.results.yaml" not in task_links.get("downstream", []):
             raise PacketError("task.md must link to the Franky ticket upstream and result downstream")
     if ticket.is_file() and result.is_file():

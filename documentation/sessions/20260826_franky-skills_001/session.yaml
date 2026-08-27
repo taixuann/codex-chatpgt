@@ -1,0 +1,23 @@
+kind: codex.session-packet.v1
+schema_version: 1
+session_id: 20260826_franky-skills_001
+repository_root: /Users/tai/.codex
+packet_root: documentation/sessions/20260826_franky-skills_001
+canonical_records:
+  issue: null
+  plan: null
+  pr: null
+source_state:
+  commit: 67d21cc3bf14a4121e064d8edb3f999c830a9307-uncommitted
+  recorded_at: '2026-08-26T10:40:00Z'
+owner: franky
+status: needs_review
+artifacts:
+  context: context.md
+  spec: spec.md
+  plan: plan.md
+  tasks: task.md
+  ticket: franky.ticket.yaml
+  results: franky.results.yaml
+  references: references.yaml
+  rag_manifest: .rag/manifest.yaml
