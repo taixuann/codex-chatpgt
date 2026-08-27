@@ -41,6 +41,20 @@ class PersonalWikiArtifactTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.validate_document(document)
 
+    def test_owner_and_producer_are_schema_bound(self):
+        for field, value in (("owner", "other_owner"), ("producer", "unknown_agent")):
+            document = dict(self.example)
+            document[field] = value
+            with self.assertRaises(ValueError):
+                self.validate_document(document)
+
+    def test_capture_metadata_is_required(self):
+        document = dict(self.example)
+        document["provenance"] = dict(document["provenance"])
+        document["provenance"].pop("captured_at")
+        with self.assertRaises(ValueError):
+            self.validate_document(document)
+
     def test_future_consumer_requires_explicit_authorization(self):
         document = dict(self.example)
         document["context_consumption"] = dict(document["context_consumption"], authorized_consumers=["feynman", "future_consumer"])

@@ -8,7 +8,7 @@ authority_status: PERSONAL_CONTEXT_ONLY
 provenance:
   source_refs:
     - codex-chatpgt:documentation/reviews/ISSUE-75-FEYNMAN-VERTICAL-SLICE.yaml
-  captured_at: 2026-08-16T00:00:00Z
+  captured_at: '2026-08-16T00:00:00Z'
   source_state: merged-main
   source_commit: 4ef68b27a5f7649eddb8ae8efa51779854767bdb
 claims:

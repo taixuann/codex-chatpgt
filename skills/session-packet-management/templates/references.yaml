@@ -4,6 +4,6 @@ references:
   - path: documentation/OPERATING-WORKFLOW.md
     kind: canonical_policy
     state: current
-    commit_or_hash: <sha256-or-commit>
+    commit_or_hash: uncommitted
     observed_at: '2026-08-26T00:00:00Z'
     relationship: governing-lifecycle

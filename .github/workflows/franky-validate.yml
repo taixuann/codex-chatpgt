@@ -176,6 +176,19 @@ jobs:
         id: routing_tests
         run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane-audit/tests -v
 
+      - name: Validate supporting skill tests
+        id: supporting_skill_tests
+        run: |
+          set -euo pipefail
+          for test_dir in \
+            skills/external-handoff/tests \
+            skills/instruction-maintenance/tests \
+            skills/runtime-adapter-management/tests \
+            skills/session-packet-management/tests \
+            skills/shared-session-closeout/tests; do
+            PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s "$test_dir" -v
+          done
+
       - name: Validate Git allowlist
         id: allowlist
         run: python skills/control-plane-audit/scripts/validate_git_allowlist.py .
@@ -211,6 +224,7 @@ jobs:
             echo '| Adaptive file-first bootstrap | ${{ steps.bootstrap.outcome }} |'
             echo '| Generic project-link capability | ${{ steps.project_link.outcome }} |'
             echo '| Skill-routing fixture tests | ${{ steps.routing_tests.outcome }} |'
+            echo '| Supporting skill tests | ${{ steps.supporting_skill_tests.outcome }} |'
             echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
             echo
             echo 'Legacy/retired root workflow files are not validated as canonical contracts.'

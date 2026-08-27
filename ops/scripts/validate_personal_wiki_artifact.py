@@ -18,9 +18,18 @@ def validate(path: Path) -> None:
         raise ValueError("unsupported artifact kind")
     if document["artifact_state"] not in {"DRAFT", "REVIEWED", "SUPERSEDED", "ARCHIVED"}:
         raise ValueError("invalid artifact state")
+    if document["owner"] != "personal_wiki_owner":
+        raise ValueError("owner must be personal_wiki_owner")
+    if document["producer"] not in {"human", "feynman", "parent"}:
+        raise ValueError("producer must be human, feynman, or parent")
     if document["authority_status"] != "PERSONAL_CONTEXT_ONLY":
         raise ValueError("Personal Wiki artifacts cannot claim project or literature authority")
     provenance = document["provenance"]
+    if not isinstance(provenance, dict):
+        raise ValueError("provenance must be a mapping")
+    for field in ("captured_at", "source_state"):
+        if not isinstance(provenance.get(field), str) or not provenance[field]:
+            raise ValueError(f"provenance.{field} must be a non-empty string")
     if not isinstance(provenance.get("source_refs"), list) or not provenance["source_refs"]:
         raise ValueError("provenance.source_refs must be non-empty")
     if not all(isinstance(ref, str) and ref for ref in provenance["source_refs"]):

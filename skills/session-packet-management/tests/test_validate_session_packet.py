@@ -18,6 +18,12 @@ class SessionPacketValidationTests(unittest.TestCase):
         root.mkdir()
         for name in ("session.yaml", "context.md", "spec.md", "plan.md", "task.md", "references.yaml"):
             content = (TEMPLATE_ROOT / name).read_text(encoding="utf-8").replace("20260826_example-work_001", root.name)
+            if name == "session.yaml":
+                content = content.replace("/absolute/repository/path", str(root.parent))
+                content = content.replace(
+                    f"packet_root: documentation/sessions/{root.name}",
+                    f"packet_root: {root.name}",
+                )
             (root / name).write_text(content, encoding="utf-8")
         return root
 
@@ -63,6 +69,24 @@ class SessionPacketValidationTests(unittest.TestCase):
         session = session.replace("  ticket: franky.ticket.yaml\n", "").replace("  results: franky.results.yaml\n", "")
         (root / "session.yaml").write_text(session, encoding="utf-8")
         with self.assertRaisesRegex(PacketError, "artifact map"):
+            validate(root)
+
+    def test_references_require_bound_entries(self) -> None:
+        root = self._packet()
+        (root / "references.yaml").write_text(
+            "kind: codex.session-references.v1\nsession_id: %s\nreferences: []\n" % root.name,
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(PacketError, "non-empty list"):
+            validate(root)
+
+    def test_packet_root_must_bind_to_validated_directory(self) -> None:
+        root = self._packet()
+        text = (root / "session.yaml").read_text(encoding="utf-8").replace(
+            f"packet_root: {root.name}", "packet_root: elsewhere"
+        )
+        (root / "session.yaml").write_text(text, encoding="utf-8")
+        with self.assertRaisesRegex(PacketError, "resolve"):
             validate(root)
 
 

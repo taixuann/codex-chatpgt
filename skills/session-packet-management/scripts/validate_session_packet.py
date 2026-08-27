@@ -8,6 +8,7 @@ import importlib.util
 from pathlib import Path
 import re
 import sys
+from urllib.parse import urlparse
 
 import yaml
 
@@ -83,8 +84,20 @@ def validate(packet: Path) -> None:
     source_state = session.get("source_state")
     if not isinstance(source_state, dict) or not source_state.get("commit") or not source_state.get("recorded_at"):
         raise PacketError("session.yaml source_state.commit and recorded_at are required")
-    if not session.get("repository_root") or not session.get("packet_root"):
-        raise PacketError("session.yaml repository_root and packet_root are required")
+    repository_root = session.get("repository_root")
+    packet_root = session.get("packet_root")
+    if not isinstance(repository_root, str) or not repository_root:
+        raise PacketError("session.yaml repository_root is required")
+    if not isinstance(packet_root, str) or not packet_root:
+        raise PacketError("session.yaml packet_root is required")
+    repository_path = Path(repository_root).expanduser()
+    if not repository_path.is_absolute() or not repository_path.is_dir():
+        raise PacketError("session.yaml repository_root must be an existing absolute directory")
+    if Path(packet_root).is_absolute():
+        raise PacketError("session.yaml packet_root must be relative to repository_root")
+    expected_packet = (repository_path / packet_root).resolve()
+    if expected_packet != packet.resolve():
+        raise PacketError("session.yaml packet_root must resolve to the validated packet")
     if session.get("status") not in STATUSES:
         raise PacketError("session.yaml status is invalid")
 
@@ -166,6 +179,22 @@ def validate(packet: Path) -> None:
                 raise PacketError("references.yaml kind is invalid")
             if references.get("session_id") != session_id:
                 raise PacketError("references.yaml session_id mismatch")
+            entries = references.get("references")
+            if not isinstance(entries, list) or not entries:
+                raise PacketError("references.yaml references must be a non-empty list")
+            required_reference_fields = {"path", "kind", "state", "commit_or_hash", "observed_at", "relationship"}
+            for index, entry in enumerate(entries):
+                if not isinstance(entry, dict):
+                    raise PacketError(f"references.yaml entry {index} must be a mapping")
+                missing_fields = required_reference_fields - set(entry)
+                if missing_fields:
+                    raise PacketError(f"references.yaml entry {index} missing fields: {sorted(missing_fields)}")
+                for field in required_reference_fields:
+                    if not isinstance(entry[field], str) or not entry[field] or entry[field].startswith("<"):
+                        raise PacketError(f"references.yaml entry {index} field {field} must be concrete")
+                parsed = urlparse(entry["path"])
+                if not parsed.scheme and Path(entry["path"]).is_absolute():
+                    raise PacketError(f"references.yaml entry {index} path must be relative or a URL")
 
     for name, links in frontmatter_links.items():
         for target in links["downstream"]:
