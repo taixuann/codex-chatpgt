@@ -31,7 +31,14 @@ skill does not execute the external action implicitly.
 4. If a non-interactive runner is explicitly approved, use the bundled runner
    with an executable plus separate argv tokens (never a shell command string)
    and preserve its stdout/stderr as handoff evidence. Shell operators,
-   pipelines, redirections, and shell expansion are rejected.
+   pipelines, redirections, and shell expansion are rejected. Supply
+   `--repo-root` with the exact approved control-plane root; do not rely on
+   the caller's working directory or an inferred root for a consequential
+   handoff. The runner verifies that the supplied path is the real Git root
+   and carries the canonical control-plane origin identity; copied marker
+   directories are rejected. This bundled runner is intentionally bound to
+   the control-plane root containing its installed script; use a separately
+   installed runner for another repository rather than widening this path.
 
 Never include credentials, ask an executor to bypass sandboxing, or expand
 scope because a handoff is inconvenient.

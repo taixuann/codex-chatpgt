@@ -77,10 +77,19 @@ routing:
 changes:
   - path: agents/franky.toml
     action: modified
+    ownership: this_run
+    working_tree: tracked
+    scope: owned
   - path: manifests/agent-capability-repertoires.yaml
     action: created
+    ownership: this_run
+    working_tree: tracked
+    scope: owned
   - path: documentation/CURRENT.md
     action: modified
+    ownership: this_run
+    working_tree: tracked
+    scope: owned
 closure:
   implementation: PASS
   canonical_state: PASS

@@ -1,7 +1,7 @@
 ---
 id: AGENT-BOUNDARIES
 status: active
-updated: 2026-08-14
+updated: 2026-08-26
 ---
 
 # Canonical roles and support boundaries
@@ -33,6 +33,25 @@ not a role-definition source. The lifecycle registry in
 `manifests/agent-contracts.yaml` is limited to the Argus/Prometheus/Athena
 shared evidence and artifact boundary. Neither manifest can override the
 canonical registry, adapter permissions, or repository runtime policy.
+
+## Control-plane surface ownership
+
+Keep the two control-plane surfaces separate because they answer different
+questions:
+
+- `manifests/` is declarative state: capability admission, role eligibility,
+  evidence disposition, and bounded support contracts. It records what is
+  allowed or known; it does not execute checks.
+- `ops/` is executable support: schemas, examples, deterministic validators,
+  probes, schedulers, and explicitly retained on-demand procedures. It records
+  how declared state is checked or operated; it does not become a second role
+  registry or universal workflow engine.
+
+`documentation/` explains accepted semantics, while Issues/optional PLAN/PR
+remain the durable execution authority. Preserve `ops/changes/` for named
+machine or audit consumers only; do not add a wrapper for ordinary work. A
+thin index or merged mega-manifest is unnecessary unless a real validator or
+machine consumer requires it.
 
 ## Runtime limitations
 

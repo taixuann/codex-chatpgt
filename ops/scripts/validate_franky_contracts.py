@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
+import hashlib
 from pathlib import Path
 import re
 import subprocess
@@ -98,18 +100,180 @@ def _validate_repertoire(path: Path) -> dict:
     return document
 
 
+def _git_root(start: Path) -> Path | None:
+    try:
+        output = subprocess.run(
+            ["git", "-C", str(start), "rev-parse", "--show-toplevel"],
+            check=True, capture_output=True, text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return Path(output).resolve() if output else None
+
+
+def _ledger_states(repository_root: Path) -> dict[str, str]:
+    result = subprocess.run(
+        ["git", "-C", str(repository_root), "status", "--short", "--untracked-files=all", "--ignored", "-z"],
+        check=True, capture_output=True,
+    )
+    states: dict[str, str] = {}
+    for record in result.stdout.decode().split("\0"):
+        if not record:
+            continue
+        status, path = record[:2], record[3:]
+        if status == "??":
+            state = "untracked"
+        elif status == "!!":
+            state = "ignored"
+        elif "D" in status:
+            state = "deleted"
+        else:
+            state = "tracked"
+        states[path] = state
+    return states
+
+
+def _governed_snapshot_token(repository_root: Path) -> str:
+    head = subprocess.run(
+        ["git", "-C", str(repository_root), "rev-parse", "HEAD"],
+        check=True, capture_output=True, text=True,
+    ).stdout.strip()
+    records = subprocess.run(
+        ["git", "-C", str(repository_root), "status", "--porcelain", "--untracked-files=all"],
+        check=True, capture_output=True, text=True,
+    ).stdout.splitlines()
+    excluded = {
+        path.relative_to(repository_root).as_posix()
+        for path in (repository_root / "documentation/sessions").glob("*/franky.results.yaml")
+        if path.is_file()
+    }
+    material: list[str] = [f"HEAD {head}"]
+    for record in records:
+        path = record[3:]
+        if " -> " in path:
+            path = path.rsplit(" -> ", 1)[1]
+        if path in excluded:
+            continue
+        candidate = repository_root / path
+        digest = "DELETED"
+        if candidate.is_file():
+            digest = hashlib.sha256(candidate.read_bytes()).hexdigest()
+        material.append(f"{record[:2]} {path} {digest}")
+    return "working-tree:governed-" + hashlib.sha256("\n".join(sorted(material)).encode()).hexdigest()
+
+
+def _validate_freshness(result: dict, result_path: Path, repository_root: Path | None) -> None:
+    freshness = result["evidence_freshness"]
+    now = datetime.now(timezone.utc)
+    try:
+        validated_at = datetime.fromisoformat(freshness["validated_at"].replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("evidence_freshness.validated_at must be ISO-8601") from exc
+    if validated_at > now:
+        raise ValueError("evidence_freshness.validated_at cannot be in the future")
+    for index, item in enumerate(result["lifecycle"]["evidence"]):
+        try:
+            observed_at = datetime.fromisoformat(item["provenance"]["observed_at"].replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(f"lifecycle evidence[{index}] observed_at must be ISO-8601") from exc
+        if observed_at > now:
+            raise ValueError(f"lifecycle evidence[{index}] observed_at cannot be in the future")
+    if freshness["source_commit"].startswith("working-tree:"):
+        root = repository_root or _git_root(result_path.parent)
+        if root is None:
+            raise ValueError("working-tree evidence requires a Git repository root")
+        if freshness["source_commit"] != _governed_snapshot_token(root):
+            raise ValueError("working-tree evidence snapshot token does not match live governed snapshot")
+    elif re.fullmatch(r"[0-9a-f]{40}", freshness["source_commit"].lower()):
+        root = repository_root or _git_root(result_path.parent)
+        if root is not None:
+            try:
+                subprocess.run(
+                    ["git", "-C", str(root), "cat-file", "-e", f"{freshness['source_commit']}^{{commit}}"],
+                    check=True, capture_output=True, text=True,
+                )
+            except (OSError, subprocess.CalledProcessError) as exc:
+                raise ValueError("evidence_freshness.source_commit is not a commit in the repository") from exc
+
+
+def _validate_change_ledger(result: dict, result_path: Path, repository_root: Path | None) -> None:
+    changes = result.get("changes", [])
+    paths = [entry["path"] for entry in changes]
+    if len(paths) != len(set(paths)):
+        raise ValueError("result.changes: duplicate ledger path")
+    if repository_root is None:
+        repository_root = _git_root(result_path.parent)
+    if repository_root is None:
+        return
+    repository_root = repository_root.resolve()
+    actual_root = _git_root(repository_root)
+    if actual_root != repository_root:
+        raise ValueError("repository_root is not a Git repository root")
+    states = _ledger_states(repository_root)
+    packet_result = result_path.resolve().is_relative_to((repository_root / "documentation/sessions").resolve())
+    non_ignored = {path for path, state in states.items() if state != "ignored"}
+    if packet_result and non_ignored - set(paths):
+        missing = ", ".join(sorted(non_ignored - set(paths)))
+        raise ValueError(f"result.changes: live non-ignored path(s) missing from ledger: {missing}")
+    for entry in changes:
+        relative = Path(entry["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError(f"result.changes path escapes repository: {entry['path']}")
+        key = relative.as_posix()
+        expected = states.get(key)
+        if expected is None:
+            tracked = subprocess.run(
+                ["git", "-C", str(repository_root), "ls-files", "--error-unmatch", "--", key],
+                capture_output=True, text=True,
+            ).returncode == 0
+            if tracked:
+                expected = "tracked"
+            else:
+                ignored = subprocess.run(
+                    ["git", "-C", str(repository_root), "check-ignore", "-q", "--no-index", "--", key],
+                    capture_output=True,
+                ).returncode == 0
+                if ignored:
+                    expected = "ignored"
+                else:
+                    raise ValueError(f"result.changes path is missing from live repository state: {key}")
+        if entry["working_tree"] != expected:
+            raise ValueError(
+                f"result.changes[{key}].working_tree={entry['working_tree']} does not match live state {expected}"
+            )
+
+
+def _validate_owned_scope(result: dict, task: dict) -> None:
+    primary = task["scope"].get("primary_targets", [])
+    excluded = task["scope"].get("excluded_targets", [])
+    def matches(path: str, target: str) -> bool:
+        return path == target or path.startswith(target.rstrip("/") + "/")
+    for entry in result["changes"]:
+        if entry["ownership"] != "this_run" or entry["scope"] != "owned":
+            continue
+        path = entry["path"]
+        if not any(matches(path, target) for target in primary):
+            raise ValueError(f"owned ledger path is outside ticket primary_targets: {path}")
+        if any(matches(path, target) for target in excluded):
+            raise ValueError(f"owned ledger path is excluded by ticket scope: {path}")
+
+
 def validate(
     task_path: Path,
     result_path: Path,
     repertoire_path: Path,
     *,
     allow_fixture_review_record: bool = False,
+    repository_root: Path | None = None,
 ) -> None:
     task = _load(task_path)
     result = _load(result_path)
     _validate_schema(task, TASK_SCHEMA, task_path)
     _validate_schema(result, RESULT_SCHEMA, result_path)
+    _validate_change_ledger(result, result_path, repository_root)
+    _validate_freshness(result, result_path, repository_root)
     repertoire = _validate_repertoire(repertoire_path)
+    _validate_owned_scope(result, task)
     if task["contract_version"]["major"] != 1:
         raise ValueError("task.contract_version.major: unsupported major version")
     if "franky.result.v1" not in task["accepted_result_versions"]:
@@ -289,9 +453,15 @@ def main() -> int:
     parser.add_argument("--task", type=Path, default=DEFAULT_TASK)
     parser.add_argument("--result", type=Path, default=DEFAULT_RESULT)
     parser.add_argument("--repertoire", type=Path, default=DEFAULT_REPERTOIRE)
+    parser.add_argument("--repository-root", type=Path, default=None)
+    parser.add_argument("--print-snapshot-token", action="store_true")
     args = parser.parse_args()
     try:
-        validate(args.task, args.result, args.repertoire)
+        if args.print_snapshot_token:
+            root = (args.repository_root or ROOT).resolve()
+            print(_governed_snapshot_token(root))
+            return 0
+        validate(args.task, args.result, args.repertoire, repository_root=args.repository_root)
         _enforce_current_head(args.result)
     except (OSError, TypeError, ValueError, yaml.YAMLError) as exc:
         print(f"FAIL franky-contracts: {exc}")

@@ -808,7 +808,7 @@ historical workflow paths, while the Git-tracked workflow YAML count is zero.
 | `franky-maintenance` | **GENERALIZE** | `control-plane-audit` | Narrow diagnostic/audit owner; mutation remains Issue/PLAN/owning capability, not universal authority. |
 | `franky-promotion` | **MOVE_ON_DEMAND / DEFER** | promotion under #12 | No current destination consumer; do not expose in ordinary discovery. |
 | `franky-source-migration` | **MOVE_ON_DEMAND / DEFER** | `harness-migration` under #12 | Portability gate is not yet accepted; no local duplicate is created. |
-| `franky-workflow-organizer` | **RETIRE** | workflow policy in `workflows/AGENTS.md` + Issue/PLAN | No retained machine workflow has a real persisted-state consumer; deterministic validators are not a reason to keep the model-visible package. |
+| `franky-workflow-organizer` | **RETIRE** | workflow policy in `workflows/AGENTS.md` + Issue/PLAN (historical reference as of 2026-08-10) | No retained machine workflow has a real persisted-state consumer; deterministic validators are not a reason to keep the model-visible package. |
 | `install-project-link` | **MOVE_ON_DEMAND** | project-link safety primitive | Distinct safety boundary remains; not merged blindly into `project-bootstrap`, and not ordinary global discovery. |
 | `project-bootstrap` | **KEEP** | `project-bootstrap` | #19 implementation and 9-test integration suite provide a real reusable contract. |
 | `shared-session-closeout` | **GENERALIZE / KEEP** | `session-closeout` | Role-neutral acceptance/next-action/evolution observation; invalid metadata repaired. |
@@ -870,7 +870,7 @@ workflows/franky/franky-maintenance/update-skills.yaml
 workflows/franky/franky-maintenance/update-workflows.yaml
 ```
 
-`workflows/AGENTS.md` remains as policy: a future YAML is admitted only when
+As of this 2026-08-10 plan, `workflows/AGENTS.md` remained as policy: a future YAML is admitted only when
 its real consumer, state, gates, transitions and recovery are demonstrated.
 The pending personal scheduler definition is not a workflow consumer; it is a
 Tier-3 candidate and now uses the semantic `issue-plan-skill` route.

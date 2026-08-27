@@ -14,6 +14,7 @@ scope:
     - manifests/agent-capability-repertoires.yaml
     - ops/schemas/franky-task.schema.yaml
     - ops/schemas/franky-result.schema.yaml
+    - documentation/CURRENT.md
   excluded_targets:
     - linked research-project contents
     - credentials

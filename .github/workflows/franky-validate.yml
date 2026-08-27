@@ -13,6 +13,7 @@ on:
       - 'manifests/agent-contracts.yaml'
       - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
       - 'documentation/AGENT-BOUNDARIES.md'
+      - 'documentation/sessions/**'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
   pull_request:
@@ -25,6 +26,7 @@ on:
       - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
       - 'documentation/AGENT-BOUNDARIES.md'
       - 'documentation/CURRENT.md'
+      - 'documentation/sessions/**'
       - 'ops/**'
       - '.github/workflows/franky-validate.yml'
 
@@ -42,6 +44,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # Session evidence may bind to an earlier commit in this reviewed
+          # integration branch; retain history so the validator can verify it.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -124,6 +130,15 @@ jobs:
       - name: Validate shared agent lifecycle and evidence contracts
         id: agent_lifecycle
         run: python ops/scripts/validate_agent_lifecycle.py ops/scripts/fixtures/agent-lifecycle.yaml
+
+      - name: Validate committed session packets
+        id: session_packets
+        run: |
+          set -euo pipefail
+          for packet in documentation/sessions/*; do
+            test -d "$packet" || continue
+            python skills/session-packet-management/scripts/validate_session_packet.py "$packet"
+          done
 
       - name: Validate Franky documentation impact
         id: franky_documentation_impact
@@ -218,6 +233,7 @@ jobs:
             echo '| Task contract | ${{ steps.task_contract.outcome }} |'
             echo '| Franky v1 contracts and repertoires | ${{ steps.franky_contracts.outcome }} |'
             echo '| Franky documentation impact | ${{ steps.franky_documentation_impact.outcome }} |'
+            echo '| Committed session packets | ${{ steps.session_packets.outcome }} |'
             echo '| Codex global agent settings | ${{ steps.codex_runtime_config.outcome }} |'
             echo '| Franky agent contract evaluation | ${{ steps.franky_agent_eval.outcome }} |'
             echo '| Franky contract and runtime tests | ${{ steps.franky_tests.outcome }} |'

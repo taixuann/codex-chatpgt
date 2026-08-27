@@ -124,7 +124,7 @@ Before editing:
 
 1. Read:
    - root `AGENTS.md`;
-   - scoped `agents/AGENTS.md`, `skills/AGENTS.md`, `workflows/AGENTS.md`;
+   - scoped `agents/AGENTS.md`, `skills/AGENTS.md`, `workflows/AGENTS.md` (the latter was the workflow-policy path as of this 2026-08-09 plan; historical only);
    - `documentation/OPERATING-WORKFLOW.md`;
    - `documentation/CURRENT.md`;
    - `documentation/DECISIONS.md`;

@@ -1,0 +1,165 @@
+kind: franky.result.v1
+version: 1
+contract_version: {major: 1, minor: 1}
+request_id: FRANKY-20260826-STRUCTURE-001
+status: blocked
+lifecycle:
+  state: VALIDATION
+  evidence:
+    - state: REQUEST
+      status: PASS
+      source: franky.ticket.yaml
+      detail: Bounded structure task and exclusions are explicit; mutation authority is granted by the current user-authorized thread/request, while final acceptance and promotion remain gated.
+      provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+    - state: CONTRACT
+      status: PASS
+      source: ops/schemas/franky-task.schema.yaml
+      detail: Ticket fields conform to franky.task.v1.
+      provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+    - state: ADMISSION
+      status: PASS
+      source: agents/franky.toml
+      detail: Control-plane maintenance is in Franky's bounded role scope.
+      provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+    - state: ROUTING
+      status: PASS
+      source: manifests/agent-capability-repertoires.yaml
+      detail: Primary control-plane audit with bounded instruction and adapter support.
+      provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+    - state: IMPACT
+      status: PASS
+      source: documentation/AGENT-BOUNDARIES.md
+      detail: Declarative and executable surfaces are now explicitly distinguished.
+      provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+    - state: EXECUTION
+      status: PASS
+      source: current-working-tree
+      detail: Human approval evidence is recorded in context.md and plan.md for the assigned bounded guidance and packet repair; staging, commit, push, archive, deletion, and final acceptance remain unauthorized.
+      provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+    - state: VALIDATION
+      status: PASS
+      source: deterministic-validation-suite
+      detail: Recorded below; packet and scoped control-plane validators pass.
+      provenance: {source_state: working-tree, commit: '353adaba22896471821a239daac14cece332283f', observed_at: '2026-08-26T22:33:59+07:00', result: PASS}
+evidence_freshness: {source_commit: '353adaba22896471821a239daac14cece332283f', validated_at: '2026-08-26T22:33:59+07:00', mutation_free_since_validation: false, invalidated_by_mutation: true}
+routing:
+  operation_class: control_plane_structure_reconciliation
+  primary_capability: control-plane-audit
+  primary_reason: Deterministic ownership and boundary checks are required.
+  supporting_capabilities: [instruction-maintenance, runtime-adapter-management, session-packet-management]
+  supporting_reasons:
+    - {capability: instruction-maintenance, reason: Explanatory boundary guidance changed.}
+    - {capability: runtime-adapter-management, reason: Agent descriptions and role boundaries were inspected.}
+    - {capability: session-packet-management, reason: 'This run created, linked, and refreshed the governed session packet.'}
+  lifecycle_capability: shared-session-closeout
+  lifecycle_reason: Consequential control-plane work requires independent review and parent closeout.
+  impact_required: true
+  impact_evidence: {source_state: working-tree, surfaces: [implementation/config, canonical-state, references/documentation, validation/proof], supporting_capabilities: [instruction-maintenance, runtime-adapter-management, session-packet-management]}
+changes:
+  - {path: documentation/reviews/ISSUE-7-59-61-REAL-SCIENTIFIC-VERTICAL-SLICE.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/external-handoff/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/external-handoff/scripts/run_non_interactive_handoff.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/external-handoff/tests/test_runner.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/external-handoff/AGENTS.md, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/external-handoff/assets/handoff_payload_template.json, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/external-handoff/evals/golden_handoff_test.py, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/external-handoff/skill.yaml, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: .gitignore, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: AGENTS.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: agents/argus.toml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: agents/athena.toml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: agents/franky.toml, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: agents/prometheus.toml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/AGENT-BOUNDARIES.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/CLOUD-BRIEF.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/DECISIONS.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/plans/PLAN-ARW-ARCHITECTURE-RECONCILIATION-20260809-001.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/plans/PLAN-ARW-CONTROL-PLANE-QUALITY-HARDENING-20260809-001.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/plans/PLAN-ARW-SESSION-CONTINUITY-EVOLUTION-OBSERVATION-20260809-001.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/plans/PLAN-ARW-SYSTEM-SKILLS-V2-20260810-001.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/archive/20260826/ARCHIVE-INDEX.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/archive/20260826/plans/PLAN-ARW-ANTHROPIC-SKILLS-INTAKE-20260811-001.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/archive/20260826/plans/PLAN-ARW-OPERATION-WORKFLOW-V1-STABILIZATION-20260816-001.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/archive/20260826/plans/PLAN-ARW-SKILL-WORKFLOW-RATIONALIZATION-20260809-001.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/archive/20260826/plans/PLAN-ARW-SYSTEM-SKILLS-RUNTIME-OVERLAY-20260811-001.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: manifests/agent-capability-repertoires.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: manifests/skill-catalog.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/schemas/franky-result.schema.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/schemas/examples/franky-result.yaml, action: modified, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/schemas/examples/franky-task.yaml, action: modified, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/scripts/validate_franky_contracts.py, action: modified, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/scripts/tests/test_franky_contracts.py, action: modified, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/scripts/runtime_materialization.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/scripts/tests/test_runtime_materialization.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: ops/scripts/tests/test_validate_git_allowlist.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane-audit/scripts/validate_git_allowlist.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/shared-session-closeout/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/instruction-maintenance/tests/test_guidance_contract.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/runtime-adapter-management/tests/test_adapter_validation.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/shared-session-closeout/tests/test_session_state.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/external-handoff/tests/test_handoff_contract.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/agents/openai.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/references/packet-contract.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/scripts/probe_lightrag.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/scripts/validate_session_packet.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/context.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/franky.results.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/franky.ticket.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/plan.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/rag-manifest.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/references.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/session.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/spec.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/templates/task.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/session-packet-management/tests/test_validate_session_packet.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/context.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/spec.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/plan.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/task.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/franky.ticket.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/session.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/references.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/context.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/spec.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/plan.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/task.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/franky.ticket.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/session.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/references.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/franky.results.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: documentation/sessions/20260826_franky-skills_001/franky.results.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: documentation/sessions/20260826_franky-skills_001/.rag/manifest.yaml, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: documentation/sessions/20260826_franky-structure_001/.rag/manifest.yaml, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/external-handoff/references/non_interactive_execution_guide.md, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+closure: {implementation: PASS, canonical_state: NOT_ASSESSED, references: PASS, proof: PASS}
+validation:
+  - {check: python3 ops/scripts/validate_role_boundaries.py, status: PASS, source_state: working-tree}
+  - {check: "python3 ops/scripts/validate_franky_contracts.py --task documentation/sessions/20260826_franky-structure_001/franky.ticket.yaml --result documentation/sessions/20260826_franky-structure_001/franky.results.yaml --repertoire manifests/agent-capability-repertoires.yaml", status: PASS, source_state: working-tree}
+  - {check: python3 skills/session-packet-management/scripts/validate_session_packet.py documentation/sessions/20260826_franky-structure_001, status: PASS, source_state: working-tree}
+  - {check: "rollback evidence NOT_ASSESSED: no restoration executed. Inventory: git status --short --untracked-files=all --ignored. Tracked patch command: git diff --binary -- documentation/AGENT-BOUNDARIES.md documentation/archive/20260826/plans/PLAN-ARW-ANTHROPIC-SKILLS-INTAKE-20260811-001.md documentation/sessions/20260826_franky-structure_001 > /private/tmp/franky-structure-tracked.patch. Untracked per-path patch command: git ls-files --others --exclude-standard -z | xargs -0 -n1 git diff --no-index --binary /dev/null > /private/tmp/franky-structure-untracked.patch; git diff returns 1 for each untracked path and xargs may return 123. Ignored or derived files, including .rag/manifest.yaml, are not restorable by these patches. Manual removal/recovery requires parent approval and per-path backup review; no removal or restoration executed.", status: NOT_ASSESSED, source_state: working-tree}
+  - {check: "python3 ops/scripts/validate_franky_documentation_impact.py ops/scripts/fixtures/franky-documentation-impact.yaml", status: PASS, source_state: working-tree}
+  - {check: "python3 -m unittest discover -s skills/external-handoff/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
+  - {check: "python3 -m unittest discover -s skills/session-packet-management/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
+  - {check: "python3 -m unittest discover -s ops/scripts/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
+  - {check: "non-executed observation: archived plan link ../../../../manifests/anthropic-skills-intake-20260811.yaml resolves to manifests/anthropic-skills-intake-20260811.yaml; archive moves remain unaccepted and uncommitted", status: PASS, source_state: working-tree}
+  - {check: "python3 ops/scripts/validate_franky_contracts.py --print-snapshot-token --repository-root /Users/tai/.codex", status: PASS, source_state: working-tree}
+review:
+  required: true
+  status: NOT_ASSESSED
+  scope: [agent-boundaries, manifests-versus-ops ownership, archive preservation, packet linkage]
+  not_reviewed: [independent Athena review, native dispatch, native skill loading, host permission enforcement, parent acceptance]
+  reviewer_id: pending-athena
+  reviewer_role: independent_reviewer
+  review_session_id: 00000000-0000-0000-0000-000000000000
+  review_record: documentation/reviews/pending.yaml
+unresolved:
+  blockers: [Independent Athena review and parent acceptance are pending.]
+  limitations:
+    - "This packet is historical evidence validated at 353adab; later integration and portability commits invalidate freshness. The .rag/manifest.yaml file is a derived ignored artifact and is not portable evidence. The structure stream owns documentation/AGENT-BOUNDARIES.md; other ledger entries are pre_existing/observed. No ownership is claimed for observed paths."
+evolution: {status: NO_ACTION, observation: No real consumer justified a manifest index or merged control-plane registry., candidate_improvements: [], promotion_required: false}
+runtime_evidence:
+  configuration: {status: NOT_ASSESSED, evidence: Static repository contracts only; host configuration was not changed.}
+  dispatch: {status: NOT_ASSESSED, evidence: No native agent dispatch trace was available.}
+  skill_loading: {status: NOT_ASSESSED, evidence: Native skill loading is not proven by static catalogs.}
+  mutation: {status: NOT_ASSESSED, evidence: Host mutation enforcement was not observed.}

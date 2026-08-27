@@ -1,0 +1,10 @@
+kind: codex.session-references.v1
+session_id: 20260826_franky-structure_001
+references:
+  - {path: agents/AGENTS.md, kind: portable_role_guidance, state: current, commit_or_hash: 67d21cc3bf14a4121e064d8edb3f999c830a9307, observed_at: '2026-08-26T16:30:00+07:00', relationship: role-and-surface-precedence}
+  - {path: documentation/AGENT-BOUNDARIES.md, kind: canonical_explanatory_guidance, state: working-tree, commit_or_hash: uncommitted, observed_at: '2026-08-26T16:30:00+07:00', relationship: updated-surface-ownership}
+  - {path: documentation/OPERATING-WORKFLOW.md, kind: canonical_lifecycle, state: current, commit_or_hash: 67d21cc3bf14a4121e064d8edb3f999c830a9307, observed_at: '2026-08-26T16:30:00+07:00', relationship: issue-plan-pr-authority}
+  - {path: manifests/skill-catalog.yaml, kind: declarative_admission, state: working-tree, commit_or_hash: uncommitted, observed_at: '2026-08-26T16:30:00+07:00', relationship: capability-admission}
+  - {path: manifests/agent-capability-repertoires.yaml, kind: declarative_eligibility, state: working-tree, commit_or_hash: uncommitted, observed_at: '2026-08-26T16:30:00+07:00', relationship: role-capability-eligibility}
+  - {path: ops/scripts/validate_role_boundaries.py, kind: executable_validator, state: current, commit_or_hash: 67d21cc3bf14a4121e064d8edb3f999c830a9307, observed_at: '2026-08-26T16:30:00+07:00', relationship: deterministic-proof}
+  - {path: ops/changes/2026/README.md, kind: historical-change-policy, state: current, commit_or_hash: 67d21cc3bf14a4121e064d8edb3f999c830a9307, observed_at: '2026-08-26T16:30:00+07:00', relationship: exceptional-change-wrapper}

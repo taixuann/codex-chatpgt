@@ -45,6 +45,53 @@ class FrankyContractTests(unittest.TestCase):
     def test_checked_in_contracts_pass(self):
         validate(DEFAULT_TASK, DEFAULT_RESULT, DEFAULT_REPERTOIRE)
 
+    def test_change_ledger_metadata_is_required(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result["changes"][0].pop("scope")
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "missing required field.*scope"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_future_freshness_timestamp_is_rejected(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result["evidence_freshness"]["validated_at"] = "2999-01-01T00:00:00Z"
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "cannot be in the future"):
+            validate(task_path, result_path, DEFAULT_REPERTOIRE)
+        tmp.cleanup()
+
+    def test_change_ledger_working_tree_must_match_live_state(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result["changes"][0]["working_tree"] = "untracked"
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "does not match live state"):
+            validate_contract(task_path, result_path, DEFAULT_REPERTOIRE, repository_root=ROOT)
+        tmp.cleanup()
+
+    def test_owned_excluded_path_is_rejected(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        task["scope"]["excluded_targets"].append("agents/franky.toml")
+        result["changes"][0]["ownership"] = "this_run"
+        result["changes"][0]["scope"] = "owned"
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "excluded by ticket scope"):
+            validate_contract(task_path, result_path, DEFAULT_REPERTOIRE, repository_root=ROOT)
+        tmp.cleanup()
+
+    def test_ledger_missing_path_is_rejected(self):
+        task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
+        result = yaml.safe_load(DEFAULT_RESULT.read_text(encoding="utf-8"))
+        result["changes"][0]["path"] = "ops/schemas/examples/ledger-contract-missing-unique.yaml"
+        tmp, task_path, result_path = self._write_case(task, result)
+        with self.assertRaisesRegex(ValueError, "missing from live repository state"):
+            validate_contract(task_path, result_path, DEFAULT_REPERTOIRE, repository_root=ROOT)
+        tmp.cleanup()
+
     def _write_case(self, task, result):
         tmp = tempfile.TemporaryDirectory()
         root = Path(tmp.name)

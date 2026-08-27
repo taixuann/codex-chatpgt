@@ -102,10 +102,13 @@ properties:
     items:
       type: object
       additionalProperties: false
-      required: [path, action]
+      required: [path, action, ownership, working_tree, scope]
       properties:
         path: {type: string, minLength: 1}
         action: {enum: [created, modified, deleted, unchanged_valid, not_applicable, blocked, not_assessed]}
+        ownership: {enum: [this_run, pre_existing, observed]}
+        working_tree: {enum: [tracked, untracked, ignored, deleted]}
+        scope: {enum: [owned, observed]}
   closure:
     type: object
     additionalProperties: false
