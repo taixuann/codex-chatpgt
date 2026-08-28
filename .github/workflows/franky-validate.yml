@@ -138,12 +138,15 @@ jobs:
           set -euo pipefail
           for packet in documentation/sessions/*; do
             test -d "$packet" || continue
-            # Historical packets awaiting review retain their original source
-            # provenance and are not current acceptance candidates.
-            if grep -q '^status: needs_review' "$packet/session.yaml" 2>/dev/null; then
-              echo "Skipping historical needs_review packet: $packet"
-              continue
-            fi
+            # These two immutable packets predate the current main history;
+            # preserve their original provenance without excluding future
+            # needs_review packets from validation.
+            case "$packet" in
+              documentation/sessions/20260826_franky-skills_001|documentation/sessions/20260826_franky-structure_001)
+                echo "Skipping named historical packet: $packet"
+                continue
+                ;;
+            esac
             python skills/session-packet-management/scripts/validate_session_packet.py "$packet"
           done
 
