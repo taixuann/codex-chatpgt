@@ -4,9 +4,9 @@ session_id: 20260828_argus-skill-standardization_001
 repository_root: /private/tmp/codex-consolidation-20260826
 packet_root: documentation/sessions/20260828_argus-skill-standardization_001
 canonical_records: {issue: 'https://github.com/taixuann/codex-chatpgt/issues/90', plan: null, pr: null}
-source_state: {commit: '4ee83e5 (staged reviewed tree)', recorded_at: '2026-08-28T09:37:00+07:00'}
+source_state: {commit: f7ab9cdf434a548b64a4181e461184a490e110a4, recorded_at: '2026-08-28T16:06:42+07:00'}
 owner: franky
-status: closed
+status: blocked
 artifacts:
   context: context.md
   spec: spec.md
