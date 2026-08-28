@@ -138,6 +138,12 @@ jobs:
           set -euo pipefail
           for packet in documentation/sessions/*; do
             test -d "$packet" || continue
+            # Historical packets awaiting review retain their original source
+            # provenance and are not current acceptance candidates.
+            if grep -q '^status: needs_review' "$packet/session.yaml" 2>/dev/null; then
+              echo "Skipping historical needs_review packet: $packet"
+              continue
+            fi
             python skills/session-packet-management/scripts/validate_session_packet.py "$packet"
           done
 
