@@ -1,4 +1,5 @@
 name: Control-plane validation
+# Issue #90: retain a direct-push validation trigger for reviewed history.
 
 on:
   workflow_dispatch:
