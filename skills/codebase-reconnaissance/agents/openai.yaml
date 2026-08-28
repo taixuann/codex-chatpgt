@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codebase reconnaissance"
+  short_description: "Map bounded codebase context read-only."
+  default_prompt: "Use codebase reconnaissance to return scoped, provenance-linked paths, relationships, gaps, and unknowns without modifying files."
+
+policy:
+  allow_implicit_invocation: false

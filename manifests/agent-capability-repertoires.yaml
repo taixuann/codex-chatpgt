@@ -121,11 +121,9 @@ agents:
   argus:
     role_surface: support
     primary_capabilities:
-      - bounded-repository-exploration
-      - context-mapping
-      - dependency-tracing
-      - evidence-provenance-audit
-      - handoff-generation
+      - codebase-reconnaissance
+      - research-source-discovery
+      - reference-state-reconnaissance
     lifecycle_capabilities: []
     conditional_capabilities: []
     external_or_runtime_dependencies: []

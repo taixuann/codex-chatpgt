@@ -10,9 +10,9 @@ agents:
   argus:
     role: support_context_compiler
     responsibility:
-      - context_compiler
-      - evidence_provenance_auditor
-      - handoff_generator
+      - codebase_reconnaissance
+      - research_source_discovery
+      - reference_state_reconnaissance
     forbidden_actions:
       - scientific_interpretation
       - canonical_project_mutation

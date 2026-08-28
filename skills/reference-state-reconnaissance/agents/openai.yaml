@@ -1,0 +1,7 @@
+interface:
+  display_name: "Reference-state reconnaissance"
+  short_description: "Compare bounded reference and current state."
+  default_prompt: "Inspect the named reference/current-state surfaces read-only and report authoritative facts, drift, provenance, gaps, and unknowns."
+
+policy:
+  allow_implicit_invocation: false
