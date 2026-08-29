@@ -202,6 +202,7 @@ evidence:
       - skills/independent-artifact-review/SKILL.md
       - skills/independent-artifact-review/evals
       - skills/references/athena-review-kernel.md
+      - skills/references/athena-overlap-audit.yaml
   scientific-peer-review:
     utility: PASS
     structural: PASS

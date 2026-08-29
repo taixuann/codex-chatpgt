@@ -1,0 +1,17 @@
+schema_version: 1
+id: ATHENA-OVERLAP-AUDIT-20260829
+scope: Named Athena-adjacent external and local skill content inspected for Issue #61.
+observed_at: '2026-08-29'
+external:
+  - {name: K-Dense peer-review, repository: K-Dense-AI/mimeographs, ref: a38f5fcad0853be3e98a6cd95d8e6bf8c66f7c7b, license: not_confirmed, inspected: search for peer-review returned no matching artifact, retained: claim-evidence and reproducibility concepts only as issue guidance, disposition: REFERENCE_ONLY}
+  - {name: Rigorous-Reviewer, repository: Felix-owo/Rigorous-Reviewer, ref: 6367dc0b1eb874bae034658966f80005b419b9b5, license: not_confirmed, inspected: repository identity and default revision only, retained: none until content/license review, disposition: REFERENCE_ONLY}
+local:
+  - {name: code-review-and-quality, trigger: pre-merge multi-axis code review, consumer: Prometheus/parent, procedure: correctness tests readability architecture security performance, mutation_authority: review suggestions only but approval language remains general-package behavior, disposition: ADAPT for Athena implementation review; do not import approval authority}
+  - {name: security-and-hardening, trigger: build or harden input/auth/integration surfaces, consumer: implementation owner, procedure: threat model and hardening controls, mutation_authority: implementation/hardening, disposition: ADAPT conditionally for Athena risk checks; no hardening}
+  - {name: security-best-practices, trigger: explicit secure coding guidance, consumer: implementation owner, procedure: prevention checklist, mutation_authority: implementation guidance, disposition: EXPLICIT_ONLY}
+  - {name: security-threat-model, trigger: explicit threat-model construction, consumer: implementation/security owner, procedure: threat modeling, mutation_authority: design changes, disposition: EXPLICIT_ONLY}
+  - {name: security-ownership-map, trigger: security ownership mapping, consumer: security owner, procedure: ownership map, mutation_authority: governance mapping, disposition: EXPLICIT_ONLY}
+  - {name: scientific-method-critique, trigger: scientific method/protocol critique, consumer: Feynman, procedure: method and evidence critique, mutation_authority: scientific interpretation remains human/Feynman, disposition: REFERENCE_ONLY for Athena scientific evidence}
+  - {name: scientific-evidence-synthesis, trigger: synthesize scientific evidence, consumer: Feynman, procedure: evidence synthesis and interpretation, mutation_authority: scientific reasoning, disposition: REFERENCE_ONLY; Athena checks support only}
+  - {name: documentation-and-adrs, trigger: create or update documentation/ADRs, consumer: parent/Prometheus, procedure: documentation authoring, mutation_authority: documentation mutation, disposition: EXPLICIT_ONLY}
+  - {name: readiness/acceptance procedures, trigger: release or merge readiness, consumer: parent/Franky, procedure: lifecycle and acceptance evidence, mutation_authority: parent/human acceptance, disposition: REFERENCE_ONLY; Athena recommends only}

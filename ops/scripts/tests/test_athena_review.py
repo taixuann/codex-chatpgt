@@ -17,6 +17,14 @@ class AthenaReviewContractTests(unittest.TestCase):
     def test_stale_revision_rejected(self):
         with self.assertRaisesRegex(ValueError, "stale"):
             validator.validate_result(self.result, "different")
+    def test_undeclared_request_field_rejected(self):
+        value = copy.deepcopy(self.request); value["workflow_step"] = "repair"
+        with self.assertRaisesRegex(ValueError, "undeclared"):
+            validator.validate_request(value)
+    def test_undeclared_result_field_rejected(self):
+        value = copy.deepcopy(self.result); value["system_accepted"] = False
+        with self.assertRaisesRegex(ValueError, "undeclared"):
+            validator.validate_result(value)
     def test_missing_rubric_rejected(self):
         value = copy.deepcopy(self.request); value["criteria"]["source"] = []
         with self.assertRaises(ValueError): validator.validate_request(value)
