@@ -40,7 +40,7 @@ def exact_keys(value: dict[str, Any], allowed: set[str], name: str) -> None:
     if unknown:
         raise ValueError(f"{name} has undeclared field(s): {', '.join(sorted(unknown))}")
 
-def validate_request(doc: dict[str, Any]) -> None:
+def validate_request(doc: dict[str, Any], expected_revision: str | None = None) -> None:
     doc = mapping(doc, "request")
     exact_keys(doc, REQUEST_KEYS, "request")
     if doc.get("kind") != "athena.review.v1": raise ValueError("request kind must be athena.review.v1")
@@ -48,6 +48,7 @@ def validate_request(doc: dict[str, Any]) -> None:
     exact_keys(target, TARGET_KEYS, "target")
     for key in ("ref", "revision"):
         if not isinstance(target.get(key), str) or not target[key].strip(): raise ValueError(f"target.{key} is required")
+    if expected_revision and target["revision"] != expected_revision: raise ValueError("request target revision is stale")
     if doc.get("review_class") not in CLASSES: raise ValueError("review_class is not supported")
     criteria = mapping(doc.get("criteria"), "criteria")
     exact_keys(criteria, CRITERIA_KEYS, "criteria")
@@ -94,12 +95,23 @@ def validate_result(doc: dict[str, Any], expected_revision: str | None = None) -
     rec = mapping(doc.get("recommendation"), "recommendation")
     exact_keys(rec, RECOMMENDATION_KEYS, "recommendation")
     if rec.get("status") not in RECOMMENDATIONS: raise ValueError("invalid recommendation")
-    if any(c.get("status") == "not_assessed" for c in criteria) and rec.get("status") == "clear_for_parent_decision": raise ValueError("not_assessed criterion cannot yield clear recommendation")
+    if any(c.get("status") != "fulfilled" for c in criteria) and rec.get("status") == "clear_for_parent_decision": raise ValueError("non-fulfilled criterion cannot yield clear recommendation")
     if not isinstance(doc.get("limitations"), list): raise ValueError("limitations must be a list")
     human = mapping(doc.get("human_review"), "human_review")
     exact_keys(human, HUMAN_KEYS, "human_review")
     if not isinstance(human.get("required"), bool): raise ValueError("human_review.required must be boolean")
     if human.get("required") and (human.get("reason_code") not in REASONS or not isinstance(human.get("question"), str) or not human["question"].strip()): raise ValueError("required human review needs reason_code and question")
+
+def validate_request_result_pair(request: dict[str, Any], result: dict[str, Any], expected_revision: str | None = None) -> None:
+    if expected_revision is None:
+        request_target = mapping(request, "request").get("target")
+        result_revision = mapping(result, "result").get("target_revision")
+        request_revision = mapping(request_target, "target").get("revision")
+        if request_revision != result_revision:
+            raise ValueError("request and result target revisions must match")
+        expected_revision = request_revision
+    validate_request(request, expected_revision)
+    validate_result(result, expected_revision)
 
 def validate_cases(path: Path) -> None:
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -150,8 +162,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(); parser.add_argument("--request", type=Path); parser.add_argument("--result", type=Path); parser.add_argument("--expected-revision"); parser.add_argument("--cases", type=Path)
     args = parser.parse_args()
     try:
-        if args.request: validate_request(yaml.safe_load(args.request.read_text(encoding="utf-8")) or {})
-        if args.result: validate_result(yaml.safe_load(args.result.read_text(encoding="utf-8")) or {}, args.expected_revision)
+        request = yaml.safe_load(args.request.read_text(encoding="utf-8")) or {} if args.request else None
+        result = yaml.safe_load(args.result.read_text(encoding="utf-8")) or {} if args.result else None
+        expected_revision = args.expected_revision
+        if request is not None and result is not None:
+            validate_request_result_pair(request, result, expected_revision)
+        elif request is not None:
+            validate_request(request, expected_revision)
+        elif result is not None:
+            validate_result(result, expected_revision)
         if args.cases: validate_cases(args.cases)
         if not any((args.request, args.result, args.cases)): raise ValueError("provide --request, --result, or --cases")
     except (OSError, yaml.YAMLError, ValueError) as exc:

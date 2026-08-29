@@ -2,6 +2,8 @@ import unittest
 from pathlib import Path
 import sys
 import tomllib
+import copy
+import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "ops/scripts"))
@@ -42,6 +44,14 @@ class RoleBoundaryTests(unittest.TestCase):
         data = tomllib.loads(path.read_text(encoding="utf-8"))
         with self.assertRaisesRegex(ValueError, "read-only prohibition"):
             validator._validate_adapter("athena", data, "Independent review only.")
+
+    def test_noncanonical_athena_skill_cannot_be_primary(self):
+        repertoire = yaml.safe_load((ROOT / "manifests/agent-capability-repertoires.yaml").read_text())
+        catalog = yaml.safe_load((ROOT / "manifests/skill-catalog.yaml").read_text())
+        candidate = copy.deepcopy(repertoire)
+        candidate["agents"]["athena"]["primary_capabilities"] = ["independent-artifact-review"]
+        with self.assertRaisesRegex(ValueError, "noncanonical skill"):
+            validator._validate_skill_admission_alignment(candidate, catalog)
 
 
 if __name__ == "__main__":
