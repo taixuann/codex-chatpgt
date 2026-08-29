@@ -1,0 +1,6 @@
+cases:
+  - {id: implementation, trigger: "review this bounded implementation", expect: implementation}
+  - {id: architecture, trigger: "check this agent contract", expect: architecture_contract}
+  - {id: readiness, trigger: "is this release ready", expect: readiness}
+  - {id: adjacent_negative, trigger: "implement this feature", expect: no_match}
+  - {id: no_rubric, trigger: "review it", expect: insufficient_evidence}

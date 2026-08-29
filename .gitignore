@@ -40,6 +40,12 @@ skills/external-handoff/scripts/*
 !skills/research-source-discovery/**
 !skills/reference-state-reconnaissance/
 !skills/reference-state-reconnaissance/**
+!skills/independent-artifact-review/
+!skills/independent-artifact-review/**
+!skills/scientific-peer-review/
+!skills/scientific-peer-review/**
+!skills/risk-security-review/
+!skills/risk-security-review/**
 !skills/ADDYOSMANI-AGENT-SKILLS-LICENSE
 !skills/api-and-interface-design/
 !skills/api-and-interface-design/**

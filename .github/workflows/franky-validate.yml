@@ -70,6 +70,15 @@ jobs:
         id: skill_evidence
         run: python skills/control-plane-audit/scripts/validate_skill_evidence.py manifests/skill-evidence.yaml
 
+      - name: Validate Athena review contracts and cases
+        id: athena_review
+        run: |
+          python ops/scripts/validate_athena_review.py \
+            --request ops/scripts/fixtures/athena-review-request.yaml \
+            --result ops/scripts/fixtures/athena-review-result.yaml \
+            --expected-revision 042d01392cb1915b47d75c101d58091badff7068 \
+            --cases ops/scripts/fixtures/athena-review-cases.yaml
+
       - name: Validate tracked skill quality
         id: skill_quality
         run: |
@@ -233,6 +242,7 @@ jobs:
             echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
             echo '| Skill catalog admission | ${{ steps.skill_catalog.outcome }} |'
             echo '| Behavioral skill evidence envelope | ${{ steps.skill_evidence.outcome }} |'
+            echo '| Athena review contracts and cases | ${{ steps.athena_review.outcome }} |'
             echo '| Reversible documentation archive index | ${{ steps.archive_index.outcome }} |'
             echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
             echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'

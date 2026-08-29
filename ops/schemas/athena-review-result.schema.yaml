@@ -1,0 +1,55 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Athena formal review result
+type: object
+additionalProperties: false
+required: [kind, target_revision, coverage, criteria, findings, recommendation, limitations, human_review]
+properties:
+  kind: {const: athena.review-result.v1}
+  target_revision: {type: string, minLength: 1}
+  coverage:
+    type: object
+    additionalProperties: false
+    required: [reviewed, not_reviewed, complete]
+    properties:
+      reviewed: {type: array, items: {type: string}}
+      not_reviewed: {type: array, items: {type: string}}
+      complete: {type: boolean}
+  criteria:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, status, evidence, rationale]
+      properties:
+        id: {type: string, minLength: 1}
+        status: {enum: [fulfilled, partial, unfulfilled, not_assessed]}
+        evidence: {type: array}
+        rationale: {type: string, minLength: 1}
+  findings:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [severity, criterion, location, evidence, rationale, suggested_action]
+      properties:
+        severity: {enum: [critical, high, medium, low]}
+        criterion: {type: string, minLength: 1}
+        location: {type: string}
+        evidence: {type: array}
+        rationale: {type: string, minLength: 1}
+        suggested_action: {type: string, minLength: 1}
+  recommendation:
+    type: object
+    additionalProperties: false
+    required: [status]
+    properties:
+      status: {enum: [clear_for_parent_decision, issues_found, insufficient_evidence]}
+  limitations: {type: array, items: {type: string}}
+  human_review:
+    type: object
+    additionalProperties: false
+    required: [required]
+    properties:
+      required: {type: boolean}
+      reason_code: {enum: [ambiguous_criterion, conflicting_authority, critical_evidence_missing, multiple_valid_consequential_interpretations, authority_or_policy_change, scientific_claim_exceeds_evidence, producer_reviewer_material_disagreement, explicit_policy_gate]}
+      question: {type: string}

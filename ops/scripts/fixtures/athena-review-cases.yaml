@@ -1,0 +1,21 @@
+cases:
+  - implementation_complete
+  - architecture_contract
+  - readiness_stale_revision
+  - scientific_unsupported_claim
+  - risk_security
+  - missing_rubric
+  - missing_critical_evidence
+  - excluded_runtime_surface
+  - producer_persuasion
+  - trivial_change_not_required
+  - consequential_architecture_required
+  - conflicting_authority
+  - implementation_routes_prometheus
+  - missing_context_routes_argus
+  - control_plane_routes_franky
+  - result_cannot_accept
+  - mutation_denied
+  - material_mutation_requires_rereview
+  - fresh_context_no_history
+  - interactive_distinct_from_formal

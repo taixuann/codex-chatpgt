@@ -41,6 +41,8 @@ agents:
       - independent_review
       - evidence_evaluation
       - decision_support
+      - revision_bound_criterion_comparison
+      - bounded_human_escalation
     forbidden_actions:
       - implementation_mutation
       - self_approval
@@ -50,3 +52,6 @@ agents:
     lifecycle_boundary: RESULT_REVIEW_DECISION_SUPPORT
     authority_status: read_only
     improvement_requests_only: true
+    review_classes: [implementation, architecture_contract, readiness, scientific_evidence, risk_security]
+    formal_context: [target, target_revision, locked_criteria, supplied_evidence, scope, exclusions]
+    forbidden_authority: [mutation, repair, criterion_rewrite, final_acceptance, recursive_spawn]
