@@ -180,6 +180,13 @@ def _historical_successor(result_path: Path, source_commit: str, root: Path) -> 
     required = {"packet", "historical_source_commit", "canonical_successor_commit", "reason", "approval_ref", "recorded_at"}
     packets: set[str] = set()
     pairs: set[tuple[str, str]] = set()
+    try:
+        canonical_main = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", "refs/remotes/origin/main"],
+            check=True, capture_output=True, text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ValueError("historical provenance requires a canonical origin/main ref") from exc
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != required:
             raise ValueError("historical provenance exception has undeclared or missing fields")
@@ -208,6 +215,17 @@ def _historical_successor(result_path: Path, source_commit: str, root: Path) -> 
             subprocess.run(["git", "-C", str(root), "cat-file", "-e", f"{successor}^{{commit}}"], check=True, capture_output=True, text=True)
         except (OSError, subprocess.CalledProcessError) as exc:
             raise ValueError("historical provenance successor is not a commit in the repository") from exc
+        try:
+            subprocess.run(
+                ["git", "-C", str(root), "merge-base", "--is-ancestor", successor, canonical_main],
+                check=True, capture_output=True, text=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(root), "merge-base", "--is-ancestor", successor, "HEAD"],
+                check=True, capture_output=True, text=True,
+            )
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise ValueError("historical provenance successor is not an ancestor of canonical main and candidate") from exc
     try:
         packet = result_path.resolve().relative_to(root.resolve()).as_posix()
     except ValueError:

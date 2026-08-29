@@ -3,7 +3,7 @@ schema_version: 1
 exceptions:
   - packet: documentation/sessions/20260828_argus-skill-standardization_001/franky.results.yaml
     historical_source_commit: 9588b002fb24790403405da55b9ef06ab1b236cf
-    canonical_successor_commit: a9240c31157f365c9ef1181d3b65a92ae77f0ec3
+    canonical_successor_commit: 042d01392cb1915b47d75c101d58091badff7068
     reason: squash-merged PR head retained as immutable historical acceptance evidence
     approval_ref: ISSUE-90-PR-91
     recorded_at: '2026-08-29T10:00:00+07:00'

@@ -90,11 +90,29 @@ class FrankyContractTests(unittest.TestCase):
             registry.write_text(
                 (ROOT / "documentation/historical-provenance-exceptions.yaml")
                 .read_text(encoding="utf-8")
-                .replace("a9240c31157f365c9ef1181d3b65a92ae77f0ec3", "deadbeef" * 5),
+                .replace("042d01392cb1915b47d75c101d58091badff7068", "deadbeef" * 5),
                 encoding="utf-8",
             )
             with patch.object(contracts, "HISTORICAL_EXCEPTIONS", registry):
                 with self.assertRaisesRegex(ValueError, "successor is not a commit"):
+                    contracts._historical_successor(
+                        packet,
+                        "9588b002fb24790403405da55b9ef06ab1b236cf",
+                        ROOT,
+                    )
+
+    def test_historical_exception_rejects_existing_unrelated_successor(self):
+        packet = ROOT / "documentation/sessions/20260828_argus-skill-standardization_001/franky.results.yaml"
+        with tempfile.TemporaryDirectory() as directory:
+            registry = Path(directory) / "exceptions.yaml"
+            registry.write_text(
+                (ROOT / "documentation/historical-provenance-exceptions.yaml")
+                .read_text(encoding="utf-8")
+                .replace("042d01392cb1915b47d75c101d58091badff7068", "bb70226ae485e4f01f537aa754464269d50e5349"),
+                encoding="utf-8",
+            )
+            with patch.object(contracts, "HISTORICAL_EXCEPTIONS", registry):
+                with self.assertRaisesRegex(ValueError, "not an ancestor"):
                     contracts._historical_successor(
                         packet,
                         "9588b002fb24790403405da55b9ef06ab1b236cf",
