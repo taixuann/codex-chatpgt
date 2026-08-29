@@ -20,6 +20,7 @@ RESULT_SCHEMA = ROOT / "ops/schemas/franky-result.schema.yaml"
 DEFAULT_TASK = ROOT / "ops/schemas/examples/franky-task.yaml"
 DEFAULT_RESULT = ROOT / "ops/schemas/examples/franky-result.yaml"
 DEFAULT_REPERTOIRE = ROOT / "manifests/agent-capability-repertoires.yaml"
+HISTORICAL_EXCEPTIONS = ROOT / "documentation/historical-provenance-exceptions.yaml"
 EXPECTED_AGENTS = {"franky", "feynman", "prometheus", "athena", "argus"}
 REQUIRED_AUTHORITY = {
     "inspect_control_plane",
@@ -162,6 +163,76 @@ def _governed_snapshot_token(repository_root: Path) -> str:
     return "working-tree:governed-" + hashlib.sha256("\n".join(sorted(material)).encode()).hexdigest()
 
 
+def _historical_successor(result_path: Path, source_commit: str, root: Path) -> bool:
+    """Return whether an unreachable source commit has an exact approved exception."""
+    if not HISTORICAL_EXCEPTIONS.is_file():
+        return False
+    registry = _load(HISTORICAL_EXCEPTIONS)
+    if not isinstance(registry, dict):
+        raise ValueError("historical provenance registry must be a mapping")
+    if set(registry) != {"kind", "schema_version", "exceptions"}:
+        raise ValueError("historical provenance registry has undeclared or missing fields")
+    if registry.get("kind") != "codex.historical-provenance-exceptions.v1" or registry.get("schema_version") != 1:
+        raise ValueError("historical provenance registry has invalid header")
+    entries = registry.get("exceptions")
+    if not isinstance(entries, list):
+        raise ValueError("historical provenance registry exceptions must be a list")
+    required = {"packet", "historical_source_commit", "canonical_successor_commit", "reason", "approval_ref", "recorded_at"}
+    packets: set[str] = set()
+    pairs: set[tuple[str, str]] = set()
+    try:
+        canonical_main = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", "refs/remotes/origin/main"],
+            check=True, capture_output=True, text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ValueError("historical provenance requires a canonical origin/main ref") from exc
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != required:
+            raise ValueError("historical provenance exception has undeclared or missing fields")
+        packet = entry["packet"]
+        historical = entry["historical_source_commit"]
+        successor = entry["canonical_successor_commit"]
+        if not isinstance(packet, str) or not re.fullmatch(r"documentation/sessions/[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}/franky\.results\.yaml", packet):
+            raise ValueError("historical provenance exception packet must be a session result path")
+        if not isinstance(historical, str) or not re.fullmatch(r"[0-9a-f]{40}", historical):
+            raise ValueError("historical provenance source must be a lowercase full commit SHA")
+        if not isinstance(successor, str) or not re.fullmatch(r"[0-9a-f]{40}", successor):
+            raise ValueError("historical provenance successor must be a lowercase full commit SHA")
+        if any(not isinstance(entry[field], str) or not entry[field].strip() for field in ("reason", "approval_ref", "recorded_at")):
+            raise ValueError("historical provenance exception metadata must be non-empty")
+        try:
+            recorded_at = datetime.fromisoformat(entry["recorded_at"].replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError("historical provenance recorded_at must be ISO-8601") from exc
+        if recorded_at > datetime.now(timezone.utc):
+            raise ValueError("historical provenance recorded_at cannot be in the future")
+        if packet in packets or (packet, historical) in pairs:
+            raise ValueError("historical provenance registry contains duplicate entries")
+        packets.add(packet)
+        pairs.add((packet, historical))
+        try:
+            subprocess.run(["git", "-C", str(root), "cat-file", "-e", f"{successor}^{{commit}}"], check=True, capture_output=True, text=True)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise ValueError("historical provenance successor is not a commit in the repository") from exc
+        try:
+            subprocess.run(
+                ["git", "-C", str(root), "merge-base", "--is-ancestor", successor, canonical_main],
+                check=True, capture_output=True, text=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(root), "merge-base", "--is-ancestor", successor, "HEAD"],
+                check=True, capture_output=True, text=True,
+            )
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise ValueError("historical provenance successor is not an ancestor of canonical main and candidate") from exc
+    try:
+        packet = result_path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return False
+    return (packet, source_commit) in pairs
+
+
 def _validate_freshness(result: dict, result_path: Path, repository_root: Path | None) -> None:
     freshness = result["evidence_freshness"]
     now = datetime.now(timezone.utc)
@@ -193,6 +264,8 @@ def _validate_freshness(result: dict, result_path: Path, repository_root: Path |
                     check=True, capture_output=True, text=True,
                 )
             except (OSError, subprocess.CalledProcessError) as exc:
+                if _historical_successor(result_path, freshness["source_commit"], root):
+                    return
                 raise ValueError("evidence_freshness.source_commit is not a commit in the repository") from exc
 
 

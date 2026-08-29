@@ -1,0 +1,4 @@
+cases:
+  - {id: security, trigger: "review this permission boundary", expect: risk_security}
+  - {id: supply_chain, trigger: "assess dependency trust risk", expect: risk_security}
+  - {id: adjacent_negative, trigger: "harden the endpoint", expect: no_match}

@@ -1,0 +1,5 @@
+interface:
+  display_name: Scientific peer review
+  short_description: Conditional claim and evidence alignment review
+policy:
+  allow_implicit_invocation: false

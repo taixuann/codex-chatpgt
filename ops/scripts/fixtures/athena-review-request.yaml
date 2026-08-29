@@ -1,0 +1,9 @@
+kind: athena.review.v1
+target: {ref: pull/61, revision: 042d01392cb1915b47d75c101d58091badff7068}
+review_class: implementation
+criteria: {source: [github:issue/61], locked: true}
+scope: {include: [athena implementation], exclude: [native host dispatch]}
+evidence: [github:issue/61, local:validators]
+context: {optional_refs: [documentation/AGENT-BOUNDARIES.md]}
+authority: {mutation: denied, final_acceptance: denied}
+output: {require: [criterion_results, findings, coverage, limitations, recommendation]}

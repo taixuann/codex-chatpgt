@@ -1,0 +1,20 @@
+kind: codex.session-references.v1
+schema_version: 1
+session_id: 20260829_athena-issue-61_001
+references:
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/61, kind: issue, state: closed, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T00:00:00+07:00', relationship: execution-contract}
+  - {path: https://github.com/taixuann/codex-chatpgt/pull/92, kind: pull-request, state: open, commit_or_hash: 8107e0df526af3c32393abbceb538d2a46b06984, observed_at: '2026-08-29T18:00:00+07:00', relationship: final-candidate-hosted-ci-337}
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/6, kind: issue, state: closed, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T00:00:00+07:00', relationship: independent-review-precedent}
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/38, kind: issue, state: open, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T13:12:00+07:00', relationship: skill-admission-authority}
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/56, kind: issue, state: open, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T13:12:00+07:00', relationship: capability-repertoire-authority}
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/60, kind: issue, state: closed, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T00:00:00+07:00', relationship: neighboring-contract}
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/90, kind: issue, state: closed, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T00:00:00+07:00', relationship: accepted-Argus-precedent}
+  - {path: AGENTS.md, kind: repository-policy, state: current-work-unit, commit_or_hash: 831a599be646ffd41bda8daddf3d0b0934b76a27, observed_at: '2026-08-29T14:35:00+07:00', relationship: governs}
+  - {path: agents/athena.toml, kind: adapter, state: current-work-unit, commit_or_hash: 831a599be646ffd41bda8daddf3d0b0934b76a27, observed_at: '2026-08-29T14:35:00+07:00', relationship: reconciled}
+  - {path: https://github.com/wxmb01/review-skill/tree/46f98cce11892a659199c25a62d284bb901b9284, kind: upstream-reference, state: inspected, commit_or_hash: 46f98cce11892a659199c25a62d284bb901b9284, observed_at: '2026-08-29T00:00:00+07:00', relationship: adaptation-anchor}
+  - {path: https://github.com/d-init-d/d-research-skill/tree/e159653797308cfb1cd10ec63f51dcc7d69d6066, kind: upstream-reference, state: inspected, commit_or_hash: e159653797308cfb1cd10ec63f51dcc7d69d6066, observed_at: '2026-08-29T00:00:00+07:00', relationship: conditional-scientific-anchor}
+  - {path: https://github.com/Cantara/knowledge-context-protocol/tree/ce893716ead0e946966074d738d6766ea2196700, kind: upstream-reference, state: inspected, commit_or_hash: ce893716ead0e946966074d738d6766ea2196700, observed_at: '2026-08-29T00:00:00+07:00', relationship: bounded-concept-anchor}
+  - {path: skills/references/athena-overlap-audit.yaml, kind: audit-record, state: current, commit_or_hash: 831a599be646ffd41bda8daddf3d0b0934b76a27, observed_at: '2026-08-29T14:35:00+07:00', relationship: local-overlap-and-external-disposition}
+  - {path: skills/references/athena-upstream-adaptation-records.yaml, kind: provenance-record, state: current, commit_or_hash: 831a599be646ffd41bda8daddf3d0b0934b76a27, observed_at: '2026-08-29T14:35:00+07:00', relationship: external-anchor-and-overlap-provenance}
+  - {path: documentation/reviews/ISSUE-61-ATHENA-REVIEW.yaml, kind: review-record, state: local, commit_or_hash: a5c79e9f47ac4f6d5858d5fd2542b5ee1e82c937, observed_at: '2026-08-29T17:30:00+07:00', relationship: implementation-review-predecessor}
+  - {path: documentation/reviews/ISSUE-61-ATHENA-PROMOTION-REVIEW.yaml, kind: review-record, state: local, commit_or_hash: 8107e0df526af3c32393abbceb538d2a46b06984, observed_at: '2026-08-29T18:00:00+07:00', relationship: parent-promotion-review}

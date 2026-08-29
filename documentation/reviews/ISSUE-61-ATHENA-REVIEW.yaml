@@ -1,0 +1,86 @@
+kind: athena.review-result.v1
+target_revision: a5c79e9f47ac4f6d5858d5fd2542b5ee1e82c937
+coverage:
+  reviewed:
+    - Full Issue #61 scope from 042d01392cb1915b47d75c101d58091badff7068
+    - Packet freshness reconciliation, lifecycle documentation, and PR #92 references
+    - Historical-provenance registry, canonical-main ancestry guard, and regressions
+    - Athena contracts, adapter, skills, manifests, packet, and CI paths
+    - Clean-tree integrity and deterministic validation
+  not_reviewed:
+    - native host dispatch
+    - native skill loading or model-mediated selection
+    - host permission enforcement
+    - hosted CI execution, PR/merge, remote Issue, and live upstream state
+  complete: false
+criteria:
+  - id: revision_and_scope_binding
+    status: fulfilled
+    evidence:
+      - HEAD resolves to a5c79e9f47ac4f6d5858d5fd2542b5ee1e82c937.
+      - Verified base and prior candidate are ancestors; diff checks and git fsck passed.
+    rationale: The candidate is exact, clean, and scope-preserving.
+  - id: strict_executable_request_result_contracts
+    status: fulfilled
+    evidence:
+      - ops/schemas/athena-review.schema.yaml
+      - ops/schemas/athena-review-result.schema.yaml
+      - ops/scripts/tests/test_athena_review.py
+    rationale: Both schemas forbid unknown fields, and the executable validator/tests enforce the strict contract.
+  - id: athena_boundary_kernel_and_classes
+    status: fulfilled
+    evidence:
+      - agents/athena.toml
+      - skills/references/athena-review-kernel.md
+    rationale: The read-only, fresh-context, evidence-bound, parent-only boundary and five review classes remain coherent.
+  - id: representative_20_case_behavior_and_prior_outcome_guards
+    status: fulfilled
+    evidence:
+      - ops/scripts/fixtures/athena-review-cases.yaml
+      - ops/scripts/validate_athena_review.py
+      - ops/scripts/tests/test_athena_review.py
+    rationale: All required cases are present; exact outcomes are mutation-guarded.
+  - id: overlap_and_upstream_provenance
+    status: fulfilled
+    evidence:
+      - skills/references/athena-overlap-audit.yaml
+      - skills/references/athena-upstream-adaptation-records.yaml
+    rationale: Named local overlaps include trigger, consumer, procedure, output, authority, material, collision, and disposition; uncertain upstream material is reference-only.
+  - id: session_packet_and_provenance
+    status: fulfilled
+    evidence:
+      - documentation/sessions/20260829_athena-issue-61_001/session.yaml
+      - documentation/sessions/20260829_athena-issue-61_001/task.md
+      - documentation/sessions/20260829_athena-issue-61_001/references.yaml
+    rationale: Packet is valid, revision-linked, and records the reconciled parent publication workflow; stale prior review evidence is not treated as current acceptance.
+  - id: packet_freshness_reconciliation
+    status: fulfilled
+    evidence:
+      - Packet and task status are needs_review.
+      - Source state and PR #92 evidence bind to 61f16a596a9da7b58f3d72b907ceb514bd464775.
+      - Lifecycle documentation states that fresh review refresh is pending.
+    rationale: The stale prior review is preserved as historical evidence rather than treated as current acceptance.
+  - id: ci_and_local_validation_wiring
+    status: fulfilled
+    evidence:
+      - .github/workflows/franky-validate.yml
+      - 130 ops tests, 25 control-plane tests, and 8 packet tests passed.
+      - Athena/Franky validators, catalog, interfaces, routing, role boundaries, adapter, and allowlist checks passed.
+      - The registry is included in both push and pull-request workflow paths.
+    rationale: No regression or CI path-coverage gap was found.
+  - id: canonical_main_historical_exception
+    status: fulfilled
+    evidence:
+      - Registry successor is 042d01392cb1915b47d75c101d58091badff7068.
+      - Validator requires successor ancestry of both refs/remotes/origin/main and HEAD.
+      - Regression rejects an existing unrelated successor.
+      - Unavailable-source fallback accepted the exact allowlisted packet/source pair.
+    rationale: The exception is exact, canonical-main-bound, candidate-bound, and rejects unrelated successors.
+findings: []
+limitations:
+  - Native dispatch, skill loading, and host permission enforcement remain NOT_ASSESSED.
+  - Hosted CI, PR/merge, remote Issue, and live upstream provenance remain NOT_ASSESSED.
+human_review:
+  required: false
+recommendation:
+  status: clear_for_parent_decision

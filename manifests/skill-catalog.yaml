@@ -30,6 +30,9 @@ capability_keys:
   codebase-reconnaissance: codebase-reconnaissance
   research-source-discovery: research-source-discovery
   reference-state-reconnaissance: reference-state-reconnaissance
+  independent-artifact-review: independent-artifact-review
+  scientific-peer-review: scientific-peer-review
+  risk-security-review: risk-security-review
 dispositions:
   KEEP:
     - control-plane-audit
@@ -60,6 +63,9 @@ dispositions:
     - codebase-reconnaissance
     - research-source-discovery
     - reference-state-reconnaissance
+    - independent-artifact-review
+    - scientific-peer-review
+    - risk-security-review
   EXPLICIT_ONLY:
     - chatgpt-apps
     - cli-creator
@@ -184,6 +190,34 @@ evidence:
     evidence_paths:
       - skills/reference-state-reconnaissance/SKILL.md
       - skills/references/reconnaissance-kernel.md
+  independent-artifact-review:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Revision-bound implementation, architecture, and readiness review with denied mutation and parent-only recommendation.
+    evidence_paths:
+      - skills/independent-artifact-review/SKILL.md
+      - skills/independent-artifact-review/evals
+      - skills/references/athena-review-kernel.md
+      - skills/references/athena-overlap-audit.yaml
+  scientific-peer-review:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Conditional claim-to-evidence review preserving Feynman and human scientific authority.
+    evidence_paths:
+      - skills/scientific-peer-review/SKILL.md
+      - skills/scientific-peer-review/evals
+      - skills/references/athena-review-kernel.md
+  risk-security-review:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Conditional read-only trust-boundary and authorization review with explicit escalation and no hardening authority.
+    evidence_paths:
+      - skills/risk-security-review/SKILL.md
+      - skills/risk-security-review/evals
+      - skills/references/athena-review-kernel.md
 notes:
   - ADAPT packages are candidates for capability-specific refinement, not implicit activation.
   - MERGE and RETIRE decisions remove meta-workflow duplication; source remains recoverable in Git history.

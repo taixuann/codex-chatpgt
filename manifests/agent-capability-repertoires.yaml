@@ -105,12 +105,15 @@ agents:
   athena:
     role_surface: support
     primary_capabilities:
-      - code-review-and-quality
-      - security-review
-      - evidence-evaluation
-      - decision-support
+      - independent-artifact-review
     lifecycle_capabilities: []
-    conditional_capabilities: []
+    conditional_capabilities:
+      - scientific-peer-review
+      - risk-security-review
+      - code-review-and-quality
+      - security-and-hardening
+      - scientific-method-critique
+      - scientific-evidence-synthesis
     external_or_runtime_dependencies: []
     forbidden_capabilities:
       - file-mutation

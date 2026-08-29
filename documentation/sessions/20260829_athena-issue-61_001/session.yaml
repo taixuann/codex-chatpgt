@@ -1,0 +1,20 @@
+kind: codex.session-packet.v1
+schema_version: 1
+session_id: 20260829_athena-issue-61_001
+repository_root: .
+packet_root: documentation/sessions/20260829_athena-issue-61_001
+canonical_records:
+  issue: https://github.com/taixuann/codex-chatpgt/issues/61
+  plan: documentation/sessions/20260829_athena-issue-61_001/plan.md
+  pr: https://github.com/taixuann/codex-chatpgt/pull/92
+source_state:
+  commit: 8107e0df526af3c32393abbceb538d2a46b06984
+  recorded_at: '2026-08-29T18:00:00+07:00'
+owner: franky
+status: acceptance_ready
+artifacts:
+  context: context.md
+  spec: spec.md
+  plan: plan.md
+  tasks: task.md
+  references: references.yaml
