@@ -1,9 +1,11 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
 
+import ops.scripts.validate_franky_contracts as contracts
 from ops.scripts.validate_franky_contracts import (
     DEFAULT_REPERTOIRE,
     DEFAULT_RESULT,
@@ -62,6 +64,42 @@ class FrankyContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "cannot be in the future"):
             validate(task_path, result_path, DEFAULT_REPERTOIRE)
         tmp.cleanup()
+
+    def test_exact_historical_provenance_exception_is_allowlisted(self):
+        packet = ROOT / "documentation/sessions/20260828_argus-skill-standardization_001/franky.results.yaml"
+        self.assertTrue(contracts._historical_successor(
+            packet,
+            "9588b002fb24790403405da55b9ef06ab1b236cf",
+            ROOT,
+        ))
+
+    def test_historical_exception_requires_exact_packet_and_sha(self):
+        packet = ROOT / "documentation/sessions/20260828_argus-skill-standardization_001/franky.results.yaml"
+        self.assertFalse(contracts._historical_successor(packet, "0" * 40, ROOT))
+        other_packet = ROOT / "documentation/sessions/20260829_example-work_001/franky.results.yaml"
+        self.assertFalse(contracts._historical_successor(
+            other_packet,
+            "9588b002fb24790403405da55b9ef06ab1b236cf",
+            ROOT,
+        ))
+
+    def test_historical_exception_rejects_unreachable_successor(self):
+        packet = ROOT / "documentation/sessions/20260828_argus-skill-standardization_001/franky.results.yaml"
+        with tempfile.TemporaryDirectory() as directory:
+            registry = Path(directory) / "exceptions.yaml"
+            registry.write_text(
+                (ROOT / "documentation/historical-provenance-exceptions.yaml")
+                .read_text(encoding="utf-8")
+                .replace("a9240c31157f365c9ef1181d3b65a92ae77f0ec3", "deadbeef" * 5),
+                encoding="utf-8",
+            )
+            with patch.object(contracts, "HISTORICAL_EXCEPTIONS", registry):
+                with self.assertRaisesRegex(ValueError, "successor is not a commit"):
+                    contracts._historical_successor(
+                        packet,
+                        "9588b002fb24790403405da55b9ef06ab1b236cf",
+                        ROOT,
+                    )
 
     def test_change_ledger_working_tree_must_match_live_state(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))
