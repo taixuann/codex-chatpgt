@@ -1,0 +1,29 @@
+multi_source_current:
+  intent: {question: 'locate registry ownership', consumer: parent}
+  bounded_path_source_service: {paths: [manifests/agent-capability-repertoires.yaml], sources: [Issue-90], services: []}
+  scope: {include: [manifests, agents/argus.toml], exclude: [linked-projects, credentials]}
+  authority: [external-registry, portable-reference, adapter]
+  priority: [external-registry, portable-reference, adapter]
+  load_strategy: minimum-first
+  freshness: {required: current, observed_at: '2026-08-28T08:00:00+07:00'}
+  validated: true
+  dependencies: []
+stale_conflict:
+  intent: {question: 'compare old and live state', consumer: parent}
+  bounded_path_source_service: {paths: [documentation/DECISIONS.md], sources: [old-plan], services: []}
+  scope: {include: [documentation/DECISIONS.md], exclude: [runtime-private]}
+  authority: [live-registry, old-plan]
+  priority: [live-registry, old-plan]
+  load_strategy: controlled-expansion
+  freshness: {required: current, observed_at: '2020-01-01T00:00:00+00:00'}
+  validated: false
+  supersession: {status: conflict, superseded_by: live-registry}
+narrow_source:
+  intent: {question: 'find only the auth entry point', consumer: parent}
+  bounded_path_source_service: {paths: [src/auth/index.ts], sources: [], services: []}
+  scope: {include: [src/auth/index.ts], exclude: [all-other-paths]}
+  authority: [repository-owner]
+  priority: [src/auth/index.ts]
+  load_strategy: saturation-stop
+  freshness: {required: repository-head, observed_at: '2026-08-28T08:00:00+07:00'}
+  validated: true

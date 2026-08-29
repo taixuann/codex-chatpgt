@@ -27,6 +27,9 @@ capability_keys:
   runtime-adapter-management: runtime-adapter-management
   session-packet-management: session-packet-management
   shared-session-closeout: session-closeout
+  codebase-reconnaissance: codebase-reconnaissance
+  research-source-discovery: research-source-discovery
+  reference-state-reconnaissance: reference-state-reconnaissance
 dispositions:
   KEEP:
     - control-plane-audit
@@ -54,6 +57,9 @@ dispositions:
     - scientific-evidence-synthesis
     - hypothesis-and-test-design
     - scientific-method-critique
+    - codebase-reconnaissance
+    - research-source-discovery
+    - reference-state-reconnaissance
   EXPLICIT_ONLY:
     - chatgpt-apps
     - cli-creator
@@ -154,6 +160,30 @@ evidence:
     basis: Role-neutral acceptance and durable outcome recording procedure.
     evidence_paths:
       - skills/shared-session-closeout/SKILL.md
+  codebase-reconnaissance:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Read-only bounded repository mapping with provenance, coverage, and mutation/role-drift stops.
+    evidence_paths:
+      - skills/codebase-reconnaissance/SKILL.md
+      - skills/references/reconnaissance-kernel.md
+  research-source-discovery:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Read-only source discovery with authority, freshness, license, and evidence-support boundaries.
+    evidence_paths:
+      - skills/research-source-discovery/SKILL.md
+      - skills/references/reconnaissance-kernel.md
+  reference-state-reconnaissance:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Read-only reference/current-state comparison with explicit authority, drift, and unknown handling.
+    evidence_paths:
+      - skills/reference-state-reconnaissance/SKILL.md
+      - skills/references/reconnaissance-kernel.md
 notes:
   - ADAPT packages are candidates for capability-specific refinement, not implicit activation.
   - MERGE and RETIRE decisions remove meta-workflow duplication; source remains recoverable in Git history.

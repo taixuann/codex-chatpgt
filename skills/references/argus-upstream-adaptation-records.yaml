@@ -1,0 +1,44 @@
+schema_version: 1
+kind: argus.upstream_adaptation_records.v1
+records:
+  codebase-reconnaissance:
+    source: github/awesome-copilot/skills/acquire-codebase-knowledge
+    commit: 797cf9f830cc216aa66bb509543c8c93b3ba47d1
+    license: MIT
+    retained: [bounded orientation, structure mapping]
+    modified: [read-only scope, impact and structure-health]
+    removed: [broad generated documentation]
+    added: [shared kernel, narrow stop]
+    rejected: [mutation, implementation, wholesale vendoring]
+    disposition: reference-only adaptation
+  research-source-discovery:
+    source: d-init-d/d-research-skill/SKILL.md
+    commit: e159653797308cfb1cd10ec63f51dcc7d69d6066
+    license: CC-BY-NC-4.0
+    retained: [source-map, controlled expansion, evidence-depth triage]
+    modified: [discovery-only, authority/license checks]
+    removed: [unbounded research, conclusion synthesis]
+    added: [dedup/versioning, saturation stop]
+    rejected: [direct vendoring]
+    disposition: reference-only adaptation
+  reference-state-reconnaissance:
+    source: Cantara/knowledge-context-protocol/SPEC.md
+    commit: ce893716ead0e946966074d738d6766ea2196700
+    license: Apache-2.0
+    retained: [authority, artifact, relationship concepts]
+    modified: [bounded current-state comparison]
+    removed: [wholesale protocol and session ownership]
+    added: [freshness, supersession, bounded packet]
+    rejected: [mutation, promotion, KCP import]
+    disposition: reference-only adaptation
+  codebase-context-comparison:
+    source: jovd83/codebase-context
+    commit: 86c4db7af06c466f9acdb4ab4e59c091c4510190
+    license: MIT
+    license_anchor: 82c5ac6a0ee82951afadc1e1ff4fb7f489db3f02
+    retained: [comparison of codebase-context mapping approach]
+    modified: []
+    removed: []
+    added: []
+    rejected: [direct vendoring, replacement of bounded Argus profile]
+    disposition: comparison-only reference
