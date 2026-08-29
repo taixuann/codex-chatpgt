@@ -57,7 +57,7 @@ chain `Evidence -> Claim -> Review -> Decision -> State`.
 | #68 | Argus contract, registry entries, provenance/evidence checks, handoff negative case | PASS (deterministic) |
 | #69 | Prometheus contract, quality/artifact capabilities, result/closeout checks | PASS (deterministic) |
 | #70 | Athena contract, review/evidence capabilities, independent-review boundary | PASS (deterministic) |
-| #61 | Thin Athena request/result contracts, bounded review skills, and evidence validator | Reviewed PASS; hosted CI run #331 PASS on PR #92; merge pending |
+| #61 | Thin Athena request/result contracts, bounded review skills, and evidence validator | Hosted CI run #333 PASS on PR #92; fresh review refresh pending |
 | #71 | Shared envelopes, artifact states, evidence chain, seven negative evaluator cases | PASS (deterministic) |
 
 Host-mediated agent selection, native skill loading/model-mediated selection,
