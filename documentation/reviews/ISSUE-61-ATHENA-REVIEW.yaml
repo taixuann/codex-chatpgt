@@ -17,7 +17,7 @@ criteria:
   - id: revision_and_scope_binding
     status: fulfilled
     evidence:
-      - HEAD resolves to 85c02d522b64793a9957d691721a02a2a7b7c5e3; merge-base is 042d013392cb1915b47d75c101d58091badff7068
+      - HEAD resolves to 85c02d522b64793a9957d691721a02a2a7b7c5e3; merge-base is 042d01392cb1915b47d75c101d58091badff7068
       - git diff --check and git fsck --no-dangling passed
     rationale: Exact requested candidate is available and cleanly diffable.
   - id: strict_executable_request_result_contracts
