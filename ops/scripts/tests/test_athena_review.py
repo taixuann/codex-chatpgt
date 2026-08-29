@@ -1,4 +1,5 @@
 import copy
+import tempfile
 import unittest
 from pathlib import Path
 import sys
@@ -35,5 +36,28 @@ class AthenaReviewContractTests(unittest.TestCase):
         value = copy.deepcopy(self.result); value["system_accepted"] = True
         with self.assertRaises(ValueError): validator.validate_result(value)
     def test_case_fixture(self): validator.validate_cases(ROOT / "scripts/fixtures/athena-review-cases.yaml")
+    def _mutated_case_is_rejected(self, case_id, mutate):
+        cases = yaml.safe_load((ROOT / "scripts/fixtures/athena-review-cases.yaml").read_text())
+        case = next(item for item in cases["cases"] if item["id"] == case_id)
+        mutate(case)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml") as handle:
+            yaml.safe_dump(cases, handle)
+            handle.flush()
+            with self.assertRaises(ValueError): validator.validate_cases(Path(handle.name))
+    def test_conflicting_authority_fields_are_all_guarded(self):
+        for field, value in (("human_required", False), ("human_reason", "wrong"), ("human_question", "")):
+            self._mutated_case_is_rejected("conflicting_authority", lambda c, f=field, v=value: c["result"].__setitem__(f, v))
+    def test_trivial_review_required_flag_is_guarded(self):
+        self._mutated_case_is_rejected("trivial_change_not_required", lambda c: c["result"].__setitem__("review_required", True))
+    def test_excluded_surface_fields_are_guarded(self):
+        self._mutated_case_is_rejected("excluded_runtime_surface", lambda c: c["result"].__setitem__("not_reviewed", []))
+        self._mutated_case_is_rejected("excluded_runtime_surface", lambda c: c["result"].__setitem__("limitations", []))
+    def test_every_parent_route_and_spawn_flag_is_guarded(self):
+        for case_id in ("implementation_routes_prometheus", "missing_context_routes_argus", "control_plane_routes_franky"):
+            self._mutated_case_is_rejected(case_id, lambda c: c["result"].__setitem__("spawned", True))
+            self._mutated_case_is_rejected(case_id, lambda c: c["result"].__setitem__("handoff", "wrong"))
+    def test_final_acceptance_and_mutation_denial_are_guarded(self):
+        self._mutated_case_is_rejected("result_cannot_accept", lambda c: c["result"].__setitem__("final_acceptance", True))
+        self._mutated_case_is_rejected("mutation_denied", lambda c: c["request"].__setitem__("authority_mutation", "allowed"))
 
 if __name__ == "__main__": unittest.main()
