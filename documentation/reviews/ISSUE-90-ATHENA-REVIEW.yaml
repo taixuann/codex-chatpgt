@@ -1,12 +1,12 @@
 kind: franky.independent-review.v1
-review_id: ATHENA-ISSUE-90-20260828-004
+review_id: ATHENA-ISSUE-90-20260829-005
 reviewer_id: athena
 reviewer_role: independent_reviewer
-review_session_id: 7d52c5fe-d025-4d25-b6a3-4b13358f1bd3
-reviewed_source_commit: f7ab9cdf434a548b64a4181e461184a490e110a4
+review_session_id: bd25aa78-6560-40bb-9584-fc66c60a6c7f
+reviewed_source_commit: 9588b002fb24790403405da55b9ef06ab1b236cf
 outcome: PASS
 findings: []
-scope: [Argus_adapter, three_profiles, shared_kernel, manifests, catalog, overlap_audit, packet]
-not_reviewed: [native_dispatch, native_skill_loading, host_permissions]
+scope: [Argus_adapter, three_profiles, shared_kernel, manifests, catalog, packet, historical_packet_ci_exception, repository_root_portability, freshness_state]
+not_reviewed: [native_dispatch, native_skill_loading, host_permissions, LightRAG_indexing, rollback_restoration, hosted_pr_ci_remote_state]
 limitations:
-  - Native dispatch, skill loading, profile selection, host permission enforcement, LightRAG/indexing, and rollback restoration remain NOT_ASSESSED.
+  - Native dispatch, skill loading, profile selection, host permission enforcement, LightRAG/indexing, rollback restoration, and hosted remote state remain NOT_ASSESSED.

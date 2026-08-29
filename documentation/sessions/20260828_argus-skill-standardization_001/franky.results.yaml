@@ -2,19 +2,20 @@ kind: franky.result.v1
 version: 1
 contract_version: {major: 1, minor: 1}
 request_id: FRANKY-20260828-ARGUS-001
-status: blocked
+status: acceptance_ready
 lifecycle:
-  state: CLOSURE
+  state: ACCEPTANCE_READY
   evidence:
-    - {state: REQUEST, status: PASS, source: franky.ticket.yaml, detail: "Bounded Issue #90 scope and exclusions recorded.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
-    - {state: CONTRACT, status: PASS, source: ops/schemas/franky-task.schema.yaml, detail: "Ticket conforms to franky.task.v1.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
-    - {state: ADMISSION, status: PASS, source: manifests/skill-catalog.yaml, detail: "Three profiles are catalogued with conservative ADAPT disposition and implicit invocation disabled pending behavioral probing.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
-    - {state: ROUTING, status: PASS, source: manifests/agent-capability-repertoires.yaml, detail: "Argus repertoire is limited to the three profiles.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
-    - {state: IMPACT, status: PASS, source: documentation/AGENT-BOUNDARIES.md, detail: "Argus remains a bounded support adapter and shared lifecycle ownership is preserved.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
-    - {state: EXECUTION, status: PASS, source: committed-main, detail: "Three profiles, shared kernel, adapter, manifests, and allowlist were committed on main; no push executed.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
-    - {state: VALIDATION, status: PASS, source: deterministic-validation-suite, detail: "Catalog and full validation commands passed on the committed reviewed tree.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
-    - {state: CLOSURE, status: PASS, source: franky.results.yaml, detail: "Implementation, canonical state, references, and proof closure surfaces are PASS; runtime limitations remain explicit.", provenance: {source_state: committed-main, commit: f7ab9cdf434a548b64a4181e461184a490e110a4, observed_at: '2026-08-28T16:06:42+07:00', result: PASS}}
-evidence_freshness: {source_commit: f7ab9cdf434a548b64a4181e461184a490e110a4, validated_at: '2026-08-28T09:37:00+07:00', mutation_free_since_validation: false, invalidated_by_mutation: true}
+    - {state: REQUEST, status: PASS, source: franky.ticket.yaml, detail: "Bounded Issue #90 scope and exclusions recorded.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
+    - {state: CONTRACT, status: PASS, source: ops/schemas/franky-task.schema.yaml, detail: "Ticket conforms to franky.task.v1.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
+    - {state: ADMISSION, status: PASS, source: manifests/skill-catalog.yaml, detail: "Three profiles are catalogued with conservative ADAPT disposition and implicit invocation disabled pending behavioral probing.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
+    - {state: ROUTING, status: PASS, source: manifests/agent-capability-repertoires.yaml, detail: "Argus repertoire is limited to the three profiles.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
+    - {state: IMPACT, status: PASS, source: documentation/AGENT-BOUNDARIES.md, detail: "Argus remains a bounded support adapter and shared lifecycle ownership is preserved.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-28T09:37:00+07:00', result: PASS}}
+    - {state: EXECUTION, status: PASS, source: committed-pr-head, detail: "Three profiles, shared kernel, adapter, manifests, allowlist, and the scoped workflow exception are committed on the PR branch; publication is authorized.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-29T09:38:31+07:00', result: PASS}}
+    - {state: VALIDATION, status: PASS, source: deterministic-validation-suite, detail: "Catalog and full validation commands passed on the reviewed PR-head tree.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-29T09:38:31+07:00', result: PASS}}
+    - {state: CLOSURE, status: PASS, source: franky.results.yaml, detail: "Implementation, canonical-state candidate, references, and proof closure surfaces are PASS; runtime limitations remain explicit.", provenance: {source_state: committed-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-29T09:38:31+07:00', result: PASS}}
+    - {state: ACCEPTANCE_READY, status: PASS, source: Athena-review-and-hosted-CI, detail: "Fresh independent Athena review passed on 9588b002; hosted Control-plane validation run #318 passed on the same PR head.", provenance: {source_state: remote-pr-head, commit: 9588b002fb24790403405da55b9ef06ab1b236cf, observed_at: '2026-08-29T09:38:31+07:00', result: PASS}}
+evidence_freshness: {source_commit: 9588b002fb24790403405da55b9ef06ab1b236cf, validated_at: '2026-08-29T09:38:31+07:00', mutation_free_since_validation: true, invalidated_by_mutation: false}
 routing:
   operation_class: argus_reconnaissance_skill_standardization
   primary_capability: control-plane-audit
@@ -75,10 +76,10 @@ validation:
   - {check: python3 -m unittest discover -s ops/scripts/tests -p 'test_*.py', status: PASS, source_state: working-tree}
   - {check: "parent-verified upstream revisions/licenses for awesome-copilot, d-init, Cantara, and jovd83", status: PASS, source_state: parent-live-GitHub-evidence}
   - {check: rollback restoration execution, status: NOT_ASSESSED, source_state: working-tree}
-review: {required: true, status: PASS, reviewer: Athena, scope: [Argus_adapter, three_profiles, shared_kernel, manifests, catalog, overlap_audit, packet], not_reviewed: [native_dispatch, native_skill_loading, host_permissions], reviewer_id: athena, reviewer_role: independent_reviewer, review_session_id: 7d52c5fe-d025-4d25-b6a3-4b13358f1bd3, review_record: documentation/reviews/ISSUE-90-ATHENA-REVIEW.yaml}
+review: {required: true, status: PASS, reviewer: Athena, scope: [Argus_adapter, three_profiles, shared_kernel, manifests, catalog, packet, historical_packet_ci_exception, repository_root_portability, freshness_state], not_reviewed: [native_dispatch, native_skill_loading, host_permissions, LightRAG_indexing, rollback_restoration, hosted_pr_ci_remote_state], reviewer_id: athena, reviewer_role: independent_reviewer, review_session_id: bd25aa78-6560-40bb-9584-fc66c60a6c7f, review_record: documentation/reviews/ISSUE-90-ATHENA-REVIEW.yaml}
 unresolved:
-  blockers: [Fresh remote-head review is required after the hosted workflow-scope repair and session portability change.]
-  limitations: [Native dispatch, skill loading, profile selection, host permission enforcement, LightRAG/indexing, and rollback restoration remain NOT_ASSESSED.]
+  blockers: []
+  limitations: [Native dispatch, skill loading, profile selection, host permission enforcement, LightRAG/indexing, rollback restoration, and hosted remote PR/CI state remain NOT_ASSESSED by Athena; hosted CI evidence is recorded separately.]
 evolution: {status: PROPOSED, observation: Argus previously exposed broad generic capabilities; this run narrows routing to three profiles while retaining shared lifecycle ownership., candidate_improvements: [Run behavioral routing probes before enabling implicit invocation.], promotion_required: true}
 runtime_evidence:
   configuration: {status: PASS, evidence: Static adapter, catalog, repertoire, and contract checks passed.}
