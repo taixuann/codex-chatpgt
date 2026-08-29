@@ -3,7 +3,7 @@ schema_version: 1
 session_id: 20260829_athena-issue-61_001
 references:
   - {path: https://github.com/taixuann/codex-chatpgt/issues/61, kind: issue, state: closed, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T00:00:00+07:00', relationship: execution-contract}
-  - {path: https://github.com/taixuann/codex-chatpgt/pull/92, kind: pull-request, state: open, commit_or_hash: 911c243, observed_at: '2026-08-29T16:30:00+07:00', relationship: final-candidate-hosted-ci-331}
+  - {path: https://github.com/taixuann/codex-chatpgt/pull/92, kind: pull-request, state: open, commit_or_hash: 911c243d0376b250b6d6becde362a2c6daa84a3f, observed_at: '2026-08-29T16:30:00+07:00', relationship: final-candidate-hosted-ci-331}
   - {path: https://github.com/taixuann/codex-chatpgt/issues/6, kind: issue, state: closed, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T00:00:00+07:00', relationship: independent-review-precedent}
   - {path: https://github.com/taixuann/codex-chatpgt/issues/38, kind: issue, state: open, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T13:12:00+07:00', relationship: skill-admission-authority}
   - {path: https://github.com/taixuann/codex-chatpgt/issues/56, kind: issue, state: open, commit_or_hash: github-live-2026-08-29, observed_at: '2026-08-29T13:12:00+07:00', relationship: capability-repertoire-authority}
