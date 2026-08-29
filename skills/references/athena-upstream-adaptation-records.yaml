@@ -62,3 +62,33 @@ records:
     removed: [reviewer-fixer orchestration]
     rejected: [workflow loop and repair authority]
     local_additions: [parent routes findings to Prometheus]
+  - capability: scientific-peer-review
+    repository: K-Dense-AI/mimeographs
+    ref: a38f5fcad0853be3e98a6cd95d8e6bf8c66f7c7b
+    path: [peer-review search surface]
+    license: not_confirmed
+    retained: [claim-evidence and reproducibility concepts only as conditional review guidance]
+    modified: [bounded supplied-evidence review]
+    removed: [unverified or universal scientific review behavior]
+    rejected: [no matching peer-review artifact was found at inspected revision]
+    local_additions: [explicit Feynman and human scientific authority boundary]
+  - capability: scientific-peer-review
+    repository: Felix-owo/Rigorous-Reviewer
+    ref: 6367dc0b1eb874bae034658966f80005b419b9b5
+    path: [repository root and default branch]
+    license: not_confirmed
+    retained: []
+    modified: []
+    removed: []
+    rejected: [reference-only until content and license are verified; no machinery imported]
+    local_additions: [none]
+  - capability: overlap-audit
+    repository: taixuann/codex-chatpgt
+    ref: current-work-unit
+    path: [skills/references/athena-overlap-audit.yaml]
+    license: repository
+    retained: [trigger, consumer, procedure, mutation-authority, and disposition audit for every named local skill]
+    modified: []
+    removed: []
+    rejected: [none]
+    local_additions: [compact local overlap record]
