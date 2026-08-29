@@ -49,6 +49,12 @@ class AthenaReviewContractTests(unittest.TestCase):
             self._mutated_case_is_rejected("conflicting_authority", lambda c, f=field, v=value: c["result"].__setitem__(f, v))
     def test_trivial_review_required_flag_is_guarded(self):
         self._mutated_case_is_rejected("trivial_change_not_required", lambda c: c["result"].__setitem__("review_required", True))
+    def test_remaining_outcomes_are_guarded(self):
+        self._mutated_case_is_rejected("scientific_unsupported_claim", lambda c: c["expect"].__setitem__("human_reason", "wrong"))
+        self._mutated_case_is_rejected("risk_security", lambda c: c["result"].__setitem__("recommendation", "clear_for_parent_decision"))
+        self._mutated_case_is_rejected("risk_security", lambda c: c["result"].__setitem__("criterion_statuses", ["partial"]))
+        self._mutated_case_is_rejected("missing_rubric", lambda c: c["expect"].__setitem__("admission", "accepted"))
+        self._mutated_case_is_rejected("missing_critical_evidence", lambda c: c["expect"].__setitem__("admission", "accepted"))
     def test_excluded_surface_fields_are_guarded(self):
         self._mutated_case_is_rejected("excluded_runtime_surface", lambda c: c["result"].__setitem__("not_reviewed", []))
         self._mutated_case_is_rejected("excluded_runtime_surface", lambda c: c["result"].__setitem__("limitations", []))
