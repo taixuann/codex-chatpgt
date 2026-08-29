@@ -8,10 +8,10 @@ canonical_records:
   plan: documentation/sessions/20260829_athena-issue-61_001/plan.md
   pr: https://github.com/taixuann/codex-chatpgt/pull/92
 source_state:
-  commit: a5c79e9f47ac4f6d5858d5fd2542b5ee1e82c937
-  recorded_at: '2026-08-29T17:30:00+07:00'
+  commit: 8107e0df526af3c32393abbceb538d2a46b06984
+  recorded_at: '2026-08-29T18:00:00+07:00'
 owner: franky
-status: needs_review
+status: acceptance_ready
 artifacts:
   context: context.md
   spec: spec.md
