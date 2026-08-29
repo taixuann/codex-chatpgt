@@ -6,12 +6,12 @@ packet_root: documentation/sessions/20260829_athena-issue-61_001
 canonical_records:
   issue: https://github.com/taixuann/codex-chatpgt/issues/61
   plan: documentation/sessions/20260829_athena-issue-61_001/plan.md
-  pr: null
+  pr: https://github.com/taixuann/codex-chatpgt/pull/92
 source_state:
-  commit: 831a599be646ffd41bda8daddf3d0b0934b76a27
-  recorded_at: '2026-08-29T14:35:00+07:00'
+  commit: 911c243
+  recorded_at: '2026-08-29T16:30:00+07:00'
 owner: franky
-status: needs_review
+status: acceptance_ready
 artifacts:
   context: context.md
   spec: spec.md

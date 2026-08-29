@@ -19,9 +19,6 @@ canonical_active:
   - runtime-adapter-management
   - session-packet-management
   - shared-session-closeout
-  - independent-artifact-review
-  - scientific-peer-review
-  - risk-security-review
 capability_keys:
   control-plane-audit: control-plane-audit
   external-handoff: external-handoff
@@ -45,9 +42,6 @@ dispositions:
     - runtime-adapter-management
     - session-packet-management
     - shared-session-closeout
-    - independent-artifact-review
-    - scientific-peer-review
-    - risk-security-review
   ADAPT:
     - api-and-interface-design
     - ci-cd-and-automation
@@ -69,6 +63,9 @@ dispositions:
     - codebase-reconnaissance
     - research-source-discovery
     - reference-state-reconnaissance
+    - independent-artifact-review
+    - scientific-peer-review
+    - risk-security-review
   EXPLICIT_ONLY:
     - chatgpt-apps
     - cli-creator
