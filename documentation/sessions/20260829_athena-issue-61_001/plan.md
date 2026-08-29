@@ -3,7 +3,7 @@ kind: codex.session-artifact.v1
 artifact: plan
 session_id: 20260829_athena-issue-61_001
 status: in_progress
-provenance: {source_commit: 042d01392cb1915b47d75c101d58091badff7068, observed_at: '2026-08-29T00:00:00+07:00', recorded_by: franky}
+provenance: {source_commit: c160c62867d83f7038118e97f358caabb533cc9d, observed_at: '2026-08-29T13:12:00+07:00', recorded_by: franky}
 upstream: [context.md, spec.md]
 downstream: [task.md]
 ---

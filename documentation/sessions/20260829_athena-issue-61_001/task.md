@@ -3,7 +3,7 @@ kind: codex.session-artifact.v1
 artifact: tasks
 session_id: 20260829_athena-issue-61_001
 status: needs_review
-provenance: {source_commit: a0c55989912ab6474353d6172ee4b21998e58657, observed_at: '2026-08-29T13:05:00+07:00', recorded_by: franky}
+provenance: {source_commit: c160c62867d83f7038118e97f358caabb533cc9d, observed_at: '2026-08-29T13:12:00+07:00', recorded_by: franky}
 upstream: [plan.md]
 downstream: []
 ---
@@ -19,5 +19,6 @@ downstream: []
 
 Repair evidence: the strict executable validator now rejects undeclared request/result
 fields and the fixture contains behavior-bearing assertions for all 20 required
-cases. The resulting head is `a0c55989912ab6474353d6172ee4b21998e58657`;
-independent review and publication remain pending.
+cases. The latest repair evidence commit is
+`c160c62867d83f7038118e97f358caabb533cc9d`; independent review and publication
+remain pending.
