@@ -8,10 +8,10 @@ canonical_records:
   plan: documentation/sessions/20260829_athena-issue-61_001/plan.md
   pr: null
 source_state:
-  commit: 042d01392cb1915b47d75c101d58091badff7068
-  recorded_at: '2026-08-29T00:00:00+07:00'
+  commit: a0c55989912ab6474353d6172ee4b21998e58657
+  recorded_at: '2026-08-29T13:05:00+07:00'
 owner: franky
-status: in_progress
+status: needs_review
 artifacts:
   context: context.md
   spec: spec.md

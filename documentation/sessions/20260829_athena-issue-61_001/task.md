@@ -2,8 +2,8 @@
 kind: codex.session-artifact.v1
 artifact: tasks
 session_id: 20260829_athena-issue-61_001
-status: in_progress
-provenance: {source_commit: 042d01392cb1915b47d75c101d58091badff7068, observed_at: '2026-08-29T00:00:00+07:00', recorded_by: franky}
+status: needs_review
+provenance: {source_commit: a0c55989912ab6474353d6172ee4b21998e58657, observed_at: '2026-08-29T13:05:00+07:00', recorded_by: franky}
 upstream: [plan.md]
 downstream: []
 ---
@@ -14,5 +14,10 @@ downstream: []
 - [x] Inspect overlapping review, security, and scientific skill content.
 - [x] Implement Athena contracts, kernel, validator, fixtures, and skills.
 - [x] Reconcile adapter/manifests and record upstream provenance.
-- [ ] Run full local validation and commit the work unit.
+- [x] Run local validation for the repaired strict contracts and commit the work unit.
 - [ ] Parent opens one draft PR and obtains fresh independent Athena review.
+
+Repair evidence: the strict executable validator now rejects undeclared request/result
+fields and the fixture contains behavior-bearing assertions for all 20 required
+cases. The resulting head is `a0c55989912ab6474353d6172ee4b21998e58657`;
+independent review and publication remain pending.
