@@ -1,25 +1,24 @@
 kind: athena.review-result.v1
-target_revision: 85c02d522b64793a9957d691721a02a2a7b7c5e3
+target_revision: dd51328814a61b0584282009803f5f1cbee88acd
 coverage:
   reviewed:
-    - exact base-to-target diff and object integrity
-    - Athena request/result schemas and executable validator
-    - all 20 behavior-bearing fixture cases and mutation guards
-    - shared review kernel and three visible skills
-    - Athena adapter, manifests, catalog, and CI wiring
-    - local overlap audit, upstream adaptation records, and session packet
+    - Full Issue #61 scope from 042d01392cb1915b47d75c101d58091badff7068
+    - Historical-provenance registry, canonical-main ancestry guard, and regressions
+    - Athena contracts, adapter, skills, manifests, packet, and CI paths
+    - Clean-tree integrity and deterministic validation
   not_reviewed:
-    - native dispatch, skill loading, and host permission enforcement
-    - hosted CI, PR/merge, and remote Issue state
-    - live upstream repository contents beyond recorded provenance
+    - native host dispatch
+    - native skill loading or model-mediated selection
+    - host permission enforcement
+    - hosted CI execution, PR/merge, remote Issue, and live upstream state
   complete: false
 criteria:
   - id: revision_and_scope_binding
     status: fulfilled
     evidence:
-      - HEAD resolves to 85c02d522b64793a9957d691721a02a2a7b7c5e3; merge-base is 042d01392cb1915b47d75c101d58091badff7068
-      - git diff --check and git fsck --no-dangling passed
-    rationale: Exact requested candidate is available and cleanly diffable.
+      - HEAD is dd51328814a61b0584282009803f5f1cbee88acd.
+      - Issue #61 base and corrected registry successor are ancestors of the candidate.
+    rationale: Candidate identity and corrected base binding are exact.
   - id: strict_executable_request_result_contracts
     status: fulfilled
     evidence:
@@ -52,19 +51,26 @@ criteria:
       - documentation/sessions/20260829_athena-issue-61_001/session.yaml
       - documentation/sessions/20260829_athena-issue-61_001/task.md
       - documentation/sessions/20260829_athena-issue-61_001/references.yaml
-    rationale: Packet is valid, revision-linked, and remains needs_review pending remote publication.
+    rationale: Packet is valid, revision-linked, and records the parent publication workflow.
   - id: ci_and_local_validation_wiring
     status: fulfilled
     evidence:
       - .github/workflows/franky-validate.yml
-      - 126 ops/scripts tests passed
-      - 25 control-plane tests passed
-    rationale: Contract validation and fixtures are wired into CI and local checks pass on the requested head.
+      - 130 ops tests, 25 control-plane tests, and 8 packet tests passed.
+      - The registry is included in both push and pull-request workflow paths.
+    rationale: No regression or CI path-coverage gap was found.
+  - id: canonical_main_historical_exception
+    status: fulfilled
+    evidence:
+      - Registry successor is 042d01392cb1915b47d75c101d58091badff7068.
+      - Validator requires successor ancestry of both refs/remotes/origin/main and HEAD.
+      - Regression rejects an existing unrelated successor.
+      - Unavailable-source fallback accepted the exact allowlisted packet/source pair.
+    rationale: The exception is exact, canonical-main-bound, candidate-bound, and rejects unrelated successors.
 findings: []
 limitations:
-  - Native runtime dispatch, skill discovery/loading, and host permission enforcement are NOT_ASSESSED.
-  - Hosted CI execution, PR/merge state, and remote Issue state are NOT_ASSESSED.
-  - Recorded upstream provenance was reviewed; live external upstream content/license state is NOT_ASSESSED.
+  - Native dispatch, skill loading, and host permission enforcement remain NOT_ASSESSED.
+  - Hosted CI, PR/merge, remote Issue, and live upstream provenance remain NOT_ASSESSED.
 human_review:
   required: false
 recommendation:
