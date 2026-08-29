@@ -36,6 +36,10 @@ class AthenaReviewContractTests(unittest.TestCase):
         value = copy.deepcopy(self.result); value["system_accepted"] = True
         with self.assertRaises(ValueError): validator.validate_result(value)
     def test_case_fixture(self): validator.validate_cases(ROOT / "scripts/fixtures/athena-review-cases.yaml")
+    def test_primary_contract_outcomes_are_guarded(self):
+        for case_id, fields in (("implementation_complete", (("recommendation", "issues_found"), ("coverage_complete", False), ("criterion_statuses", ["partial"]), ("review_required", False))), ("architecture_contract", (("recommendation", "clear_for_parent_decision"), ("coverage_complete", False), ("criterion_statuses", ["fulfilled"]), ("review_required", False)))):
+            for field, value in fields:
+                self._mutated_case_is_rejected(case_id, lambda c, f=field, v=value: c["result"].__setitem__(f, v))
     def _mutated_case_is_rejected(self, case_id, mutate):
         cases = yaml.safe_load((ROOT / "scripts/fixtures/athena-review-cases.yaml").read_text())
         case = next(item for item in cases["cases"] if item["id"] == case_id)

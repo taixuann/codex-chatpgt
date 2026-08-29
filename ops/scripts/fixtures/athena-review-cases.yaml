@@ -2,11 +2,11 @@ schema_version: 1
 cases:
   - id: implementation_complete
     request: {review_class: implementation, criteria_locked: true, target_revision: rev-a}
-    result: {recommendation: clear_for_parent_decision, coverage_complete: true, criterion_statuses: [fulfilled]}
+    result: {recommendation: clear_for_parent_decision, coverage_complete: true, criterion_statuses: [fulfilled], review_required: true}
     expect: {review_required: true, mutation: denied}
   - id: architecture_contract
     request: {review_class: architecture_contract, criteria_locked: true, target_revision: rev-a}
-    result: {recommendation: issues_found, coverage_complete: true, criterion_statuses: [partial]}
+    result: {recommendation: issues_found, coverage_complete: true, criterion_statuses: [partial], review_required: true}
     expect: {review_required: true}
   - id: readiness_stale_revision
     request: {review_class: readiness, criteria_locked: true, target_revision: rev-a}
