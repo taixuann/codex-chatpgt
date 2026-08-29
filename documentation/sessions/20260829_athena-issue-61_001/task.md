@@ -15,10 +15,11 @@ downstream: []
 - [x] Implement Athena contracts, kernel, validator, fixtures, and skills.
 - [x] Reconcile adapter/manifests and record upstream provenance.
 - [x] Run local validation for the repaired strict contracts and commit the work unit.
-- [ ] Parent opens one draft PR and obtains fresh independent Athena review.
+- [x] Fresh independent Athena review completed against `85c02d522b64793a9957d691721a02a2a7b7c5e3`; result is `clear_for_parent_decision` with no findings.
+- [ ] Parent opens one draft PR and runs hosted CI before merge.
 
 Repair evidence: the strict executable validator now rejects undeclared request/result
 fields and the fixture contains behavior-bearing assertions for all 20 required
 cases. The latest repair evidence commit is
-`831a599be646ffd41bda8daddf3d0b0934b76a27`; independent review and publication
-remain pending.
+`85c02d522b64793a9957d691721a02a2a7b7c5e3`; independent review is recorded,
+while publication remains pending.

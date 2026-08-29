@@ -1,0 +1,71 @@
+kind: athena.review-result.v1
+target_revision: 85c02d522b64793a9957d691721a02a2a7b7c5e3
+coverage:
+  reviewed:
+    - exact base-to-target diff and object integrity
+    - Athena request/result schemas and executable validator
+    - all 20 behavior-bearing fixture cases and mutation guards
+    - shared review kernel and three visible skills
+    - Athena adapter, manifests, catalog, and CI wiring
+    - local overlap audit, upstream adaptation records, and session packet
+  not_reviewed:
+    - native dispatch, skill loading, and host permission enforcement
+    - hosted CI, PR/merge, and remote Issue state
+    - live upstream repository contents beyond recorded provenance
+  complete: false
+criteria:
+  - id: revision_and_scope_binding
+    status: fulfilled
+    evidence:
+      - HEAD resolves to 85c02d522b64793a9957d691721a02a2a7b7c5e3; merge-base is 042d013392cb1915b47d75c101d58091badff7068
+      - git diff --check and git fsck --no-dangling passed
+    rationale: Exact requested candidate is available and cleanly diffable.
+  - id: strict_executable_request_result_contracts
+    status: fulfilled
+    evidence:
+      - ops/schemas/athena-review.schema.yaml
+      - ops/schemas/athena-review-result.schema.yaml
+      - ops/scripts/tests/test_athena_review.py
+    rationale: Both schemas forbid unknown fields, and the executable validator/tests enforce the strict contract.
+  - id: athena_boundary_kernel_and_classes
+    status: fulfilled
+    evidence:
+      - agents/athena.toml
+      - skills/references/athena-review-kernel.md
+    rationale: The read-only, fresh-context, evidence-bound, parent-only boundary and five review classes remain coherent.
+  - id: representative_20_case_behavior_and_prior_outcome_guards
+    status: fulfilled
+    evidence:
+      - ops/scripts/fixtures/athena-review-cases.yaml
+      - ops/scripts/validate_athena_review.py
+      - ops/scripts/tests/test_athena_review.py
+    rationale: All required cases are present; exact outcomes are mutation-guarded.
+  - id: overlap_and_upstream_provenance
+    status: fulfilled
+    evidence:
+      - skills/references/athena-overlap-audit.yaml
+      - skills/references/athena-upstream-adaptation-records.yaml
+    rationale: Named local overlaps include trigger, consumer, procedure, output, authority, material, collision, and disposition; uncertain upstream material is reference-only.
+  - id: session_packet_and_provenance
+    status: fulfilled
+    evidence:
+      - documentation/sessions/20260829_athena-issue-61_001/session.yaml
+      - documentation/sessions/20260829_athena-issue-61_001/task.md
+      - documentation/sessions/20260829_athena-issue-61_001/references.yaml
+    rationale: Packet is valid, revision-linked, and remains needs_review pending remote publication.
+  - id: ci_and_local_validation_wiring
+    status: fulfilled
+    evidence:
+      - .github/workflows/franky-validate.yml
+      - 126 ops/scripts tests passed
+      - 25 control-plane tests passed
+    rationale: Contract validation and fixtures are wired into CI and local checks pass on the requested head.
+findings: []
+limitations:
+  - Native runtime dispatch, skill discovery/loading, and host permission enforcement are NOT_ASSESSED.
+  - Hosted CI execution, PR/merge state, and remote Issue state are NOT_ASSESSED.
+  - Recorded upstream provenance was reviewed; live external upstream content/license state is NOT_ASSESSED.
+human_review:
+  required: false
+recommendation:
+  status: clear_for_parent_decision
