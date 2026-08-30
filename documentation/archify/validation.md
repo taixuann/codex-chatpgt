@@ -33,8 +33,10 @@ checkout provenance are recorded in `provenance.yaml`.
 AC-06 through AC-08: the control-plane architecture and operation-workflow
 artifacts are rendered, source-grounded, and validated at showcase quality.
 
-AC-09 through AC-11: the real `8ed22d5...` → `042d013...` revision pair is
-represented by revision-pinned Before/After IR and a complete delta receipt.
+AC-09 through AC-11: committed delivery receipts exist for the control-plane
+and operation-workflow outputs, while the real `8ed22d5...` → `042d013...`
+revision pair is represented by revision-pinned Before/After IR and a complete
+delta receipt.
 
 AC-12 through AC-13: deterministic checks pass; automated visual-check failure
 is preserved as an explicit limitation and separate screenshot inspection is
@@ -43,10 +45,13 @@ recorded.
 AC-14: catalog disposition is explicit-only/reference-only; no canonical skill
 package or implicit routing was admitted.
 
-Independent Athena review `ATHENA-ISSUE-94-20260830-002` passed on candidate
-revision `72291ee...`; its durable record is `athena-review.yaml`.
+Independent Athena review passed on candidate revision `72291ee...`; its
+durable record is `athena-review.yaml`.
 
-AC-15: removal is bounded to the derived directory and temporary checkout.
+AC-03/AC-15: removal is bounded to the derived directory and temporary
+checkout, and stronger-than-explicit admission is not justified because no
+measured repository-grounded utility evidence was produced. The catalog
+therefore remains `REFERENCE_ONLY`/`EXPLICIT_ONLY`.
 
 AC-16: this README, provenance, validation, and visual-review record state the
 derived/non-canonical boundary and preserve `NOT_ASSESSED` runtime limits.

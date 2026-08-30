@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "kind": "archify-delivery-receipt",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "documentation/archify/operation-workflow.workflow.json",
+  "output": "documentation/archify/operation-workflow.workflow.html",
+  "specification": {"sha256": "a183e5a8f2c771e961dffa62e581dba53f01a08895869a4978a876f416a6af2a", "bytes": 4852},
+  "artifact": {"sha256": "88ae4012a0d76a2ca35f8bfc21594bd26856314971c1d440f4981d7d474f0092", "bytes": 720832},
+  "validation": {"checksPassed": 9, "checkCount": 9, "compositionProfile": "showcase", "compositionStatus": "pass", "errors": 0, "warnings": 0}
+}

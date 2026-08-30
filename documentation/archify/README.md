@@ -36,6 +36,8 @@ node archify/bin/archify.mjs compare architecture documentation/archify/architec
   concrete Git diff paths and line spans.
 - `provenance.yaml` binds source, version, license, hashes, admission, network
   behavior, and explicit runtime limits.
+- The two primary delivery receipts persist the `--json` results that would
+  otherwise exist only on stdout.
 - `athena-review.yaml` records the independent PASS review bound to the final
   pilot tree before this evidence record was committed.
 - `visual-review.md` records the separate screenshot inspection. The packaged

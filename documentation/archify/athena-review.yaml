@@ -1,7 +1,5 @@
 kind: athena.review-result.v1
-review_id: ATHENA-ISSUE-94-20260830-002
 target_revision: 72291eede12d7a6038d68f5ba03cb34786dcd5f1
-reviewed_at: 2026-08-30
 coverage:
   reviewed:
     - all three Archify pilot inputs and delivered HTML artifacts
