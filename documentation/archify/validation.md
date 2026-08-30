@@ -10,8 +10,9 @@ checks after the base-card readability repair.
 The upstream `doctor` command passed. The packaged `visual-check` was attempted
 for all three delivered HTML files and failed because Chrome DevTools aborted
 with `SIGABRT`; the retained sidecars intentionally report
-`visualReview: pending`. Direct headless screenshots were inspected separately
-and are recorded in `visual-review.md`.
+`visualReview: pending`. Direct headless screenshots were inspected separately,
+including a full-height 1440x5000 workflow capture that reaches the terminal
+reconciliation node; the findings are recorded in `visual-review.md`.
 
 The external update checker was observed returning `silent:invalid-arguments`.
 The upstream contract was inspected: it reads a bounded manifest URL and cache,

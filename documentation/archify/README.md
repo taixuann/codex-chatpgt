@@ -32,6 +32,8 @@ node archify/bin/archify.mjs compare architecture documentation/archify/architec
   one moved, six added connections, and two removed connections. The facts are
   derived from the revision-pinned Architecture IR and the corresponding Git
   diff; they do not infer runtime behavior or merge risk.
+- `delta-facts.md` binds each diagram-level addition/removal/change to the
+  concrete Git diff paths and line spans.
 - `provenance.yaml` binds source, version, license, hashes, admission, network
   behavior, and explicit runtime limits.
 - `visual-review.md` records the separate screenshot inspection. The packaged

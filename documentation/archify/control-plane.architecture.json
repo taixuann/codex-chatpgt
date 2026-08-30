@@ -9,7 +9,7 @@
       "url": "https://github.com/taixuann/codex-chatpgt",
       "revision": "0ef8efd66261d4bbfe563b39c6846315467d577d"
     },
-    "viewBox": [1380, 760]
+    "viewBox": [1390, 800]
   },
   "components": [
     { "id": "human", "type": "external", "label": "Human owner", "sublabel": "scope + acceptance", "pos": [40, 60], "size": [220, 86], "sources": [{ "path": "AGENTS.md", "line": 10, "end_line": 19, "label": "role and approval boundary" }] },
@@ -26,7 +26,8 @@
     { "id": "evidence", "type": "database", "label": "Evidence records", "sublabel": "review + provenance", "pos": [760, 500], "size": [250, 86], "sources": [{ "path": "documentation/OPERATING-WORKFLOW.md", "line": 300, "end_line": 347, "label": "validation and review" }] }
   ],
   "boundaries": [
-    { "kind": "region", "label": "Cloud / GitHub boundary", "wraps": ["human", "github"] }
+    { "kind": "region", "label": "Cloud / GitHub boundary", "wraps": ["human", "github"] },
+    { "kind": "region", "label": "Local repository boundary", "wraps": ["parent", "franky", "manifests", "argus", "prometheus", "feynman", "athena", "skills", "validators", "evidence"] }
   ],
   "connections": [
     { "id": "human-issue", "from": "human", "to": "github", "variant": "emphasis" },

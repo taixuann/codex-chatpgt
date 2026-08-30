@@ -30,9 +30,9 @@ network_and_updates:
 artifacts:
   - path: documentation/archify/control-plane.architecture.json
     source_revision: 0ef8efd66261d4bbfe563b39c6846315467d577d
-    sha256: 280140ed1a7cacdd86cba1537796a3b104a2e71b1e6de683af809417f64f65d4
+    sha256: a2868950ea4d6801e4fa153442ebc07599a6b6a9893408558aa0d5bc675cc6eb
   - path: documentation/archify/control-plane.architecture.html
-    sha256: a2b1ce9eb30b0cc4a436cec89d3496364192c64e1ffab64ec7a552c584eb076b
+    sha256: e0c050a79df2a65d5f2c3553e8fabcea96fce01af75f05bc4adfa7725575e430
   - path: documentation/archify/operation-workflow.workflow.json
     source_revision: 0ef8efd66261d4bbfe563b39c6846315467d577d
     sha256: a183e5a8f2c771e961dffa62e581dba53f01a08895869a4978a876f416a6af2a

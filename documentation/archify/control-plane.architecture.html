@@ -5005,7 +5005,7 @@
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / PLATE 04">
-      <svg viewBox="0 0 1380 760" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
+      <svg viewBox="0 0 1390 800" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
         <title id="archify-diagram-title">Codex Control Plane — Evidence Boundaries</title>
         <desc id="archify-diagram-description">Derived observation surface; repository contracts remain authoritative.</desc>
         <!-- Definitions -->
@@ -5032,6 +5032,8 @@
 
         <!-- Boundaries (behind everything) -->
         <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="Cloud / GitHub boundary" x="10" y="30" width="560" height="136" rx="12" class="c-region" stroke-width="1"/>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="Local repository boundary" x="50" y="18" width="1340" height="588" rx="12" class="c-region" stroke-width="1"/>
 
         <!-- Connection paths (before components for correct z-order) -->
         <path data-edge-from="human" data-edge-to="github" data-edge-key="0" data-edge-id="human-issue" data-composition-points="260,103;320,103" d="M 260 103 L 320 103" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
@@ -5069,8 +5071,8 @@
         <text data-detail="context" x="430" y="117" class="t-muted" font-size="9" text-anchor="middle">Issue / PLAN / PR / CI</text>
         </g>
 
-        <g id="node-parent" data-node-id="parent" data-node-label="Parent orchestrator" tabindex="0" role="button" aria-label="Focus Parent orchestrator, scope + synthesis, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="scope + synthesis" data-node-context="Architecture component">
-          <title>Parent orchestrator · scope + synthesis · Architecture component</title>
+        <g id="node-parent" data-node-id="parent" data-node-label="Parent orchestrator" tabindex="0" role="button" aria-label="Focus Parent orchestrator, scope + synthesis, Local repository boundary" aria-pressed="false" data-node-kind="backend" data-node-sublabel="scope + synthesis" data-node-context="Local repository boundary">
+          <title>Parent orchestrator · scope + synthesis · Local repository boundary</title>
           <rect x="600" y="60" width="220" height="86" rx="6" class="c-mask"/>
           <rect x="600" y="60" width="220" height="86" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(606 66) scale(0.6875)">
@@ -5080,8 +5082,8 @@
         <text data-detail="context" x="710" y="117" class="t-muted" font-size="9" text-anchor="middle">scope + synthesis</text>
         </g>
 
-        <g id="node-franky" data-node-id="franky" data-node-label="Franky" tabindex="0" role="button" aria-label="Focus Franky, control-plane maintenance, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="control-plane maintenance" data-node-context="Architecture component">
-          <title>Franky · control-plane maintenance · Architecture component</title>
+        <g id="node-franky" data-node-id="franky" data-node-label="Franky" tabindex="0" role="button" aria-label="Focus Franky, control-plane maintenance, Local repository boundary" aria-pressed="false" data-node-kind="backend" data-node-sublabel="control-plane maintenance" data-node-context="Local repository boundary">
+          <title>Franky · control-plane maintenance · Local repository boundary</title>
           <rect x="880" y="60" width="220" height="86" rx="6" class="c-mask"/>
           <rect x="880" y="60" width="220" height="86" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(886 66) scale(0.6875)">
@@ -5091,8 +5093,8 @@
         <text data-detail="context" x="990" y="117" class="t-muted" font-size="9" text-anchor="middle">control-plane maintenance</text>
         </g>
 
-        <g id="node-manifests" data-node-id="manifests" data-node-label="Manifests + contracts" tabindex="0" role="button" aria-label="Focus Manifests + contracts, eligibility and support state, Architecture component" aria-pressed="false" data-node-kind="database" data-node-sublabel="eligibility and support state" data-node-context="Architecture component">
-          <title>Manifests + contracts · eligibility and support state · Architecture component</title>
+        <g id="node-manifests" data-node-id="manifests" data-node-label="Manifests + contracts" tabindex="0" role="button" aria-label="Focus Manifests + contracts, eligibility and support state, Local repository boundary" aria-pressed="false" data-node-kind="database" data-node-sublabel="eligibility and support state" data-node-context="Local repository boundary">
+          <title>Manifests + contracts · eligibility and support state · Local repository boundary</title>
           <rect x="1140" y="60" width="220" height="86" rx="6" class="c-mask"/>
           <rect x="1140" y="60" width="220" height="86" rx="6" class="c-database" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(1146 66) scale(0.6875)">
@@ -5103,8 +5105,8 @@
         <text data-detail="context" x="1250" y="117" class="t-muted" font-size="9" text-anchor="middle">eligibility and support state</text>
         </g>
 
-        <g id="node-argus" data-node-id="argus" data-node-label="Argus" tabindex="0" role="button" aria-label="Focus Argus, read-only reconnaissance, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="read-only reconnaissance" data-node-context="Architecture component">
-          <title>Argus · read-only reconnaissance · Architecture component</title>
+        <g id="node-argus" data-node-id="argus" data-node-label="Argus" tabindex="0" role="button" aria-label="Focus Argus, read-only reconnaissance, Local repository boundary" aria-pressed="false" data-node-kind="backend" data-node-sublabel="read-only reconnaissance" data-node-context="Local repository boundary">
+          <title>Argus · read-only reconnaissance · Local repository boundary</title>
           <rect x="80" y="270" width="230" height="86" rx="6" class="c-mask"/>
           <rect x="80" y="270" width="230" height="86" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(86 276) scale(0.6875)">
@@ -5114,8 +5116,8 @@
         <text data-detail="context" x="195" y="327" class="t-muted" font-size="9" text-anchor="middle">read-only reconnaissance</text>
         </g>
 
-        <g id="node-prometheus" data-node-id="prometheus" data-node-label="Prometheus" tabindex="0" role="button" aria-label="Focus Prometheus, bounded implementation, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="bounded implementation" data-node-context="Architecture component">
-          <title>Prometheus · bounded implementation · Architecture component</title>
+        <g id="node-prometheus" data-node-id="prometheus" data-node-label="Prometheus" tabindex="0" role="button" aria-label="Focus Prometheus, bounded implementation, Local repository boundary" aria-pressed="false" data-node-kind="backend" data-node-sublabel="bounded implementation" data-node-context="Local repository boundary">
+          <title>Prometheus · bounded implementation · Local repository boundary</title>
           <rect x="355" y="270" width="230" height="86" rx="6" class="c-mask"/>
           <rect x="355" y="270" width="230" height="86" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(361 276) scale(0.6875)">
@@ -5125,8 +5127,8 @@
         <text data-detail="context" x="470" y="327" class="t-muted" font-size="9" text-anchor="middle">bounded implementation</text>
         </g>
 
-        <g id="node-feynman" data-node-id="feynman" data-node-label="Feynman" tabindex="0" role="button" aria-label="Focus Feynman, scientific evidence, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="scientific evidence" data-node-context="Architecture component">
-          <title>Feynman · scientific evidence · Architecture component</title>
+        <g id="node-feynman" data-node-id="feynman" data-node-label="Feynman" tabindex="0" role="button" aria-label="Focus Feynman, scientific evidence, Local repository boundary" aria-pressed="false" data-node-kind="backend" data-node-sublabel="scientific evidence" data-node-context="Local repository boundary">
+          <title>Feynman · scientific evidence · Local repository boundary</title>
           <rect x="630" y="270" width="230" height="86" rx="6" class="c-mask"/>
           <rect x="630" y="270" width="230" height="86" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(636 276) scale(0.6875)">
@@ -5136,8 +5138,8 @@
         <text data-detail="context" x="745" y="327" class="t-muted" font-size="9" text-anchor="middle">scientific evidence</text>
         </g>
 
-        <g id="node-athena" data-node-id="athena" data-node-label="Athena" tabindex="0" role="button" aria-label="Focus Athena, independent review, Architecture component" aria-pressed="false" data-node-kind="security" data-node-sublabel="independent review" data-node-context="Architecture component">
-          <title>Athena · independent review · Architecture component</title>
+        <g id="node-athena" data-node-id="athena" data-node-label="Athena" tabindex="0" role="button" aria-label="Focus Athena, independent review, Local repository boundary" aria-pressed="false" data-node-kind="security" data-node-sublabel="independent review" data-node-context="Local repository boundary">
+          <title>Athena · independent review · Local repository boundary</title>
           <rect x="880" y="270" width="220" height="86" rx="6" class="c-mask"/>
           <rect x="880" y="270" width="220" height="86" rx="6" class="c-security" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(886 276) scale(0.6875)">
@@ -5148,8 +5150,8 @@
         <text data-detail="context" x="990" y="327" class="t-muted" font-size="9" text-anchor="middle">independent review</text>
         </g>
 
-        <g id="node-skills" data-node-id="skills" data-node-label="Capability skills" tabindex="0" role="button" aria-label="Focus Capability skills, reusable procedures, Architecture component" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="reusable procedures" data-node-context="Architecture component">
-          <title>Capability skills · reusable procedures · Architecture component</title>
+        <g id="node-skills" data-node-id="skills" data-node-label="Capability skills" tabindex="0" role="button" aria-label="Focus Capability skills, reusable procedures, Local repository boundary" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="reusable procedures" data-node-context="Local repository boundary">
+          <title>Capability skills · reusable procedures · Local repository boundary</title>
           <rect x="1140" y="270" width="220" height="86" rx="6" class="c-mask"/>
           <rect x="1140" y="270" width="220" height="86" rx="6" class="c-cloud" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1146 276) scale(0.6875)">
@@ -5159,8 +5161,8 @@
         <text data-detail="context" x="1250" y="327" class="t-muted" font-size="9" text-anchor="middle">reusable procedures</text>
         </g>
 
-        <g id="node-validators" data-node-id="validators" data-node-label="Deterministic validators" tabindex="0" role="button" aria-label="Focus Deterministic validators, tests + schema checks, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="tests + schema checks" data-node-context="Architecture component">
-          <title>Deterministic validators · tests + schema checks · Architecture component</title>
+        <g id="node-validators" data-node-id="validators" data-node-label="Deterministic validators" tabindex="0" role="button" aria-label="Focus Deterministic validators, tests + schema checks, Local repository boundary" aria-pressed="false" data-node-kind="backend" data-node-sublabel="tests + schema checks" data-node-context="Local repository boundary">
+          <title>Deterministic validators · tests + schema checks · Local repository boundary</title>
           <rect x="355" y="500" width="230" height="86" rx="6" class="c-mask"/>
           <rect x="355" y="500" width="230" height="86" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(361 506) scale(0.6875)">
@@ -5170,8 +5172,8 @@
         <text data-detail="context" x="470" y="557" class="t-muted" font-size="9" text-anchor="middle">tests + schema checks</text>
         </g>
 
-        <g id="node-evidence" data-node-id="evidence" data-node-label="Evidence records" tabindex="0" role="button" aria-label="Focus Evidence records, review + provenance, Architecture component" aria-pressed="false" data-node-kind="database" data-node-sublabel="review + provenance" data-node-context="Architecture component">
-          <title>Evidence records · review + provenance · Architecture component</title>
+        <g id="node-evidence" data-node-id="evidence" data-node-label="Evidence records" tabindex="0" role="button" aria-label="Focus Evidence records, review + provenance, Local repository boundary" aria-pressed="false" data-node-kind="database" data-node-sublabel="review + provenance" data-node-context="Local repository boundary">
+          <title>Evidence records · review + provenance · Local repository boundary</title>
           <rect x="760" y="500" width="250" height="86" rx="6" class="c-mask"/>
           <rect x="760" y="500" width="250" height="86" rx="6" class="c-database" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(766 506) scale(0.6875)">
@@ -5212,28 +5214,33 @@
           <text data-boundary-label="" x="18" y="53" class="t-cloud" font-size="9" font-weight="600">Cloud / GitHub boundary</text>
         </g>
 
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="Local repository boundary">
+          <rect data-graph-role="structural-frame-label-mask" x="54" y="22" width="145" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="58" y="35" class="t-cloud" font-size="9" font-weight="600">Local repository boundary</text>
+        </g>
+
         <!-- Legend -->
         <g data-legend="" data-legend-bridge="">
-          <text x="40" y="724" class="t-primary" font-size="12" font-weight="650">Legend</text>
-          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="Backend" data-legend-x="40" data-legend-baseline="744" data-legend-width="78">
-            <rect x="40" y="735" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
-            <text x="62" y="744" class="t-muted" font-size="10" font-weight="500">Backend</text>
+          <text x="40" y="764" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="Backend" data-legend-x="40" data-legend-baseline="784" data-legend-width="78">
+            <rect x="40" y="775" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
+            <text x="62" y="784" class="t-muted" font-size="10" font-weight="500">Backend</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Database" data-legend-x="140" data-legend-baseline="744" data-legend-width="83">
-            <rect x="140" y="735" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="162" y="744" class="t-muted" font-size="10" font-weight="500">Database</text>
+          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Database" data-legend-x="140" data-legend-baseline="784" data-legend-width="83">
+            <rect x="140" y="775" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
+            <text x="162" y="784" class="t-muted" font-size="10" font-weight="500">Database</text>
           </g>
-          <g data-legend-semantic-kind="cloud" data-legend-kind="cloud" data-legend-label="Cloud" data-legend-x="245" data-legend-baseline="744" data-legend-width="68">
-            <rect x="245" y="735" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
-            <text x="267" y="744" class="t-muted" font-size="10" font-weight="500">Cloud</text>
+          <g data-legend-semantic-kind="cloud" data-legend-kind="cloud" data-legend-label="Cloud" data-legend-x="245" data-legend-baseline="784" data-legend-width="68">
+            <rect x="245" y="775" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
+            <text x="267" y="784" class="t-muted" font-size="10" font-weight="500">Cloud</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Security" data-legend-x="335" data-legend-baseline="744" data-legend-width="83">
-            <rect x="335" y="735" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
-            <text x="357" y="744" class="t-muted" font-size="10" font-weight="500">Security</text>
+          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Security" data-legend-x="335" data-legend-baseline="784" data-legend-width="83">
+            <rect x="335" y="775" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
+            <text x="357" y="784" class="t-muted" font-size="10" font-weight="500">Security</text>
           </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="External" data-legend-x="440" data-legend-baseline="744" data-legend-width="83">
-            <rect x="440" y="735" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="462" y="744" class="t-muted" font-size="10" font-weight="500">External</text>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="External" data-legend-x="440" data-legend-baseline="784" data-legend-width="83">
+            <rect x="440" y="775" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
+            <text x="462" y="784" class="t-muted" font-size="10" font-weight="500">External</text>
           </g>
         </g>
       </svg>
