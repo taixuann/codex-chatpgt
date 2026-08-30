@@ -14,6 +14,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 ADAPTERS = ROOT / "agents"
 REPERTOIRE = ROOT / "manifests/agent-capability-repertoires.yaml"
+SKILL_CATALOG = ROOT / "manifests/skill-catalog.yaml"
 ADAPTER_GUIDANCE = ROOT / "agents/AGENTS.md"
 BOUNDARY_DOC = ROOT / "documentation/AGENT-BOUNDARIES.md"
 CANONICAL = {"feynman", "prometheus", "franky"}
@@ -109,6 +110,18 @@ def _validate_authority_metadata() -> None:
         raise ValueError("repertoire.feynman: missing scientific v1 capability boundary")
 
 
+def _validate_skill_admission_alignment(document: dict, catalog: dict) -> None:
+    dispositions = catalog.get("dispositions") or {}
+    owners = {name: disposition for disposition, names in dispositions.items() for name in names}
+    athena = (document.get("agents") or {}).get("athena") or {}
+    for capability in athena.get("primary_capabilities", []):
+        if capability in owners and owners[capability] != "KEEP":
+            raise ValueError(
+                f"repertoire.athena: noncanonical skill {capability} cannot be a primary capability; "
+                "keep it conditional until catalog admission is KEEP"
+            )
+
+
 def validate() -> None:
     if {path.stem for path in ADAPTERS.glob("*.toml")} != CANONICAL | SUPPORT:
         raise ValueError("agents: adapter set must be exactly canonical roles plus Argus/Athena support")
@@ -129,6 +142,9 @@ def validate() -> None:
         if phrase.lower() not in doc.lower():
             raise ValueError(f"AGENT-BOUNDARIES.md: missing boundary phrase {phrase!r}")
     _validate_authority_metadata()
+    repertoire = yaml.safe_load(REPERTOIRE.read_text(encoding="utf-8")) or {}
+    catalog = yaml.safe_load(SKILL_CATALOG.read_text(encoding="utf-8")) or {}
+    _validate_skill_admission_alignment(repertoire, catalog)
 
 
 def main() -> int:

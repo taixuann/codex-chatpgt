@@ -1,6 +1,7 @@
 import copy
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 import sys
 import yaml
@@ -18,6 +19,35 @@ class AthenaReviewContractTests(unittest.TestCase):
     def test_stale_revision_rejected(self):
         with self.assertRaisesRegex(ValueError, "stale"):
             validator.validate_result(self.result, "different")
+    def test_request_and_result_revision_mismatch_rejected_without_expected_flag(self):
+        request = copy.deepcopy(self.request)
+        result = copy.deepcopy(self.result)
+        result["target_revision"] = "different"
+        with self.assertRaisesRegex(ValueError, "match"):
+            validator.validate_request_result_pair(request, result)
+
+    def test_cli_binds_request_and_result_revisions_without_expected_flag(self):
+        result = copy.deepcopy(self.result)
+        result["target_revision"] = "different"
+        with tempfile.TemporaryDirectory() as directory:
+            request_path = Path(directory) / "request.yaml"
+            result_path = Path(directory) / "result.yaml"
+            request_path.write_text(yaml.safe_dump(self.request), encoding="utf-8")
+            result_path.write_text(yaml.safe_dump(result), encoding="utf-8")
+            with mock.patch.object(sys, "argv", ["validate_athena_review.py", "--request", str(request_path), "--result", str(result_path)]):
+                self.assertEqual(validator.main(), 1)
+    def test_partial_criterion_cannot_clear(self):
+        value = copy.deepcopy(self.result)
+        value["criteria"][0]["status"] = "partial"
+        value["recommendation"]["status"] = "clear_for_parent_decision"
+        with self.assertRaisesRegex(ValueError, "non-fulfilled"):
+            validator.validate_result(value)
+    def test_unfulfilled_criterion_cannot_clear(self):
+        value = copy.deepcopy(self.result)
+        value["criteria"][0]["status"] = "unfulfilled"
+        value["recommendation"]["status"] = "clear_for_parent_decision"
+        with self.assertRaisesRegex(ValueError, "non-fulfilled"):
+            validator.validate_result(value)
     def test_undeclared_request_field_rejected(self):
         value = copy.deepcopy(self.request); value["workflow_step"] = "repair"
         with self.assertRaisesRegex(ValueError, "undeclared"):

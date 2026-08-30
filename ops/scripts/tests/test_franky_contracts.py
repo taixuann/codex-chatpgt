@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
@@ -112,12 +113,23 @@ class FrankyContractTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with patch.object(contracts, "HISTORICAL_EXCEPTIONS", registry):
-                with self.assertRaisesRegex(ValueError, "not an ancestor"):
-                    contracts._historical_successor(
-                        packet,
-                        "9588b002fb24790403405da55b9ef06ab1b236cf",
-                        ROOT,
-                    )
+                # Model an existing commit whose ancestry check fails without
+                # depending on an unrelated remote branch being fetched in CI.
+                with patch.object(
+                    contracts.subprocess,
+                    "run",
+                    side_effect=[
+                        subprocess.CompletedProcess([], 0, stdout="59f21a71707b5ae87349349b71ce023bcffe27fa\n"),
+                        subprocess.CompletedProcess([], 0),
+                        subprocess.CalledProcessError(1, ["git", "merge-base"]),
+                    ],
+                ):
+                    with self.assertRaisesRegex(ValueError, "not an ancestor"):
+                        contracts._historical_successor(
+                            packet,
+                            "9588b002fb24790403405da55b9ef06ab1b236cf",
+                            ROOT,
+                        )
 
     def test_change_ledger_working_tree_must_match_live_state(self):
         task = yaml.safe_load(DEFAULT_TASK.read_text(encoding="utf-8"))

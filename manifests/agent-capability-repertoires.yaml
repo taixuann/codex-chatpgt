@@ -105,9 +105,10 @@ agents:
   athena:
     role_surface: support
     primary_capabilities:
-      - independent-artifact-review
+      - evidence-based-review
     lifecycle_capabilities: []
     conditional_capabilities:
+      - independent-artifact-review
       - scientific-peer-review
       - risk-security-review
       - code-review-and-quality
