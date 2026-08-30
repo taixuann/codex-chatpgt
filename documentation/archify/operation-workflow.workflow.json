@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Codex Operation Workflow — Issue-First Lifecycle",
+    "subtitle": "Derived from the canonical operating workflow; acceptance remains human-authorized.",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "request", "label": "Request + coordination" },
+    { "id": "reason", "label": "Reason + plan" },
+    { "id": "execute", "label": "Execute + validate" },
+    { "id": "review", "label": "Review + durable state", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "intake", "label": "Intake", "fromCol": 0, "toCol": 0 },
+    { "id": "design", "label": "Orient + plan", "fromCol": 1, "toCol": 1, "variant": "emphasis" },
+    { "id": "work", "label": "Execute + validate", "fromCol": 2, "toCol": 3, "variant": "dashed" },
+    { "id": "close", "label": "Review + reconcile", "fromCol": 4, "toCol": 5, "variant": "security" }
+  ],
+  "groups": [
+    { "id": "coordination", "label": "GitHub work unit", "lane": "request", "fromCol": 0, "toCol": 2, "variant": "default" },
+    { "id": "repair_loop", "label": "Bounded repair loop", "lane": "execute", "fromCol": 3, "toCol": 5, "variant": "emphasis" },
+    { "id": "acceptance_gate", "label": "Independent decision boundary", "lane": "review", "fromCol": 4, "toCol": 5, "variant": "security" }
+  ],
+  "mainPath": ["request", "issue", "plan", "execute", "validate", "review", "accept", "reconcile"],
+  "semanticChecks": {
+    "allowedRoots": ["request"],
+    "allowedTerminals": ["reconcile", "blocked"],
+    "requiredPaths": [
+      { "from": "request", "to": "reconcile" },
+      { "from": "validate", "to": "repair" },
+      { "from": "review", "to": "blocked" }
+    ]
+  },
+  "nodes": [
+    { "id": "request", "lane": "request", "col": 0, "type": "external", "label": "Request", "sublabel": "objective + scope", "width": 150 },
+    { "id": "issue", "lane": "request", "col": 1, "type": "cloud", "label": "Issue", "sublabel": "execution contract", "width": 150 },
+    { "id": "plan", "lane": "reason", "col": 2, "type": "backend", "label": "PLAN", "sublabel": "design + gates", "width": 150 },
+    { "id": "execute", "lane": "execute", "col": 3, "type": "backend", "label": "Execute", "sublabel": "bounded work unit", "width": 150 },
+    { "id": "validate", "lane": "execute", "col": 4, "type": "security", "label": "Validate", "sublabel": "deterministic checks", "width": 150 },
+    { "id": "repair", "lane": "execute", "col": 5, "type": "messagebus", "label": "Repair / retry", "sublabel": "diagnose, then rerun", "width": 150 },
+    { "id": "review", "lane": "review", "col": 5, "type": "security", "label": "Independent review", "sublabel": "challenge evidence", "yOffset": -120, "width": 150 },
+    { "id": "blocked", "lane": "review", "col": 4, "type": "security", "label": "Blocked / stop", "sublabel": "missing evidence or approval", "yOffset": 150, "width": 150 },
+    { "id": "accept", "lane": "review", "col": 5, "type": "backend", "label": "Accept", "sublabel": "human decision", "yOffset": 120, "width": 150 },
+    { "id": "reconcile", "lane": "review", "col": 5, "type": "database", "label": "Reconcile", "sublabel": "CURRENT / DECISIONS", "yOffset": 270, "width": 150 }
+  ],
+  "edges": [
+    { "id": "request-issue", "from": "request", "to": "issue", "label": "promote", "role": "main", "variant": "emphasis" },
+    { "id": "issue-plan", "from": "issue", "to": "plan", "label": "orient + plan", "role": "main" },
+    { "id": "plan-execute", "from": "plan", "to": "execute", "label": "handoff", "role": "main", "variant": "emphasis" },
+    { "id": "execute-validate", "from": "execute", "to": "validate", "label": "test + inspect", "role": "main", "variant": "security" },
+    { "id": "validate-repair", "from": "validate", "to": "repair", "label": "failure", "role": "branch", "variant": "security" },
+    { "id": "repair-plan", "from": "repair", "to": "plan", "label": "bounded retry", "role": "return", "variant": "dashed" },
+    { "id": "validate-review", "from": "validate", "to": "review", "label": "evidence ready", "role": "main", "variant": "emphasis" },
+    { "id": "review-blocked", "from": "review", "to": "blocked", "label": "finding / gap", "role": "error", "variant": "security" },
+    { "id": "review-accept", "from": "review", "to": "accept", "label": "recommendation", "role": "main", "variant": "emphasis" },
+    { "id": "accept-reconcile", "from": "accept", "to": "reconcile", "label": "durable state", "role": "main", "variant": "default" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Canonical anchors", "items": ["documentation/OPERATING-WORKFLOW.md", "Issue / PLAN / PR / CI remain the durable chain"] },
+    { "dot": "rose", "title": "Stop conditions", "items": ["Do not retry indefinitely", "Missing authority, evidence, or approval remains blocked"] }
+  ]
+}

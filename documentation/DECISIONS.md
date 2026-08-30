@@ -266,3 +266,16 @@ active decision. Material unresolved findings block readiness unless an
 authorized human waiver records both the authority and rationale. This is a
 deterministic evaluator boundary, not a new workflow or approval platform;
 native host merge enforcement remains `NOT_ASSESSED`.
+
+## D-020 — Archify remains an external explicit-only observation surface
+
+Issue #94 qualifies the MIT-licensed `tt-a1i/archify` tool at a pinned upstream
+revision for three derived artifacts: control-plane architecture, Issue-first
+operation workflow, and a revision-pinned architecture delta. The artifacts
+are documentation evidence only; repository contracts, Git history, Issues,
+plans, CI, and human acceptance remain authoritative. No Archify skill package,
+implicit routing, workflow engine, vendored upstream source, or production
+dependency is admitted. Catalog disposition is `REFERENCE_ONLY` for the
+documentation overlay and `EXPLICIT_ONLY` for any future invocation. Native
+dispatch, skill loading, host permission enforcement, and automated visual
+inspection on this host remain `NOT_ASSESSED`/`NOT_COMPLETED`.

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Codex Control Plane — Evidence Boundaries",
+    "subtitle": "Derived observation surface; repository contracts remain authoritative.",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/taixuann/codex-chatpgt",
+      "revision": "0ef8efd66261d4bbfe563b39c6846315467d577d"
+    },
+    "viewBox": [1380, 760]
+  },
+  "components": [
+    { "id": "human", "type": "external", "label": "Human owner", "sublabel": "scope + acceptance", "pos": [40, 60], "size": [220, 86], "sources": [{ "path": "AGENTS.md", "line": 10, "end_line": 19, "label": "role and approval boundary" }] },
+    { "id": "github", "type": "cloud", "label": "GitHub coordination", "sublabel": "Issue / PLAN / PR / CI", "pos": [320, 60], "size": [220, 86], "sources": [{ "path": "documentation/OPERATING-WORKFLOW.md", "line": 170, "end_line": 186, "label": "durable work-unit chain" }] },
+    { "id": "parent", "type": "backend", "label": "Parent orchestrator", "sublabel": "scope + synthesis", "pos": [600, 60], "size": [220, 86], "sources": [{ "path": "AGENTS.md", "line": 72, "end_line": 80, "label": "parent authority" }] },
+    { "id": "franky", "type": "backend", "label": "Franky", "sublabel": "control-plane maintenance", "pos": [880, 60], "size": [220, 86], "sources": [{ "path": "agents/franky.toml", "line": 1, "end_line": 41, "label": "control-plane boundary" }] },
+    { "id": "manifests", "type": "database", "label": "Manifests + contracts", "sublabel": "eligibility and support state", "pos": [1140, 60], "size": [220, 86], "sources": [{ "path": "documentation/AGENT-BOUNDARIES.md", "line": 31, "end_line": 47, "label": "declarative authority" }, { "path": "manifests/skill-catalog.yaml", "line": 1, "end_line": 28, "label": "skill admission" }] },
+    { "id": "argus", "type": "backend", "label": "Argus", "sublabel": "read-only reconnaissance", "pos": [80, 270], "size": [230, 86], "sources": [{ "path": "agents/argus.toml", "line": 1, "end_line": 65, "label": "support adapter" }] },
+    { "id": "prometheus", "type": "backend", "label": "Prometheus", "sublabel": "bounded implementation", "pos": [355, 270], "size": [230, 86], "sources": [{ "path": "agents/prometheus.toml", "line": 1, "end_line": 35, "label": "execution boundary" }] },
+    { "id": "feynman", "type": "backend", "label": "Feynman", "sublabel": "scientific evidence", "pos": [630, 270], "size": [230, 86], "sources": [{ "path": "agents/feynman.toml", "line": 1, "end_line": 35, "label": "research boundary" }] },
+    { "id": "athena", "type": "security", "label": "Athena", "sublabel": "independent review", "pos": [880, 270], "size": [220, 86], "sources": [{ "path": "agents/athena.toml", "line": 1, "end_line": 35, "label": "review boundary" }] },
+    { "id": "skills", "type": "cloud", "label": "Capability skills", "sublabel": "reusable procedures", "pos": [1140, 270], "size": [220, 86], "sources": [{ "path": "skills/AGENTS.md", "line": 1, "end_line": 24, "label": "skill contract" }, { "path": "manifests/skill-catalog.yaml", "line": 29, "end_line": 75, "label": "canonical active list" }] },
+    { "id": "validators", "type": "backend", "label": "Deterministic validators", "sublabel": "tests + schema checks", "pos": [355, 500], "size": [230, 86], "sources": [{ "path": "documentation/CURRENT.md", "line": 43, "end_line": 58, "label": "validation evidence" }] },
+    { "id": "evidence", "type": "database", "label": "Evidence records", "sublabel": "review + provenance", "pos": [760, 500], "size": [250, 86], "sources": [{ "path": "documentation/OPERATING-WORKFLOW.md", "line": 300, "end_line": 347, "label": "validation and review" }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Cloud / GitHub boundary", "wraps": ["human", "github"] }
+  ],
+  "connections": [
+    { "id": "human-issue", "from": "human", "to": "github", "variant": "emphasis" },
+    { "id": "issue-parent", "from": "github", "to": "parent", "label": "Issue + PLAN", "variant": "emphasis", "labelDy": -64 },
+    { "id": "parent-franky", "from": "parent", "to": "franky", "label": "task", "labelDy": -64 },
+    { "id": "franky-manifests", "from": "franky", "to": "manifests", "label": "admission", "variant": "security", "labelDy": -64 },
+    { "id": "manifests-skills", "from": "manifests", "to": "skills", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v", "variant": "dashed" },
+    { "id": "parent-argus", "from": "parent", "to": "argus", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v", "variant": "dashed" },
+    { "id": "parent-prometheus", "from": "parent", "to": "prometheus", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v", "variant": "emphasis" },
+    { "id": "prometheus-validators", "from": "prometheus", "to": "validators", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v", "variant": "emphasis" },
+    { "id": "athena-evidence", "from": "athena", "to": "evidence", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v", "variant": "security" },
+    { "id": "validators-evidence", "from": "validators", "to": "evidence", "label": "provenance receipt", "variant": "dashed", "labelDy": 70 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Authority", "items": ["Repository contracts and Git history are canonical", "Archify is a derived observation surface only"] },
+    { "dot": "rose", "title": "Runtime limits", "items": ["Native dispatch, skill loading, and host enforcement remain NOT_ASSESSED", "Edges are explanatory paths supported by the cited role and lifecycle contracts"] }
+  ]
+}
