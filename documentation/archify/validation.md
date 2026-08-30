@@ -43,6 +43,9 @@ recorded.
 AC-14: catalog disposition is explicit-only/reference-only; no canonical skill
 package or implicit routing was admitted.
 
+Independent Athena review `ATHENA-ISSUE-94-20260830-002` passed on candidate
+revision `72291ee...`; its durable record is `athena-review.yaml`.
+
 AC-15: removal is bounded to the derived directory and temporary checkout.
 
 AC-16: this README, provenance, validation, and visual-review record state the
