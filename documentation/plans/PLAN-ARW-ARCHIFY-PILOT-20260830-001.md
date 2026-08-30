@@ -65,7 +65,7 @@ observed.
 
 ## Review disposition
 
-Independent Athena review `ATHENA-ISSUE-94-20260830-002` passed on candidate
-tree `72291eede12d7a6038d68f5ba03cb34786dcd5f1`. The review record is
+Independent Athena re-review passed on repaired candidate tree
+`55c456970dd9d5eb306e32f1ca1d385de4d2b30d`. The review record is
 `documentation/archify/athena-review.yaml`; the subsequent commit only adds
 that durable evidence record and does not alter the reviewed pilot artifacts.

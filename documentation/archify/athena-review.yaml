@@ -1,5 +1,5 @@
 kind: athena.review-result.v1
-target_revision: 72291eede12d7a6038d68f5ba03cb34786dcd5f1
+target_revision: 55c456970dd9d5eb306e32f1ca1d385de4d2b30d
 coverage:
   reviewed:
     - all three Archify pilot inputs and delivered HTML artifacts
