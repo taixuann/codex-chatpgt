@@ -314,6 +314,11 @@ This milestone does not implement a full Scientific Wiki platform.
 
 `documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
 
+Issue #94 has a review-bound Archify pilot under `documentation/archify/`.
+The surface is derived and revision-pinned, cataloged as reference-only/
+explicit-only, and does not establish native dispatch, skill loading, or host
+permission enforcement.
+
 Issue #17 is NOT_PLANNED/superseded for the current horizon; historical PR #3
 is not an active proof fixture. #2 and #5 are accepted for their deterministic
 contracts; host-level runtime acceptance remains explicitly `NOT_ASSESSED`

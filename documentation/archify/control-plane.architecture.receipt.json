@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "kind": "archify-delivery-receipt",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "documentation/archify/control-plane.architecture.json",
+  "output": "documentation/archify/control-plane.architecture.html",
+  "specification": {"sha256": "a2868950ea4d6801e4fa153442ebc07599a6b6a9893408558aa0d5bc675cc6eb", "bytes": 5820},
+  "artifact": {"sha256": "e0c050a79df2a65d5f2c3553e8fabcea96fce01af75f05bc4adfa7725575e430", "bytes": 719978},
+  "validation": {"checksPassed": 9, "checkCount": 9, "compositionProfile": "showcase", "compositionStatus": "pass", "errors": 0, "warnings": 0},
+  "evidence": {"verified": true, "repository": "https://github.com/taixuann/codex-chatpgt", "revision": "0ef8efd66261d4bbfe563b39c6846315467d577d", "references": 14}
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Argus Reconnaissance — Before Standardization",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/taixuann/codex-chatpgt",
+      "revision": "8ed22d5ba77732d72f4d094a2312dcaf8448c3b7"
+    },
+    "viewBox": [1320, 620]
+  },
+  "components": [
+    { "id": "parent", "type": "backend", "label": "Parent orchestrator", "pos": [60, 250], "size": [220, 86], "sources": [{ "path": "AGENTS.md", "line": 72, "end_line": 80, "label": "parent boundary" }] },
+    { "id": "argus", "type": "backend", "label": "Argus", "pos": [370, 250], "size": [220, 86], "sources": [{ "path": "agents/argus.toml", "line": 1, "end_line": 55, "label": "pre-standardization adapter" }] },
+    { "id": "skill_surface", "type": "cloud", "label": "Skill surface", "pos": [680, 250], "size": [240, 86], "sources": [{ "path": "manifests/skill-catalog.yaml", "line": 1, "end_line": 28, "label": "catalog authority" }] },
+    { "id": "lifecycle", "type": "database", "label": "Shared lifecycle", "pos": [1010, 250], "size": [240, 86], "sources": [{ "path": "manifests/agent-contracts.yaml", "line": 1, "end_line": 30, "label": "shared contract" }] }
+  ],
+  "connections": [
+    { "id": "parent-argus", "from": "parent", "to": "argus", "label": "context request", "variant": "emphasis" },
+    { "id": "argus-surface", "from": "argus", "to": "skill_surface" },
+    { "id": "surface-lifecycle", "from": "skill_surface", "to": "lifecycle", "label": "handoff records", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "slate", "title": "Before", "items": ["One broad Argus adapter surface", "Profile distinctions were not yet materialized"] }
+  ]
+}

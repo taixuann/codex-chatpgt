@@ -100,6 +100,7 @@ dispositions:
   RETIRE:
     - skill-retrospective
 noncanonical_overlays:
+  - {name: archify-reference, path: documentation/archify, disposition: REFERENCE_ONLY, local_only: false}
   - {name: define-goal, path: skills/define-goal, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: docling-document-processing, path: skills/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: gh-address-comments, path: skills/gh-address-comments, disposition: EXPLICIT_ONLY, local_only: true}

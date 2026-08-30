@@ -1,0 +1,60 @@
+schema_version: 1
+kind: archify-pilot-provenance
+issue: https://github.com/taixuann/codex-chatpgt/issues/94
+observed_at: 2026-08-30
+integration:
+  mode: external_temporary_checkout
+  repository: https://github.com/tt-a1i/archify
+  ref: refs/heads/main
+  revision: f58298be408d62385407ca26bc5a7b612f68be2b
+  version: 2.16.0-dev.0
+  license: MIT
+  runtime: Node.js >=18
+  vendored: false
+  ordinary_control_plane_dependency: false
+  admission: EXPLICIT_ONLY
+  admission_reason: >-
+    The pilot proves a useful external observation surface, but does not prove
+    native skill loading, implicit routing, host permission enforcement, or
+    production utility sufficient for canonical admission.
+  removal: >-
+    Delete documentation/archify and the temporary upstream checkout; no
+    repository validator or ordinary control-plane path imports Archify.
+network_and_updates:
+  update_manifest: https://tt-a1i.github.io/archify/skill-updates/archify/stable.json
+  behavior: >-
+    The upstream package contains an optional bounded manifest check that reads
+    the pinned manifest URL and caches bounded state. It does not install,
+    execute, or silently replace an update; no telemetry path was observed.
+  observed_check: silent:invalid-arguments
+artifacts:
+  - path: documentation/archify/control-plane.architecture.json
+    source_revision: 0ef8efd66261d4bbfe563b39c6846315467d577d
+    sha256: a2868950ea4d6801e4fa153442ebc07599a6b6a9893408558aa0d5bc675cc6eb
+  - path: documentation/archify/control-plane.architecture.html
+    sha256: e0c050a79df2a65d5f2c3553e8fabcea96fce01af75f05bc4adfa7725575e430
+  - path: documentation/archify/control-plane.architecture.receipt.json
+    sha256: d4bcc8a51ea373dd2ae9a804e2608f6a0f17b641e6435819c7535495df2865b0
+  - path: documentation/archify/operation-workflow.workflow.json
+    source_revision: 0ef8efd66261d4bbfe563b39c6846315467d577d
+    sha256: a183e5a8f2c771e961dffa62e581dba53f01a08895869a4978a876f416a6af2a
+  - path: documentation/archify/operation-workflow.workflow.html
+    sha256: 88ae4012a0d76a2ca35f8bfc21594bd26856314971c1d440f4981d7d474f0092
+  - path: documentation/archify/operation-workflow.workflow.receipt.json
+    sha256: fcacf0bef5cc6ded1deb291b968acc6a7ddda2fad8fb70d853367f9fdac7200f
+  - path: documentation/archify/architecture-delta.base.architecture.json
+    source_revision: 8ed22d5ba77732d72f4d094a2312dcaf8448c3b7
+    sha256: 842fd1e8789b6b34436daba45dbbb0a1eeb976feb88ef87a72ba7a1f08f9e386
+  - path: documentation/archify/architecture-delta.head.architecture.json
+    source_revision: 042d01392cb1915b47d75c101d58091badff7068
+    sha256: 58f10f86d10cc309441b31918ff2c05c163bb138493e517f5640b10158622b65
+  - path: documentation/archify/architecture-delta.html
+    sha256: 8794fa8d3db7058c773406e121d4d8b91f55976d3f38c123b951beb56a636fd4
+  - path: documentation/archify/architecture-delta.receipt.json
+    sha256: d538ecc9f68bc2aca00be1883e60589ff1fa345e3a469f21495a420355a588c6
+runtime_limits:
+  - native_dispatch: NOT_ASSESSED
+  - skill_loading: NOT_ASSESSED
+  - host_permission_enforcement: NOT_ASSESSED
+  - automated_visual_check: NOT_COMPLETED
+    reason: Chrome DevTools process aborted with SIGABRT on this host.
