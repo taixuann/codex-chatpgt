@@ -1,7 +1,7 @@
 ---
 id: PLAN-ARW-ARCHIFY-PILOT-20260830-001
 issue: https://github.com/taixuann/codex-chatpgt/issues/94
-status: in_progress
+status: review_ready
 updated: 2026-08-30
 source_commit: 0ef8efd66261d4bbfe563b39c6846315467d577d
 ---
@@ -62,3 +62,10 @@ the upstream tree, claiming visual PASS from automation, or promoting the
 capability without independent review. Native dispatch, skill loading, host
 permissions, and runtime enforcement remain `NOT_ASSESSED` unless directly
 observed.
+
+## Review disposition
+
+Independent Athena review `ATHENA-ISSUE-94-20260830-002` passed on candidate
+tree `72291eede12d7a6038d68f5ba03cb34786dcd5f1`. The review record is
+`documentation/archify/athena-review.yaml`; the subsequent commit only adds
+that durable evidence record and does not alter the reviewed pilot artifacts.
