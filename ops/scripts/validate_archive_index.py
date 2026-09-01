@@ -33,8 +33,8 @@ def validate(index_path: Path) -> None:
         target = Path(entry["archived_path"])
         if original.is_absolute() or target.is_absolute() or ".." in original.parts or ".." in target.parts:
             raise ValueError("archive paths must be relative and traversal-free")
-        if not entry["original_path"].startswith("documentation/plans/"):
-            raise ValueError("original_path must point to documentation/plans")
+        if not entry["original_path"].startswith("documentation/"):
+            raise ValueError("original_path must point to documentation")
         target_abs = (root / target).resolve()
         if archive_root not in target_abs.parents:
             raise ValueError("archived_path must remain under the archive directory")

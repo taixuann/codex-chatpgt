@@ -15,7 +15,7 @@ context:
   canonical:
     - AGENTS.md
     - documentation/CURRENT.md
-    - documentation/DECISIONS.md
+    - documentation/architecture/decisions.md
     - ops/schemas/task-contract.schema.yaml
   supporting:
     - .github/workflows/franky-validate.yml

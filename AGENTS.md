@@ -4,7 +4,7 @@ This is the Codex-first operator workbench for the three canonical roles:
 Feynman, Prometheus, and Franky. The external AI Labs registry supplies the
 deployment role identity; its absolute local path is runtime-only and is not a
 portable repository authority. The portable semantic reference is
-`agents/AGENTS.md` plus `documentation/AGENT-BOUNDARIES.md`; do not invent or
+`agents/AGENTS.md` plus `documentation/architecture/agents.md`; do not invent or
 merge roles.
 
 Select exactly one role and one workflow before governed work:
@@ -28,9 +28,9 @@ the AI Labs role registry.
 No active machine workflow is installed for the specialized
 `franky_control_plane` scope. Admission is governed by the repository role,
 skill, and lifecycle guidance in `agents/AGENTS.md`, `skills/AGENTS.md`, and
-`documentation/OPERATING-WORKFLOW.md`; ordinary Franky operations use
+`documentation/architecture/workflow/operation.md`; ordinary Franky operations use
 Issue/PLAN/task contracts plus retained skills/scripts. The global semantic lifecycle remains
-`documentation/OPERATING-WORKFLOW.md`. Historical Franky workflow YAMLs are
+`documentation/architecture/workflow/operation.md`. Historical Franky workflow YAMLs are
 retired and are not runtime authority.
 
 Feynman and Prometheus use their selected project-scoped workflows and explicit
@@ -48,7 +48,7 @@ Canonical deployment role identity comes from the external AI Labs registry
 when that runtime is available. The absolute path
 `/Users/tai/ai-labs/ops/agents/agents.yaml` is a local runtime/deployment hint,
 not portable repository state. Repository `agents/AGENTS.md` and
-`documentation/AGENT-BOUNDARIES.md` provide the portable semantic reference;
+`documentation/architecture/agents.md` provide the portable semantic reference;
 `agents/*.toml` files are adapters only; this file is repository runtime
 policy; `documentation/` is explanatory; and `manifests/` records capability
 eligibility and bounded support contracts rather than canonical roles. A
@@ -58,7 +58,7 @@ convenient interpretation.
 ## Global operating kernel
 
 The canonical human-readable semantics for the shared lifecycle live in
-[`documentation/OPERATING-WORKFLOW.md`](documentation/OPERATING-WORKFLOW.md).
+[`documentation/architecture/workflow/operation.md`](documentation/architecture/workflow/operation.md).
 Keep this file as concise runtime policy; do not duplicate the full lifecycle
 procedure here or in persona-specific workflows.
 
@@ -106,7 +106,7 @@ compiled Wiki knowledge, and raw source evidence distinct. Memory strengthens
 context but never replaces canonical state or evidence; promote changes only by
 `OBSERVE → PROPOSE → REVIEW → ACCEPT → UPDATE`. Detailed role/delegation rules
 live in `agents/AGENTS.md`, skill rules in `skills/AGENTS.md`, and lifecycle
-admission rules in `documentation/OPERATING-WORKFLOW.md`.
+admission rules in `documentation/architecture/workflow/operation.md`.
 
 Keep `.system`, logs, sessions, caches, databases, credentials, config, and
 linked project contents outside the Codex Git allowlist. Session content is
@@ -118,7 +118,7 @@ not require a per-task `ops/changes` wrapper. Create
 consumer or explicit contract requires it; never create `result.md` by default.
 Architectural work and explicit promotion may use the full AI Labs goal-session
 contract. AI Labs is a proposed export target, not a live mirror of this tree.
-Use the default Git lifecycle in `documentation/OPERATING-WORKFLOW.md`: start
+Use the default Git lifecycle in `documentation/architecture/workflow/operation.md`: start
 one work-unit branch from fresh `main`, keep review and repair on that branch,
 target `main`, and delete the branch after merge. Do not create stacked or
 role-specific branches unless an Issue/PLAN records an explicit dependency.

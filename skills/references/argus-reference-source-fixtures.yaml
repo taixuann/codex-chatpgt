@@ -10,8 +10,8 @@ multi_source_current:
   dependencies: []
 stale_conflict:
   intent: {question: 'compare old and live state', consumer: parent}
-  bounded_path_source_service: {paths: [documentation/DECISIONS.md], sources: [old-plan], services: []}
-  scope: {include: [documentation/DECISIONS.md], exclude: [runtime-private]}
+  bounded_path_source_service: {paths: [documentation/architecture/decisions.md], sources: [old-plan], services: []}
+  scope: {include: [documentation/architecture/decisions.md], exclude: [runtime-private]}
   authority: [live-registry, old-plan]
   priority: [live-registry, old-plan]
   load_strategy: controlled-expansion

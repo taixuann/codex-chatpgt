@@ -4,7 +4,7 @@ This directory contains runtime adapters. The external AI Labs registry is the
 deployment authority for canonical role identity when available, but its
 absolute local path is runtime-only and not portable repository authority. The
 portable semantic reference is this file plus
-`documentation/AGENT-BOUNDARIES.md`; adapters must not rename, merge, or
+`documentation/architecture/agents.md`; adapters must not rename, merge, or
 repurpose roles.
 
 ## Runtime adapters
@@ -32,7 +32,7 @@ The authority chain is intentionally one-way:
 1. The external AI Labs deployment registry and definitions, when available,
    supply canonical role identity for deployment. The local path
    `/Users/tai/ai-labs/ops/agents/agents.yaml` is a runtime hint only.
-2. This file and `documentation/AGENT-BOUNDARIES.md` are the portable semantic
+2. This file and `documentation/architecture/agents.md` are the portable semantic
    reference for the three roles and their boundaries.
 3. `agents/*.toml` are runtime adapters. They may express permission, input,
    output, delegation, and escalation boundaries, but they cannot create,

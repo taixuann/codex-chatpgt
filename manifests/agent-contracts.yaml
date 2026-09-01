@@ -5,7 +5,7 @@ description: >-
   Shared evidence, artifact, and lifecycle boundary contracts for Argus,
   Prometheus, and Athena. This is not the global canonical role registry and
   does not define Franky or Feynman contracts.
-authority: AGENTS.md and documentation/AGENT-LIFECYCLE-HARDENING.md
+authority: AGENTS.md and documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md
 agents:
   argus:
     role: support_context_compiler

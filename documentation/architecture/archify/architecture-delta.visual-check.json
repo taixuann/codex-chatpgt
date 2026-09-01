@@ -5,7 +5,7 @@
   "status": "fail",
   "visualReview": "pending",
   "artifact": {
-    "path": "/Users/tai/.codex/documentation/archify/architecture-delta.html",
+    "path": "/Users/tai/.codex/documentation/architecture/archify/architecture-delta.html",
     "sha256": "fbdb47f6b7acd72aebf4ce9b788998e58f99500e32b86df0c395cf8edeb0aef3",
     "bytes": 2000959
   },
@@ -23,7 +23,7 @@
       "severity": "error",
       "message": "visual-check could not complete its Chrome inspection.",
       "subject": {
-        "artifact": "/Users/tai/.codex/documentation/archify/architecture-delta.html"
+        "artifact": "/Users/tai/.codex/documentation/architecture/archify/architecture-delta.html"
       },
       "evidence": {
         "reason": "Chrome DevTools process exit failed: Chrome closed with signal SIGABRT\nChrome process: signal SIGABRT."

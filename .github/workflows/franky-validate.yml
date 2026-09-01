@@ -12,8 +12,9 @@ on:
       - 'manifests/skill-evidence.yaml'
       - 'manifests/agent-capability-repertoires.yaml'
       - 'manifests/agent-contracts.yaml'
-      - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
-      - 'documentation/AGENT-BOUNDARIES.md'
+      - 'documentation/architecture/**'
+      - 'documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md'
+      - 'documentation/architecture/agents.md'
       - 'documentation/historical-provenance-exceptions.yaml'
       - 'documentation/sessions/**'
       - 'ops/**'
@@ -25,8 +26,9 @@ on:
       - 'skills/**'
       - 'manifests/agent-capability-repertoires.yaml'
       - 'manifests/agent-contracts.yaml'
-      - 'documentation/AGENT-LIFECYCLE-HARDENING.md'
-      - 'documentation/AGENT-BOUNDARIES.md'
+      - 'documentation/architecture/**'
+      - 'documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md'
+      - 'documentation/architecture/agents.md'
       - 'documentation/CURRENT.md'
       - 'documentation/historical-provenance-exceptions.yaml'
       - 'documentation/sessions/**'
@@ -188,7 +190,7 @@ jobs:
             --root . \
             --canonical AGENTS.md \
             --canonical documentation/CURRENT.md \
-            --evidence documentation/DECISIONS.md \
+            --evidence documentation/architecture/decisions.md \
             --uncertainty 'host adapter trace is not exposed' > /tmp/context-packet.json
           python -m json.tool /tmp/context-packet.json >/dev/null
 

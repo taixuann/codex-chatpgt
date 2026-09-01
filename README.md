@@ -10,11 +10,11 @@ credentials, session state, caches, or linked project contents.
 ## Start here
 
 1. [`AGENTS.md`](AGENTS.md) — operating boundaries and lifecycle kernel.
-2. [`documentation/CLOUD-BRIEF.md`](documentation/CLOUD-BRIEF.md) — concise
+2. [`documentation/architecture/cloud-brief.md`](documentation/architecture/cloud-brief.md) — concise
    cloud-facing state and next actions.
 3. [`documentation/CURRENT.md`](documentation/CURRENT.md) — accepted current
    architecture and known gaps.
-4. [`documentation/DECISIONS.md`](documentation/DECISIONS.md) — durable
+4. [`documentation/architecture/decisions.md`](documentation/architecture/decisions.md) — durable
    architecture decisions.
 5. [`ops/schemas/task-contract.schema.yaml`](ops/schemas/task-contract.schema.yaml)
    — glue contract between workflows, roles, and skills.

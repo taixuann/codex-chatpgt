@@ -9,10 +9,10 @@ changed_paths:
   - manifests/agent-capability-repertoires.yaml
   - skills/AGENTS.md
   - documentation/CURRENT.md
-  - documentation/AGENT-BOUNDARIES.md
-  - documentation/AGENT-LIFECYCLE-HARDENING.md
-  - documentation/DECISIONS.md
-  - documentation/OPERATING-WORKFLOW.md
+  - documentation/architecture/agents.md
+  - documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md
+  - documentation/architecture/decisions.md
+  - documentation/architecture/workflow/operation.md
   - documentation/plans/PLAN-ARW-FRANKY-HARDENING-20260813-001.md
   - documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml
   - ops/schemas/franky-task.schema.yaml

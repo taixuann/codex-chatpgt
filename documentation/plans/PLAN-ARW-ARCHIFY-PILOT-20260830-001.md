@@ -38,7 +38,7 @@ scope.
 
 | AC | Implementation evidence | Validation evidence |
 |---|---|---|
-| AC-01 | `documentation/archify/provenance.yaml` pins upstream commit/ref and MIT license | upstream `git ls-remote`, provenance review |
+| AC-01 | `documentation/architecture/archify/provenance.yaml` pins upstream commit/ref and MIT license | upstream `git ls-remote`, provenance review |
 | AC-02 | provenance records Node >=18, local CLI, no required network, optional update checker behavior | `doctor`, source inspection, checker run |
 | AC-03 | external temporary checkout + committed derived artifacts only; no runtime dependency | remove/disable proof and control-plane suite |
 | AC-04 | no upstream source copied into this repository | changed-file inventory and allowlist |
@@ -67,5 +67,5 @@ observed.
 
 Independent Athena re-review passed on repaired candidate tree
 `55c456970dd9d5eb306e32f1ca1d385de4d2b30d`. The review record is
-`documentation/archify/athena-review.yaml`; the subsequent commit only adds
+`documentation/architecture/archify/athena-review.yaml`; the subsequent commit only adds
 that durable evidence record and does not alter the reviewed pilot artifacts.

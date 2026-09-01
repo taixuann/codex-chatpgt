@@ -36,7 +36,7 @@ FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".s
 TRACKED_SESSION_PREFIXES = ("documentation/sessions/",)
 SESSION_ID = r"[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}"
 TRACKED_SESSION_PATH = re.compile(
-    rf"^documentation/sessions/{SESSION_ID}/(?:session\.yaml|context\.md|spec\.md|plan\.md|task\.md|franky\.ticket\.yaml|franky\.results\.yaml|references\.yaml|\.rag/manifest\.yaml)$"
+    rf"^documentation/sessions/(?:README\.md|{SESSION_ID}/(?:session\.yaml|context\.md|spec\.md|plan\.md|task\.md|franky\.ticket\.yaml|franky\.results\.yaml|references\.yaml|\.rag/manifest\.yaml))$"
 )
 
 

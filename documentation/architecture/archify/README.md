@@ -14,11 +14,11 @@ checkout. No upstream source was vendored. With that checkout as `archify/`,
 the replayable commands are:
 
 ```text
-node archify/bin/archify.mjs validate architecture documentation/archify/control-plane.architecture.json --quality showcase --json --repo-root /Users/tai/.codex
-node archify/bin/archify.mjs validate workflow documentation/archify/operation-workflow.workflow.json --quality showcase --json
-node archify/bin/archify.mjs deliver architecture documentation/archify/control-plane.architecture.json documentation/archify/control-plane.architecture.html --quality showcase --json --repo-root /Users/tai/.codex
-node archify/bin/archify.mjs deliver workflow documentation/archify/operation-workflow.workflow.json documentation/archify/operation-workflow.workflow.html --quality showcase --json
-node archify/bin/archify.mjs compare architecture documentation/archify/architecture-delta.base.architecture.json documentation/archify/architecture-delta.head.architecture.json documentation/archify/architecture-delta.html --receipt documentation/archify/architecture-delta.receipt.json --quality showcase --json --repo-root /Users/tai/.codex
+node archify/bin/archify.mjs validate architecture documentation/architecture/archify/control-plane.architecture.json --quality showcase --json --repo-root /Users/tai/.codex
+node archify/bin/archify.mjs validate workflow documentation/architecture/archify/operation-workflow.workflow.json --quality showcase --json
+node archify/bin/archify.mjs deliver architecture documentation/architecture/archify/control-plane.architecture.json documentation/architecture/archify/control-plane.architecture.html --quality showcase --json --repo-root /Users/tai/.codex
+node archify/bin/archify.mjs deliver workflow documentation/architecture/archify/operation-workflow.workflow.json documentation/architecture/archify/operation-workflow.workflow.html --quality showcase --json
+node archify/bin/archify.mjs compare architecture documentation/architecture/archify/architecture-delta.base.architecture.json documentation/architecture/archify/architecture-delta.head.architecture.json documentation/architecture/archify/architecture-delta.html --receipt documentation/architecture/archify/architecture-delta.receipt.json --quality showcase --json --repo-root /Users/tai/.codex
 ```
 
 ## Pilot artifacts
@@ -50,7 +50,7 @@ See `manifests/skill-catalog.yaml` for the explicit catalog record.
 
 ## Removal and disablement
 
-Archify is documentation-only in this pilot. Removing `documentation/archify/`
+Archify is documentation-only in this pilot. Removing `documentation/architecture/archify/`
 and the temporary checkout leaves the existing validators, tests, and ordinary
 control-plane workflows unchanged. The validation record documents this
 absence-of-imports boundary; native dispatch, loading, and host permission

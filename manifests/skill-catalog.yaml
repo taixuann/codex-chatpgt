@@ -1,6 +1,6 @@
 schema_version: 1
 id: CODEX-SKILL-CATALOG-20260813
-authority: documentation/OPERATING-WORKFLOW.md and Issue/PLAN contracts
+authority: documentation/architecture/workflow/operation.md and Issue/PLAN contracts
 canonical_root: skills/
 explicit_overlay_root: skills/ (entries listed under noncanonical_overlays are not canonical admission)
 vendor_reference_roots:
@@ -102,7 +102,7 @@ dispositions:
   RETIRE:
     - skill-retrospective
 noncanonical_overlays:
-  - {name: archify-reference, path: documentation/archify, disposition: REFERENCE_ONLY, local_only: false}
+  - {name: archify-reference, path: documentation/architecture/archify, disposition: REFERENCE_ONLY, local_only: false}
   - {name: define-goal, path: skills/interaction/define-goal, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: docling-document-processing, path: skills/knowledge/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: gh-address-comments, path: skills/runtime/gh-address-comments, disposition: EXPLICIT_ONLY, local_only: true}

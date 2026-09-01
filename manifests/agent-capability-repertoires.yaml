@@ -5,7 +5,7 @@ authority:
   skill_admission: Issue #38
   canonical_role_registry: external_ai_labs_deployment_registry
   canonical_role_definitions: external_ai_labs_deployment_definitions
-  portable_role_reference: agents/AGENTS.md and documentation/AGENT-BOUNDARIES.md
+  portable_role_reference: agents/AGENTS.md and documentation/architecture/agents.md
   local_runtime_registry_path: /Users/tai/ai-labs/ops/agents/agents.yaml
   repository_runtime_policy: AGENTS.md
   repository_adapters: agents/*.toml

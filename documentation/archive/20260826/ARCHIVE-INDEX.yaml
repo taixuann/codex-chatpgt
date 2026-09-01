@@ -1,7 +1,7 @@
 kind: codex.documentation-archive.v1
 archive_id: 20260826
 created_at: '2026-08-26T00:00:00Z'
-authority: documentation/CURRENT.md and documentation/DECISIONS.md
+authority: documentation/CURRENT.md and documentation/architecture/decisions.md
 policy:
   preserved_in_place:
     - normative operating guidance

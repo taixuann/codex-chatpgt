@@ -46,6 +46,6 @@ scorecard merely to make packages look uniform. Retire or merge a package
 before polishing it when an existing task contract, built-in capability, or
 deterministic validator already owns the behavior.
 
-GitHub Issues/Plans and `documentation/OPERATING-WORKFLOW.md` own durable
+GitHub Issues/Plans and `documentation/architecture/workflow/operation.md` own durable
 execution state and lifecycle. A skill may provide procedure and validation,
 but it must not become a second workflow engine.

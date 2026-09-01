@@ -6,4 +6,6 @@ authority.
 
 - [Personal Wiki MCP](personal-wiki.md)
 - [Research knowledge workflow](research.md)
-- Cloud coordination remains documented in [`../CLOUD-BRIEF.md`](../CLOUD-BRIEF.md).
+- [Cloud brief](../cloud-brief.md)
+
+Root-level knowledge names remain compatibility pointers only.

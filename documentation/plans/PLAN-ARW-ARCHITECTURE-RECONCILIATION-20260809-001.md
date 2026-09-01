@@ -156,12 +156,12 @@ If the script remains under `ops/scripts/`, identify at least one independent gl
 Read and reconcile:
 
 - `AGENTS.md`;
-- `documentation/OPERATING-WORKFLOW.md`;
+- `documentation/architecture/workflow/operation.md`;
 - `documentation/CURRENT.md`;
-- `documentation/DECISIONS.md`;
-- `documentation/SYSTEM-EVOLUTION-WORKFLOW.md`;
-- `documentation/GOAL-PLAN-GRAPH.md`;
-- `documentation/RESEARCH-KNOWLEDGE-WORKFLOW.md`;
+- `documentation/architecture/decisions.md`;
+- `documentation/architecture/workflow/evolution.md`;
+- `documentation/archive/20260901/GOAL-PLAN-GRAPH.md`;
+- `documentation/architecture/knowledge/research.md`;
 - `agents/AGENTS.md`;
 - active runtime configuration relevant to skill/workflow discovery.
 
@@ -311,21 +311,21 @@ observed.
 
 ### Keep / update
 
-- `OPERATING-WORKFLOW.md`: canonical human-readable operating semantics.
+- `architecture/workflow/operation.md`: canonical human-readable operating semantics.
 - `CURRENT.md`: current accepted snapshot only.
-- `CLOUD-BRIEF.md`: compact orientation only.
+- `architecture/cloud-brief.md`: compact orientation only.
 
 ### Reclassify / simplify
 
-- `SYSTEM-EVOLUTION-WORKFLOW.md`
+- `architecture/workflow/evolution.md`
   - preserve system-change lifecycle semantics;
   - treat as an operating extension/concept unless a machine lifecycle is actually implemented.
 
-- `GOAL-PLAN-GRAPH.md`
+- `archive/20260901/GOAL-PLAN-GRAPH.md`
   - preserve lightweight Issue/PLAN/PR relationships;
   - remove pressure toward custom goal packages/registries/graph infrastructure not earned by real use.
 
-- `RESEARCH-KNOWLEDGE-WORKFLOW.md`
+- `architecture/knowledge/research.md`
   - preserve objective -> evidence -> understanding -> claims -> hypothesis/test -> result -> promotion semantics;
   - treat as scientific/domain lifecycle semantics, not automatic machine workflow packaging.
 

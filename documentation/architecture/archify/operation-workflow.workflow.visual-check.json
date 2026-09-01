@@ -5,9 +5,9 @@
   "status": "fail",
   "visualReview": "pending",
   "artifact": {
-    "path": "/Users/tai/.codex/documentation/archify/control-plane.architecture.html",
-    "sha256": "a2b1ce9eb30b0cc4a436cec89d3496364192c64e1ffab64ec7a552c584eb076b",
-    "bytes": 719181
+    "path": "/Users/tai/.codex/documentation/architecture/archify/operation-workflow.workflow.html",
+    "sha256": "88ae4012a0d76a2ca35f8bfc21594bd26856314971c1d440f4981d7d474f0092",
+    "bytes": 720832
   },
   "state": {
     "detail": "read",
@@ -23,7 +23,7 @@
       "severity": "error",
       "message": "visual-check could not complete its Chrome inspection.",
       "subject": {
-        "artifact": "/Users/tai/.codex/documentation/archify/control-plane.architecture.html"
+        "artifact": "/Users/tai/.codex/documentation/architecture/archify/operation-workflow.workflow.html"
       },
       "evidence": {
         "reason": "Chrome DevTools process exit failed: Chrome closed with signal SIGABRT\nChrome process: signal SIGABRT."
@@ -52,8 +52,8 @@
     "contactSheet": null
   },
   "sidecars": {
-    "receipt": "control-plane.architecture.visual-check.json",
-    "contactSheet": "control-plane.architecture.visual-check.html"
+    "receipt": "operation-workflow.workflow.visual-check.json",
+    "contactSheet": "operation-workflow.workflow.visual-check.html"
   },
   "error": "Chrome DevTools process exit failed: Chrome closed with signal SIGABRT\nChrome process: signal SIGABRT."
 }

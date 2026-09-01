@@ -4,8 +4,8 @@ scope:
   include:
     - AGENTS.md
     - documentation/CURRENT.md
-    - documentation/DECISIONS.md
-    - documentation/OPERATING-WORKFLOW.md
+    - documentation/architecture/decisions.md
+    - documentation/architecture/workflow/operation.md
   exclude:
     - credentials
     - sessions
@@ -16,9 +16,9 @@ context:
   canonical:
     - AGENTS.md
     - documentation/CURRENT.md
-    - documentation/DECISIONS.md
+    - documentation/architecture/decisions.md
   supporting:
-    - documentation/OPERATING-WORKFLOW.md
+    - documentation/architecture/workflow/operation.md
 required_capabilities:
   - bounded read-only context acquisition
   - compact evidence packet generation

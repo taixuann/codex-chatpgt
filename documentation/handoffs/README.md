@@ -1,4 +1,11 @@
-# Handoff contract
+# Legacy handoff records
+
+This directory is retained for historical handoff records and compatibility.
+New bounded execution records belong under
+`documentation/sessions/<session-id>/`; do not delete or relocate an existing
+handoff until its provenance and consumers are reconciled.
+
+## Handoff contract
 
 Create one concise Markdown handoff for each completed bounded execution:
 

@@ -16,7 +16,7 @@ ADAPTERS = ROOT / "agents"
 REPERTOIRE = ROOT / "manifests/agent-capability-repertoires.yaml"
 SKILL_CATALOG = ROOT / "manifests/skill-catalog.yaml"
 ADAPTER_GUIDANCE = ROOT / "agents/AGENTS.md"
-BOUNDARY_DOC = ROOT / "documentation/AGENT-BOUNDARIES.md"
+BOUNDARY_DOC = ROOT / "documentation/architecture/agents.md"
 CANONICAL = {"feynman", "prometheus", "franky"}
 SUPPORT = {"argus", "athena"}
 REQUIRED_SECTIONS = {
@@ -78,14 +78,22 @@ def _validate_authority_metadata() -> None:
     expected = {
         "canonical_role_registry": "external_ai_labs_deployment_registry",
         "canonical_role_definitions": "external_ai_labs_deployment_definitions",
-        "portable_role_reference": "agents/AGENTS.md and documentation/AGENT-BOUNDARIES.md",
+        "portable_role_reference": "agents/AGENTS.md and documentation/architecture/agents.md",
         "local_runtime_registry_path": "/Users/tai/ai-labs/ops/agents/agents.yaml",
         "repository_runtime_policy": "AGENTS.md",
         "repository_adapters": "agents/*.toml",
         "explanatory_documentation": "documentation/",
     }
     for key, value in expected.items():
-        if authority.get(key) != value:
+        observed = authority.get(key)
+        # Keep the old root path valid while compatibility pointers remain in
+        # place; new metadata should use the subject-organized architecture
+        # path. This avoids forcing an unrelated dirty manifest change.
+        if key == "portable_role_reference":
+            accepted = {value, "agents/AGENTS.md and documentation/AGENT-BOUNDARIES.md"}
+            if observed not in accepted:
+                raise ValueError(f"repertoire.authority.{key}: authority chain mismatch")
+        elif observed != value:
             raise ValueError(f"repertoire.authority.{key}: authority chain mismatch")
     if authority.get("precedence") != [
         "external_deployment_registry_when_available",

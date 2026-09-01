@@ -14,7 +14,7 @@ This repository is the Codex-first control plane and cloud coordination bridge. 
 
 The external AI Labs registry supplies deployment role identity when available;
 its absolute local path is runtime-only. The portable repository semantic
-reference is `agents/AGENTS.md` and `AGENT-BOUNDARIES.md`. Exactly three
+reference is `agents/AGENTS.md` and `architecture/agents.md`. Exactly three
 canonical planning roles remain:
 
 | Role | Ownership | Adapter |
@@ -47,13 +47,13 @@ complete end-to-end workflow remains pending.
 | Document | Classification | Authority |
 | --- | --- | --- |
 | `CURRENT.md` | CANONICAL | accepted current repository state |
-| `DECISIONS.md` | CANONICAL | accepted architecture decisions |
-| `OPERATING-WORKFLOW.md` | CANONICAL | shared lifecycle semantics |
-| `AGENT-LIFECYCLE-HARDENING.md` | HISTORICAL_SUPPORT | merged lifecycle evidence and limitations |
-| `CLOUD-BRIEF.md` | CANONICAL | progressive-disclosure cloud entrypoint |
-| `GOAL-PLAN-GRAPH.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #17 |
-| `RESEARCH-KNOWLEDGE-WORKFLOW.md` | SUPERSEDED_SUPPORT | full research/knowledge proof is now scoped under Issue #75 |
-| `SYSTEM-EVOLUTION-WORKFLOW.md` | ACCEPTED | v1 evidence reconciled through PRs #18, #72, #82, and #84 |
+| `architecture/decisions.md` | CANONICAL | accepted architecture decisions |
+| `architecture/workflow/operation.md` | CANONICAL | shared lifecycle semantics |
+| `archive/20260901/AGENT-LIFECYCLE-HARDENING.md` | HISTORICAL_SUPPORT | merged lifecycle evidence and limitations |
+| `architecture/cloud-brief.md` | CANONICAL | progressive-disclosure cloud entrypoint |
+| `archive/20260901/GOAL-PLAN-GRAPH.md` | PROPOSED_UNDER_PROOF | proof tracked by Issue #17 |
+| `architecture/knowledge/research.md` | SUPERSEDED_SUPPORT | full research/knowledge proof is now scoped under Issue #75 |
+| `architecture/workflow/evolution.md` | ACCEPTED | v1 evidence reconciled through PRs #18, #72, #82, and #84 |
 
 No document in this map overrides the authority order in `AGENTS.md`; no
 redundant document was removed in this reconciliation.
@@ -64,12 +64,12 @@ redundant document was removed in this reconciliation.
   before capability routing. It names local availability and owner entrypoints
   only; it is neither portable control-plane state nor authority over external
   workspaces.
-- Canonical human-readable general lifecycle: [`OPERATING-WORKFLOW.md`](OPERATING-WORKFLOW.md).
-- Architecture decisions: [`DECISIONS.md`](DECISIONS.md).
-- Cloud progressive-disclosure entrypoint: [`CLOUD-BRIEF.md`](CLOUD-BRIEF.md).
+- Canonical human-readable general lifecycle: [`architecture/workflow/operation.md`](architecture/workflow/operation.md).
+- Architecture decisions: [`architecture/decisions.md`](architecture/decisions.md).
+- Cloud progressive-disclosure entrypoint: [`architecture/cloud-brief.md`](architecture/cloud-brief.md).
 - Runtime adapter contracts: [`agents/AGENTS.md`](../agents/AGENTS.md).
 - Canonical role call boundaries and explicit runtime limitations:
-  [`AGENT-BOUNDARIES.md`](AGENT-BOUNDARIES.md).
+  [`architecture/agents.md`](architecture/agents.md).
 - Active skill surface: [`../skills/`](../skills/); workflow admission policy is
   documented in [`../AGENTS.md`](../AGENTS.md). The unconsumed Franky
   machine-workflow tree and `franky-workflow-organizer` package are retired and
@@ -82,15 +82,15 @@ redundant document was removed in this reconciliation.
   against the checked-in example under `ops/schemas/examples/` and by focused
   unit tests.
 
-The shared operating lifecycle remains capability-first, bounded, validation-oriented, and review-selective. `OPERATING-WORKFLOW.md` is the human-readable semantic source; machine-readable workflows are justified only when runtime state/gate enforcement adds value.
+The shared operating lifecycle remains capability-first, bounded, validation-oriented, and review-selective. `architecture/workflow/operation.md` is the human-readable semantic source; machine-readable workflows are justified only when runtime state/gate enforcement adds value.
 
 ## Proposed semantic surfaces under proof
 
 The following documents exist as proposed shared semantics and are **not yet accepted runtime truth merely because they are documented**:
 
-- [`SYSTEM-EVOLUTION-WORKFLOW.md`](SYSTEM-EVOLUTION-WORKFLOW.md) — accepted System Configuration and Change workflow v1.
-- [`RESEARCH-KNOWLEDGE-WORKFLOW.md`](RESEARCH-KNOWLEDGE-WORKFLOW.md) — historical research/knowledge workflow support; Issue #16 is superseded by #75.
-- [`GOAL-PLAN-GRAPH.md`](GOAL-PLAN-GRAPH.md) — Goal–Plan linking semantics; minimal proof tracked by #17.
+- [`architecture/workflow/evolution.md`](architecture/workflow/evolution.md) — accepted System Configuration and Change workflow v1.
+- [`architecture/knowledge/research.md`](architecture/knowledge/research.md) — historical research/knowledge workflow support; Issue #16 is superseded by #75.
+- [`archive/20260901/GOAL-PLAN-GRAPH.md`](archive/20260901/GOAL-PLAN-GRAPH.md) — Goal–Plan linking semantics; minimal proof tracked by #17.
 
 Ownership boundaries currently intended for proof:
 
@@ -314,7 +314,7 @@ This milestone does not implement a full Scientific Wiki platform.
 
 `documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
 
-Issue #94 has a review-bound Archify pilot under `documentation/archify/`.
+Issue #94 has a review-bound Archify pilot under `documentation/architecture/archify/`.
 The surface is derived and revision-pinned, cataloged as reference-only/
 explicit-only, and does not establish native dispatch, skill loading, or host
 permission enforcement.
