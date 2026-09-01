@@ -3,7 +3,7 @@ review_id: ATHENA-ISSUE-7-59-61-20260825-001
 reviewer_id: athena
 reviewer_role: independent_reviewer
 review_class: fresh_context_evidence_review
-reviewed_target: documentation/sessions/records/reviews/ISSUE-7-59-61-REAL-SCIENTIFIC-VERTICAL-SLICE.yaml
+reviewed_target: records/reviews/ISSUE-7-59-61-REAL-SCIENTIFIC-VERTICAL-SLICE.yaml
 reviewed_target_revision: sha256:f41ef4d1364a1bf6ed8f991f23bede0d0e04dac88fca47baa330d0242e60b964
 target_digest_scope: canonical_yaml_without_lifecycle.athena_review.reviewed_target_digest
 reviewed_project_commit: 75adf7caf92b90290c92ec102796626ed3668e23
@@ -14,7 +14,7 @@ criteria_refs:
   - provenance_and_scope_boundaries
   - scientific_acceptance_boundary
 evidence_refs:
-  - documentation/sessions/records/reviews/ISSUE-7-59-61-REAL-SCIENTIFIC-VERTICAL-SLICE.yaml
+  - records/reviews/ISSUE-7-59-61-REAL-SCIENTIFIC-VERTICAL-SLICE.yaml
   - documentation/reviews/evidence/PDA-TEMPERATURE-IV-20260824-WIKI-QUERY.json
   - project_context.authority_sources
 coverage:
