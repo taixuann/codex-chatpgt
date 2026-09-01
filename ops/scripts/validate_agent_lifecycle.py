@@ -12,8 +12,8 @@ import sys
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTRACTS = ROOT / "manifests/agent-contracts.yaml"
-REPERTOIRE = ROOT / "manifests/agent-capability-repertoires.yaml"
+CONTRACTS = ROOT / "manifests/archive/2026-09-01/agent-contracts.yaml"
+REPERTOIRE = ROOT / "manifests/agent-repertoires.yaml"
 STATES = {"DRAFT", "VALIDATED", "REVIEWED", "ACCEPTED", "SUPERSEDED", "ARCHIVED", "INVALIDATED"}
 ALLOWED_TRANSITIONS = {
     "DRAFT": {"VALIDATED", "INVALIDATED"},

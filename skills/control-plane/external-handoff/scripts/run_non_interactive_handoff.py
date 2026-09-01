@@ -29,7 +29,7 @@ def _verified_root(candidate: Path) -> Path:
         candidate / "documentation" / "OPERATING-WORKFLOW.md",
         candidate / "ops" / "schemas" / "franky-task.schema.yaml",
         candidate / "ops" / "schemas" / "franky-result.schema.yaml",
-        candidate / "manifests" / "agent-capability-repertoires.yaml",
+        candidate / "manifests" / "agent-repertoires.yaml",
     )
     if any(not path.is_file() for path in required_files):
         raise RuntimeError(f"not a control-plane repository root: {candidate}")

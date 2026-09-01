@@ -280,7 +280,7 @@ class FrankyContractTests(unittest.TestCase):
             "reviewer_id": "franky",
             "reviewer_role": "independent_reviewer",
             "review_session_id": "019ffb72-d034-7193-aefb-f36a240b091f",
-            "review_record": "documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
+            "review_record": "documentation/sessions/records/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
             "scope": ["contract"],
             "not_reviewed": [],
         }
@@ -313,7 +313,7 @@ class FrankyContractTests(unittest.TestCase):
             "reviewer_id": "parent-control-plane",
             "reviewer_role": "parent_acceptance",
             "review_session_id": "019ffb72-d034-7193-aefb-f36a240b091f",
-            "review_record": "documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
+            "review_record": "documentation/sessions/records/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
             "scope": ["contract"],
             "not_reviewed": [],
         }
@@ -349,7 +349,7 @@ class FrankyContractTests(unittest.TestCase):
             "reviewer_id": "athena",
             "reviewer_role": "independent_reviewer",
             "review_session_id": "019ffb72-d034-7193-aefb-f36a240b091f",
-            "review_record": "documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
+            "review_record": "documentation/sessions/records/reviews/ISSUE-57-ATHENA-REVIEW.yaml",
             "scope": ["contract"],
             "not_reviewed": [],
         }

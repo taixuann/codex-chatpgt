@@ -80,7 +80,7 @@ changes:
     ownership: this_run
     working_tree: tracked
     scope: owned
-  - path: manifests/agent-capability-repertoires.yaml
+  - path: manifests/agent-repertoires.yaml
     action: created
     ownership: this_run
     working_tree: tracked
@@ -109,7 +109,7 @@ review:
   reviewer_id: athena
   reviewer_role: independent_reviewer
   review_session_id: 019ffb72-d034-7193-aefb-f36a240b091f
-  review_record: documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml
+  review_record: documentation/sessions/records/reviews/ISSUE-57-ATHENA-REVIEW.yaml
   scope:
     - contract
     - lifecycle

@@ -1,6 +1,6 @@
 multi_source_current:
   intent: {question: 'locate registry ownership', consumer: parent}
-  bounded_path_source_service: {paths: [manifests/agent-capability-repertoires.yaml], sources: [Issue-90], services: []}
+  bounded_path_source_service: {paths: [manifests/agent-repertoires.yaml], sources: [Issue-90], services: []}
   scope: {include: [manifests, agents/argus.toml], exclude: [linked-projects, credentials]}
   authority: [external-registry, portable-reference, adapter]
   priority: [external-registry, portable-reference, adapter]

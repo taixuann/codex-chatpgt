@@ -25,9 +25,9 @@ critique is a separate mode. External anchors and KEEP/ADAPT/REJECT decisions
 are recorded in `skills/references/athena-upstream-adaptation-records.yaml`.
 
 This control-plane slice keeps lifecycle execution in the existing task and
-Franky contracts. `manifests/agent-contracts.yaml` is explicitly scoped to the
+Franky contracts. `manifests/archive/2026-09-01/agent-contracts.yaml` is explicitly scoped to the
 Argus/Prometheus/Athena shared lifecycle slice; it is not a global role
-registry. `manifests/agent-capability-repertoires.yaml` records capability
+registry. `manifests/agent-repertoires.yaml` records capability
 eligibility and forbidden boundaries, not canonical role authority.
 
 Canonical deployment role identity is separate: the external AI Labs registry

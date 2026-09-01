@@ -264,7 +264,7 @@ def validate(packet: Path) -> None:
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             try:
-                module.validate(ticket, result, root / "manifests/agent-capability-repertoires.yaml")
+                module.validate(ticket, result, root / "manifests/agent-repertoires.yaml")
             except (OSError, ValueError) as exc:
                 raise PacketError(f"Franky contract validation failed: {exc}") from exc
 

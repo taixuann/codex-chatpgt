@@ -31,7 +31,7 @@ canonical planning roles remain:
 ## Stabilized control-plane foundation
 
 The shared Argus/Prometheus/Athena hardening surface is now represented by
-`manifests/agent-contracts.yaml`, the existing capability repertoire, and the
+`manifests/archive/2026-09-01/agent-contracts.yaml` (historical contract source), the existing capability repertoire, and the
 non-routing evaluator `ops/scripts/validate_agent_lifecycle.py`. The six
 versioned envelopes (`request.v1`, `context.v1`, `handoff.v1`, `result.v1`,
 `review.v1`, and `run.v1`) require provenance, evidence, claims, unknowns,
@@ -312,7 +312,11 @@ This milestone does not implement a full Scientific Wiki platform.
 
 ## Planning state
 
-`documentation/plans/` now contains backlog/activation-aware PLANs for open architecture Issues that previously lacked them. A PLAN file does not imply execution readiness. Status and activation gates are authoritative for readiness, and each PLAN must be revised near execution against current repository/runtime evidence.
+`documentation/sessions/records/plans/` now contains the preserved
+backlog/activation-aware PLANs for open architecture Issues that previously
+lacked them. A PLAN file does not imply execution readiness. Status and
+activation gates are authoritative for readiness, and each PLAN must be
+revised near execution against current repository/runtime evidence.
 
 Issue #94 has a review-bound Archify pilot under `documentation/architecture/archify/`.
 The surface is derived and revision-pinned, cataloged as reference-only/

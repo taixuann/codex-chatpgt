@@ -13,7 +13,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 ADAPTERS = ROOT / "agents"
-REPERTOIRE = ROOT / "manifests/agent-capability-repertoires.yaml"
+REPERTOIRE = ROOT / "manifests/agent-repertoires.yaml"
 SKILL_CATALOG = ROOT / "manifests/skill-catalog.yaml"
 ADAPTER_GUIDANCE = ROOT / "agents/AGENTS.md"
 BOUNDARY_DOC = ROOT / "documentation/architecture/agents.md"

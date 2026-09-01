@@ -9,7 +9,7 @@ import validate_agent_lifecycle as validator
 
 class AgentLifecycleTests(unittest.TestCase):
     def test_contract_registry_is_scoped_to_shared_lifecycle_slice(self):
-        doc = validator._load(ROOT / "manifests/agent-contracts.yaml")
+        doc = validator._load(ROOT / "manifests/archive/2026-09-01/agent-contracts.yaml")
         self.assertEqual(doc["kind"], "codex.shared-lifecycle-agent-contracts.v1")
         self.assertEqual(doc["scope"], "argus_prometheus_athena_shared_lifecycle_slice")
 

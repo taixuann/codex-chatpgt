@@ -11,7 +11,7 @@ scope:
   repository: taixuann/codex-chatpgt
   primary_targets:
     - agents/franky.toml
-    - manifests/agent-capability-repertoires.yaml
+    - manifests/agent-repertoires.yaml
     - ops/schemas/franky-task.schema.yaml
     - ops/schemas/franky-result.schema.yaml
     - documentation/CURRENT.md

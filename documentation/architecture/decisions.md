@@ -204,7 +204,7 @@ resolved by silently promoting a local adapter or manifest.
 
 ## D-015 — Shared lifecycle contracts are explicitly scoped
 
-`manifests/agent-contracts.yaml` is the
+`manifests/archive/2026-09-01/agent-contracts.yaml` is the
 `argus_prometheus_athena_shared_lifecycle_slice` contract registry. It covers
 shared evidence, artifact, and lifecycle boundaries only. It is not a global
 role registry and does not duplicate the richer Franky contracts or define the

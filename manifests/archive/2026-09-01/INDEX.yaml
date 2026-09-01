@@ -1,0 +1,9 @@
+schema_version: 1
+id: CODEX-MANIFEST-ARCHIVE-20260901
+status: historical
+authority: provenance_only
+entries:
+  - path: agent-contracts.yaml
+    former_active_path: manifests/agent-contracts.yaml
+    kind: shared_lifecycle_contract_snapshot
+    reason: Retired duplicated contract surface; retained for historical provenance.

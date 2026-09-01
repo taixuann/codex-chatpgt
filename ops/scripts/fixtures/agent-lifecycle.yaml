@@ -1,4 +1,4 @@
-registry: manifests/agent-contracts.yaml
+registry: manifests/archive/2026-09-01/agent-contracts.yaml
 artifacts:
   - artifact_id: artifact-accepted
     lifecycle_state: ACCEPTED

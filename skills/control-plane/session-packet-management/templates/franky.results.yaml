@@ -31,7 +31,7 @@ review:
   reviewer_id: parent-control-plane
   reviewer_role: parent_acceptance
   review_session_id: 00000000-0000-0000-0000-000000000000
-  review_record: documentation/reviews/pending.yaml
+  review_record: documentation/sessions/records/reviews/pending.yaml
 unresolved:
   blockers: [Replace example values and complete the approved task.]
   limitations: [This is a template, not an acceptance claim.]

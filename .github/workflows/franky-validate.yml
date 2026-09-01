@@ -10,8 +10,8 @@ on:
       - 'skills/**'
       - 'manifests/skill-catalog.yaml'
       - 'manifests/skill-evidence.yaml'
-      - 'manifests/agent-capability-repertoires.yaml'
-      - 'manifests/agent-contracts.yaml'
+      - 'manifests/agent-repertoires.yaml'
+      - 'manifests/archive/**'
       - 'documentation/architecture/**'
       - 'documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md'
       - 'documentation/architecture/agents.md'
@@ -24,8 +24,8 @@ on:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
-      - 'manifests/agent-capability-repertoires.yaml'
-      - 'manifests/agent-contracts.yaml'
+      - 'manifests/agent-repertoires.yaml'
+      - 'manifests/archive/**'
       - 'documentation/architecture/**'
       - 'documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md'
       - 'documentation/architecture/agents.md'
@@ -151,6 +151,10 @@ jobs:
           set -euo pipefail
           for packet in documentation/sessions/*; do
             test -d "$packet" || continue
+            # `records/` preserves legacy plans and reviews; it is not a
+            # session packet and therefore must not be passed to the packet
+            # validator.
+            test "$(basename "$packet")" != "records" || continue
             # These two immutable packets predate the current main history;
             # preserve their original provenance without excluding future
             # needs_review packets from validation.

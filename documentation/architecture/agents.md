@@ -30,7 +30,7 @@ presence under `agents/` does not expand the external role registry.
 
 The capability repertoire is an eligibility and forbidden-capability record,
 not a role-definition source. The lifecycle registry in
-`manifests/agent-contracts.yaml` is limited to the Argus/Prometheus/Athena
+`manifests/archive/2026-09-01/agent-contracts.yaml` (historical contract source) is limited to the Argus/Prometheus/Athena
 shared evidence and artifact boundary. Neither manifest can override the
 canonical registry, adapter permissions, or repository runtime policy.
 

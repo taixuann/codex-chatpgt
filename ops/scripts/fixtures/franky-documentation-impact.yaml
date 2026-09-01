@@ -6,15 +6,15 @@ changed_paths:
   - agents/franky.toml
   - agents/AGENTS.md
   - agents/CHANGELOG.md
-  - manifests/agent-capability-repertoires.yaml
+  - manifests/agent-repertoires.yaml
   - skills/AGENTS.md
   - documentation/CURRENT.md
   - documentation/architecture/agents.md
   - documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md
   - documentation/architecture/decisions.md
   - documentation/architecture/workflow/operation.md
-  - documentation/plans/PLAN-ARW-FRANKY-HARDENING-20260813-001.md
-  - documentation/reviews/ISSUE-57-ATHENA-REVIEW.yaml
+  - documentation/sessions/records/plans/PLAN-ARW-FRANKY-HARDENING-20260813-001.md
+  - documentation/sessions/records/reviews/ISSUE-57-ATHENA-REVIEW.yaml
   - ops/schemas/franky-task.schema.yaml
   - ops/schemas/franky-result.schema.yaml
   - ops/schemas/examples/franky-task.yaml

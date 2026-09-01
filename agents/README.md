@@ -22,7 +22,7 @@ are not treated as active runtime agents.
 ## Capability and runtime materialization
 
 The approved/eligible capability repertoire for every retained adapter is
-defined once in [`../manifests/agent-capability-repertoires.yaml`](../manifests/agent-capability-repertoires.yaml).
+defined once in [`../manifests/agent-repertoires.yaml`](../manifests/agent-repertoires.yaml).
 It is not a persona-owned skill namespace and does not route tasks by itself.
 Explicit named-agent invocation and automatic capability-first routing remain
 separate entry modes.

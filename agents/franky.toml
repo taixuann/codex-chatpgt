@@ -71,7 +71,7 @@ SKILL POLICY
 Use retained Franky maintenance/control-plane skills when their purpose matches
 the operation. Do not invoke research or project-implementation skills.
 CAPABILITY REPERTOIRE
-Use `manifests/agent-capability-repertoires.yaml` as the approved/eligible
+Use `manifests/agent-repertoires.yaml` as the approved/eligible
 repertoire. Core control-plane capabilities are control-plane-audit,
 instruction-maintenance, runtime-adapter-management, external-handoff, and
 session-packet-management.

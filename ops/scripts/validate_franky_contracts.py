@@ -19,7 +19,7 @@ TASK_SCHEMA = ROOT / "ops/schemas/franky-task.schema.yaml"
 RESULT_SCHEMA = ROOT / "ops/schemas/franky-result.schema.yaml"
 DEFAULT_TASK = ROOT / "ops/schemas/examples/franky-task.yaml"
 DEFAULT_RESULT = ROOT / "ops/schemas/examples/franky-result.yaml"
-DEFAULT_REPERTOIRE = ROOT / "manifests/agent-capability-repertoires.yaml"
+DEFAULT_REPERTOIRE = ROOT / "manifests/agent-repertoires.yaml"
 HISTORICAL_EXCEPTIONS = ROOT / "documentation/historical-provenance-exceptions.yaml"
 EXPECTED_AGENTS = {"franky", "feynman", "prometheus", "athena", "argus"}
 REQUIRED_AUTHORITY = {
@@ -463,7 +463,7 @@ def validate(
             raise ValueError("acceptance_ready result requires a bound non-self reviewer identity")
         review_record = result["review"]["review_record"]
         record_path = Path(review_record)
-        allowed_review_roots = ("documentation/reviews/",)
+        allowed_review_roots = ("documentation/sessions/records/reviews/",)
         if allow_fixture_review_record:
             allowed_review_roots += ("ops/scripts/fixtures/",)
         if record_path.is_absolute() or ".." in record_path.parts or not review_record.startswith(allowed_review_roots):

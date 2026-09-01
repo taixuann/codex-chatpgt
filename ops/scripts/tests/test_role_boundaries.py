@@ -46,7 +46,7 @@ class RoleBoundaryTests(unittest.TestCase):
             validator._validate_adapter("athena", data, "Independent review only.")
 
     def test_noncanonical_athena_skill_cannot_be_primary(self):
-        repertoire = yaml.safe_load((ROOT / "manifests/agent-capability-repertoires.yaml").read_text())
+        repertoire = yaml.safe_load((ROOT / "manifests/agent-repertoires.yaml").read_text())
         catalog = yaml.safe_load((ROOT / "manifests/skill-catalog.yaml").read_text())
         candidate = copy.deepcopy(repertoire)
         candidate["agents"]["athena"]["primary_capabilities"] = ["independent-artifact-review"]
