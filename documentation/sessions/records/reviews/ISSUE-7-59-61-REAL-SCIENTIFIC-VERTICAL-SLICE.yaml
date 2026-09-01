@@ -185,5 +185,5 @@ lifecycle:
   athena_review:
     status: CONDITIONAL_PASS
     artifact: records/reviews/ISSUE-7-59-61-ATHENA-REVIEW.yaml
-    reviewed_target_digest: sha256:f41ef4d1364a1bf6ed8f991f23bede0d0e04dac88fca47baa330d0242e60b964
+    reviewed_target_digest: sha256:31e07f84c15323b837c3936170734b82662a5638b68360927599726172c46284
   human_authority: required
