@@ -57,13 +57,13 @@ routing:
   impact_evidence: {source_state: working-tree, surfaces: [implementation/config, canonical-state, references/documentation, validation/proof], supporting_capabilities: [instruction-maintenance, runtime-adapter-management, session-packet-management]}
 changes:
   - {path: documentation/reviews/ISSUE-7-59-61-REAL-SCIENTIFIC-VERTICAL-SLICE.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/external-handoff/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/external-handoff/scripts/run_non_interactive_handoff.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/external-handoff/tests/test_runner.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/external-handoff/AGENTS.md, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
-  - {path: skills/external-handoff/assets/handoff_payload_template.json, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
-  - {path: skills/external-handoff/evals/golden_handoff_test.py, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
-  - {path: skills/external-handoff/skill.yaml, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/control-plane/external-handoff/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/external-handoff/scripts/run_non_interactive_handoff.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/external-handoff/tests/test_runner.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/external-handoff/AGENTS.md, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/control-plane/external-handoff/assets/handoff_payload_template.json, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/control-plane/external-handoff/evals/golden_handoff_test.py, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/control-plane/external-handoff/skill.yaml, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
   - {path: .gitignore, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
   - {path: AGENTS.md, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: agents/argus.toml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
@@ -92,27 +92,27 @@ changes:
   - {path: ops/scripts/runtime_materialization.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
   - {path: ops/scripts/tests/test_runtime_materialization.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
   - {path: ops/scripts/tests/test_validate_git_allowlist.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/control-plane-audit/scripts/validate_git_allowlist.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/shared-session-closeout/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/instruction-maintenance/tests/test_guidance_contract.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/runtime-adapter-management/tests/test_adapter_validation.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/shared-session-closeout/tests/test_session_state.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/external-handoff/tests/test_handoff_contract.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/agents/openai.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/references/packet-contract.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/scripts/probe_lightrag.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/scripts/validate_session_packet.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/context.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/franky.results.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/franky.ticket.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/plan.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/rag-manifest.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/references.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/session.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/spec.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/templates/task.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
-  - {path: skills/session-packet-management/tests/test_validate_session_packet.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/control-plane-audit/scripts/validate_git_allowlist.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/shared-session-closeout/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/instruction-maintenance/tests/test_guidance_contract.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/runtime-adapter-management/tests/test_adapter_validation.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/shared-session-closeout/tests/test_session_state.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/external-handoff/tests/test_handoff_contract.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/SKILL.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/agents/openai.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/references/packet-contract.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/scripts/probe_lightrag.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/scripts/validate_session_packet.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/context.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/franky.results.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/franky.ticket.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/plan.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/rag-manifest.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/references.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/session.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/spec.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/templates/task.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
+  - {path: skills/control-plane/session-packet-management/tests/test_validate_session_packet.py, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
   - {path: documentation/sessions/20260826_franky-skills_001/context.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
   - {path: documentation/sessions/20260826_franky-skills_001/spec.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
   - {path: documentation/sessions/20260826_franky-skills_001/plan.md, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
@@ -131,16 +131,16 @@ changes:
   - {path: documentation/sessions/20260826_franky-skills_001/franky.results.yaml, action: not_assessed, ownership: pre_existing, working_tree: tracked, scope: observed}
   - {path: documentation/sessions/20260826_franky-skills_001/.rag/manifest.yaml, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
   - {path: documentation/sessions/20260826_franky-structure_001/.rag/manifest.yaml, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
-  - {path: skills/external-handoff/references/non_interactive_execution_guide.md, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
+  - {path: skills/control-plane/external-handoff/references/non_interactive_execution_guide.md, action: not_assessed, ownership: pre_existing, working_tree: ignored, scope: observed}
 closure: {implementation: PASS, canonical_state: NOT_ASSESSED, references: PASS, proof: PASS}
 validation:
   - {check: python3 ops/scripts/validate_role_boundaries.py, status: PASS, source_state: working-tree}
   - {check: "python3 ops/scripts/validate_franky_contracts.py --task documentation/sessions/20260826_franky-structure_001/franky.ticket.yaml --result documentation/sessions/20260826_franky-structure_001/franky.results.yaml --repertoire manifests/agent-capability-repertoires.yaml", status: PASS, source_state: working-tree}
-  - {check: python3 skills/session-packet-management/scripts/validate_session_packet.py documentation/sessions/20260826_franky-structure_001, status: PASS, source_state: working-tree}
+  - {check: python3 skills/control-plane/session-packet-management/scripts/validate_session_packet.py documentation/sessions/20260826_franky-structure_001, status: PASS, source_state: working-tree}
   - {check: "rollback evidence NOT_ASSESSED: no restoration executed. Inventory: git status --short --untracked-files=all --ignored. Tracked patch command: git diff --binary -- documentation/AGENT-BOUNDARIES.md documentation/archive/20260826/plans/PLAN-ARW-ANTHROPIC-SKILLS-INTAKE-20260811-001.md documentation/sessions/20260826_franky-structure_001 > /private/tmp/franky-structure-tracked.patch. Untracked per-path patch command: git ls-files --others --exclude-standard -z | xargs -0 -n1 git diff --no-index --binary /dev/null > /private/tmp/franky-structure-untracked.patch; git diff returns 1 for each untracked path and xargs may return 123. Ignored or derived files, including .rag/manifest.yaml, are not restorable by these patches. Manual removal/recovery requires parent approval and per-path backup review; no removal or restoration executed.", status: NOT_ASSESSED, source_state: working-tree}
   - {check: "python3 ops/scripts/validate_franky_documentation_impact.py ops/scripts/fixtures/franky-documentation-impact.yaml", status: PASS, source_state: working-tree}
-  - {check: "python3 -m unittest discover -s skills/external-handoff/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
-  - {check: "python3 -m unittest discover -s skills/session-packet-management/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
+  - {check: "python3 -m unittest discover -s skills/control-plane/external-handoff/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
+  - {check: "python3 -m unittest discover -s skills/control-plane/session-packet-management/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
   - {check: "python3 -m unittest discover -s ops/scripts/tests -p 'test_*.py'", status: PASS, source_state: working-tree}
   - {check: "non-executed observation: archived plan link ../../../../manifests/anthropic-skills-intake-20260811.yaml resolves to manifests/anthropic-skills-intake-20260811.yaml; archive moves remain unaccepted and uncommitted", status: PASS, source_state: working-tree}
   - {check: "python3 ops/scripts/validate_franky_contracts.py --print-snapshot-token --repository-root /Users/tai/.codex", status: PASS, source_state: working-tree}

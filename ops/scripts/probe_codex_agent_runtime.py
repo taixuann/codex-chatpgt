@@ -17,7 +17,7 @@ import sys
 
 DEFAULT_CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
 SKILL_OVERRIDE = (
-    'agents.franky.skills.config=[{path="skills/control-plane-audit/SKILL.md",enabled=false}]'
+    'agents.franky.skills.config=[{path="skills/control-plane/control-plane-audit/SKILL.md",enabled=false}]'
 )
 
 

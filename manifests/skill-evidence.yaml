@@ -5,7 +5,7 @@ authority: Issue #38 comment 5275215830; canonical-main admission remains gated 
 status: NOT_ASSESSED
 
 invocation_policy:
-  host_field: skills/*/agents/openai.yaml:policy.allow_implicit_invocation
+  host_field: skills/**/<package>/agents/openai.yaml:policy.allow_implicit_invocation
   rules:
     KEEP_without_behavioral_PASS: false
     KEEP_with_behavioral_PASS: true
@@ -30,7 +30,7 @@ provenance:
     observed: thread.started and turn.started envelopes; model/plugin/MCP network initialization failed before turn completion
     date: 2026-08-13
   harness_probe:
-    command: skills/control-plane-audit/scripts/run_skill_evaluation.py --mode benchmark --condition with --limit 1
+    command: skills/control-plane/control-plane-audit/scripts/run_skill_evaluation.py --mode benchmark --condition with --limit 1
     status: BLOCKED
     observed: 12 JSONL events and no turn.completed; websocket and HTTP sampling requests could not resolve or connect
     selection_events: none
@@ -38,7 +38,7 @@ provenance:
     task_result: none
     date: 2026-08-13
   authorized_runtime_sample:
-    command: skills/control-plane-audit/scripts/run_skill_evaluation.py --mode benchmark --condition both --utility-only --runs 1 --timeout 45
+    command: skills/control-plane/control-plane-audit/scripts/run_skill_evaluation.py --mode benchmark --condition both --utility-only --runs 1 --timeout 45
     status: PARTIAL_NOT_ASSESSED
     artifact: .tmp/chatgpt-utility-sample-v2.jsonl
     records: 12
@@ -55,7 +55,7 @@ provenance:
 
 routing_benchmark:
   status: NOT_ASSESSED
-  fixture: skills/control-plane-audit/scripts/fixtures/skill-quality-benchmark.yaml
+  fixture: skills/control-plane/control-plane-audit/scripts/fixtures/skill-quality-benchmark.yaml
   cases: 84
   cases_per_canonical_skill: 10
   includes: [direct, oblique, contextual, adjacent-negative, nearest-neighbor, expected-none]

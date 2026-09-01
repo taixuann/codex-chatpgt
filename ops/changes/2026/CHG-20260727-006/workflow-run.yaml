@@ -8,8 +8,8 @@ input_artifact_ids:
   - /Users/tai/.codex/skills/feynman-document-refine/SKILL.md
   - /Users/tai/.codex/skills/feynman-document-refine/skill.yaml
   - /Users/tai/.codex/skills/feynman-document-refine/agents/openai.yaml
-  - /Users/tai/.codex/skills/shared-session-closeout/SKILL.md
-  - /Users/tai/.codex/skills/shared-session-closeout/agents/openai.yaml
+  - /Users/tai/.codex/skills/control-plane/shared-session-closeout/SKILL.md
+  - /Users/tai/.codex/skills/control-plane/shared-session-closeout/agents/openai.yaml
   - /Users/tai/.codex/skills/franky-workflow-factory/SKILL.md
   - /Users/tai/.codex/skills/franky-workflow-factory/agents/openai.yaml
   - /Users/tai/ai-labs/ops/registry/skills.yaml

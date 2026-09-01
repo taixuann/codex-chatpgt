@@ -58,13 +58,13 @@ agents:
     global_reusable_procedures:
       - name: scientific-evidence-synthesis
         admission: ADAPT
-        path: skills/scientific-evidence-synthesis
+        path: skills/research/scientific-evidence-synthesis
       - name: hypothesis-and-test-design
         admission: ADAPT
-        path: skills/hypothesis-and-test-design
+        path: skills/research/hypothesis-and-test-design
       - name: scientific-method-critique
         admission: ADAPT
-        path: skills/scientific-method-critique
+        path: skills/research/scientific-method-critique
     knowledge_capabilities:
       personal_wiki:
         role: reusable_context

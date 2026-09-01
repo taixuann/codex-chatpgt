@@ -8,7 +8,7 @@ scope:
   - /Users/tai/.codex/workflows/franky/franky-maintenance.yaml
   - /Users/tai/.codex/workflows/franky/franky-maintenance/update-skills.yaml
   - /Users/tai/.codex/skills/franky-workflow-organizer/scripts/validate_workflow.py
-  - /Users/tai/.codex/skills/shared-session-closeout/
+  - /Users/tai/.codex/skills/control-plane/shared-session-closeout/
   - /Users/tai/.codex/workflows/shared/session-closeout.yaml
   - /Users/tai/.codex/.gitignore
   - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_git_allowlist.py
@@ -24,7 +24,7 @@ changed_paths:
   - /Users/tai/.codex/.gitignore
   - /Users/tai/.codex/skills/franky-maintenance/scripts/validate_git_allowlist.py
   - /Users/tai/.codex/skills/franky-workflow-organizer/scripts/validate_workflow.py
-  - /Users/tai/.codex/skills/shared-session-closeout/
+  - /Users/tai/.codex/skills/control-plane/shared-session-closeout/
   - /Users/tai/.codex/workflows/shared/session-closeout.yaml
   - /Users/tai/.codex/workflows/franky/franky-install.yaml
   - /Users/tai/.codex/workflows/franky/franky-install/skill.yaml
@@ -35,7 +35,7 @@ changed_paths:
 validation:
   status: passed
   commands:
-    - quick_validate.py skills/shared-session-closeout
+    - quick_validate.py skills/control-plane/shared-session-closeout
     - validate_workflow.py workflows/franky/franky-install.yaml
     - validate_workflow.py workflows/franky/franky-maintenance.yaml
     - validate_skill_interfaces.py skills

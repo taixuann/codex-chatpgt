@@ -127,7 +127,7 @@ Inspect PR #20 and decide whether the reusable bootstrap procedure has a stable 
 Preferred target to prove:
 
 ```text
-skills/project-bootstrap/
+skills/control-plane/project-bootstrap/
 ├── SKILL.md
 ├── scripts/
 │   └── bootstrap_file_project.py
@@ -354,7 +354,7 @@ Update Issue #21 with only the physical consequences that remain after #13:
 
 PR #20 is now merged into `main` as commit `a87a948`; Issue #19 is closed. The
 agent-facing bootstrap procedure is therefore confirmed as one reusable
-`skills/project-bootstrap/` skill colocated with its deterministic helper and
+`skills/control-plane/project-bootstrap/` skill colocated with its deterministic helper and
 tests. No `file-workbench` skill or project workflow was created.
 
 The fourteen Franky/shared capabilities named in the original hypotheses are

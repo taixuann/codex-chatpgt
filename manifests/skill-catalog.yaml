@@ -101,16 +101,16 @@ dispositions:
     - skill-retrospective
 noncanonical_overlays:
   - {name: archify-reference, path: documentation/archify, disposition: REFERENCE_ONLY, local_only: false}
-  - {name: define-goal, path: skills/define-goal, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: docling-document-processing, path: skills/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: gh-address-comments, path: skills/gh-address-comments, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: json-canvas, path: skills/json-canvas, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: obsidian-bases, path: skills/obsidian-bases, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: obsidian-cli, path: skills/obsidian-cli, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: obsidian-markdown, path: skills/obsidian-markdown, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: opencode-executor, path: skills/opencode-executor, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: ragflow-markdown-retrieval, path: skills/ragflow-markdown-retrieval, disposition: EXPLICIT_ONLY, local_only: true}
-  - {name: temperature-iv-analysis, path: skills/temperature-iv-analysis, disposition: REFERENCE_ONLY, local_only: true}
+  - {name: define-goal, path: skills/interaction/define-goal, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: docling-document-processing, path: skills/knowledge/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: gh-address-comments, path: skills/runtime/gh-address-comments, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: json-canvas, path: skills/knowledge/json-canvas, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-bases, path: skills/knowledge/obsidian-bases, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-cli, path: skills/knowledge/obsidian-cli, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: obsidian-markdown, path: skills/knowledge/obsidian-markdown, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: opencode-executor, path: skills/runtime/opencode-executor, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: ragflow-markdown-retrieval, path: skills/knowledge/ragflow-markdown-retrieval, disposition: EXPLICIT_ONLY, local_only: true}
+  - {name: temperature-iv-analysis, path: skills/research/temperature-iv-analysis, disposition: REFERENCE_ONLY, local_only: true}
 evidence:
   control-plane-audit:
     utility: PASS
@@ -118,62 +118,62 @@ evidence:
     behavioral: NOT_ASSESSED
     basis: Read-first audit procedure with deterministic validators and focused tests.
     evidence_paths:
-      - skills/control-plane-audit/tests
-      - skills/control-plane-audit/scripts
+      - skills/control-plane/control-plane-audit/tests
+      - skills/control-plane/control-plane-audit/scripts
   external-handoff:
     utility: PASS
     structural: PASS
     behavioral: NOT_ASSESSED
     basis: Bounded cross-runtime handoff procedure with approval, scope, and rollback boundaries.
     evidence_paths:
-      - skills/external-handoff/SKILL.md
+      - skills/control-plane/external-handoff/SKILL.md
   instruction-maintenance:
     utility: PASS
     structural: PASS
     behavioral: NOT_ASSESSED
     basis: Scoped instruction locality and precedence procedure with explicit mutation boundary.
     evidence_paths:
-      - skills/instruction-maintenance/SKILL.md
+      - skills/control-plane/instruction-maintenance/SKILL.md
   project-bootstrap:
     utility: PASS
     structural: PASS
     behavioral: NOT_ASSESSED
     basis: File-first bootstrap procedure backed by deterministic helper tests and dry-run/apply gates.
     evidence_paths:
-      - skills/project-bootstrap/tests
-      - skills/project-bootstrap/scripts
+      - skills/control-plane/project-bootstrap/tests
+      - skills/control-plane/project-bootstrap/scripts
   runtime-adapter-management:
     utility: PASS
     structural: PASS
     behavioral: NOT_ASSESSED
     basis: Agent adapter schema, scope, collision, dependency, and approval validation procedure.
     evidence_paths:
-      - skills/runtime-adapter-management/scripts
+      - skills/control-plane/runtime-adapter-management/scripts
   session-packet-management:
     utility: PASS
     structural: PASS
     behavioral: NOT_ASSESSED
     basis: Role-neutral provenance-linked session packet procedure with explicit repository-local targets, Franky contract compatibility, and derived-index boundaries.
     evidence_paths:
-      - skills/session-packet-management/SKILL.md
-      - skills/session-packet-management/references/packet-contract.md
-      - skills/session-packet-management/templates
-      - skills/session-packet-management/scripts
-      - skills/session-packet-management/tests
+      - skills/control-plane/session-packet-management/SKILL.md
+      - skills/control-plane/session-packet-management/references/packet-contract.md
+      - skills/control-plane/session-packet-management/templates
+      - skills/control-plane/session-packet-management/scripts
+      - skills/control-plane/session-packet-management/tests
   shared-session-closeout:
     utility: PASS
     structural: PASS
     behavioral: NOT_ASSESSED
     basis: Role-neutral acceptance and durable outcome recording procedure.
     evidence_paths:
-      - skills/shared-session-closeout/SKILL.md
+      - skills/control-plane/shared-session-closeout/SKILL.md
   codebase-reconnaissance:
     utility: PASS
     structural: PASS
     behavioral: NOT_ASSESSED
     basis: Read-only bounded repository mapping with provenance, coverage, and mutation/role-drift stops.
     evidence_paths:
-      - skills/codebase-reconnaissance/SKILL.md
+      - skills/reconnaissance/codebase-reconnaissance/SKILL.md
       - skills/references/reconnaissance-kernel.md
   research-source-discovery:
     utility: PASS
@@ -181,7 +181,7 @@ evidence:
     behavioral: NOT_ASSESSED
     basis: Read-only source discovery with authority, freshness, license, and evidence-support boundaries.
     evidence_paths:
-      - skills/research-source-discovery/SKILL.md
+      - skills/reconnaissance/research-source-discovery/SKILL.md
       - skills/references/reconnaissance-kernel.md
   reference-state-reconnaissance:
     utility: PASS
@@ -189,7 +189,7 @@ evidence:
     behavioral: NOT_ASSESSED
     basis: Read-only reference/current-state comparison with explicit authority, drift, and unknown handling.
     evidence_paths:
-      - skills/reference-state-reconnaissance/SKILL.md
+      - skills/reconnaissance/reference-state-reconnaissance/SKILL.md
       - skills/references/reconnaissance-kernel.md
   independent-artifact-review:
     utility: PASS
@@ -197,8 +197,8 @@ evidence:
     behavioral: NOT_ASSESSED
     basis: Revision-bound implementation, architecture, and readiness review with denied mutation and parent-only recommendation.
     evidence_paths:
-      - skills/independent-artifact-review/SKILL.md
-      - skills/independent-artifact-review/evals
+      - skills/review/independent-artifact-review/SKILL.md
+      - skills/review/independent-artifact-review/evals
       - skills/references/athena-review-kernel.md
       - skills/references/athena-overlap-audit.yaml
   scientific-peer-review:
@@ -207,8 +207,8 @@ evidence:
     behavioral: NOT_ASSESSED
     basis: Conditional claim-to-evidence review preserving Feynman and human scientific authority.
     evidence_paths:
-      - skills/scientific-peer-review/SKILL.md
-      - skills/scientific-peer-review/evals
+      - skills/review/scientific-peer-review/SKILL.md
+      - skills/review/scientific-peer-review/evals
       - skills/references/athena-review-kernel.md
   risk-security-review:
     utility: PASS
@@ -216,8 +216,8 @@ evidence:
     behavioral: NOT_ASSESSED
     basis: Conditional read-only trust-boundary and authorization review with explicit escalation and no hardening authority.
     evidence_paths:
-      - skills/risk-security-review/SKILL.md
-      - skills/risk-security-review/evals
+      - skills/review/risk-security-review/SKILL.md
+      - skills/review/risk-security-review/evals
       - skills/references/athena-review-kernel.md
 notes:
   - ADAPT packages are candidates for capability-specific refinement, not implicit activation.

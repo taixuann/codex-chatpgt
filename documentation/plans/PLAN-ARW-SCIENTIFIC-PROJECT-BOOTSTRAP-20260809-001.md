@@ -30,16 +30,16 @@ The missing behavior is not another project workflow. The missing behavior is a 
 ## Implemented behavior
 
 The deterministic primitive is bundled at
-`skills/project-bootstrap/scripts/bootstrap_file_project.py`. The
-agent-facing procedure in `skills/project-bootstrap/SKILL.md` inspects the
+`skills/control-plane/project-bootstrap/scripts/bootstrap_file_project.py`. The
+agent-facing procedure in `skills/control-plane/project-bootstrap/SKILL.md` inspects the
 request, classifies the project, selects the minimum surface, builds the map,
 and invokes the primitive. The primitive validates an artifact map,
 performs a dry-run by default, and materializes only declared files under an
 explicit output root when `--apply` is supplied. It rejects traversal,
 control-plane paths, non-external unresolved links, duplicate paths, unsafe
 raw-data writes, and invalid create/update/preserve intents. Focused tests in
-`skills/project-bootstrap/tests/test_bootstrap_file_project.py` and
-`skills/project-bootstrap/tests/test_bootstrap_file_project_integration.py` exercise
+`skills/control-plane/project-bootstrap/tests/test_bootstrap_file_project.py` and
+`skills/control-plane/project-bootstrap/tests/test_bootstrap_file_project_integration.py` exercise
 adaptive materialization, dry-run, CLI apply, brownfield updates, and
 failure-to-preserve repair behavior.
 
@@ -343,16 +343,16 @@ skills/<existing-skill>/...
 Implemented in this slice:
 
 ```text
-skills/project-bootstrap/SKILL.md
-skills/project-bootstrap/scripts/bootstrap_file_project.py
-skills/project-bootstrap/tests/test_bootstrap_file_project.py
-skills/project-bootstrap/tests/test_bootstrap_file_project_integration.py
+skills/control-plane/project-bootstrap/SKILL.md
+skills/control-plane/project-bootstrap/scripts/bootstrap_file_project.py
+skills/control-plane/project-bootstrap/tests/test_bootstrap_file_project.py
+skills/control-plane/project-bootstrap/tests/test_bootstrap_file_project_integration.py
 ```
 
 or, only if earned by evidence:
 
 ```text
-skills/project-bootstrap/
+skills/control-plane/project-bootstrap/
 skills/file-workbench/
 ```
 

@@ -19,10 +19,10 @@ Structural catalog evidence is not behavioral acceptance.
 
 - `manifests/skill-evidence.yaml` is the separate evidence envelope; it is not
   catalog telemetry and does not promote packages.
-- `skills/control-plane-audit/scripts/run_skill_evaluation.py` runs bounded,
+- `skills/control-plane/control-plane-audit/scripts/run_skill_evaluation.py` runs bounded,
   read-only `codex exec --json` observations and aggregates routing, utility,
   efficiency, interference, and regression records.
-- `skills/control-plane-audit/scripts/fixtures/skill-quality-benchmark.yaml`
+- `skills/control-plane/control-plane-audit/scripts/fixtures/skill-quality-benchmark.yaml`
   contains 84 co-loaded cases: 10 per canonical skill plus adjacent-negative,
   nearest-neighbor, contextual, and expected-none coverage.
 - The harness creates temporary evaluation homes. WITH-SKILL enables only the
@@ -33,7 +33,7 @@ Structural catalog evidence is not behavioral acceptance.
 
 ## Invocation policy
 
-`skills/*/agents/openai.yaml` carries the host policy field
+`skills/**/<package>/agents/openai.yaml` carries the host policy field
 `policy.allow_implicit_invocation`.
 
 - all non-`KEEP` dispositions are disabled;

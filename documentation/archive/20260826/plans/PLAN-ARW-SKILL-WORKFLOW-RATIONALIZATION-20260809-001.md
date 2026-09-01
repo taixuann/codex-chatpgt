@@ -36,7 +36,7 @@ machine workflow tree is retired; do not reactivate the historical `KEEP` or
 | --- | --- | --- | --- |
 | `franky-agent-installer` | Agent TOML/schema, collision, sandbox, and registry-boundary checks; used by Franky install branches and CI | GENERALIZE | #13 group 2: remove persona coupling and retain adapter validation |
 | `franky-cron-installer` | Scheduler inventory, timezone/collision checks, and approval-bound job mutation | GENERALIZE | #13 group 2: retain scheduler-specific safety boundary |
-| `franky-external-handoff` | Role-neutral handoff packet with scope, evidence, rollback, and no implicit execution | MERGE | Replaced by tracked `skills/external-handoff` |
+| `franky-external-handoff` | Role-neutral handoff packet with scope, evidence, rollback, and no implicit execution | MERGE | Replaced by tracked `skills/control-plane/external-handoff` |
 | `franky-github-review` | PR comment triage; delegated to installed `gh-address-comments` | REPLACE | Removed; use `gh-address-comments` |
 | `franky-goal-session` | Legacy goal-package, walkthrough, and promotion metadata lifecycle | RETIRE | Removed; use Issue/PLAN/PR unless an explicit AI Labs goal package is required |
 | `franky-guidance-manager` | Scoped `AGENTS.md` discovery, precedence, and approval boundary | GENERALIZE | #13 group 2: keep as instruction-chain maintenance |

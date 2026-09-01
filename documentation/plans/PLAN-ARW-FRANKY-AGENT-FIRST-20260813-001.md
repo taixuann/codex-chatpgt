@@ -47,7 +47,7 @@ through #38 and is not represented as a locally owned `skill-creator` package.
   records only the minimal global contract as a fixture; the actual user config
   remains local runtime state.
 - `codex --strict-config -c
-  'agents.franky.skills.config=[{path="skills/control-plane-audit/SKILL.md",enabled=false}]'
+  'agents.franky.skills.config=[{path="skills/control-plane/control-plane-audit/SKILL.md",enabled=false}]'
   --version`: `PASS` for configuration parsing.
 - A live `codex exec --json --ephemeral --sandbox read-only` probe started a
   thread but could not complete a model turn because DNS/network access to
@@ -66,8 +66,8 @@ Deterministic checks:
 - `python ops/scripts/validate_codex_runtime_config.py ops/schemas/examples/codex-agents-settings.toml`
 - `python ops/scripts/evaluate_franky_agent.py ops/scripts/fixtures/franky-agent-evaluation.yaml`
 - `PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s ops/scripts/tests -v`
-- `python skills/runtime-adapter-management/scripts/validate_agent_toml.py agents/<name>.toml` for all adapters
-- `python skills/control-plane-audit/scripts/validate_agent_changelog.py agents`
+- `python skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py agents/<name>.toml` for all adapters
+- `python skills/control-plane/control-plane-audit/scripts/validate_agent_changelog.py agents`
 - `git diff --check`
 - CI-equivalent tracked and on-demand skill quality, bootstrap, project-link,
   audit-record, scheduler, inventory, allowlist, and control-plane test gates

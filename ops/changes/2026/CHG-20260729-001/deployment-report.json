@@ -10,7 +10,7 @@
     "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/supporting-skill-finder",
     "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/supporting-multi-sync",
     "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/workflow-manager",
-    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/define-goal",
+    "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/interaction/define-goal",
     "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/goal-session",
     "/Users/tai/.codex/ops/backups/CHG-20260729-001/skills/session-closeout"
   ],
@@ -117,7 +117,7 @@
       "status": "create"
     },
     {
-      "destination": "/Users/tai/.codex/skills/external-handoff",
+      "destination": "/Users/tai/.codex/skills/control-plane/external-handoff",
       "destination_sha256": "c059690bc2d255409187457498f1050f91c806fe9f255451af547cc4ffce8251",
       "runtime_name": "external-handoff",
       "source": "/Users/tai/ai-labs/ops/skills/shared.execution/external-handoff",
@@ -125,7 +125,7 @@
       "status": "unchanged"
     },
     {
-      "destination": "/Users/tai/.codex/skills/define-goal",
+      "destination": "/Users/tai/.codex/skills/interaction/define-goal",
       "destination_sha256": "5129da723d66737364d3eac95c8d9c43b150220e31bd1d193c9e119ddee3e371",
       "runtime_name": "define-goal",
       "source": "/Users/tai/ai-labs/ops/skills/shared.session/define-goal",

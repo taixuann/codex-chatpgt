@@ -5,7 +5,7 @@ from pathlib import Path
 
 VALIDATOR_PATH = (
     Path(__file__).resolve().parents[3]
-    / "skills/control-plane-audit/scripts/validate_git_allowlist.py"
+    / "skills/control-plane/control-plane-audit/scripts/validate_git_allowlist.py"
 )
 SPEC = importlib.util.spec_from_file_location("validate_git_allowlist", VALIDATOR_PATH)
 assert SPEC and SPEC.loader

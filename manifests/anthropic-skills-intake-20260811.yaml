@@ -12,7 +12,7 @@ validation:
   completed_on: 2026-08-11
   commands:
     - python3 vendor-skills/anthropic/f17010c9bb483898c1d9c9f42dde2b3a98889434/skill-creator/scripts/quick_validate.py <package>
-    - python3 skills/control-plane-audit/scripts/validate_skill_quality.py <package>
+    - python3 skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py <package>
   outcome:
     upstream_static: pass
     local_structure: pass

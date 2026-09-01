@@ -7,7 +7,7 @@ import tomllib
 
 VALIDATOR_PATH = (
     Path(__file__).resolve().parents[3]
-    / "skills/runtime-adapter-management/scripts/validate_agent_toml.py"
+    / "skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py"
 )
 SPEC = importlib.util.spec_from_file_location("validate_agent_toml", VALIDATOR_PATH)
 assert SPEC and SPEC.loader

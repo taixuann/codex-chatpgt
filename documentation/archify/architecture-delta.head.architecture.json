@@ -13,9 +13,9 @@
   "components": [
     { "id": "parent", "type": "backend", "label": "Parent orchestrator", "pos": [60, 330], "size": [220, 86], "sources": [{ "path": "AGENTS.md", "line": 72, "end_line": 80, "label": "parent boundary" }] },
     { "id": "argus", "type": "backend", "label": "Argus", "pos": [370, 330], "size": [250, 86], "sources": [{ "path": "agents/argus.toml", "line": 7, "end_line": 27, "label": "bounded adapter" }] },
-    { "id": "codebase", "type": "backend", "label": "Codebase reconnaissance", "pos": [720, 90], "size": [270, 86], "sources": [{ "path": "skills/codebase-reconnaissance/SKILL.md", "line": 1, "end_line": 84, "label": "new profile" }] },
-    { "id": "research", "type": "backend", "label": "Research-source discovery", "pos": [720, 330], "size": [270, 86], "sources": [{ "path": "skills/research-source-discovery/SKILL.md", "line": 1, "end_line": 83, "label": "new profile" }] },
-    { "id": "reference", "type": "backend", "label": "Reference-state comparison", "pos": [720, 570], "size": [270, 86], "sources": [{ "path": "skills/reference-state-reconnaissance/SKILL.md", "line": 1, "end_line": 85, "label": "new profile" }] },
+    { "id": "codebase", "type": "backend", "label": "Codebase reconnaissance", "pos": [720, 90], "size": [270, 86], "sources": [{ "path": "skills/reconnaissance/codebase-reconnaissance/SKILL.md", "line": 1, "end_line": 84, "label": "new profile" }] },
+    { "id": "research", "type": "backend", "label": "Research-source discovery", "pos": [720, 330], "size": [270, 86], "sources": [{ "path": "skills/reconnaissance/research-source-discovery/SKILL.md", "line": 1, "end_line": 83, "label": "new profile" }] },
+    { "id": "reference", "type": "backend", "label": "Reference-state comparison", "pos": [720, 570], "size": [270, 86], "sources": [{ "path": "skills/reconnaissance/reference-state-reconnaissance/SKILL.md", "line": 1, "end_line": 85, "label": "new profile" }] },
     { "id": "kernel", "type": "database", "label": "Shared reconnaissance kernel", "pos": [1070, 330], "size": [270, 86], "sources": [{ "path": "skills/references/reconnaissance-kernel.md", "line": 1, "end_line": 33, "label": "shared kernel" }] }
   ],
   "connections": [

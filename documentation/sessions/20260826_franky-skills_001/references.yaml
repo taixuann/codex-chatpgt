@@ -13,7 +13,7 @@ references:
     commit_or_hash: 67d21cc3bf14a4121e064d8edb3f999c830a9307-uncommitted
     observed_at: '2026-08-26T10:40:00Z'
     relationship: Franky-capability-scope
-  - path: skills/control-plane-audit/scripts/validate_skill_quality.py
+  - path: skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py
     kind: validator
     state: current
     commit_or_hash: 67d21cc3bf14a4121e064d8edb3f999c830a9307-uncommitted

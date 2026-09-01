@@ -129,4 +129,4 @@ Codex adapters can be placed in:
 
 The `templates/agent.toml` file is an inert source template and is not an
 active adapter. Validate every instantiated adapter with
-`skills/runtime-adapter-management/scripts/validate_agent_toml.py` before use.
+`skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py` before use.

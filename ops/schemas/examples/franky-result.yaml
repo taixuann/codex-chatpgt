@@ -26,7 +26,7 @@ lifecycle:
       provenance: {source_state: routing-fixture, commit: HEAD, observed_at: '2026-08-13T13:00:00Z', result: PASS}
     - state: IMPACT
       status: PASS
-      source: skills/control-plane-audit/SKILL.md
+      source: skills/control-plane/control-plane-audit/SKILL.md
       provenance: {source_state: impact-review, commit: HEAD, observed_at: '2026-08-13T13:00:00Z', result: PASS}
     - state: EXECUTION
       status: PASS

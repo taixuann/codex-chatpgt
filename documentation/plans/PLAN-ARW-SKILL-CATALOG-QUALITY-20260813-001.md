@@ -21,7 +21,7 @@ capability/utility evidence rather than package shape alone.
   `REFERENCE_ONLY`, `MERGE`, or `RETIRE`.
 - Six bounded governance procedures are `canonical_active`; each declares
   structural, behavioral, and utility status plus evidence paths.
-- `skills/control-plane-audit/scripts/validate_skill_catalog.py` rejects
+- `skills/control-plane/control-plane-audit/scripts/validate_skill_catalog.py` rejects
   missing/duplicate dispositions, unproven canonical admission, and stale
   evidence paths. It reports model-mediated runtime routing as
   `NOT_ASSESSED`.

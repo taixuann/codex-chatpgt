@@ -62,15 +62,15 @@ jobs:
 
       - name: Validate skill interfaces
         id: skills
-        run: python skills/control-plane-audit/scripts/validate_skill_interfaces.py skills
+        run: python skills/control-plane/control-plane-audit/scripts/validate_skill_interfaces.py skills
 
       - name: Validate skill catalog admission and utility evidence
         id: skill_catalog
-        run: python skills/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml
+        run: python skills/control-plane/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml
 
       - name: Validate behavioral skill evidence envelope
         id: skill_evidence
-        run: python skills/control-plane-audit/scripts/validate_skill_evidence.py manifests/skill-evidence.yaml
+        run: python skills/control-plane/control-plane-audit/scripts/validate_skill_evidence.py manifests/skill-evidence.yaml
 
       - name: Validate Athena review contracts and cases
         id: athena_review
@@ -86,23 +86,23 @@ jobs:
         run: |
           while IFS= read -r skill_md; do
             skill_dir="${skill_md%/SKILL.md}"
-            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
-          done < <(git ls-files 'skills/*/SKILL.md')
+            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
+          done < <(git ls-files 'skills/**/SKILL.md')
 
       - name: Validate on-demand skill interfaces and quality
         id: on_demand_quality
         run: |
-          python skills/control-plane-audit/scripts/validate_skill_interfaces.py ops/on-demand-skills
+          python skills/control-plane/control-plane-audit/scripts/validate_skill_interfaces.py ops/on-demand-skills
           while IFS= read -r skill_md; do
             skill_dir="${skill_md%/SKILL.md}"
-            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
+            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
           done < <(git ls-files 'ops/on-demand-skills/*/SKILL.md')
 
       - name: Validate agent adapters
         id: agents
         run: |
           for agent in agents/*.toml; do
-            test ! -s "$agent" || python skills/runtime-adapter-management/scripts/validate_agent_toml.py "$agent"
+            test ! -s "$agent" || python skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py "$agent"
           done
 
       - name: Validate canonical role boundaries
@@ -123,11 +123,11 @@ jobs:
 
       - name: Validate static skill-routing fixture
         id: routing
-        run: python skills/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
+        run: python skills/control-plane/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane/control-plane-audit/scripts/fixtures/skill-routing.yaml
 
       - name: Validate agent changelog
         id: changelog
-        run: python skills/control-plane-audit/scripts/validate_agent_changelog.py agents
+        run: python skills/control-plane/control-plane-audit/scripts/validate_agent_changelog.py agents
 
       - name: Validate canonical task contract
         id: task_contract
@@ -158,7 +158,7 @@ jobs:
                 continue
                 ;;
             esac
-            python skills/session-packet-management/scripts/validate_session_packet.py "$packet"
+            python skills/control-plane/session-packet-management/scripts/validate_session_packet.py "$packet"
           done
 
       - name: Validate Franky documentation impact
@@ -194,19 +194,19 @@ jobs:
 
       - name: Validate audit-record template
         id: audit
-        run: python skills/control-plane-audit/scripts/validate_audit_record.py skills/control-plane-audit/templates/audit-record.yaml
+        run: python skills/control-plane/control-plane-audit/scripts/validate_audit_record.py skills/control-plane/control-plane-audit/templates/audit-record.yaml
 
       - name: Validate scheduled maintenance definition
         id: scheduler
-        run: python skills/control-plane-audit/scripts/validate_scheduler.py ops/schedulers/franky-personal-skill-maintenance.yaml
+        run: python skills/control-plane/control-plane-audit/scripts/validate_scheduler.py ops/schedulers/franky-personal-skill-maintenance.yaml
 
       - name: Validate session inventory fixture
         id: inventory
-        run: python skills/control-plane-audit/scripts/run_session_inventory.py --root . --sessions-dir skills/control-plane-audit/scripts/fixtures --since-hours 24
+        run: python skills/control-plane/control-plane-audit/scripts/run_session_inventory.py --root . --sessions-dir skills/control-plane/control-plane-audit/scripts/fixtures --since-hours 24
 
       - name: Validate adaptive file-first bootstrap
         id: bootstrap
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/project-bootstrap/tests -v
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane/project-bootstrap/tests -v
 
       - name: Validate generic project-link capability
         id: project_link
@@ -214,24 +214,24 @@ jobs:
 
       - name: Validate maintenance skill tests
         id: routing_tests
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane-audit/tests -v
+        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane/control-plane-audit/tests -v
 
       - name: Validate supporting skill tests
         id: supporting_skill_tests
         run: |
           set -euo pipefail
           for test_dir in \
-            skills/external-handoff/tests \
-            skills/instruction-maintenance/tests \
-            skills/runtime-adapter-management/tests \
-            skills/session-packet-management/tests \
-            skills/shared-session-closeout/tests; do
+            skills/control-plane/external-handoff/tests \
+            skills/control-plane/instruction-maintenance/tests \
+            skills/control-plane/runtime-adapter-management/tests \
+            skills/control-plane/session-packet-management/tests \
+            skills/control-plane/shared-session-closeout/tests; do
             PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s "$test_dir" -v
           done
 
       - name: Validate Git allowlist
         id: allowlist
-        run: python skills/control-plane-audit/scripts/validate_git_allowlist.py .
+        run: python skills/control-plane/control-plane-audit/scripts/validate_git_allowlist.py .
 
       - name: Write validation summary
         if: always()

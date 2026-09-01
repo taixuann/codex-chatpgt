@@ -34,9 +34,9 @@ Append-only record of governed agent adapter changes.
     - agents/feynman.toml
     - manifests/agent-capability-repertoires.yaml
     - manifests/skill-catalog.yaml
-    - skills/scientific-evidence-synthesis/SKILL.md
-    - skills/hypothesis-and-test-design/SKILL.md
-    - skills/scientific-method-critique/SKILL.md
+    - skills/research/scientific-evidence-synthesis/SKILL.md
+    - skills/research/hypothesis-and-test-design/SKILL.md
+    - skills/research/scientific-method-critique/SKILL.md
     - ops/scripts/validate_feynman_v1.py
     - ops/scripts/fixtures/feynman-v1.yaml
     - ops/scripts/tests/test_feynman_v1.py

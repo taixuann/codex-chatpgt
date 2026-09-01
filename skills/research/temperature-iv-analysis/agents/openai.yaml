@@ -1,0 +1,7 @@
+interface:
+  display_name: "Temperature IV Analysis"
+  short_description: "IV averaging and Arrhenius plots"
+  default_prompt: "Use $temperature-iv-analysis for raw temperature-dependent IV analysis with strict pointwise averaging and unit-safe linear and ln|I| outputs."
+
+policy:
+  allow_implicit_invocation: false

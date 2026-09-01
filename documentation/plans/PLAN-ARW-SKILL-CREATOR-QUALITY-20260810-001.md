@@ -758,8 +758,8 @@ Validation commands for this slice are:
 ```text
 python3 skills/.system/skill-creator/scripts/validate_eval_set.py \
   skills/.system/skill-creator/evals/evals.json --release-candidate
-python3 skills/control-plane-audit/scripts/validate_skill_routing.py \
-  . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml
+python3 skills/control-plane/control-plane-audit/scripts/validate_skill_routing.py \
+  . skills/control-plane/control-plane-audit/scripts/fixtures/skill-routing.yaml
 ```
 
 These checks validate package/eval shape and contrastive metadata only. They

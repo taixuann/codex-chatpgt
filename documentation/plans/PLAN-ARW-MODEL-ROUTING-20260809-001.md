@@ -33,9 +33,9 @@ The next useful proof is not another abstract model table. It is one bounded Ope
 
 # Existing capability audit
 
-## `skills/external-handoff`
+## `skills/control-plane/external-handoff`
 
-The repository already contains `skills/external-handoff`.
+The repository already contains `skills/control-plane/external-handoff`.
 
 Use it only for its intended boundary:
 

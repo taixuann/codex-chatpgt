@@ -45,7 +45,7 @@ proves Codex behavior.
 5. Validate structural and security requirements with the local quality gate:
 
    ```text
-   python3 skills/control-plane-audit/scripts/validate_skill_quality.py <skill-path>
+   python3 skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py <skill-path>
    ```
 
 6. Run a real Codex task and collect raw outcome evidence. Separate static

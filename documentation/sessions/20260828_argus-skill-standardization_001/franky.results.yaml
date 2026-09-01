@@ -35,7 +35,7 @@ changes:
   - {path: manifests/agent-capability-repertoires.yaml, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: manifests/agent-contracts.yaml, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: manifests/skill-catalog.yaml, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
-  - {path: skills/control-plane-audit/scripts/validate_git_allowlist.py, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: skills/control-plane/control-plane-audit/scripts/validate_git_allowlist.py, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: .gitignore, action: modified, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: skills/references/reconnaissance-kernel.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: skills/references/validate_reconnaissance_kernel.py, action: created, ownership: this_run, working_tree: tracked, scope: owned}
@@ -45,12 +45,12 @@ changes:
   - {path: skills/references/argus-routing-evals.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: skills/references/validate_argus_routing_evals.py, action: created, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: skills/references/argus-upstream-adaptation-records.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
-  - {path: skills/codebase-reconnaissance/SKILL.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
-  - {path: skills/codebase-reconnaissance/agents/openai.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
-  - {path: skills/research-source-discovery/SKILL.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
-  - {path: skills/research-source-discovery/agents/openai.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
-  - {path: skills/reference-state-reconnaissance/SKILL.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
-  - {path: skills/reference-state-reconnaissance/agents/openai.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: skills/reconnaissance/codebase-reconnaissance/SKILL.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: skills/reconnaissance/codebase-reconnaissance/agents/openai.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: skills/reconnaissance/research-source-discovery/SKILL.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: skills/reconnaissance/research-source-discovery/agents/openai.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: skills/reconnaissance/reference-state-reconnaissance/SKILL.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
+  - {path: skills/reconnaissance/reference-state-reconnaissance/agents/openai.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: documentation/sessions/20260828_argus-skill-standardization_001/session.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: documentation/sessions/20260828_argus-skill-standardization_001/context.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
   - {path: documentation/sessions/20260828_argus-skill-standardization_001/spec.md, action: created, ownership: this_run, working_tree: tracked, scope: owned}
@@ -62,17 +62,17 @@ changes:
   - {path: documentation/reviews/ISSUE-90-ATHENA-REVIEW.yaml, action: created, ownership: this_run, working_tree: tracked, scope: owned}
 closure: {implementation: PASS, canonical_state: PASS, references: PASS, proof: PASS}
 validation:
-  - {check: python3 /Users/tai/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/codebase-reconnaissance; repeated once per directory for research-source-discovery and reference-state-reconnaissance, status: PASS, source_state: working-tree}
+  - {check: python3 /Users/tai/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/reconnaissance/codebase-reconnaissance; repeated once per directory for research-source-discovery and reference-state-reconnaissance, status: PASS, source_state: working-tree}
   - {check: python3 skills/references/validate_reconnaissance_kernel.py, status: PASS, source_state: working-tree}
   - {check: python3 skills/references/validate_reference_source_contract.py, status: PASS, source_state: working-tree}
   - {check: python3 skills/references/validate_argus_routing_evals.py, status: PASS, source_state: working-tree}
-  - {check: python3 skills/runtime-adapter-management/scripts/validate_agent_toml.py agents/argus.toml, status: PASS, source_state: working-tree}
-  - {check: python3 skills/control-plane-audit/scripts/validate_git_allowlist.py ., status: PASS, source_state: working-tree}
-  - {check: python3 skills/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml, status: PASS, source_state: staged-reviewed-tree}
-  - {check: python3 skills/control-plane-audit/scripts/validate_skill_interfaces.py skills, status: PASS, source_state: working-tree}
-  - {check: python3 skills/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane-audit/scripts/fixtures/skill-routing.yaml, status: PASS, source_state: working-tree}
+  - {check: python3 skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py agents/argus.toml, status: PASS, source_state: working-tree}
+  - {check: python3 skills/control-plane/control-plane-audit/scripts/validate_git_allowlist.py ., status: PASS, source_state: working-tree}
+  - {check: python3 skills/control-plane/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml, status: PASS, source_state: staged-reviewed-tree}
+  - {check: python3 skills/control-plane/control-plane-audit/scripts/validate_skill_interfaces.py skills, status: PASS, source_state: working-tree}
+  - {check: python3 skills/control-plane/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane/control-plane-audit/scripts/fixtures/skill-routing.yaml, status: PASS, source_state: working-tree}
   - {check: python3 -m unittest discover -s ops/scripts/tests -p 'test_*.py', status: PASS, source_state: working-tree}
-  - {check: python3 skills/session-packet-management/scripts/validate_session_packet.py documentation/sessions/20260828_argus-skill-standardization_001, status: PASS, source_state: working-tree}
+  - {check: python3 skills/control-plane/session-packet-management/scripts/validate_session_packet.py documentation/sessions/20260828_argus-skill-standardization_001, status: PASS, source_state: working-tree}
   - {check: python3 -m unittest discover -s ops/scripts/tests -p 'test_*.py', status: PASS, source_state: working-tree}
   - {check: "parent-verified upstream revisions/licenses for awesome-copilot, d-init, Cantara, and jovd83", status: PASS, source_state: parent-live-GitHub-evidence}
   - {check: rollback restoration execution, status: NOT_ASSESSED, source_state: working-tree}
