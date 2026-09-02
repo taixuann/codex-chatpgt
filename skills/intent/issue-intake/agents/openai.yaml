@@ -1,0 +1,7 @@
+interface:
+  display_name: "Issue Intake"
+  short_description: "Audit a GitHub Issue against current evidence"
+  default_prompt: "Use $issue-intake to intake and audit a GitHub Issue without mutating it."
+
+policy:
+  allow_implicit_invocation: false

@@ -71,3 +71,18 @@ cases:
     prompt: Turn this confirmed Issue intent into a bounded plan packet.
     expected: plan
     neighbors: [planning-and-task-breakdown, socratic, spec-driven-development]
+  - id: github-issue-intake
+    kind: positive
+    prompt: Audit GitHub Issue taixuann/codex-chatpgt#96 against current evidence and relationships.
+    expected: issue-intake
+    neighbors: [intent, define-goal, codebase-reconnaissance]
+  - id: user-idea-intake
+    kind: positive
+    prompt: Preserve this idea and investigate it in the current repository before planning.
+    expected: idea-intake
+    neighbors: [intent, idea-refine, interview-me]
+  - id: unresolved-intent-authority
+    kind: positive
+    prompt: Ask only the material user decision that repository evidence cannot resolve.
+    expected: intent-grill
+    neighbors: [intent, interview-me, define-goal]

@@ -1,6 +1,15 @@
 # Intent source contract
 
-`intent` accepts exactly two source kinds:
+`intent` accepts exactly two origin branches. The legacy packet field
+`source.kind: user` is the serialized spelling of the `user_idea` origin;
+`intent_run.origin.type` uses the explicit `user_idea` name.
+
+| Origin | Packet source kind | Run-state origin type |
+| --- | --- | --- |
+| User idea / request | `user` | `user_idea` |
+| GitHub Issue | `github_issue` | `github_issue` |
+
+Packet source kinds:
 
 | `source.kind` | Required locator | Meaning |
 | --- | --- | --- |
