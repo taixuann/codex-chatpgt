@@ -38,7 +38,7 @@ root intent run.
 
 No mandatory confidence percentage, prediction of future questions, magic
 confirmation phrase, repository-fact questions, plan generation, or
-`PLAN_READY` transition.
+workflow-owned `PLAN_READY` transition.
 
 ## Stop
 

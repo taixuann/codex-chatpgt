@@ -39,7 +39,7 @@ claim states, relevant references, and open questions.
 ## Boundary
 
 Do not search sibling repositories by default, force an interview, prescribe
-implementation, create plans/tasks, or emit `PLAN_READY`.
+implementation, create plans/tasks, or authorize a workflow-owned `PLAN_READY` transition.
 
 ## Stop
 

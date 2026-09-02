@@ -13,7 +13,6 @@ from datetime import datetime, timezone
 import importlib.util
 import json
 from pathlib import Path
-import re
 import subprocess
 import sys
 from typing import Any
@@ -23,6 +22,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 MATRIX_PATH = ROOT / "skills/intent/references/requirement-matrix.yaml"
+REFERENCE_POLICY_PATH = ROOT / "skills/intent/references/reference-selection.yaml"
 STAGE_STATUSES = {"passed", "skipped_with_reason", "not_applicable", "blocked", "failed"}
 REQUIREMENTS = {"required", "optional", "conditional", "not_applicable"}
 CLAIM_STATES = {"CONFIRMED", "INFERRED", "UNKNOWN", "USER_DECISION", "PROPOSED"}
@@ -33,24 +33,11 @@ TRUST_VALUES = {
     "scope_match": {"exact", "related", "mismatch"},
     "evidence_traceability": {"complete", "partial"},
 }
-PROCEDURE_TRACE = {
-    "workspace_anchor": ["workspace-resolution.md"],
-    "source_intake": ["source-contract.md"],
-    "context_resolution": ["context-resolution.md"],
-    "evidence_acquisition": ["evidence-classification.md"],
-    "claim_audit": ["evidence-classification.md"],
-    "relationship_audit": ["relationship-audit.md"],
-    "staleness": ["adaptive-depth.md"],
-    "authority_resolution": ["quality-gates.md"],
-    "convergence_audit": ["convergence-audit.md"],
-    "orientation": ["orientation-view.md"],
-    "session_handoff": ["intent-handoff.md"],
-    "fresh_context_eval": ["intent-handoff.md"],
-}
-ISSUE_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[1-9][0-9]*$")
-ISSUE_URL_RE = re.compile(
-    r"^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[1-9][0-9]*$"
-)
+_SOURCE_SPEC = importlib.util.spec_from_file_location("intent_source_contract", Path(__file__).with_name("source_contract.py"))
+if _SOURCE_SPEC is None or _SOURCE_SPEC.loader is None:  # pragma: no cover - package corruption
+    raise ImportError("cannot load source contract")
+_SOURCE = importlib.util.module_from_spec(_SOURCE_SPEC)
+_SOURCE_SPEC.loader.exec_module(_SOURCE)
 
 
 class IntentError(ValueError):
@@ -70,6 +57,14 @@ def run_git(cwd: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def dirty_fingerprint(cwd: Path) -> str:
+    """Hash a bounded, normalized porcelain snapshot for freshness checks."""
+    import hashlib
+
+    snapshot = run_git(cwd, "status", "--porcelain=v1", "--untracked-files=all")
+    return hashlib.sha256(snapshot.encode("utf-8")).hexdigest()
+
+
 def workspace_report(cwd: Path | None = None) -> dict[str, Any]:
     active = (cwd or Path.cwd()).expanduser().resolve()
     report: dict[str, Any] = {
@@ -78,6 +73,7 @@ def workspace_report(cwd: Path | None = None) -> dict[str, Any]:
         "head": "uncommitted",
         "branch": "none",
         "dirty": False,
+        "dirty_fingerprint": "unbound",
         "instruction_chain": [],
     }
     try:
@@ -89,6 +85,7 @@ def workspace_report(cwd: Path | None = None) -> dict[str, Any]:
         except IntentError:
             report["branch"] = "(detached)"
         report["dirty"] = bool(run_git(active, "status", "--porcelain"))
+        report["dirty_fingerprint"] = dirty_fingerprint(active)
         if active == root or root in active.parents:
             chain: list[str] = []
             current = root
@@ -125,6 +122,61 @@ def load_matrix() -> dict[str, Any]:
         if any(value not in REQUIREMENTS for value in requirements.values()):
             raise IntentError(f"matrix profile {profile} contains an invalid requirement")
     return data
+
+
+def load_reference_policy() -> dict[str, Any]:
+    try:
+        data = yaml.safe_load(REFERENCE_POLICY_PATH.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        raise IntentError(f"cannot load reference-selection policy: {exc}") from exc
+    if not isinstance(data, dict) or data.get("schema_version") != 1:
+        raise IntentError("reference-selection policy must declare schema_version: 1")
+    profiles = data.get("profiles")
+    references = data.get("references")
+    if not isinstance(profiles, dict) or set(profiles) != {
+        "issue_light", "issue_focused", "issue_deep", "idea_light", "idea_focused", "idea_deep"
+    }:
+        raise IntentError("reference-selection policy must cover all six origin/depth profiles")
+    if not isinstance(references, dict) or not references:
+        raise IntentError("reference-selection policy references are required")
+    for profile, names in profiles.items():
+        if not isinstance(names, list) or any(name not in references for name in names):
+            raise IntentError(f"reference-selection profile {profile} contains an unknown reference")
+    stages = data.get("stage_procedures")
+    if not isinstance(stages, dict) or not stages:
+        raise IntentError("reference-selection stage_procedures are required")
+    for stage, names in stages.items():
+        if not isinstance(names, list) or not names or any(name not in references for name in names):
+            raise IntentError(f"reference-selection stage {stage} must name existing procedures")
+    for name in references:
+        if not (REFERENCE_POLICY_PATH.parent / name).is_file():
+            raise IntentError(f"reference-selection policy points to missing reference: {name}")
+    return data
+
+
+def expected_references(run: dict[str, Any]) -> dict[str, list[str]]:
+    """Derive selected procedures from policy and observable material conditions."""
+    policy = load_reference_policy()
+    profile = run["profile"]
+    selected = list(policy["profiles"][profile])
+    conditions = policy.get("conditional", {})
+    for name, rule in conditions.items():
+        if name not in policy["references"]:
+            raise IntentError(f"conditional policy names unknown reference: {name}")
+        profiles = rule.get("profiles", []) if isinstance(rule, dict) else []
+        if profile not in profiles:
+            continue
+        if rule.get("condition") == "material_relationships" and not (
+            run.get("relationships") or run.get("stages", {}).get("relationship_audit", {}).get("status") == "passed"
+        ):
+            continue
+        if name not in selected:
+            selected.append(name)
+    return {
+        stage: [name for name in names if name in selected]
+        for stage, names in policy["stage_procedures"].items()
+        if any(name in selected for name in names)
+    }
 
 
 def profile_for(origin: str, depth: str) -> str:
@@ -169,7 +221,10 @@ def init_run(origin: str, locator: str, depth: str, cwd: Path) -> dict[str, Any]
             "unknowns": [],
             "contradictions": [],
             "blockers": [],
-            "procedure_trace": PROCEDURE_TRACE,
+            "procedure_trace": {
+                "expected": expected_references({"profile": profile, "relationships": [], "stages": stages}),
+                "observed": {},
+            },
             "intent": {
                 "objective": "",
                 "why": "",
@@ -215,8 +270,8 @@ def validate_run(data: Any) -> list[str]:
         errors.append("origin.type must be github_issue or user_idea")
     if not isinstance(locator, str) or not locator.strip():
         errors.append("origin.locator is required")
-    elif origin_type == "github_issue" and not (ISSUE_RE.fullmatch(locator) or ISSUE_URL_RE.fullmatch(locator)):
-        errors.append("github_issue locator must be owner/repo#number or canonical Issue URL")
+    elif not _SOURCE.valid_locator("user" if origin_type == "user_idea" else "github_issue", locator):
+        errors.append(_SOURCE.locator_error("user" if origin_type == "user_idea" else "github_issue"))
     if not isinstance(origin.get("observed_at"), str) or not origin.get("observed_at"):
         errors.append("origin.observed_at is required")
     depth = run.get("depth")
@@ -240,6 +295,8 @@ def validate_run(data: Any) -> list[str]:
                 errors.append(f"workspace.{field} is required")
         if not isinstance(workspace.get("dirty"), bool):
             errors.append("workspace.dirty must be boolean")
+        if not isinstance(workspace.get("dirty_fingerprint"), str) or not workspace.get("dirty_fingerprint"):
+            errors.append("workspace.dirty_fingerprint is required")
         if not isinstance(workspace.get("instruction_chain"), list):
             errors.append("workspace.instruction_chain must be a list")
 
@@ -315,18 +372,32 @@ def validate_run(data: Any) -> list[str]:
         if not isinstance(run.get(field, []), list):
             errors.append(f"{field} must be a list")
     trace = run.get("procedure_trace")
-    if not isinstance(trace, dict):
+    if not isinstance(trace, dict) or set(trace) != {"expected", "observed"}:
         errors.append("procedure_trace must be a mapping")
     else:
-        for stage, refs in trace.items():
-            if stage not in PROCEDURE_TRACE:
-                errors.append(f"procedure_trace contains unknown stage: {stage}")
+        expected = trace.get("expected")
+        observed = trace.get("observed")
+        for key, mapping in (("expected", expected), ("observed", observed)):
+            if not isinstance(mapping, dict):
+                errors.append(f"procedure_trace.{key} must be a stage mapping")
                 continue
-            if not isinstance(refs, list) or any(not isinstance(ref, str) or not ref.strip() for ref in refs):
-                errors.append(f"procedure_trace.{stage} must be a list of references")
-            for ref in refs if isinstance(refs, list) else []:
-                if not (ROOT / "skills/intent/references" / ref).is_file():
-                    errors.append(f"procedure_trace.{stage} reference does not resolve: {ref}")
+            for stage, refs in mapping.items():
+                if not isinstance(refs, list) or any(not isinstance(ref, str) or not ref.strip() for ref in refs):
+                    errors.append(f"procedure_trace.{key}.{stage} must be a list of references")
+                for ref in refs if isinstance(refs, list) else []:
+                    if not (ROOT / "skills/intent/references" / ref).is_file():
+                        errors.append(f"procedure_trace.{key}.{stage} reference does not resolve: {ref}")
+        if isinstance(expected, dict):
+            try:
+                derived = expected_references(run)
+                if expected != derived:
+                    errors.append("procedure_trace.expected does not match reference-selection policy")
+            except IntentError as exc:
+                errors.append(str(exc))
+        if isinstance(expected, dict) and isinstance(observed, dict):
+            for stage, refs in observed.items():
+                if stage not in expected or not set(refs).issubset(set(expected[stage])):
+                    errors.append("procedure_trace.observed contains an unnecessary reference")
     decisions = run.get("decisions", [])
     if not isinstance(decisions, list):
         errors.append("decisions must be a list")
@@ -388,9 +459,11 @@ def readiness(data: dict[str, Any]) -> list[str]:
     run = data["intent_run"]
     requirements = load_matrix()["profiles"][run["profile"]]
     trace = run["procedure_trace"]
-    for stage, requirement in requirements.items():
-        if requirement == "required" and not trace.get(stage):
-            errors.append(f"required procedure trace missing: {stage}")
+    expected = trace["expected"]
+    observed = trace["observed"]
+    for stage, refs in expected.items():
+        if requirements.get(stage) == "required" and not set(refs).issubset(set(observed.get(stage, []))):
+            errors.append(f"required procedure references not observed: {stage}")
     for name, requirement in requirements.items():
         status = run["stages"][name]["status"]
         if requirement == "required" and status != "passed":
@@ -412,9 +485,7 @@ def readiness(data: dict[str, Any]) -> list[str]:
     handoff = run["handoff"]
     if requirements.get("session_handoff") == "required":
         packet = handoff.get("packet")
-        packet_path = Path(packet).expanduser() if packet else None
-        if packet_path is not None and not packet_path.is_absolute():
-            packet_path = ROOT / packet_path
+        packet_path = _resolve_packet_path(run, packet)
         if packet_path is None or not packet_path.exists():
             errors.append("required session handoff packet is missing")
         elif not _session_packet_valid(packet_path):
@@ -458,6 +529,18 @@ def _session_packet_valid(packet: Path) -> bool:
     return result.returncode == 0
 
 
+def _resolve_packet_path(run: dict[str, Any], packet: Any) -> Path | None:
+    if not isinstance(packet, str) or not packet.strip():
+        return None
+    path = Path(packet).expanduser()
+    if path.is_absolute():
+        return path
+    repo_root = run.get("workspace", {}).get("repo_root") if isinstance(run.get("workspace"), dict) else None
+    if not isinstance(repo_root, str) or not repo_root:
+        return None
+    return (Path(repo_root) / path).resolve()
+
+
 def staleness(data: dict[str, Any], cwd: Path) -> dict[str, Any]:
     errors = validate_run(data)
     if errors:
@@ -469,7 +552,7 @@ def staleness(data: dict[str, Any], cwd: Path) -> dict[str, Any]:
         freshness = "stale_hard"
     elif current.get("head") != observed.get("head"):
         freshness = "stale_review_required"
-    elif current.get("branch") != observed.get("branch") or current.get("dirty") != observed.get("dirty"):
+    elif current.get("branch") != observed.get("branch") or current.get("dirty_fingerprint") != observed.get("dirty_fingerprint"):
         freshness = "stale_soft"
     else:
         freshness = "fresh"
@@ -509,9 +592,7 @@ def fresh_context(data: dict[str, Any]) -> dict[str, Any]:
     unsupported = 0
     packet = (run.get("handoff") or {}).get("packet")
     profile = run.get("profile", "")
-    packet_path = Path(packet).expanduser() if packet else None
-    if packet_path is not None and not packet_path.is_absolute():
-        packet_path = ROOT / packet_path
+    packet_path = _resolve_packet_path(run, packet)
     if profile.endswith(("_focused", "_deep")) and (packet_path is None or not packet_path.exists()):
         missing.append("session_packet")
         burden += 1
@@ -561,8 +642,8 @@ def main(argv: list[str] | None = None) -> int:
             emit(workspace_report(args.cwd), args.json)
             return 0
         if args.command == "init":
-            if args.origin == "github_issue" and not (ISSUE_RE.fullmatch(args.locator) or ISSUE_URL_RE.fullmatch(args.locator)):
-                raise IntentError("github_issue locator must be canonical")
+            if not _SOURCE.valid_locator("user" if args.origin == "user_idea" else "github_issue", args.locator):
+                raise IntentError(_SOURCE.locator_error("user" if args.origin == "user_idea" else "github_issue"))
             data = init_run(args.origin, args.locator, args.depth, args.cwd)
             save_run(args.output, data)
             emit({"status": "initialized", "output": str(args.output), "profile": data["intent_run"]["profile"]}, args.json)
@@ -613,7 +694,7 @@ def main(argv: list[str] | None = None) -> int:
                     print(f"- {error}")
                 return 1
             print("INTENT_READY")
-            print("PLAN_READY")
+            print("PLAN_READY_RECOMMENDATION")
             return 0
     except (IntentError, OSError, ValueError, yaml.YAMLError) as exc:
         print(f"FAIL intentctl: {exc}")

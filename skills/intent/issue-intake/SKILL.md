@@ -42,7 +42,7 @@ relationship findings, claim classifications, and blockers/open questions.
 ## Boundary
 
 This skill does not edit, assign, close, or comment on Issues; choose a plan;
-create tasks; or emit `PLAN_READY`.
+create tasks; or authorize a workflow-owned `PLAN_READY` transition.
 
 ## Stop
 

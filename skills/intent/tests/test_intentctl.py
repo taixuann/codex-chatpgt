@@ -37,6 +37,28 @@ class IntentCtlTests(unittest.TestCase):
             data = MODULE.init_run("user_idea", "conversation", "light", Path(directory))
             self.assertEqual(MODULE.validate_run(data), [])
 
+    def test_user_origin_locator_uses_canonical_grammar(self):
+        data = self._run()["intent_run"]
+        data["origin"]["locator"] = "https://example.com/request"
+        self.assertTrue(any("user locator" in error for error in MODULE.validate_run({"intent_run": data})))
+
+    def test_relative_handoff_resolves_against_anchored_repository(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory) / "second-repo"
+            repo.mkdir()
+            MODULE.run_git(repo, "init", "-q")
+            data = self._run("user_idea", "focused")
+            run = data["intent_run"]
+            run["workspace"]["repo_root"] = str(repo)
+            run["handoff"]["packet"] = ".agents/sessions/example"
+            self.assertEqual(MODULE._resolve_packet_path(run, run["handoff"]["packet"]), (repo / ".agents/sessions/example").resolve())
+
+    def test_dirty_fingerprint_detects_relevant_dirty_state_change(self):
+        data = self._run()["intent_run"]
+        data["workspace"]["dirty_fingerprint"] = "different"
+        result = MODULE.staleness({"intent_run": data}, Path.cwd())
+        self.assertEqual(result["freshness"], "stale_soft")
+
     def test_init_uses_matrix_for_issue_and_idea_profiles(self):
         for origin in ("github_issue", "user_idea"):
             for depth in ("light", "focused", "deep"):
@@ -67,7 +89,18 @@ class IntentCtlTests(unittest.TestCase):
             out_of_scope=["implementation planning"],
         )
         data["trust"].update(completeness="complete", evidence_traceability="complete")
+        data["procedure_trace"]["observed"] = data["procedure_trace"]["expected"]
         self.assertEqual(MODULE.readiness({"intent_run": data}), [])
+
+    def test_readiness_rejects_self_attested_unobserved_references(self):
+        data = self._run()["intent_run"]
+        for stage in data["stages"].values():
+            if stage["status"] == "blocked":
+                stage["status"] = "passed"
+                stage.pop("reason", None)
+        data["trust"].update(completeness="complete", evidence_traceability="complete")
+        errors = MODULE.readiness({"intent_run": data})
+        self.assertTrue(any("not observed" in error for error in errors))
 
     def test_staleness_detects_changed_head_without_invalidation(self):
         data = self._run()["intent_run"]

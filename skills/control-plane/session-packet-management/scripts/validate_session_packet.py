@@ -123,6 +123,10 @@ def validate(packet: Path) -> None:
         repository_path = Path(repository_root).expanduser()
     if not repository_path.is_absolute() or not repository_path.is_dir():
         raise PacketError("session.yaml repository_root must be '.' or an existing absolute directory")
+    if legacy:
+        historical_root = (repository_path / "documentation/sessions").resolve()
+        if historical_root not in packet.resolve().parents:
+            raise PacketError("stage-less packets are valid only under documentation/sessions historical surface")
     if Path(packet_root).is_absolute():
         raise PacketError("session.yaml packet_root must be relative to repository_root")
     expected_packet = (repository_path / packet_root).resolve()

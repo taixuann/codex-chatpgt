@@ -6,7 +6,7 @@ status: proposed
 provenance:
   source_commit: uncommitted
   observed_at: '2026-08-26T00:00:00Z'
-  recorded_by: franky
+  recorded_by: governed-task
 upstream:
   - context.md
 downstream:

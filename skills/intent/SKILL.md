@@ -39,13 +39,25 @@ origin skill. Load only references needed for the current request:
 [quality-gates.md](references/quality-gates.md), and
 [intent-handoff.md](references/intent-handoff.md).
 
+Select detailed procedures through the inspectable
+[reference-selection.yaml](references/reference-selection.yaml) policy. The
+policy is separate from the origin × depth requirement matrix: the matrix
+selects capabilities/stages, while the policy selects the references that
+govern those selected stages. Use the conformance harness in `evals/` when an
+observable behavior review is required; it never exposes reviewer expectations
+to an execution agent and marks native routing as `NOT_ASSESSED` when the host
+cannot expose it.
+
 For Issue origin also read [issue-audit.md](references/issue-audit.md) and
 [relationship-audit.md](references/relationship-audit.md). For a non-trivial
 human projection read [orientation-view.md](references/orientation-view.md).
 
-## Root-owned lifecycle
+## Bounded capability procedure
 
-The root orchestrates a bounded loop, not a blind checklist:
+The capability contributes this bounded procedure to the canonical operating
+workflow; it does not own durable lifecycle transitions or gates. The operating
+workflow/task contract remains the authority that decides whether to transition
+to Plan. The procedure is a bounded loop, not a blind checklist:
 
 ```text
 ANCHOR → INVESTIGATE ↔ CONVERGE → HANDOFF
@@ -102,9 +114,10 @@ python3 skills/intent/scripts/intentctl.py fresh-context intent-run.yaml
 ```
 
 Scripts enforce machine-observable invariants only; they do not interpret
-architecture or user intent. `PLAN_READY` is emitted only by the root
-readiness gate after applicable gates G1–G6 pass. Otherwise return an explicit
-`BLOCKED_*` or validation failure state.
+architecture or user intent. A successful run returns an intent readiness
+recommendation after applicable G1–G6 evidence is present; the canonical
+operating workflow/task contract alone authorizes the transition to Plan.
+Otherwise return an explicit `BLOCKED_*` or validation failure state.
 
 Default output stays in the conversation. Persist a packet only when the work
 is non-trivial or the user explicitly requests a governed handoff. Never write

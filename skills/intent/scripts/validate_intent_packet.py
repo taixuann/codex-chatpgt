@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 from pathlib import Path
-import re
 import sys
 from typing import Any
 
@@ -13,13 +13,13 @@ import yaml
 
 
 SOURCE_KINDS = {"user", "github_issue"}
-USER_LOCATOR_RE = re.compile(
-    r"^(?:conversation|user[-_]request[:#/_-][A-Za-z0-9._/-]+|pasted-text:[^\s]+)$"
-)
-GITHUB_ISSUE_RE = re.compile(
-    r"^(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[1-9][0-9]*|"
-    r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[1-9][0-9]*)$"
-)
+
+
+_SOURCE_SPEC = importlib.util.spec_from_file_location("intent_source_contract", Path(__file__).with_name("source_contract.py"))
+if _SOURCE_SPEC is None or _SOURCE_SPEC.loader is None:  # pragma: no cover - package corruption
+    raise ImportError("cannot load source contract")
+_SOURCE = importlib.util.module_from_spec(_SOURCE_SPEC)
+_SOURCE_SPEC.loader.exec_module(_SOURCE)
 
 
 def _nonempty_string(value: Any, field: str) -> str:
@@ -54,14 +54,8 @@ def validate(data: Any, *, ready_for_plan: bool = False) -> None:
     if source_kind not in SOURCE_KINDS:
         raise ValueError("source.kind must be user or github_issue")
     locator = _nonempty_string(source.get("locator"), "source.locator")
-    if source_kind == "user" and not USER_LOCATOR_RE.fullmatch(locator):
-        raise ValueError(
-            "user source.locator must be conversation, user-request:<ref>, or pasted-text:<ref>"
-        )
-    if source_kind == "github_issue" and not GITHUB_ISSUE_RE.fullmatch(locator):
-        raise ValueError(
-            "github_issue source.locator must be owner/repo#<number> or a canonical GitHub issue URL"
-        )
+    if not _SOURCE.valid_locator(source_kind, locator):
+        raise ValueError(_SOURCE.locator_error(source_kind))
 
     _nonempty_string(data.get("objective"), "objective")
     _nonempty_string(data.get("why"), "why")

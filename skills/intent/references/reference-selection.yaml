@@ -1,0 +1,153 @@
+schema_version: 1
+kind: intent-reference-selection
+
+# Profiles select the smallest reference set for each origin/depth pair.
+profiles:
+  issue_light:
+    - source-contract.md
+    - workspace-resolution.md
+    - context-resolution.md
+    - evidence-classification.md
+    - adaptive-depth.md
+    - convergence-audit.md
+    - quality-gates.md
+    - run-state.md
+  issue_focused:
+    - source-contract.md
+    - workspace-resolution.md
+    - context-resolution.md
+    - evidence-classification.md
+    - issue-audit.md
+    - relationship-audit.md
+    - adaptive-depth.md
+    - convergence-audit.md
+    - orientation-view.md
+    - intent-handoff.md
+    - quality-gates.md
+    - run-state.md
+  issue_deep:
+    - source-contract.md
+    - workspace-resolution.md
+    - context-resolution.md
+    - evidence-classification.md
+    - issue-audit.md
+    - relationship-audit.md
+    - adaptive-depth.md
+    - convergence-audit.md
+    - orientation-view.md
+    - intent-handoff.md
+    - quality-gates.md
+    - run-state.md
+  idea_light:
+    - source-contract.md
+    - workspace-resolution.md
+    - context-resolution.md
+    - evidence-classification.md
+    - adaptive-depth.md
+    - convergence-audit.md
+    - quality-gates.md
+    - run-state.md
+  idea_focused:
+    - source-contract.md
+    - workspace-resolution.md
+    - context-resolution.md
+    - evidence-classification.md
+    - adaptive-depth.md
+    - convergence-audit.md
+    - orientation-view.md
+    - intent-handoff.md
+    - quality-gates.md
+    - run-state.md
+  idea_deep:
+    - source-contract.md
+    - workspace-resolution.md
+    - context-resolution.md
+    - evidence-classification.md
+    - adaptive-depth.md
+    - convergence-audit.md
+    - orientation-view.md
+    - intent-handoff.md
+    - quality-gates.md
+    - run-state.md
+
+# A stage can have more than one procedure only when the profile selected it.
+stage_procedures:
+  workspace_anchor: [workspace-resolution.md]
+  source_intake: [source-contract.md]
+  context_resolution: [context-resolution.md]
+  evidence_acquisition: [evidence-classification.md]
+  claim_audit: [evidence-classification.md, issue-audit.md]
+  relationship_audit: [relationship-audit.md]
+  staleness: [adaptive-depth.md]
+  authority_resolution: [quality-gates.md]
+  convergence_audit: [convergence-audit.md, run-state.md]
+  orientation: [orientation-view.md]
+  session_handoff: [intent-handoff.md]
+  fresh_context_eval: [intent-handoff.md]
+
+conditional:
+  relationship-audit.md:
+    profiles: [idea_deep]
+    condition: material_relationships
+
+references:
+  source-contract.md:
+    purpose: canonical two-origin locator and source boundary
+    trigger: always
+    observable: origin locator retained in canonical grammar
+    negative_boundary: does not retrieve or mutate source systems
+  workspace-resolution.md:
+    purpose: anchor CWD, Git root, and instruction chain
+    trigger: always
+    observable: workspace report retains cwd, repo_root, head, and instruction chain
+    negative_boundary: does not hunt sibling repositories
+  context-resolution.md:
+    purpose: route factual gaps to authoritative sources
+    trigger: context_resolution
+    observable: each factual gap is mapped to a bounded source class
+    negative_boundary: does not prescribe implementation
+  evidence-classification.md:
+    purpose: classify claims and retain evidence IDs
+    trigger: claim_audit or evidence_acquisition
+    observable: material claims carry epistemic state and evidence IDs
+    negative_boundary: does not build a knowledge graph
+  issue-audit.md:
+    purpose: audit GitHub Issue claims and current state
+    trigger: origin github_issue
+    observable: Issue locator, observed state, and material claims are retained
+    negative_boundary: does not edit Issues
+  relationship-audit.md:
+    purpose: inspect material overlap, dependency, and supersession
+    trigger: focused/deep Issue or discovered related work
+    observable: relationships are classified or explicitly recorded as none-found
+    negative_boundary: no relationship is not assumed without a bounded check
+  adaptive-depth.md:
+    purpose: escalate investigation only on material triggers
+    trigger: depth may escalate
+    observable: selected depth and escalation reason are retained
+    negative_boundary: no file-count or time-count thresholds
+  convergence-audit.md:
+    purpose: compare synthesized intent with evidence and decisions
+    trigger: convergence
+    observable: contradictions, scope drift, and dangling evidence are checked
+    negative_boundary: does not create a plan
+  orientation-view.md:
+    purpose: project concise evidence-backed context
+    trigger: non-trivial orientation
+    observable: orientation separates confirmed, inferred, unknown, and proposed state
+    negative_boundary: no implementation instructions
+  intent-handoff.md:
+    purpose: persist bounded handoff and recovery signals
+    trigger: session handoff
+    observable: packet pointer and trust/recovery fields validate
+    negative_boundary: does not own workflow transitions
+  quality-gates.md:
+    purpose: provide intent readiness evidence to the operating workflow
+    trigger: readiness
+    observable: gate evidence and blockers are reported without transition authority
+    negative_boundary: canonical workflow owns transitions
+  run-state.md:
+    purpose: explain compact intent_run fields and deterministic checks
+    trigger: machine-readable run state
+    observable: run-state fields and controlled statuses validate
+    negative_boundary: not a workflow database

@@ -16,5 +16,13 @@ does not trust caller-supplied boolean scores.
 Stage requiredness comes only from `requirement-matrix.yaml`; stage statuses are
 `passed`, `skipped_with_reason`, `not_applicable`, `blocked`, or `failed`.
 Confirmed claims require evidence IDs, and every evidence/claim reference must
-resolve. `intentctl readiness` is the machine gate; semantic judgment remains
-in the root procedure and behavioral review.
+resolve. `procedure_trace.expected` is derived from
+`reference-selection.yaml` plus origin/depth and material conditions;
+`procedure_trace.observed` records the bounded outputs/evidence actually
+produced. It is not a claim that a model literally read file tokens, and
+readiness rejects required references that remain unobserved.
+
+`intentctl readiness` is the capability's deterministic readiness
+recommendation. The canonical operating workflow/task contract owns the
+lifecycle transition to Plan; semantic judgment remains in the bounded
+procedure and independent behavioral review.
