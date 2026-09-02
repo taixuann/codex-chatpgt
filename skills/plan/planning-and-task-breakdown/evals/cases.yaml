@@ -1,0 +1,15 @@
+version: 1
+skill: planning-and-task-breakdown
+cases:
+  - id: accepted-spec
+    source: intent_packet
+    prompt: "Break the accepted specification into ordered tasks with dependencies and verification."
+    expect: ordered-task-breakdown
+  - id: parallel-slices
+    source: github_issue
+    prompt: "Decompose the approved Issue scope into independently verifiable slices."
+    expect: checkpoints-and-dependencies
+  - id: unconfirmed-negative
+    source: intent_packet
+    prompt: "Explore this vague idea and decide what to build."
+    expect: no-match

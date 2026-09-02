@@ -1,6 +1,0 @@
-interface:
-  display_name: "Idea Refine"
-  short_description: "Help with Idea Refine tasks"
-
-policy:
-  allow_implicit_invocation: false

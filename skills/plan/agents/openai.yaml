@@ -1,0 +1,7 @@
+interface:
+  display_name: "Plan"
+  short_description: "Route intent into a bounded plan"
+  default_prompt: "Use $plan to turn this confirmed user intent or GitHub Issue into a validated plan packet."
+
+policy:
+  allow_implicit_invocation: false

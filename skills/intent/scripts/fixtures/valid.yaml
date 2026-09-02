@@ -1,0 +1,19 @@
+schema_version: 1
+kind: intent_packet
+source:
+  kind: user
+  locator: conversation
+scenario: define-goal
+subskill: define-goal
+objective: Create a validated intent family with bounded source rules.
+success_criteria:
+  - The family accepts only user requests or GitHub Issues.
+scope:
+  - intent family package
+out_of_scope:
+  - implementation planning
+assumptions: []
+open_questions: []
+confirmed: true
+confidence: 90
+side_effects: none

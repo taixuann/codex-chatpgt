@@ -1,0 +1,7 @@
+interface:
+  display_name: "Interview Me"
+  short_description: "Clarify an underspecified intent"
+  default_prompt: "Use $interview-me to clarify a materially underspecified user request or GitHub Issue one question at a time."
+
+policy:
+  allow_implicit_invocation: false

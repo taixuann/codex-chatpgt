@@ -1,0 +1,7 @@
+id: SKILL-030
+name: Define Goal
+category: shared
+inputs:
+- context_path
+outputs:
+- status_report

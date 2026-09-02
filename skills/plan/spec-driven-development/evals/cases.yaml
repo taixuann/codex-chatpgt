@@ -1,0 +1,15 @@
+version: 1
+skill: spec-driven-development
+cases:
+  - id: missing-requirements
+    source: intent_packet
+    prompt: "The confirmed direction lacks requirements and acceptance details."
+    expect: reviewable-spec
+  - id: contradictory-requirements
+    source: github_issue
+    prompt: "Issue contains conflicting constraints that must be resolved before decomposition."
+    expect: surface-contradictions
+  - id: implementation-negative
+    source: intent_packet
+    prompt: "Implement the existing specification now."
+    expect: no-match

@@ -22,6 +22,10 @@
 !skills/runtime/**
 !skills/media/
 !skills/media/**
+!skills/intent/
+!skills/intent/**
+!skills/plan/
+!skills/plan/**
 !.gitignore
 !README.md
 !AGENTS.md
@@ -119,12 +123,8 @@ skills/control-plane/external-handoff/scripts/*
 !skills/code/git-workflow-and-versioning/**
 !skills/hatch-pet/
 !skills/hatch-pet/**
-!skills/interaction/idea-refine/
-!skills/interaction/idea-refine/**
 !skills/code/incremental-implementation/
 !skills/code/incremental-implementation/**
-!skills/interaction/interview-me/
-!skills/interaction/interview-me/**
 !skills/jupyter-notebook/
 !skills/jupyter-notebook/**
 !skills/linear/
@@ -145,8 +145,6 @@ skills/control-plane/external-handoff/scripts/*
 !skills/code/observability-and-instrumentation/**
 !skills/code/performance-optimization/
 !skills/code/performance-optimization/**
-!skills/code/planning-and-task-breakdown/
-!skills/code/planning-and-task-breakdown/**
 !skills/playwright/
 !skills/playwright/**
 !skills/playwright-interactive/
@@ -169,12 +167,8 @@ skills/control-plane/external-handoff/scripts/*
 !skills/sentry/**
 !skills/deploy/shipping-and-launch/
 !skills/deploy/shipping-and-launch/**
-!skills/interaction/socratic/
-!skills/interaction/socratic/**
 !skills/code/source-driven-development/
 !skills/code/source-driven-development/**
-!skills/code/spec-driven-development/
-!skills/code/spec-driven-development/**
 !skills/speech/
 !skills/speech/**
 !skills/code/test-driven-development/

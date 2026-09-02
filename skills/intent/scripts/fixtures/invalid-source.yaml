@@ -1,0 +1,16 @@
+schema_version: 1
+kind: intent_packet
+source:
+  kind: documentation
+  locator: docs/idea.md
+scenario: idea-refine
+subskill: idea-refine
+objective: An invalid source.
+success_criteria:
+  - This must fail.
+scope:
+  - test
+out_of_scope:
+  - none
+confirmed: false
+side_effects: none

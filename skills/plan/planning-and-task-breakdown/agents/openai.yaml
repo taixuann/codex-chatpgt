@@ -1,0 +1,7 @@
+interface:
+  display_name: "Planning and Task Breakdown"
+  short_description: "Decompose an approved plan"
+  default_prompt: "Use $planning-and-task-breakdown to decompose an approved intent or specification into ordered, verifiable tasks."
+
+policy:
+  allow_implicit_invocation: false

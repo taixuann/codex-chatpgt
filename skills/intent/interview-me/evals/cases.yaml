@@ -1,0 +1,15 @@
+version: 1
+skill: interview-me
+cases:
+  - id: underspecified-user
+    source: user
+    prompt: "I want a dashboard for our metrics."
+    expect: ask-one-question-with-guess
+  - id: ambiguous-github-issue
+    source: github_issue
+    prompt: "Issue has a problem statement but no audience or success measure."
+    expect: preserve-issue-locator-and-clarify
+  - id: mechanical-negative
+    source: user
+    prompt: "Rename this local variable and run the focused test."
+    expect: no-match

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Planning and Task Breakdown"
-  short_description: "Help with Planning and Task Breakdown tasks"
-
-policy:
-  allow_implicit_invocation: false

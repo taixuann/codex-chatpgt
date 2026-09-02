@@ -32,6 +32,7 @@ ALLOWED_SKILL_PACKAGES = frozenset({
     "independent-artifact-review", "scientific-peer-review", "risk-security-review", "temperature-iv-analysis",
 })
 ALLOWED_SKILL_SHARED_PREFIXES = ("skills/references/",)
+ALLOWED_SKILL_FAMILY_PREFIXES = ("skills/intent/", "skills/plan/")
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials", "token")
 TRACKED_SESSION_PREFIXES = ("documentation/sessions/",)
 SESSION_ID = r"[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}"
@@ -47,6 +48,8 @@ def is_allowed_path(path: str) -> bool:
     if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
         return True
     if path.startswith(ALLOWED_SKILL_SHARED_PREFIXES):
+        return True
+    if path.startswith(ALLOWED_SKILL_FAMILY_PREFIXES):
         return True
     if path.startswith("skills/"):
         parts = path.split("/")

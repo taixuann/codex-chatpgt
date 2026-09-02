@@ -1,0 +1,7 @@
+interface:
+  display_name: "Spec Driven Development"
+  short_description: "Write a reviewable specification"
+  default_prompt: "Use $spec-driven-development to write a reviewable specification before task decomposition."
+
+policy:
+  allow_implicit_invocation: false

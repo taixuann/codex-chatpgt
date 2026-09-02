@@ -226,6 +226,8 @@ jobs:
         id: supporting_skill_tests
         run: |
           set -euo pipefail
+          PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/intent/tests -v
+          PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/plan/tests -v
           for test_dir in \
             skills/control-plane/external-handoff/tests \
             skills/control-plane/instruction-maintenance/tests \

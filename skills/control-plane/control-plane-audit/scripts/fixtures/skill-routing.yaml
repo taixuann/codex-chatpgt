@@ -61,3 +61,13 @@ cases:
     prompt: Explore a vague idea without turning it into an Issue yet.
     expected: idea-refine
     neighbors: [interview-me, spec-driven-development]
+  - id: intent-family-routing
+    kind: positive
+    prompt: Turn this user request into a confirmed intent packet.
+    expected: intent
+    neighbors: [interview-me, idea-refine, define-goal]
+  - id: plan-family-routing
+    kind: positive
+    prompt: Turn this confirmed Issue intent into a bounded plan packet.
+    expected: plan
+    neighbors: [planning-and-task-breakdown, socratic, spec-driven-development]

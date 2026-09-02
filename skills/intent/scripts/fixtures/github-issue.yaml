@@ -1,0 +1,20 @@
+schema_version: 1
+kind: intent_packet
+source:
+  kind: github_issue
+  locator: taixuann/codex-chatpgt#123
+scenario: define-goal
+subskill: define-goal
+objective: Normalize a GitHub Issue into a measurable control-plane goal.
+success_criteria:
+  - Issue locator is preserved in the packet.
+  - The goal has a binary validation command.
+scope:
+  - Existing Issue evidence only.
+out_of_scope:
+  - Editing or commenting on the Issue.
+assumptions: []
+open_questions: []
+confirmed: true
+confidence: 90
+side_effects: none

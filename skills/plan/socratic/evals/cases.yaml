@@ -1,0 +1,15 @@
+version: 1
+skill: socratic
+cases:
+  - id: architecture-uncertainty
+    source: intent_packet
+    prompt: "Two subsystem designs have materially different migration and reliability risks."
+    expect: architecture-preflight
+  - id: cross-domain-risk
+    source: github_issue
+    prompt: "The plan spans API, storage, security, and operations decisions."
+    expect: resolve-material-decisions
+  - id: build-negative
+    source: intent_packet
+    prompt: "Run the implementation and deploy it after planning."
+    expect: no-match

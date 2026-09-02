@@ -67,6 +67,8 @@ dispositions:
     - scientific-peer-review
     - risk-security-review
   EXPLICIT_ONLY:
+    - intent
+    - plan
     - chatgpt-apps
     - cli-creator
     - deprecation-and-migration
@@ -82,6 +84,7 @@ dispositions:
     - frontend-ui-engineering
     - idea-refine
     - interview-me
+    - define-goal
     - migrate-to-codex
     - netlify-deploy
     - performance-optimization
@@ -103,7 +106,6 @@ dispositions:
     - skill-retrospective
 noncanonical_overlays:
   - {name: archify-reference, path: documentation/architecture/archify, disposition: REFERENCE_ONLY, local_only: false}
-  - {name: define-goal, path: skills/interaction/define-goal, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: docling-document-processing, path: skills/knowledge/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: gh-address-comments, path: skills/runtime/gh-address-comments, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: json-canvas, path: skills/knowledge/json-canvas, disposition: EXPLICIT_ONLY, local_only: true}

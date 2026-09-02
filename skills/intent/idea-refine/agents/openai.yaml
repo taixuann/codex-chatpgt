@@ -1,0 +1,7 @@
+interface:
+  display_name: "Idea Refine"
+  short_description: "Refine a rough intent"
+  default_prompt: "Use $idea-refine to turn a rough user or Issue idea into alternatives and assumptions before planning."
+
+policy:
+  allow_implicit_invocation: false

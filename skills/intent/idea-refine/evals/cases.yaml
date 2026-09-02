@@ -1,0 +1,15 @@
+version: 1
+skill: idea-refine
+cases:
+  - id: rough-user-idea
+    source: user
+    prompt: "Explore an idea for a personal experiment tracker."
+    expect: alternatives-and-assumptions
+  - id: rough-github-issue
+    source: github_issue
+    prompt: "Issue proposes a broad feature but leaves competing directions open."
+    expect: preserve-locator-and-refine
+  - id: approved-task-negative
+    source: user
+    prompt: "Implement the approved task exactly as written."
+    expect: no-match
