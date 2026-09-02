@@ -60,6 +60,8 @@ class IntentCtlTests(unittest.TestCase):
         data["intent"].update(
             objective="A bounded objective",
             why="Current evidence requires a bounded handoff",
+            current_state="The current repository state is anchored",
+            target_state="A planner can continue from the handoff",
             success_criteria=["A deterministic check passes"],
             scope=["intent family"],
             out_of_scope=["implementation planning"],
@@ -89,6 +91,8 @@ class IntentCtlTests(unittest.TestCase):
         run["intent"].update(
             objective="A bounded objective",
             why="A current-state reason",
+            current_state="The current repository is known",
+            target_state="The planner receives sufficient context",
             success_criteria=["A check passes"],
             scope=["the relevant package"],
             out_of_scope=["implementation"],

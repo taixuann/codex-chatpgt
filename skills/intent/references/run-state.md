@@ -6,7 +6,9 @@
 `contradictions`, `blockers`, `intent`, `orientation`, `handoff`, and `trust`.
 
 `intent` is the canonical boundary projection (`objective`, `why`,
-`success_criteria`, `scope`, and `out_of_scope`) consumed by the plan bridge.
+`current_state`, `target_state`, `success_criteria`, `scope`, and
+`out_of_scope`) consumed by the plan bridge. Relationships remain explicit in
+the run state alongside claims and evidence.
 The fresh-context command derives recovery coverage from these fields,
 workspace anchor, evidence, relationships, decisions, unknowns, and trust; it
 does not trust caller-supplied boolean scores.

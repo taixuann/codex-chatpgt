@@ -33,6 +33,20 @@ TRUST_VALUES = {
     "scope_match": {"exact", "related", "mismatch"},
     "evidence_traceability": {"complete", "partial"},
 }
+PROCEDURE_TRACE = {
+    "workspace_anchor": ["workspace-resolution.md"],
+    "source_intake": ["source-contract.md"],
+    "context_resolution": ["context-resolution.md"],
+    "evidence_acquisition": ["evidence-classification.md"],
+    "claim_audit": ["evidence-classification.md"],
+    "relationship_audit": ["relationship-audit.md"],
+    "staleness": ["adaptive-depth.md"],
+    "authority_resolution": ["quality-gates.md"],
+    "convergence_audit": ["convergence-audit.md"],
+    "orientation": ["orientation-view.md"],
+    "session_handoff": ["intent-handoff.md"],
+    "fresh_context_eval": ["intent-handoff.md"],
+}
 ISSUE_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[1-9][0-9]*$")
 ISSUE_URL_RE = re.compile(
     r"^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[1-9][0-9]*$"
@@ -155,9 +169,12 @@ def init_run(origin: str, locator: str, depth: str, cwd: Path) -> dict[str, Any]
             "unknowns": [],
             "contradictions": [],
             "blockers": [],
+            "procedure_trace": PROCEDURE_TRACE,
             "intent": {
                 "objective": "",
                 "why": "",
+                "current_state": "",
+                "target_state": "",
                 "success_criteria": [],
                 "scope": [],
                 "out_of_scope": [],
@@ -263,6 +280,11 @@ def validate_run(data: Any) -> list[str]:
         for field in ("locator", "kind", "observed_at"):
             if not isinstance(item.get(field), str) or not item.get(field).strip():
                 errors.append(f"evidence[{index}].{field} is required")
+    if isinstance(stages, dict):
+        for stage, record in stages.items():
+            refs = record.get("evidence", []) if isinstance(record, dict) else []
+            if isinstance(refs, list) and any(ref not in evidence_ids for ref in refs):
+                errors.append(f"stage {stage}.evidence contains a dangling reference")
 
     claims = run.get("claims", [])
     if not isinstance(claims, list):
@@ -292,6 +314,19 @@ def validate_run(data: Any) -> list[str]:
     for field in ("relationships", "unknowns", "blockers", "contradictions"):
         if not isinstance(run.get(field, []), list):
             errors.append(f"{field} must be a list")
+    trace = run.get("procedure_trace")
+    if not isinstance(trace, dict):
+        errors.append("procedure_trace must be a mapping")
+    else:
+        for stage, refs in trace.items():
+            if stage not in PROCEDURE_TRACE:
+                errors.append(f"procedure_trace contains unknown stage: {stage}")
+                continue
+            if not isinstance(refs, list) or any(not isinstance(ref, str) or not ref.strip() for ref in refs):
+                errors.append(f"procedure_trace.{stage} must be a list of references")
+            for ref in refs if isinstance(refs, list) else []:
+                if not (ROOT / "skills/intent/references" / ref).is_file():
+                    errors.append(f"procedure_trace.{stage} reference does not resolve: {ref}")
     decisions = run.get("decisions", [])
     if not isinstance(decisions, list):
         errors.append("decisions must be a list")
@@ -304,7 +339,7 @@ def validate_run(data: Any) -> list[str]:
     if not isinstance(intent, dict):
         errors.append("intent must be a mapping")
     else:
-        for field in ("objective", "why"):
+        for field in ("objective", "why", "current_state", "target_state"):
             if not isinstance(intent.get(field), str):
                 errors.append(f"intent.{field} must be a string")
         for field in ("success_criteria", "scope", "out_of_scope"):
@@ -352,6 +387,10 @@ def readiness(data: dict[str, Any]) -> list[str]:
         return errors
     run = data["intent_run"]
     requirements = load_matrix()["profiles"][run["profile"]]
+    trace = run["procedure_trace"]
+    for stage, requirement in requirements.items():
+        if requirement == "required" and not trace.get(stage):
+            errors.append(f"required procedure trace missing: {stage}")
     for name, requirement in requirements.items():
         status = run["stages"][name]["status"]
         if requirement == "required" and status != "passed":
@@ -456,7 +495,7 @@ def fresh_context(data: dict[str, Any]) -> dict[str, Any]:
         "scope": bool(intent["scope"]),
         "out_of_scope": bool(intent["out_of_scope"]),
         "success": bool(intent["success_criteria"]),
-        "current_state": bool(workspace.get("cwd") and workspace.get("head") and workspace.get("branch")),
+        "current_state": bool(intent["current_state"].strip() and workspace.get("cwd") and workspace.get("head")),
         "surfaces": bool(run.get("evidence")),
         "relationships": isinstance(run.get("relationships"), list),
         "decisions": isinstance(run.get("decisions"), list),

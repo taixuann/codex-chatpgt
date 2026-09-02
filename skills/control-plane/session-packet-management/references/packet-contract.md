@@ -11,7 +11,8 @@ schema. Use YAML for machine-consumed records and Markdown for human review.
 kind: codex.session-packet.v1
 session_id: 20260826_migration-codex_001
 repository_root: /absolute/repository/path
-packet_root: documentation/sessions/20260826_migration-codex_001
+packet_root: .agents/sessions/20260826_migration-codex_001
+stage: intent
 canonical_records:
   issue: null
   plan: null
@@ -22,7 +23,16 @@ source_state:
 status: proposed
 ```
 
-`context.md`, `spec.md`, `plan.md`, and `task.md` must use
+Stage-aware required artifacts are:
+
+- `intent`: `session.yaml`, `context.md`, `intent.md`, `references.yaml`;
+- `plan`: intent artifacts plus `plan.md`;
+- `execution`: plan artifacts plus task/ticket/result files only when the
+  owning execution contract requires them;
+- `review`/`closeout`: retain prior artifacts and add only contract-required
+  review or closeout records.
+
+`context.md`, `intent.md`, `spec.md`, `plan.md`, and `task.md` must use
 `codex.session-artifact.v1` frontmatter with an artifact identity, lifecycle
 status, source-commit/observation/recorder provenance, and reciprocal links to
 their immediate upstream/downstream artifacts. Ticket and result records must

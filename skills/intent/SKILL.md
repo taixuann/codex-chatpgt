@@ -65,6 +65,18 @@ ANCHOR → INVESTIGATE ↔ CONVERGE → HANDOFF
    compact trust/freshness signals, run fresh-context recovery evaluation, and
    apply the readiness gate.
 
+Materialize the shared packet with its role-neutral helper when persistence is
+required:
+
+```bash
+python3 skills/control-plane/session-packet-management/scripts/sessionctl.py init \
+  --repo-root "$(git rev-parse --show-toplevel)" \
+  --session-id 20260902_intent_001 --stage intent --origin taixuann/codex-chatpgt#96
+```
+
+This creates only the intent-stage artifacts under
+`<repo>/.agents/sessions/<session-id>/`; Plan later extends the same packet.
+
 The inspectable origin × depth requirements live in
 [requirement-matrix.yaml](references/requirement-matrix.yaml). Do not invent
 per-agent required-stage rules. See [run-state.md](references/run-state.md) for

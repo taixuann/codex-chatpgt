@@ -65,6 +65,8 @@ def validate(data: Any, *, ready_for_plan: bool = False) -> None:
 
     _nonempty_string(data.get("objective"), "objective")
     _nonempty_string(data.get("why"), "why")
+    _nonempty_string(data.get("current_state"), "current_state")
+    _nonempty_string(data.get("target_state"), "target_state")
     _string_list(data.get("success_criteria"), "success_criteria")
     _string_list(data.get("scope"), "scope")
     _string_list(data.get("out_of_scope"), "out_of_scope")
@@ -72,6 +74,9 @@ def validate(data: Any, *, ready_for_plan: bool = False) -> None:
     open_questions = _string_list(data.get("open_questions", []), "open_questions", required=False)
     _string_list(data.get("decisions", []), "decisions", required=False)
     _string_list(data.get("unknowns", []), "unknowns", required=False)
+    if "relationships" not in data:
+        raise ValueError("relationships must be represented")
+    _string_list(data.get("relationships"), "relationships", required=False)
 
     evidence = data.get("evidence", [])
     if not isinstance(evidence, list):

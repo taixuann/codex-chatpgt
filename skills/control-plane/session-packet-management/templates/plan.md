@@ -9,7 +9,7 @@ provenance:
   recorded_by: franky
 upstream:
   - context.md
-  - spec.md
+  - intent.md
 downstream:
   - task.md
   - franky.ticket.yaml

@@ -1,8 +1,8 @@
 ---
 name: session-packet-management
-description: Create, resume, and close a bounded evidence session packet for a governed task, with provenance-linked context, plan, tasks, ticket, and results. Use across repositories; prefer documentation/sessions/ in .codex and .agents/sessions/ in project repositories. Never treat the packet as canonical authority or use it for autonomous acceptance.
+description: Create, resume, and close a bounded, stage-aware evidence session packet under the repository-local .agents/sessions/ convention. Never treat the packet as canonical authority or use it for autonomous acceptance.
 metadata:
-  last_reviewed: 2026-08-26
+  last_reviewed: 2026-09-02
   review_interval_days: 90
 ---
 
@@ -30,11 +30,10 @@ use it when their governing project contract permits session records.
 
 ## Target location
 
-- In the Codex control-plane repository, use `documentation/sessions/<session-id>/`.
-- In another project repository, use `<repo>/.agents/sessions/<session-id>/`.
-- Treat `.agent/sessions/` as a request typo unless that repository explicitly
-  establishes `.agent/` as its local convention. Do not create a new convention
-  to accommodate a packet.
+- For every repository, use `<repository-root>/.agents/sessions/<session-id>/`.
+- `documentation/sessions/**` is legacy/history in this repository, not a live
+  target for new packets. Do not create a new convention to accommodate a
+  historical packet.
 - Do not write to runtime/private session stores, linked projects, credentials,
   or ignored host state.
 
@@ -46,28 +45,30 @@ packet.
 ## Packet contents
 
 Read [the packet contract](references/packet-contract.md) before creating or
-resuming a packet. The normal packet is:
+resuming a packet. The packet grows by lifecycle stage. An intent-stage packet is:
 
 ```text
 session.yaml
 context.md
-spec.md                 # only when requirements or architecture need it
-plan.md
-task.md
-franky.ticket.yaml      # when Franky is the consumer
-franky.results.yaml     # after execution/validation
+intent.md
 references.yaml
 ```
+
+Plan adds `plan.md`; execution may add `task.md` and role-specific ticket or
+result records when its owning contract requires them. `spec.md` remains
+optional. Do not create empty future-stage placeholders.
 
 Every artifact links back to the same session ID and names its upstream and
 downstream records. `task.md` is a readable projection of the ticket; it is
 not a competing execution contract.
 
 Use the bundled templates in [templates/](templates/) when creating a packet.
-Run the deterministic validator before execution and after any packet
-mutation:
+Initialize a packet with the shared helper, then run the deterministic validator
+before execution and after any packet mutation:
 
 ```text
+python3 scripts/sessionctl.py init --repo-root <repository-root> --session-id <session-id> --stage intent --origin <locator>
+python3 scripts/sessionctl.py advance --packet <repo>/.agents/sessions/<session-id> --stage plan
 python3 scripts/validate_session_packet.py <packet-root>
 ```
 

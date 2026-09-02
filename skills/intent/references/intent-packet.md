@@ -10,6 +10,8 @@ source:
   locator: conversation
 objective: "..."
 why: "..."
+current_state: "..."
+target_state: "..."
 success_criteria:
   - "..."
 scope:
@@ -20,6 +22,7 @@ assumptions: []
 open_questions: []
 decisions: []
 unknowns: []
+relationships: []
 evidence:
   - id: E1
     locator: AGENTS.md

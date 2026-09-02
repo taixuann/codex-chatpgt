@@ -10,8 +10,7 @@ provenance:
 upstream:
   - references.yaml
 downstream:
-  - spec.md
-  - plan.md
+  - intent.md
 ---
 
 # Context

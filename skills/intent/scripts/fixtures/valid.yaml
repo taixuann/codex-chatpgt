@@ -5,6 +5,8 @@ source:
   locator: conversation
 objective: Create a validated intent family with bounded source rules.
 why: The family needs a stable evidence-backed handoff into planning.
+current_state: The intent package has a bounded two-origin contract.
+target_state: A planner can consume the validated intent without rediscovery.
 success_criteria:
   - The family accepts only user requests or GitHub Issues.
 scope:
@@ -15,6 +17,7 @@ assumptions: []
 open_questions: []
 decisions: []
 unknowns: []
+relationships: []
 evidence:
   - id: E1
     locator: skills/intent/SKILL.md
