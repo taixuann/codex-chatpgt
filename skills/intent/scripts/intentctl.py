@@ -151,9 +151,17 @@ def init_run(origin: str, locator: str, depth: str, cwd: Path) -> dict[str, Any]
             "evidence": [],
             "claims": [],
             "decisions": [],
+            "relationships": [],
             "unknowns": [],
             "contradictions": [],
             "blockers": [],
+            "intent": {
+                "objective": "",
+                "why": "",
+                "success_criteria": [],
+                "scope": [],
+                "out_of_scope": [],
+            },
             "orientation": None,
             "handoff": {
                 "packet": None,
@@ -281,7 +289,7 @@ def validate_run(data: Any) -> list[str]:
         if state == "CONFIRMED" and not refs:
             errors.append(f"claims[{index}] confirmed claims require evidence")
 
-    for field in ("unknowns", "blockers", "contradictions"):
+    for field in ("relationships", "unknowns", "blockers", "contradictions"):
         if not isinstance(run.get(field, []), list):
             errors.append(f"{field} must be a list")
     decisions = run.get("decisions", [])
@@ -291,6 +299,18 @@ def validate_run(data: Any) -> list[str]:
         for index, decision in enumerate(decisions):
             if not isinstance(decision, dict) or not isinstance(decision.get("status"), str):
                 errors.append(f"decisions[{index}] must declare a status")
+
+    intent = run.get("intent")
+    if not isinstance(intent, dict):
+        errors.append("intent must be a mapping")
+    else:
+        for field in ("objective", "why"):
+            if not isinstance(intent.get(field), str):
+                errors.append(f"intent.{field} must be a string")
+        for field in ("success_criteria", "scope", "out_of_scope"):
+            value = intent.get(field)
+            if not isinstance(value, list) or any(not isinstance(item, str) or not item.strip() for item in value):
+                errors.append(f"intent.{field} must be a list of strings")
 
     handoff = run.get("handoff")
     if not isinstance(handoff, dict):
@@ -343,6 +363,13 @@ def readiness(data: dict[str, Any]) -> list[str]:
             errors.append("unresolved authority decision remains")
     if run.get("contradictions"):
         errors.append("unresolved contradictions remain")
+    intent = run["intent"]
+    for field in ("objective", "why"):
+        if not intent[field].strip():
+            errors.append(f"G5 boundary field missing: intent.{field}")
+    for field in ("success_criteria", "scope", "out_of_scope"):
+        if not intent[field]:
+            errors.append(f"G5 boundary field missing: intent.{field}")
     handoff = run["handoff"]
     if requirements.get("session_handoff") == "required":
         packet = handoff.get("packet")
@@ -355,8 +382,13 @@ def readiness(data: dict[str, Any]) -> list[str]:
             errors.append("required session handoff packet failed shared validation")
     if requirements.get("fresh_context_eval") == "required":
         recovery = handoff.get("recovery") or {}
-        if recovery.get("status") != "passed":
-            errors.append("fresh-context evaluation has not passed")
+        try:
+            derived_recovery = fresh_context(data)
+        except IntentError as exc:
+            errors.append(f"fresh-context evaluation is invalid: {exc}")
+        else:
+            if recovery.get("status") != "passed" or derived_recovery.get("status") != "passed":
+                errors.append("fresh-context evaluation has not passed")
     trust = run["trust"]
     if trust["freshness"] in {"stale_review_required", "stale_hard"}:
         errors.append(f"freshness requires review: {trust['freshness']}")
@@ -415,18 +447,40 @@ def fresh_context(data: dict[str, Any]) -> dict[str, Any]:
     errors = validate_run(data)
     if errors:
         raise IntentError("invalid run state: " + "; ".join(errors))
-    recovery = (data["intent_run"].get("handoff") or {}).get("recovery")
-    if not isinstance(recovery, dict) or not isinstance(recovery.get("fields"), dict):
-        raise IntentError("handoff.recovery.fields is required for fresh-context evaluation")
-    fields = recovery["fields"]
+    run = data["intent_run"]
+    intent = run["intent"]
+    workspace = run["workspace"]
+    fields = {
+        "objective": bool(intent["objective"].strip()),
+        "why": bool(intent["why"].strip()),
+        "scope": bool(intent["scope"]),
+        "out_of_scope": bool(intent["out_of_scope"]),
+        "success": bool(intent["success_criteria"]),
+        "current_state": bool(workspace.get("cwd") and workspace.get("head") and workspace.get("branch")),
+        "surfaces": bool(run.get("evidence")),
+        "relationships": isinstance(run.get("relationships"), list),
+        "decisions": isinstance(run.get("decisions"), list),
+        "unknowns": isinstance(run.get("unknowns"), list),
+        "evidence_traceability": run["trust"]["evidence_traceability"] == "complete",
+    }
     score = sum(1 for field in RECOVERY_FIELDS if fields.get(field) is True)
     missing = [field for field in RECOVERY_FIELDS if fields.get(field) is not True]
-    burden = int(recovery.get("rediscovery_burden", len(missing)))
-    unsupported = int(recovery.get("unsupported_reconstruction", 0))
+    recovery = (run.get("handoff") or {}).get("recovery") or {}
+    burden = len(missing)
+    unsupported = 0
+    packet = (run.get("handoff") or {}).get("packet")
+    profile = run.get("profile", "")
+    packet_path = Path(packet).expanduser() if packet else None
+    if packet_path is not None and not packet_path.is_absolute():
+        packet_path = ROOT / packet_path
+    if profile.endswith(("_focused", "_deep")) and (packet_path is None or not packet_path.exists()):
+        missing.append("session_packet")
+        burden += 1
     status = "passed" if score >= 10 and burden == 0 and unsupported == 0 else "blocked"
     return {
         "status": status,
         "context_recovery_score": {"passed": score, "total": len(RECOVERY_FIELDS)},
+        "fields": fields,
         "rediscovery_burden": burden,
         "unsupported_reconstruction": unsupported,
         "missing": missing,

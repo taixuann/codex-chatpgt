@@ -57,6 +57,13 @@ class IntentCtlTests(unittest.TestCase):
                 stage.pop("reason", None)
         data["evidence"] = [{"id": "E1", "locator": "AGENTS.md", "kind": "repository", "observed_at": "2026-09-02T00:00:00Z"}]
         data["claims"] = [{"id": "C1", "text": "known", "state": "CONFIRMED", "evidence": ["E1"]}]
+        data["intent"].update(
+            objective="A bounded objective",
+            why="Current evidence requires a bounded handoff",
+            success_criteria=["A deterministic check passes"],
+            scope=["intent family"],
+            out_of_scope=["implementation planning"],
+        )
         data["trust"].update(completeness="complete", evidence_traceability="complete")
         self.assertEqual(MODULE.readiness({"intent_run": data}), [])
 
@@ -66,13 +73,34 @@ class IntentCtlTests(unittest.TestCase):
         result = MODULE.staleness({"intent_run": data}, Path.cwd())
         self.assertEqual(result["freshness"], "stale_review_required")
 
-    def test_fresh_context_recovery_uses_simple_rubric(self):
-        data = self._run("user_idea", "focused")
-        data["intent_run"]["handoff"]["recovery"] = {"fields": {field: True for field in MODULE.RECOVERY_FIELDS}}
+    def test_readiness_blocks_without_boundary_content(self):
+        data = self._run()["intent_run"]
+        for stage in data["stages"].values():
+            if stage["status"] == "blocked":
+                stage["status"] = "passed"
+                stage.pop("reason", None)
+        data["trust"].update(completeness="complete", evidence_traceability="complete")
+        errors = MODULE.readiness({"intent_run": data})
+        self.assertTrue(any("G5 boundary field missing" in error for error in errors))
+
+    def test_fresh_context_recovery_is_derived_from_canonical_intent(self):
+        data = self._run("user_idea", "light")
+        run = data["intent_run"]
+        run["intent"].update(
+            objective="A bounded objective",
+            why="A current-state reason",
+            success_criteria=["A check passes"],
+            scope=["the relevant package"],
+            out_of_scope=["implementation"],
+        )
+        run["evidence"] = [{"id": "E1", "locator": "AGENTS.md", "kind": "repository", "observed_at": "2026-09-02T00:00:00Z"}]
+        run["trust"]["evidence_traceability"] = "complete"
+        run["handoff"]["recovery"] = {"fields": {field: False for field in MODULE.RECOVERY_FIELDS}}
         result = MODULE.fresh_context(data)
         self.assertEqual(result["status"], "passed")
         self.assertEqual(result["rediscovery_burden"], 0)
         self.assertEqual(result["unsupported_reconstruction"], 0)
+        self.assertTrue(all(result["fields"].values()))
 
     def test_behavioral_fixture_covers_required_cases(self):
         fixture = yaml.safe_load((ROOT / "tests/fixtures/behavioral-cases.yaml").read_text(encoding="utf-8"))

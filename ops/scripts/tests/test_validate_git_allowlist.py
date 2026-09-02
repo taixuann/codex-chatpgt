@@ -74,6 +74,16 @@ class GitAllowlistTests(unittest.TestCase):
             )
         )
 
+    def test_session_records_still_reject_sensitive_names(self):
+        rejected = (
+            "documentation/sessions/records/plans/PLAN-credentials.md",
+            "documentation/sessions/records/plans/PLAN-token.md",
+            "documentation/sessions/records/reviews/ISSUE-token.yaml",
+        )
+        for path in rejected:
+            with self.subTest(path=path):
+                self.assertTrue(validate_git_allowlist.is_sensitive_path(path))
+
 
 if __name__ == "__main__":
     unittest.main()

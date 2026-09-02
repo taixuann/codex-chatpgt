@@ -74,6 +74,8 @@ def _validate_intent_origin(origin: Any, field: str = "source.intent_source") ->
     if kind not in {"user", "github_issue"}:
         raise ValueError(f"{field}.kind must be user or github_issue")
     locator = _string(origin.get("locator"), f"{field}.locator")
+    if origin.get("packet_schema_version") != 1:
+        raise ValueError(f"{field}.packet_schema_version must be 1")
     if kind == "user" and not USER_LOCATOR_RE.fullmatch(locator):
         raise ValueError(
             f"{field}.locator must be conversation, user-request:<ref>, or pasted-text:<ref>"

@@ -51,6 +51,18 @@ class IntentPacketTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.validate(data)
 
+    def test_obsolete_scenario_and_confidence_fields_are_rejected(self):
+        import yaml
+
+        data = yaml.safe_load((ROOT / "scripts/fixtures/valid.yaml").read_text())
+        data["scenario"] = "define-goal"
+        with self.assertRaises(ValueError):
+            MODULE.validate(data)
+        data.pop("scenario")
+        data["confidence"] = 95
+        with self.assertRaises(ValueError):
+            MODULE.validate(data)
+
 
 if __name__ == "__main__":
     unittest.main()

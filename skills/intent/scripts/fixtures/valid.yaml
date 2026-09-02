@@ -3,9 +3,8 @@ kind: intent_packet
 source:
   kind: user
   locator: conversation
-scenario: define-goal
-subskill: define-goal
 objective: Create a validated intent family with bounded source rules.
+why: The family needs a stable evidence-backed handoff into planning.
 success_criteria:
   - The family accepts only user requests or GitHub Issues.
 scope:
@@ -14,6 +13,12 @@ out_of_scope:
   - implementation planning
 assumptions: []
 open_questions: []
+decisions: []
+unknowns: []
+evidence:
+  - id: E1
+    locator: skills/intent/SKILL.md
+    kind: repository
+    observed_at: "2026-09-02T00:00:00Z"
 confirmed: true
-confidence: 90
 side_effects: none

@@ -10,6 +10,7 @@ source:
   locator: intent-packet:fixture
   confirmed: true            # required for an intent_packet source
   intent_source:             # required provenance copied from the intent packet
+    packet_schema_version: 1 # canonical skills/intent intent_packet contract
     kind: user               # user | github_issue
     locator: conversation
 scenario: planning-and-task-breakdown
@@ -40,6 +41,9 @@ does not itself authorize code changes; the task contract still governs them.
 
 When `source.kind` is `intent_packet`, the locator must be `conversation` or
 `intent-packet:<ref>`, and `confirmed: true` plus the nested
-`intent_source` provenance are required. The validator checks that provenance
-against the intent source contract. When `source.kind` is `github_issue`, the
-locator must use `owner/repo#<number>` or the canonical GitHub Issue URL form.
+`intent_source` provenance are required. `intent_source.packet_schema_version`
+must be `1`, binding the plan to the canonical two-origin intent packet
+contract; it is not a second origin or a planning state store. The validator
+checks that provenance against the intent source contract. When
+`source.kind` is `github_issue`, the locator must use `owner/repo#<number>` or
+the canonical GitHub Issue URL form.

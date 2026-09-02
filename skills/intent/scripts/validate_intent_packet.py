@@ -12,7 +12,6 @@ from typing import Any
 import yaml
 
 
-SCENARIOS = {"interview-me", "idea-refine", "define-goal"}
 SOURCE_KINDS = {"user", "github_issue"}
 USER_LOCATOR_RE = re.compile(
     r"^(?:conversation|user[-_]request[:#/_-][A-Za-z0-9._/-]+|pasted-text:[^\s]+)$"
@@ -64,26 +63,37 @@ def validate(data: Any, *, ready_for_plan: bool = False) -> None:
             "github_issue source.locator must be owner/repo#<number> or a canonical GitHub issue URL"
         )
 
-    scenario = _nonempty_string(data.get("scenario"), "scenario")
-    subskill = _nonempty_string(data.get("subskill"), "subskill")
-    if scenario not in SCENARIOS or subskill not in SCENARIOS:
-        raise ValueError("scenario and subskill must be known intent leaves")
-    if scenario != subskill:
-        raise ValueError("scenario and subskill must match")
-
     _nonempty_string(data.get("objective"), "objective")
+    _nonempty_string(data.get("why"), "why")
     _string_list(data.get("success_criteria"), "success_criteria")
     _string_list(data.get("scope"), "scope")
     _string_list(data.get("out_of_scope"), "out_of_scope")
     _string_list(data.get("assumptions", []), "assumptions", required=False)
     open_questions = _string_list(data.get("open_questions", []), "open_questions", required=False)
+    _string_list(data.get("decisions", []), "decisions", required=False)
+    _string_list(data.get("unknowns", []), "unknowns", required=False)
+
+    evidence = data.get("evidence", [])
+    if not isinstance(evidence, list):
+        raise ValueError("evidence must be a list")
+    evidence_ids = set()
+    for index, item in enumerate(evidence):
+        if not isinstance(item, dict):
+            raise ValueError(f"evidence[{index}] must be a mapping")
+        ident = _nonempty_string(item.get("id"), f"evidence[{index}].id")
+        if ident in evidence_ids:
+            raise ValueError(f"evidence[{index}].id must be unique")
+        evidence_ids.add(ident)
+        for field in ("locator", "kind", "observed_at"):
+            _nonempty_string(item.get(field), f"evidence[{index}].{field}")
+
+    obsolete = {field for field in ("scenario", "subskill", "confidence") if field in data}
+    if obsolete:
+        raise ValueError(f"obsolete intent packet fields are not allowed: {sorted(obsolete)}")
 
     confirmed = data.get("confirmed")
     if not isinstance(confirmed, bool):
         raise ValueError("confirmed must be boolean")
-    confidence = data.get("confidence")
-    if confidence is not None and (not isinstance(confidence, int) or isinstance(confidence, bool) or not 0 <= confidence <= 100):
-        raise ValueError("confidence must be an integer from 0 to 100")
     side_effects = data.get("side_effects", "none")
     if side_effects != "none":
         raise ValueError("intent packets must declare side_effects: none")
@@ -103,7 +113,7 @@ def main() -> int:
     except (OSError, ValueError, yaml.YAMLError) as exc:
         print(f"FAIL intent packet: {exc}")
         return 1
-    print("OK intent packet: source, scenario, objective, scope, and confirmation contract valid")
+    print("OK intent packet: two-origin source, boundary, evidence, and confirmation contract valid")
     if args.ready_for_plan:
         print("READY intent packet: eligible as a plan input")
     else:
