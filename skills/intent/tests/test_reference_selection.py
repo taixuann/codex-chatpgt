@@ -32,6 +32,12 @@ class ReferenceSelectionTests(unittest.TestCase):
         self.assertIn("relationship_audit", expected)
         self.assertIn("issue-audit.md", expected["claim_audit"])
 
+    def test_idea_focused_material_relationships_select_relationship_audit(self):
+        intentctl = load_module("intentctl_idea_relationships", ROOT / "scripts/intentctl.py")
+        run = {"profile": "idea_focused", "relationships": [{"id": "R1"}], "stages": {}}
+        expected = intentctl.expected_references(run)
+        self.assertIn("relationship-audit.md", expected["relationship_audit"])
+
     def test_conformance_harness_reviews_observable_subset_and_marks_native_unassessed(self):
         harness = load_module("run_conformance", ROOT / "evals/run_conformance.py")
         cases = yaml.safe_load((ROOT / "evals/cases.yaml").read_text(encoding="utf-8"))

@@ -30,7 +30,10 @@ recovery and readiness read that artifact and require an exact binding to the
 run-state intent, so a blank or stale plan-facing packet cannot pass G6.
 Derived trust and recovery metadata are intentionally kept outside that
 identity payload; updating recovery completeness therefore cannot make a
-correctly materialized intent stale.
+correctly materialized intent stale. The packet path and its declared
+`session.yaml.repository_root` must both resolve to the anchored repository's
+`.agents/sessions/<session-id>/` live surface; a valid packet from another
+repository is rejected.
 
 `intentctl readiness` is the capability's deterministic readiness
 recommendation. The canonical operating workflow/task contract owns the

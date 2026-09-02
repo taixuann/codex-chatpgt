@@ -52,6 +52,44 @@ class IntentCtlTests(unittest.TestCase):
             run["workspace"]["repo_root"] = str(repo)
             run["handoff"]["packet"] = ".agents/sessions/example"
             self.assertEqual(MODULE._resolve_packet_path(run, run["handoff"]["packet"]), (repo / ".agents/sessions/example").resolve())
+            self.assertTrue(MODULE._packet_is_anchored(run, repo / ".agents/sessions/example"))
+
+    def test_absolute_or_cross_repository_packet_binding_is_explicit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_a, repo_b = root / "repo-a", root / "repo-b"
+            repo_a.mkdir(); repo_b.mkdir()
+            MODULE.run_git(repo_a, "init", "-q")
+            MODULE.run_git(repo_b, "init", "-q")
+            data = self._run("user_idea", "focused")
+            run = data["intent_run"]
+            run["workspace"]["repo_root"] = str(repo_a)
+            self.assertTrue(MODULE._packet_is_anchored(run, repo_a / ".agents/sessions/example"))
+            self.assertTrue(MODULE._packet_is_anchored(run, (repo_a / ".agents/sessions/example").resolve()))
+            self.assertFalse(MODULE._packet_is_anchored(run, repo_b / ".agents/sessions/example"))
+
+    def test_materialize_rejects_valid_packet_from_other_repository(self):
+        session_spec = importlib.util.spec_from_file_location(
+            "sessionctl_for_cross_repo", Path.cwd() / "skills/control-plane/session-packet-management/scripts/sessionctl.py"
+        )
+        assert session_spec and session_spec.loader
+        sessionctl = importlib.util.module_from_spec(session_spec)
+        session_spec.loader.exec_module(sessionctl)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_a, repo_b = root / "repo-a", root / "repo-b"
+            repo_a.mkdir(); repo_b.mkdir()
+            for repo in (repo_a, repo_b):
+                MODULE.run_git(repo, "init", "-q")
+                MODULE.run_git(repo, "-c", "user.email=test@example.com", "-c", "user.name=test", "commit", "--allow-empty", "-qm", "init")
+            packet_b = sessionctl.init_packet(repo_b, "20260902_cross-repo_001", "intent", "conversation")
+            data = self._run("user_idea", "focused")
+            run = data["intent_run"]
+            run["workspace"] = MODULE.workspace_report(repo_a)
+            run["handoff"]["packet"] = str(packet_b)
+            run["intent"].update(objective="bounded", why="evidence", current_state="anchored", target_state="ready", success_criteria=["pass"], scope=["intent"], out_of_scope=["plan"])
+            with self.assertRaises(MODULE.IntentError):
+                MODULE.materialize_intent_artifact(data)
 
     def test_dirty_fingerprint_detects_relevant_dirty_state_change(self):
         data = self._run()["intent_run"]
@@ -199,6 +237,8 @@ class IntentCtlTests(unittest.TestCase):
             for stage in run["stages"]:
                 run["stages"][stage]["status"] = "passed"
                 run["stages"][stage].pop("reason", None)
+            run["procedure_trace"]["expected"] = MODULE.expected_references(run)
+            for stage in run["stages"]:
                 observables = sorted({item for ref in run["procedure_trace"]["expected"].get(stage, []) for item in MODULE.load_reference_policy()["references"][ref].get("required_observables", [])})
                 evidence_id = f"E_{stage}"
                 run["evidence"].append({"id": evidence_id, "locator": f"evidence/{stage}", "kind": "procedure-output", "procedure": stage, "observables": observables, "observed_at": "2026-09-02T00:00:00Z"})

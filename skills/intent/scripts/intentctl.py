@@ -518,7 +518,9 @@ def readiness(data: dict[str, Any]) -> list[str]:
         packet_path = _resolve_packet_path(run, packet)
         if packet_path is None or not packet_path.exists():
             errors.append("required session handoff packet is missing")
-        elif not _session_packet_valid(packet_path):
+        elif not _packet_is_anchored(run, packet_path):
+            errors.append("required session handoff packet is outside anchored repository")
+        elif not _session_packet_valid(packet_path, run["workspace"].get("repo_root")):
             errors.append("required session handoff packet failed shared validation")
     if requirements.get("fresh_context_eval") == "required":
         recovery = handoff.get("recovery") or {}
@@ -545,11 +547,20 @@ def readiness(data: dict[str, Any]) -> list[str]:
     return errors
 
 
-def _session_packet_valid(packet: Path) -> bool:
+def _session_packet_valid(packet: Path, expected_repo_root: str | None = None) -> bool:
     """Reuse the shared packet validator without copying its contract."""
     validator = ROOT / "skills/control-plane/session-packet-management/scripts/validate_session_packet.py"
     if not validator.is_file():
         return False
+    if expected_repo_root:
+        try:
+            session = yaml.safe_load((packet / "session.yaml").read_text(encoding="utf-8"))
+            declared = session.get("repository_root") if isinstance(session, dict) else None
+            declared_root = Path(declared).expanduser().resolve() if isinstance(declared, str) and declared != "." else Path(run_git(packet, "rev-parse", "--show-toplevel")).resolve()
+            if declared_root != Path(expected_repo_root).expanduser().resolve():
+                return False
+        except (OSError, IntentError, yaml.YAMLError):
+            return False
     result = subprocess.run(
         [sys.executable, str(validator), str(packet)],
         capture_output=True,
@@ -569,6 +580,21 @@ def _resolve_packet_path(run: dict[str, Any], packet: Any) -> Path | None:
     if not isinstance(repo_root, str) or not repo_root:
         return None
     return (Path(repo_root) / path).resolve()
+
+
+def _packet_is_anchored(run: dict[str, Any], packet_path: Path | None) -> bool:
+    """Require live packets to belong to the run's anchored repository."""
+    if packet_path is None:
+        return False
+    repo_root = run.get("workspace", {}).get("repo_root") if isinstance(run.get("workspace"), dict) else None
+    if not isinstance(repo_root, str) or not repo_root:
+        return False
+    live_root = (Path(repo_root).expanduser().resolve() / ".agents" / "sessions").resolve()
+    try:
+        relative = packet_path.resolve().relative_to(live_root)
+    except ValueError:
+        return False
+    return len(relative.parts) == 1
 
 
 def _frontmatter(path: Path) -> tuple[dict[str, Any], str]:
@@ -610,8 +636,8 @@ def materialize_intent_artifact(data: dict[str, Any]) -> Path:
         raise IntentError("invalid run state: " + "; ".join(errors))
     run = data["intent_run"]
     packet_path = _resolve_packet_path(run, run.get("handoff", {}).get("packet"))
-    if packet_path is None or not packet_path.is_dir():
-        raise IntentError("cannot materialize intent artifact without an existing handoff packet")
+    if packet_path is None or not packet_path.is_dir() or not _packet_is_anchored(run, packet_path):
+        raise IntentError("cannot materialize intent artifact outside the anchored live session packet")
     path = packet_path / "intent.md"
     metadata, _ = _frontmatter(path)
     metadata["intent"] = _canonical_packet_intent(run)
@@ -684,6 +710,9 @@ def fresh_context(data: dict[str, Any]) -> dict[str, Any]:
     packet_path = _resolve_packet_path(run, packet)
     if profile.endswith(("_focused", "_deep")) and (packet_path is None or not packet_path.exists()):
         missing.append("session_packet")
+        burden += 1
+    elif profile.endswith(("_focused", "_deep")) and not _packet_is_anchored(run, packet_path):
+        missing.append("session_packet_anchor")
         burden += 1
     if profile.endswith(("_focused", "_deep")) and packet_path is not None and packet_path.exists():
         canonical = _packet_canonical_intent(run)
