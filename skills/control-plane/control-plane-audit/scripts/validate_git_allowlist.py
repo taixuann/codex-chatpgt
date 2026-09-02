@@ -55,7 +55,8 @@ TRACKED_SESSION_RECORD_PATH = re.compile(
 def is_allowed_path(path: str) -> bool:
     """Return whether a tracked path belongs to an admitted repository surface."""
     if path.startswith(TRACKED_SESSION_PREFIXES):
-        return bool(TRACKED_SESSION_PATH.fullmatch(path) or TRACKED_SESSION_RECORD_PATH.fullmatch(path))
+        admitted = bool(TRACKED_SESSION_PATH.fullmatch(path) or TRACKED_SESSION_RECORD_PATH.fullmatch(path))
+        return admitted and not is_sensitive_path(path)
     if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
         return True
     if path.startswith(ALLOWED_SKILL_SHARED_PREFIXES):

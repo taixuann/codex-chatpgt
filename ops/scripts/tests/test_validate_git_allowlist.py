@@ -83,6 +83,7 @@ class GitAllowlistTests(unittest.TestCase):
         for path in rejected:
             with self.subTest(path=path):
                 self.assertTrue(validate_git_allowlist.is_sensitive_path(path))
+                self.assertFalse(validate_git_allowlist.is_allowed_path(path))
 
 
 if __name__ == "__main__":
