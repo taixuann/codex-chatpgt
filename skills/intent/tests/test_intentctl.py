@@ -196,14 +196,24 @@ class IntentCtlTests(unittest.TestCase):
             run["workspace"] = MODULE.workspace_report(repo)
             run["handoff"]["packet"] = str(packet.relative_to(repo))
             run["intent"].update(objective="bounded", why="evidence", current_state="anchored", target_state="ready", success_criteria=["pass"], scope=["intent"], out_of_scope=["plan"])
-            run["evidence"] = [{"id": "E1", "locator": "AGENTS.md", "kind": "repository", "observed_at": "2026-09-02T00:00:00Z"}]
+            for stage in run["stages"]:
+                run["stages"][stage]["status"] = "passed"
+                run["stages"][stage].pop("reason", None)
+                observables = sorted({item for ref in run["procedure_trace"]["expected"].get(stage, []) for item in MODULE.load_reference_policy()["references"][ref].get("required_observables", [])})
+                evidence_id = f"E_{stage}"
+                run["evidence"].append({"id": evidence_id, "locator": f"evidence/{stage}", "kind": "procedure-output", "procedure": stage, "observables": observables, "observed_at": "2026-09-02T00:00:00Z"})
+                run["stages"][stage]["evidence"] = [evidence_id]
+            run["procedure_trace"]["observed"] = run["procedure_trace"]["expected"]
             run["trust"]["evidence_traceability"] = "complete"
+            output = repo / "intent-run.yaml"
             self.assertEqual(MODULE.materialize_intent_artifact(data).resolve(), (packet / "intent.md").resolve())
             self.assertEqual(MODULE._packet_canonical_intent(run), MODULE._canonical_packet_intent(run))
-            (packet / "intent.md").write_text((packet / "intent.md").read_text().replace("bounded", "tampered"), encoding="utf-8")
-            result = MODULE.fresh_context(data)
-            self.assertEqual(result["status"], "blocked")
-            self.assertIn("session_intent_artifact_binding", result["missing"])
+            MODULE.save_run(output, data)
+            self.assertEqual(MODULE.main(["fresh-context", str(output), "--write"]), 0)
+            self.assertEqual(MODULE.main(["readiness", str(output)]), 0)
+            text = (packet / "intent.md").read_text()
+            (packet / "intent.md").write_text(text.replace("objective: bounded", "objective: tampered", 1), encoding="utf-8")
+            self.assertEqual(MODULE.main(["readiness", str(output)]), 1)
 
     def test_behavioral_fixture_covers_required_cases(self):
         fixture = yaml.safe_load((ROOT / "tests/fixtures/behavioral-cases.yaml").read_text(encoding="utf-8"))

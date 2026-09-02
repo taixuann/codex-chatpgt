@@ -601,7 +601,6 @@ def _canonical_packet_intent(run: dict[str, Any]) -> dict[str, Any]:
         "relationships": list(run.get("relationships", [])),
         "evidence": list(run.get("evidence", [])),
         "orientation": run.get("orientation"),
-        "trust": dict(run.get("trust", {})),
     }
 
 
@@ -787,7 +786,11 @@ def main(argv: list[str] | None = None) -> int:
                     recovery = {}
                     handoff["recovery"] = recovery
                 recovery.update(result)
-                data["intent_run"]["stages"]["fresh_context_eval"] = _stage(result["status"], "rubric evaluation")
+                existing_stage = data["intent_run"]["stages"].get("fresh_context_eval", {})
+                fresh_stage = _stage(result["status"], "rubric evaluation")
+                if isinstance(existing_stage, dict) and isinstance(existing_stage.get("evidence"), list):
+                    fresh_stage["evidence"] = list(existing_stage["evidence"])
+                data["intent_run"]["stages"]["fresh_context_eval"] = fresh_stage
                 data["intent_run"]["trust"]["completeness"] = "complete" if result["status"] == "passed" else "partial"
                 save_run(args.run, data)
             emit(result, args.json)

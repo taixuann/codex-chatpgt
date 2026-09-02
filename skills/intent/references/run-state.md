@@ -28,6 +28,9 @@ For focused/deep handoff, `intentctl materialize` writes the canonical
 `intent` mapping into the shared packet's `intent.md` frontmatter. Fresh-context
 recovery and readiness read that artifact and require an exact binding to the
 run-state intent, so a blank or stale plan-facing packet cannot pass G6.
+Derived trust and recovery metadata are intentionally kept outside that
+identity payload; updating recovery completeness therefore cannot make a
+correctly materialized intent stale.
 
 `intentctl readiness` is the capability's deterministic readiness
 recommendation. The canonical operating workflow/task contract owns the
