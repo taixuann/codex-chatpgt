@@ -555,7 +555,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "fresh-context":
             result = fresh_context(data)
             if args.write:
-                data["intent_run"]["handoff"]["recovery"].update(result)
+                handoff = data["intent_run"].setdefault("handoff", {})
+                recovery = handoff.get("recovery")
+                if not isinstance(recovery, dict):
+                    recovery = {}
+                    handoff["recovery"] = recovery
+                recovery.update(result)
                 data["intent_run"]["stages"]["fresh_context_eval"] = _stage(result["status"], "rubric evaluation")
                 data["intent_run"]["trust"]["completeness"] = "complete" if result["status"] == "passed" else "partial"
                 save_run(args.run, data)

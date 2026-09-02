@@ -102,6 +102,31 @@ class IntentCtlTests(unittest.TestCase):
         self.assertEqual(result["unsupported_reconstruction"], 0)
         self.assertTrue(all(result["fields"].values()))
 
+    def test_fresh_context_write_initializes_empty_recovery(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "intent-run.yaml"
+            self.assertEqual(
+                MODULE.main(
+                    [
+                        "init",
+                        "--origin",
+                        "user_idea",
+                        "--locator",
+                        "conversation",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                MODULE.main(["fresh-context", str(output), "--write"]),
+                1,
+            )
+            written = yaml.safe_load(output.read_text())
+            self.assertIsInstance(written["intent_run"]["handoff"]["recovery"], dict)
+            self.assertIn("status", written["intent_run"]["handoff"]["recovery"])
+
     def test_behavioral_fixture_covers_required_cases(self):
         fixture = yaml.safe_load((ROOT / "tests/fixtures/behavioral-cases.yaml").read_text(encoding="utf-8"))
         self.assertEqual(len(fixture["cases"]), 15)
