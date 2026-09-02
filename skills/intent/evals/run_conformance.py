@@ -21,10 +21,13 @@ def load(path: Path) -> dict[str, Any]:
     return value
 
 
-def expected_refs(policy: dict[str, Any], profile: str) -> set[str]:
+def expected_refs(policy: dict[str, Any], profile: str, material_relationships: bool = False) -> set[str]:
     refs = set(policy["profiles"][profile])
-    if profile == "idea_deep":
+    conditional = policy.get("conditional", {}).get("relationship-audit.md", {})
+    if profile in conditional.get("profiles", []) and not material_relationships:
         refs.discard("relationship-audit.md")
+    if profile in conditional.get("profiles", []) and material_relationships:
+        refs.add("relationship-audit.md")
     return refs
 
 
@@ -38,7 +41,7 @@ def review(case: dict[str, Any], observation: dict[str, Any] | None, policy: dic
             "limitations": ["host does not expose isolated native skill/reference selection"],
         }
     profile = f"{'issue' if case['origin'] == 'github_issue' else 'idea'}_{case['depth']}"
-    expected = expected_refs(policy, profile)
+    expected = expected_refs(policy, profile, bool(case.get("material_relationships")))
     observed = set(observation.get("observed_references", []))
     missing = sorted(expected - observed)
     extra = sorted(observed - expected)
