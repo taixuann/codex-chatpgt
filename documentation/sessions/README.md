@@ -1,11 +1,12 @@
 # Session records
 
-This directory is the preferred home for new bounded work-unit records.
-Each session packet should contain its context, plan, task, result, review,
-and references as applicable.
+This directory is a preserved legacy/history work-record surface. New bounded
+work uses a stage-aware packet at
+`<repository-root>/.agents/sessions/<session-id>/`, with intent/context first
+and plan/task records added only when their owning contract requires them.
 
-The existing `plans/`, `reviews/`, and `handoffs/` directories are retained.
-They contain historical records whose session identity or inbound references
-have not been reconciled. No record is deleted or moved into a session merely
-because its filename resembles a session artifact. A future migration may
-map an individual record after its provenance and consumers are verified.
+The `records/` subdirectory preserves legacy plans and reviews that do not
+have an authoritative one-to-one session association. Their contents remain
+unchanged; see `records/README.md` for the exact former-to-current mapping.
+The former `documentation/handoffs/` directory was retired as explicitly
+requested. Historical records may still mention that path.

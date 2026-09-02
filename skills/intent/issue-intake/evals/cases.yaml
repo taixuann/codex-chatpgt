@@ -1,0 +1,14 @@
+skill: issue-intake
+cases:
+  - id: issue-audit
+    source: github_issue
+    prompt: "Audit owner/repo#96 against current repository state and related work."
+    expect: issue_origin
+  - id: issue-stale
+    source: github_issue
+    prompt: "Check whether this Issue's implementation claim is stale."
+    expect: stale_check
+  - id: no-mutation
+    source: user
+    prompt: "Close the Issue and implement it now."
+    expect: no_match

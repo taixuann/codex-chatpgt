@@ -159,7 +159,7 @@ jobs:
             # preserve their original provenance without excluding future
             # needs_review packets from validation.
             case "$packet" in
-              documentation/sessions/20260826_franky-skills_001|documentation/sessions/20260826_franky-structure_001)
+              documentation/sessions/20260826_franky-skills_001|documentation/sessions/20260826_franky-structure_001|documentation/sessions/20260828_argus-skill-standardization_001)
                 echo "Skipping named historical packet: $packet"
                 continue
                 ;;

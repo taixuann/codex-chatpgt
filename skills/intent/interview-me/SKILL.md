@@ -143,9 +143,9 @@ The output of this skill is a **confirmed statement of intent**: the restate fro
 If the user wants the intent to persist (a multi-session project, a handoff to
 another collaborator), offer to hand it to
 `session-packet-management`. Only create a packet after they confirm and the
-caller supplies an approved repository-local packet location. For this Codex
-control-plane repository that location is `documentation/sessions/`; for a
-project repository it is `<repo>/.agents/sessions/`.
+caller supplies an approved repository-local packet location. For every
+repository use `<repository-root>/.agents/sessions/<session-id>/`;
+`documentation/sessions/**` is historical material only.
 
 ## Example
 

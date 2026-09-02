@@ -1,0 +1,99 @@
+schema_version: 1
+kind: intent-origin-depth-requirements
+legend:
+  required: required
+  optional: optional
+  conditional: conditional
+  not_applicable: not_applicable
+stages:
+  - workspace_anchor
+  - source_intake
+  - context_resolution
+  - evidence_acquisition
+  - claim_audit
+  - relationship_audit
+  - staleness
+  - authority_resolution
+  - convergence_audit
+  - orientation
+  - session_handoff
+  - fresh_context_eval
+profiles:
+  issue_light:
+    workspace_anchor: required
+    source_intake: required
+    context_resolution: required
+    evidence_acquisition: optional
+    claim_audit: required
+    relationship_audit: optional
+    staleness: optional
+    authority_resolution: conditional
+    convergence_audit: required
+    orientation: optional
+    session_handoff: optional
+    fresh_context_eval: optional
+  issue_focused:
+    workspace_anchor: required
+    source_intake: required
+    context_resolution: required
+    evidence_acquisition: required
+    claim_audit: required
+    relationship_audit: required
+    staleness: required
+    authority_resolution: conditional
+    convergence_audit: required
+    orientation: required
+    session_handoff: required
+    fresh_context_eval: required
+  issue_deep:
+    workspace_anchor: required
+    source_intake: required
+    context_resolution: required
+    evidence_acquisition: required
+    claim_audit: required
+    relationship_audit: required
+    staleness: required
+    authority_resolution: conditional
+    convergence_audit: required
+    orientation: required
+    session_handoff: required
+    fresh_context_eval: required
+  idea_light:
+    workspace_anchor: required
+    source_intake: required
+    context_resolution: required
+    evidence_acquisition: optional
+    claim_audit: required
+    relationship_audit: not_applicable
+    staleness: not_applicable
+    authority_resolution: conditional
+    convergence_audit: required
+    orientation: optional
+    session_handoff: optional
+    fresh_context_eval: optional
+  idea_focused:
+    workspace_anchor: required
+    source_intake: required
+    context_resolution: required
+    evidence_acquisition: conditional
+    claim_audit: required
+    relationship_audit: optional
+    staleness: optional
+    authority_resolution: conditional
+    convergence_audit: required
+    orientation: required
+    session_handoff: required
+    fresh_context_eval: required
+  idea_deep:
+    workspace_anchor: required
+    source_intake: required
+    context_resolution: required
+    evidence_acquisition: required
+    claim_audit: required
+    relationship_audit: conditional
+    staleness: conditional
+    authority_resolution: conditional
+    convergence_audit: required
+    orientation: required
+    session_handoff: required
+    fresh_context_eval: required

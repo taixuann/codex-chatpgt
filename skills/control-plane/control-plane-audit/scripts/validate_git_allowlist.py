@@ -34,17 +34,29 @@ ALLOWED_SKILL_PACKAGES = frozenset({
 ALLOWED_SKILL_SHARED_PREFIXES = ("skills/references/",)
 ALLOWED_SKILL_FAMILY_PREFIXES = ("skills/intent/", "skills/plan/")
 FORBIDDEN_MARKERS = (".system/", "sessions/", "memories/", "cache/", "logs", ".sqlite", "config.toml", "credentials", "token")
+# Session/record paths may be admitted, but sensitive-name markers must still
+# apply to them.  Keeping this separate prevents an allowlist exception from
+# silently making credential- or token-like filenames acceptable.
+SENSITIVE_MARKERS = tuple(marker for marker in FORBIDDEN_MARKERS if marker != "sessions/")
+
+
+def is_sensitive_path(path: str) -> bool:
+    return any(marker in path for marker in SENSITIVE_MARKERS)
 TRACKED_SESSION_PREFIXES = ("documentation/sessions/",)
 SESSION_ID = r"[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}"
 TRACKED_SESSION_PATH = re.compile(
     rf"^documentation/sessions/(?:README\.md|{SESSION_ID}/(?:session\.yaml|context\.md|spec\.md|plan\.md|task\.md|franky\.ticket\.yaml|franky\.results\.yaml|references\.yaml|\.rag/manifest\.yaml))$"
+)
+TRACKED_SESSION_RECORD_PATH = re.compile(
+    r"^documentation/sessions/records/(?:plans/PLAN-[A-Za-z0-9][A-Za-z0-9._-]*\.md|reviews/ISSUE-[A-Za-z0-9][A-Za-z0-9._-]*\.yaml)$"
 )
 
 
 def is_allowed_path(path: str) -> bool:
     """Return whether a tracked path belongs to an admitted repository surface."""
     if path.startswith(TRACKED_SESSION_PREFIXES):
-        return bool(TRACKED_SESSION_PATH.fullmatch(path))
+        admitted = bool(TRACKED_SESSION_PATH.fullmatch(path) or TRACKED_SESSION_RECORD_PATH.fullmatch(path))
+        return admitted and not is_sensitive_path(path)
     if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
         return True
     if path.startswith(ALLOWED_SKILL_SHARED_PREFIXES):
@@ -77,9 +89,8 @@ def main() -> int:
         for path in paths:
             if not is_allowed_path(path):
                 raise ValueError(f"tracked path outside allowlist: {path}")
-            protected_marker = any(marker in path for marker in FORBIDDEN_MARKERS)
-            tracked_packet = bool(TRACKED_SESSION_PATH.fullmatch(path))
-            if protected_marker and not tracked_packet:
+            protected_marker = is_sensitive_path(path)
+            if protected_marker:
                 raise ValueError(f"sensitive path is tracked: {path}")
     except (OSError, subprocess.CalledProcessError, ValueError) as exc:
         print(f"FAIL {args.root}: {exc}")

@@ -2,7 +2,8 @@ kind: codex.session-packet.v1
 schema_version: 1
 session_id: 20260826_example-work_001
 repository_root: /absolute/repository/path
-packet_root: documentation/sessions/20260826_example-work_001
+packet_root: .agents/sessions/20260826_example-work_001
+stage: intent
 canonical_records:
   issue: null
   plan: null
@@ -10,14 +11,9 @@ canonical_records:
 source_state:
   commit: uncommitted
   recorded_at: '2026-08-26T00:00:00Z'
-owner: franky
+owner: governed-task
 status: proposed
 artifacts:
   context: context.md
-  spec: spec.md
-  plan: plan.md
-  tasks: task.md
-  ticket: franky.ticket.yaml
-  results: franky.results.yaml
+  intent: intent.md
   references: references.yaml
-  rag_manifest: .rag/manifest.yaml

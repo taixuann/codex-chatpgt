@@ -29,8 +29,10 @@ constructing the output.
 When a confirmed intent or plan must survive across sessions, read the shared
 [intent-plan-session-bridge.md](../references/intent-plan-session-bridge.md)
 and use `session-packet-management` only at the explicitly approved
-persistence boundary. The bridge records provenance; it does not grant build,
-commit, or publication authority.
+persistence boundary. Plan consumes `intent.md`, `context.md`, and
+`references.yaml` from the existing `.agents/sessions/<session-id>/` packet and
+adds `plan.md` there; it does not create a second session. The bridge records
+provenance; it does not grant build, commit, or publication authority.
 
 ## Scenario router
 

@@ -6,12 +6,11 @@ status: observed
 provenance:
   source_commit: uncommitted
   observed_at: '2026-08-26T00:00:00Z'
-  recorded_by: argus
+  recorded_by: governed-task
 upstream:
   - references.yaml
 downstream:
-  - spec.md
-  - plan.md
+  - intent.md
 ---
 
 # Context
@@ -23,7 +22,7 @@ Session: `20260826_example-work_001`
 - Repository: `/absolute/repository/path`
 - Source commit: `uncommitted`
 - Observed at: `2026-08-26T00:00:00Z`
-- Recovery agent: `argus`
+- Recorder: `governed-task`
 
 ## Recovered evidence
 

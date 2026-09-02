@@ -1,0 +1,62 @@
+kind: intent-behavioral-evals.v1
+cases:
+  - id: current-repo-reuse
+    class: positive
+    origin: user_idea
+    expect: current_repo_without_global_search
+  - id: stale-issue
+    class: positive
+    origin: github_issue
+    expect: stale_review_signal
+  - id: related-pr-partial
+    class: positive
+    origin: github_issue
+    expect: relationship_audit
+  - id: repo-fact-before-question
+    class: positive
+    origin: user_idea
+    expect: evidence_before_grill
+  - id: user-tradeoff
+    class: positive
+    origin: user_idea
+    expect: targeted_grill
+  - id: sibling-repo-trap
+    class: edge
+    origin: user_idea
+    expect: no_broad_discovery
+  - id: unnecessary-research
+    class: negative
+    origin: user_idea
+    expect: no_external_research_without_trigger
+  - id: insufficient-audit
+    class: incomplete
+    origin: github_issue
+    expect: blocked_missing_stage
+  - id: excessive-audit
+    class: negative
+    origin: github_issue
+    expect: bounded_depth
+  - id: orientation-leak
+    class: negative
+    origin: user_idea
+    expect: no_implementation_prescription
+  - id: trivial-no-packet
+    class: edge
+    origin: user_idea
+    expect: light_packet_optional
+  - id: nontrivial-resume
+    class: positive
+    origin: user_idea
+    expect: focused_handoff_required
+  - id: issue-supersession
+    class: positive
+    origin: github_issue
+    expect: relationship_audit
+  - id: canonical-decision
+    class: positive
+    origin: github_issue
+    expect: no_unnecessary_question
+  - id: stale-session
+    class: edge
+    origin: user_idea
+    expect: stale_review_required

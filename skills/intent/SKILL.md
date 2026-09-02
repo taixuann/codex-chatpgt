@@ -1,6 +1,6 @@
 ---
 name: intent
-description: Normalize an intent from the user's request or a GitHub Issue into a validated intent packet, routing to the smallest intent subskill. Use for ambiguous ideas, goal clarification, or issue intake; do not use for implementation planning or arbitrary documentation.
+description: Acquire and converge evidence-backed intent from a user request or GitHub Issue before planning; use for bounded context intake and handoff, not implementation planning, workflow execution, or review.
 metadata:
   family: intent
   status: explicit_only
@@ -10,71 +10,117 @@ metadata:
 
 # Intent family
 
-This is a small routing family, not a second lifecycle engine. It owns only the
-bounded transition from an allowed intent source to a confirmed, testable
-intent packet. Issue/PLAN and `documentation/architecture/workflow/operation.md`
-remain the authority for durable lifecycle state.
+Intent is a bounded context-acquisition and convergence stage. It is not a
+planning engine, workflow engine, memory platform, or lifecycle database. GitHub
+Issues/Plans/PRs and `documentation/architecture/workflow/operation.md` remain
+the durable authority.
 
-## Allowed sources
+## Origins and routing
 
-An intent may originate only from:
+There are exactly two origins:
 
-1. the user's current request or explicitly pasted wording; or
-2. a GitHub Issue identified by repository and issue number/URL.
-
-Repository files, prior plans, reviews, memory, and agent suggestions may
-provide context or evidence, but they cannot silently become the intent source.
-Record the source locator in the packet. Do not create or update a GitHub Issue
-from this family unless a separate user request authorizes that mutation.
-
-Read [source-contract.md](references/source-contract.md) before constructing a
-packet.
-
-For the source-specific evidence checklist, read
-[source-audit.md](references/source-audit.md). When the user explicitly asks
-for persistence or a governed handoff, also read the shared
-[intent-plan-session-bridge.md](../references/intent-plan-session-bridge.md)
-and route packet creation through `session-packet-management`. Do not create a
-session packet for a raw, unconfirmed idea.
-
-## Scenario router
-
-Choose one primary subskill:
-
-| Signal | Load | Do not use when |
+| Origin | Load | Contribution |
 | --- | --- | --- |
-| The user does not yet know the desired outcome, audience, constraint, or success bar | `interview-me` | the request is already concrete |
-| There is a rough concept and the user wants alternatives or assumption testing | `idea-refine` | the user wants a task list or implementation plan |
-| The direction is chosen but needs a measurable objective and acceptance bar | `define-goal` | the request is ordinary implementation with clear scope |
+| GitHub Issue | `issue-intake` | canonical intake, Issue audit, relationships, and stale-state observations |
+| User idea/request | `idea-intake` | preserve wording, resolve relevant context, and identify material gaps |
 
-Use [scenario-routing.md](references/scenario-routing.md) for contrastive
-examples and tie-breaks. Load only the selected subskill's `SKILL.md` and its
-referenced resources; do not load every leaf by default.
+Load `intent-grill` only when evidence leaves an authority, boundary, priority,
+outcome, evidence, or trade-off question that only the user can answer. Existing
+`interview-me`, `idea-refine`, and `define-goal` remain optional specialized
+reasoning contributions; they do not declare readiness.
 
-## Bounded procedure
+Read [source-contract.md](references/source-contract.md), then the selected
+origin skill. Load only references needed for the current request:
+[workspace-resolution.md](references/workspace-resolution.md),
+[context-resolution.md](references/context-resolution.md),
+[evidence-classification.md](references/evidence-classification.md),
+[adaptive-depth.md](references/adaptive-depth.md),
+[convergence-audit.md](references/convergence-audit.md),
+[quality-gates.md](references/quality-gates.md), and
+[intent-handoff.md](references/intent-handoff.md).
 
-1. Classify the source as `user` or `github_issue`; stop if it is neither.
-2. Audit the source using the applicable branch in `source-audit.md`.
-3. Select the smallest scenario using the router above.
-4. Execute that subskill's procedure and keep its negative boundary.
-5. Produce an `intent_packet` with objective, success criteria, scope,
-   out-of-scope items, assumptions, open questions, source locator, and
-   confirmation state. Keep unresolved intent unconfirmed.
-6. Run the deterministic validator:
+Select detailed procedures through the inspectable
+[reference-selection.yaml](references/reference-selection.yaml) policy. The
+policy is separate from the origin × depth requirement matrix: the matrix
+selects capabilities/stages, while the policy selects the references that
+govern those selected stages. Use the conformance harness in `evals/` when an
+observable behavior review is required; it never exposes reviewer expectations
+to an execution agent and marks native routing as `NOT_ASSESSED` when the host
+cannot expose it.
 
-   ```bash
-   python3 skills/intent/scripts/validate_intent_packet.py PACKET.yaml
-   ```
+For Issue origin also read [issue-audit.md](references/issue-audit.md) and
+[relationship-audit.md](references/relationship-audit.md). For a non-trivial
+human projection read [orientation-view.md](references/orientation-view.md).
 
-   Add `--ready-for-plan` only when the user has explicitly confirmed the
-   packet and no material open question remains.
+## Bounded capability procedure
 
-## Output and stop conditions
+The capability contributes this bounded procedure to the canonical operating
+workflow; it does not own durable lifecycle transitions or gates. The operating
+workflow/task contract remains the authority that decides whether to transition
+to Plan. The procedure is a bounded loop, not a blind checklist:
 
-The default output is the packet in the conversation; saving a file requires
-explicit user approval. Stop and surface the blocker when the source is not a
-user request/GitHub Issue, success cannot be made testable, or confirmation is
-missing. This family does not create tasks, implement code, choose an agent, or
-approve a plan.
+```text
+ANCHOR → INVESTIGATE ↔ CONVERGE → HANDOFF
+```
 
-See [intent-packet.md](references/intent-packet.md) for the packet contract.
+1. **ANCHOR** — run `intentctl workspace`, load root-to-CWD instructions, and
+   bind the origin. Reuse the active repository; do not hunt sibling repos.
+2. **INVESTIGATE** — perform source intake, context resolution, smallest
+   sufficient evidence acquisition, claim classification, and Issue
+   relationship/staleness checks when material. Promote `light → focused →
+   deep` only on evidence-backed triggers.
+3. **CONVERGE** — acquire factual gaps, ask only material user questions,
+   synthesize objective/success/scope/out-of-scope/decisions/unknowns, run a
+   convergence audit, and project a human-readable orientation for
+   non-trivial work.
+4. **HANDOFF** — use shared `session-packet-management` when required, expose
+   compact trust/freshness signals, run fresh-context recovery evaluation, and
+   apply the readiness gate.
+
+Materialize the shared packet with its role-neutral helper when persistence is
+required:
+
+```bash
+python3 skills/control-plane/session-packet-management/scripts/sessionctl.py init \
+  --repo-root "$(git rev-parse --show-toplevel)" \
+  --session-id 20260902_intent_001 --stage intent --origin taixuann/codex-chatpgt#96
+```
+
+This creates only the intent-stage artifacts under
+`<repo>/.agents/sessions/<session-id>/`; Plan later extends the same packet.
+
+The inspectable origin × depth requirements live in
+[requirement-matrix.yaml](references/requirement-matrix.yaml). Do not invent
+per-agent required-stage rules. See [run-state.md](references/run-state.md) for
+the compact state contract.
+
+## Run state and gate
+
+Use one compact machine-readable run state (`intent_run`, schema version 1)
+with origin, workspace anchor, depth, stage statuses, evidence/claims,
+decisions, unknowns, handoff, and trust signals. The controlled stage states
+are `passed`, `skipped_with_reason`, `not_applicable`, `blocked`, and `failed`.
+
+The deterministic helper is:
+
+```bash
+python3 skills/intent/scripts/intentctl.py workspace
+python3 skills/intent/scripts/intentctl.py init --origin github_issue --locator owner/repo#96 --depth focused --output intent-run.yaml
+python3 skills/intent/scripts/intentctl.py status intent-run.yaml
+python3 skills/intent/scripts/intentctl.py validate intent-run.yaml
+python3 skills/intent/scripts/intentctl.py staleness intent-run.yaml
+python3 skills/intent/scripts/intentctl.py readiness intent-run.yaml
+python3 skills/intent/scripts/intentctl.py fresh-context intent-run.yaml
+python3 skills/intent/scripts/intentctl.py materialize intent-run.yaml
+```
+
+`materialize` binds the canonical run-state intent into the shared packet's
+`intent.md` artifact consumed by Plan. Scripts enforce machine-observable invariants only; they do not interpret
+architecture or user intent. A successful run returns an intent readiness
+recommendation after applicable G1–G6 evidence is present; the canonical
+operating workflow/task contract alone authorizes the transition to Plan.
+Otherwise return an explicit `BLOCKED_*` or validation failure state.
+
+Default output stays in the conversation. Persist a packet only when the work
+is non-trivial or the user explicitly requests a governed handoff. Never write
+an Issue, plan, task, or repository content as an intent side effect.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 from pathlib import Path
 import re
 import sys
@@ -14,16 +15,16 @@ import yaml
 
 SCENARIOS = {"socratic", "spec-driven-development", "planning-and-task-breakdown"}
 SOURCE_KINDS = {"intent_packet", "github_issue"}
-USER_LOCATOR_RE = re.compile(
-    r"^(?:conversation|user[-_]request[:#/_-][A-Za-z0-9._/-]+|pasted-text:[^\s]+)$"
-)
-GITHUB_ISSUE_RE = re.compile(
-    r"^(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[1-9][0-9]*|"
-    r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[1-9][0-9]*)$"
-)
 INTENT_PACKET_LOCATOR_RE = re.compile(
     r"^(?:conversation|intent-packet:[A-Za-z0-9._/-]+)$"
 )
+
+_SOURCE_PATH = Path(__file__).resolve().parents[2] / "intent/scripts/source_contract.py"
+_SOURCE_SPEC = importlib.util.spec_from_file_location("intent_source_contract", _SOURCE_PATH)
+if _SOURCE_SPEC is None or _SOURCE_SPEC.loader is None:  # pragma: no cover
+    raise ImportError("cannot load canonical intent source contract")
+_SOURCE = importlib.util.module_from_spec(_SOURCE_SPEC)
+_SOURCE_SPEC.loader.exec_module(_SOURCE)
 
 
 def _string(value: Any, field: str) -> str:
@@ -74,11 +75,13 @@ def _validate_intent_origin(origin: Any, field: str = "source.intent_source") ->
     if kind not in {"user", "github_issue"}:
         raise ValueError(f"{field}.kind must be user or github_issue")
     locator = _string(origin.get("locator"), f"{field}.locator")
-    if kind == "user" and not USER_LOCATOR_RE.fullmatch(locator):
+    if origin.get("packet_schema_version") != 1:
+        raise ValueError(f"{field}.packet_schema_version must be 1")
+    if kind == "user" and not _SOURCE.valid_locator("user", locator):
         raise ValueError(
             f"{field}.locator must be conversation, user-request:<ref>, or pasted-text:<ref>"
         )
-    if kind == "github_issue" and not GITHUB_ISSUE_RE.fullmatch(locator):
+    if kind == "github_issue" and not _SOURCE.valid_locator("github_issue", locator):
         raise ValueError(
             f"{field}.locator must be owner/repo#<number> or a canonical GitHub issue URL"
         )
@@ -100,7 +103,7 @@ def validate(data: Any, *, ready_for_build: bool = False) -> None:
         raise ValueError("source.kind must be intent_packet or github_issue")
     locator = _string(source.get("locator"), "source.locator")
     if source_kind == "github_issue":
-        if not GITHUB_ISSUE_RE.fullmatch(locator):
+        if not _SOURCE.valid_locator("github_issue", locator):
             raise ValueError(
                 "github_issue source.locator must be owner/repo#<number> or a canonical GitHub issue URL"
             )

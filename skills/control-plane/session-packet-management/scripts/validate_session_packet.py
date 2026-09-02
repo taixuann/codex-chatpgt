@@ -15,13 +15,23 @@ import yaml
 
 
 SESSION_ID = re.compile(r"^[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}$")
-REQUIRED = {"context.md", "plan.md", "task.md", "references.yaml"}
-OPTIONAL = {"spec.md", "franky.ticket.yaml", "franky.results.yaml"}
-ARTIFACT_KEYS = {"context", "spec", "plan", "tasks", "ticket", "results", "references", "rag_manifest"}
-REQUIRED_ARTIFACT_KEYS = {"context", "plan", "tasks", "references"}
+STAGES = ("intent", "plan", "execution", "review", "closeout")
+REQUIRED_BY_STAGE = {
+    "intent": {"context.md", "intent.md", "references.yaml"},
+    "plan": {"context.md", "intent.md", "plan.md", "references.yaml"},
+    "execution": {"context.md", "intent.md", "plan.md", "references.yaml"},
+    "review": {"context.md", "intent.md", "plan.md", "references.yaml"},
+    "closeout": {"context.md", "intent.md", "plan.md", "references.yaml"},
+}
+REQUIRED = REQUIRED_BY_STAGE["plan"]
+LEGACY_REQUIRED = {"context.md", "plan.md", "task.md", "references.yaml"}
+OPTIONAL = {"spec.md", "task.md", "franky.ticket.yaml", "franky.results.yaml"}
+ARTIFACT_KEYS = {"context", "intent", "spec", "plan", "tasks", "ticket", "results", "references", "rag_manifest"}
+REQUIRED_ARTIFACT_KEYS = {"context", "intent", "references"}
 STATUSES = {"proposed", "observed", "in_progress", "needs_review", "blocked", "acceptance_ready", "closed", "archived", "not_assessed"}
 ARTIFACT_META = {
     "context.md": "context",
+    "intent.md": "intent",
     "spec.md": "spec",
     "plan.md": "plan",
     "task.md": "tasks",
@@ -82,6 +92,12 @@ def validate(packet: Path) -> None:
         raise PacketError("packet directory name must equal session_id")
     if session.get("kind") != "codex.session-packet.v1":
         raise PacketError("session.yaml kind must be codex.session-packet.v1")
+    stage = session.get("stage")
+    legacy = stage is None
+    if stage is not None and stage not in STAGES:
+        raise PacketError("session.yaml stage is invalid")
+    if legacy:
+        stage = "plan"
     source_state = session.get("source_state")
     if not isinstance(source_state, dict) or not source_state.get("commit") or not source_state.get("recorded_at"):
         raise PacketError("session.yaml source_state.commit and recorded_at are required")
@@ -91,6 +107,8 @@ def validate(packet: Path) -> None:
         raise PacketError("session.yaml repository_root is required")
     if not isinstance(packet_root, str) or not packet_root:
         raise PacketError("session.yaml packet_root is required")
+    if not legacy and packet_root != f".agents/sessions/{session_id}":
+        raise PacketError("live packet_root must be .agents/sessions/<session-id>")
     if repository_root == ".":
         try:
             repository_path = Path(
@@ -105,6 +123,10 @@ def validate(packet: Path) -> None:
         repository_path = Path(repository_root).expanduser()
     if not repository_path.is_absolute() or not repository_path.is_dir():
         raise PacketError("session.yaml repository_root must be '.' or an existing absolute directory")
+    if legacy:
+        historical_root = (repository_path / "documentation/sessions").resolve()
+        if historical_root not in packet.resolve().parents:
+            raise PacketError("stage-less packets are valid only under documentation/sessions historical surface")
     if Path(packet_root).is_absolute():
         raise PacketError("session.yaml packet_root must be relative to repository_root")
     expected_packet = (repository_path / packet_root).resolve()
@@ -119,14 +141,21 @@ def validate(packet: Path) -> None:
     unknown_keys = set(artifacts) - ARTIFACT_KEYS
     if unknown_keys:
         raise PacketError(f"unknown artifact-map key(s): {sorted(unknown_keys)}")
-    missing_keys = REQUIRED_ARTIFACT_KEYS - set(artifacts)
+    required_artifact_keys = {"context", "plan", "tasks", "references"} if legacy else set(REQUIRED_ARTIFACT_KEYS)
+    if not legacy and stage in {"plan", "execution", "review", "closeout"}:
+        required_artifact_keys.add("plan")
+    missing_keys = required_artifact_keys - set(artifacts)
     if missing_keys:
         raise PacketError(f"missing artifact-map key(s): {sorted(missing_keys)}")
     names = {path.name for path in packet.iterdir() if path.is_file()}
-    missing = REQUIRED - names
+    required_files = set(REQUIRED_BY_STAGE[stage])
+    if legacy:
+        required_files = set(LEGACY_REQUIRED)
+    missing = required_files - names
     if missing:
         raise PacketError(f"missing required artifacts: {sorted(missing)}")
-    unknown = names - {"session.yaml", *REQUIRED, *OPTIONAL}
+    known = {"session.yaml", "context.md", "intent.md", "spec.md", "plan.md", "task.md", "references.yaml", "franky.ticket.yaml", "franky.results.yaml"}
+    unknown = names - known
     if unknown:
         raise PacketError(f"unexpected packet files: {sorted(unknown)}")
 
@@ -137,6 +166,7 @@ def validate(packet: Path) -> None:
 
     expected_names = {
         "context": "context.md",
+        "intent": "intent.md",
         "spec": "spec.md",
         "plan": "plan.md",
         "tasks": "task.md",
@@ -151,7 +181,7 @@ def validate(packet: Path) -> None:
 
     frontmatter_links: dict[str, dict[str, list[str]]] = {}
     artifact_link_names: dict[str, dict[str, list[str]]] = {}
-    for name in sorted(REQUIRED | OPTIONAL):
+    for name in sorted((REQUIRED_BY_STAGE[stage] | OPTIONAL) if not legacy else (LEGACY_REQUIRED | OPTIONAL)):
         path = packet / name
         if not path.exists():
             continue
@@ -243,6 +273,13 @@ def validate(packet: Path) -> None:
             raise PacketError(".rag manifest included and excluded lists are required")
         if manifest.get("status") not in {"ready", "stale", "not_assessed", "degraded"}:
             raise PacketError(".rag manifest status is invalid")
+
+    if stage in {"intent"} and (packet / "plan.md").exists():
+        raise PacketError("intent-stage packet cannot contain plan.md")
+    if stage == "intent" and (packet / "task.md").exists():
+        raise PacketError("intent-stage packet cannot contain task.md")
+    if (packet / "task.md").exists() and not (packet / "plan.md").exists():
+        raise PacketError("task.md requires plan.md")
 
     ticket = packet / "franky.ticket.yaml"
     result = packet / "franky.results.yaml"

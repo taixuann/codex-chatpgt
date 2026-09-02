@@ -5,6 +5,7 @@ source:
   locator: intent-packet:fixture
   confirmed: true
   intent_source:
+    packet_schema_version: 1
     kind: user
     locator: conversation
 scenario: planning-and-task-breakdown

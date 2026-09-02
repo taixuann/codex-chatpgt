@@ -43,6 +43,14 @@ class PlanPacketTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.validate(data)
 
+    def test_intent_source_must_bind_canonical_packet_contract(self):
+        import yaml
+
+        data = yaml.safe_load((ROOT / "scripts/fixtures/valid.yaml").read_text())
+        data["source"]["intent_source"].pop("packet_schema_version")
+        with self.assertRaises(ValueError):
+            MODULE.validate(data)
+
     def test_intent_packet_locator_must_be_bounded(self):
         import yaml
 

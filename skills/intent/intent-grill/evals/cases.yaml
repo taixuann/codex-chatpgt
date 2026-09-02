@@ -1,0 +1,14 @@
+skill: intent-grill
+cases:
+  - id: user-tradeoff
+    source: user
+    prompt: "Evidence is complete but priority trade-off is unresolved."
+    expect: ask_tradeoff
+  - id: evidence-first
+    source: user
+    prompt: "Ask me the repository facts you could inspect locally."
+    expect: no_match
+  - id: no-confidence
+    source: user
+    prompt: "Require 95% confidence before asking anything."
+    expect: no_match

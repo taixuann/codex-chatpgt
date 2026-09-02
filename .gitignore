@@ -252,6 +252,10 @@ ops/on-demand-skills/install-project-link/tests/*
 **/attachments/**
 **/backups/**
 
+# Live resumable packets are repository-local and ignored by default. Promote
+# only a deliberately selected packet through an owning canonical contract.
+.agents/sessions/**
+
 # Structured Codex session packets are tracked evidence; derived indexes remain ignored.
 !documentation/sessions/
 !documentation/sessions/**

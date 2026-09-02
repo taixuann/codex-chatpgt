@@ -68,6 +68,9 @@ dispositions:
     - risk-security-review
   EXPLICIT_ONLY:
     - intent
+    - issue-intake
+    - idea-intake
+    - intent-grill
     - plan
     - chatgpt-apps
     - cli-creator

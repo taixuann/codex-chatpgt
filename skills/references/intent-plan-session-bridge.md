@@ -20,19 +20,16 @@ one for every raw idea, and do not treat silence as approval to write files.
    the intent packet as bounded source/context evidence and retain its source
    locator, confirmation state, and observed commit or timestamp in
    `references.yaml`/`context.md`.
-3. Feed only a confirmed intent packet into `plan`. Record the resulting plan
-   and task decomposition in the packet's `plan.md`/`task.md` projections when
-   the owning contract permits it.
+3. Materialize one intent-stage packet at `<repository-root>/.agents/sessions/<session-id>/`
+   with `context.md`, `intent.md`, and `references.yaml`. Feed only a confirmed
+   intent packet into `plan`; Plan extends the same packet with `plan.md` (and
+   `task.md` only when required), rather than creating a second session.
 4. Keep Issue/PLAN, the repository operating workflow, and task contracts as
    canonical authority. The session packet links to them; it does not redefine
    their gates or approvals.
 
 ## Target convention
 
-- Codex control-plane repository: `documentation/sessions/<session-id>/`.
-- Project repository: `<repo>/.agents/sessions/<session-id>/`.
-- `.agent/sessions/` is not a default convention.
-
-Do not consolidate these locations in an intent/plan change. Such a move would
-require a coordinated migration of validators, CI, allowlists, schemas,
-historical links, and exact-head review.
+Every repository uses `<repository-root>/.agents/sessions/<session-id>/` for
+new live packets. Existing `documentation/sessions/**` material is retained
+only as explicitly classified legacy/history and is never a new packet target.
