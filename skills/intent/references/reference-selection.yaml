@@ -8,6 +8,7 @@ profiles:
     - workspace-resolution.md
     - context-resolution.md
     - evidence-classification.md
+    - issue-audit.md
     - adaptive-depth.md
     - convergence-audit.md
     - quality-gates.md
