@@ -91,6 +91,34 @@ class IntentCtlTests(unittest.TestCase):
             with self.assertRaises(MODULE.IntentError):
                 MODULE.materialize_intent_artifact(data)
 
+    def test_materialize_rejects_packet_with_mismatched_declared_repository(self):
+        session_spec = importlib.util.spec_from_file_location(
+            "sessionctl_for_declared_repo", Path.cwd() / "skills/control-plane/session-packet-management/scripts/sessionctl.py"
+        )
+        assert session_spec and session_spec.loader
+        sessionctl = importlib.util.module_from_spec(session_spec)
+        session_spec.loader.exec_module(sessionctl)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_a, repo_b = root / "repo-a", root / "repo-b"
+            repo_a.mkdir(); repo_b.mkdir()
+            for repo in (repo_a, repo_b):
+                MODULE.run_git(repo, "init", "-q")
+                MODULE.run_git(repo, "-c", "user.email=test@example.com", "-c", "user.name=test", "commit", "--allow-empty", "-qm", "init")
+            packet = sessionctl.init_packet(repo_a, "20260902_declared-repo_001", "intent", "conversation")
+            session = yaml.safe_load((packet / "session.yaml").read_text())
+            session["repository_root"] = str(repo_b)
+            (packet / "session.yaml").write_text(yaml.safe_dump(session, sort_keys=False))
+            data = self._run("user_idea", "focused")
+            run = data["intent_run"]
+            run["workspace"] = MODULE.workspace_report(repo_a)
+            run["handoff"]["packet"] = str(packet.relative_to(repo_a))
+            run["intent"].update(objective="bounded", why="evidence", current_state="anchored", target_state="ready", success_criteria=["pass"], scope=["intent"], out_of_scope=["plan"])
+            self.assertFalse(MODULE._packet_declared_repo_matches(run, packet))
+            self.assertIn("session_packet_anchor", MODULE.fresh_context(data)["missing"])
+            with self.assertRaises(MODULE.IntentError):
+                MODULE.materialize_intent_artifact(data)
+
     def test_dirty_fingerprint_detects_relevant_dirty_state_change(self):
         data = self._run()["intent_run"]
         data["workspace"]["dirty_fingerprint"] = "different"

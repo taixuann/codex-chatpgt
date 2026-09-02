@@ -597,6 +597,27 @@ def _packet_is_anchored(run: dict[str, Any], packet_path: Path | None) -> bool:
     return len(relative.parts) == 1
 
 
+def _packet_declared_repo_matches(run: dict[str, Any], packet_path: Path | None) -> bool:
+    """Require session.yaml repository identity to match the run anchor."""
+    if packet_path is None:
+        return False
+    expected = run.get("workspace", {}).get("repo_root") if isinstance(run.get("workspace"), dict) else None
+    if not isinstance(expected, str) or not expected:
+        return False
+    try:
+        session = yaml.safe_load((packet_path / "session.yaml").read_text(encoding="utf-8"))
+        declared = session.get("repository_root") if isinstance(session, dict) else None
+        if declared == ".":
+            declared_root = Path(run_git(packet_path, "rev-parse", "--show-toplevel")).resolve()
+        elif isinstance(declared, str) and declared:
+            declared_root = Path(declared).expanduser().resolve()
+        else:
+            return False
+    except (OSError, IntentError, yaml.YAMLError):
+        return False
+    return declared_root == Path(expected).expanduser().resolve()
+
+
 def _frontmatter(path: Path) -> tuple[dict[str, Any], str]:
     text = path.read_text(encoding="utf-8")
     if not text.startswith("---\n"):
@@ -636,7 +657,9 @@ def materialize_intent_artifact(data: dict[str, Any]) -> Path:
         raise IntentError("invalid run state: " + "; ".join(errors))
     run = data["intent_run"]
     packet_path = _resolve_packet_path(run, run.get("handoff", {}).get("packet"))
-    if packet_path is None or not packet_path.is_dir() or not _packet_is_anchored(run, packet_path):
+    if (packet_path is None or not packet_path.is_dir() or
+            not _packet_is_anchored(run, packet_path) or
+            not _packet_declared_repo_matches(run, packet_path)):
         raise IntentError("cannot materialize intent artifact outside the anchored live session packet")
     path = packet_path / "intent.md"
     metadata, _ = _frontmatter(path)
@@ -711,7 +734,10 @@ def fresh_context(data: dict[str, Any]) -> dict[str, Any]:
     if profile.endswith(("_focused", "_deep")) and (packet_path is None or not packet_path.exists()):
         missing.append("session_packet")
         burden += 1
-    elif profile.endswith(("_focused", "_deep")) and not _packet_is_anchored(run, packet_path):
+    elif profile.endswith(("_focused", "_deep")) and (
+        not _packet_is_anchored(run, packet_path) or
+        not _packet_declared_repo_matches(run, packet_path)
+    ):
         missing.append("session_packet_anchor")
         burden += 1
     if profile.endswith(("_focused", "_deep")) and packet_path is not None and packet_path.exists():
