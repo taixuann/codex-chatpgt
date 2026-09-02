@@ -26,3 +26,8 @@ readiness rejects required references that remain unobserved.
 recommendation. The canonical operating workflow/task contract owns the
 lifecycle transition to Plan; semantic judgment remains in the bounded
 procedure and independent behavioral review.
+
+For every required stage, readiness also requires at least one stage evidence
+ID whose evidence entry declares the same `procedure` name. Copying expected
+reference names into `procedure_trace.observed` without procedure-bound output
+therefore cannot satisfy the gate.

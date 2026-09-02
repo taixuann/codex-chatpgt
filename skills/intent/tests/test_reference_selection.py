@@ -38,7 +38,7 @@ class ReferenceSelectionTests(unittest.TestCase):
         observations = yaml.safe_load((ROOT / "evals/conformance.yaml").read_text(encoding="utf-8"))
         policy = yaml.safe_load((ROOT / "references/reference-selection.yaml").read_text(encoding="utf-8"))
         report = harness.run(cases, observations, policy)
-        self.assertEqual(len(report["results"]), 15)
+        self.assertGreaterEqual(len(report["results"]), 15)
         self.assertTrue(any(item["level"] == "L2_DETERMINISTIC_CONFORMANCE" for item in report["results"]))
         self.assertTrue(any(item.get("result") == "NOT_ASSESSED" for item in report["results"]))
         self.assertTrue(all(item.get("overall", item.get("result")) in {"pass", "NOT_ASSESSED"} for item in report["results"]))

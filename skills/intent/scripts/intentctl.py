@@ -461,9 +461,17 @@ def readiness(data: dict[str, Any]) -> list[str]:
     trace = run["procedure_trace"]
     expected = trace["expected"]
     observed = trace["observed"]
+    evidence_by_id = {item.get("id"): item for item in run.get("evidence", []) if isinstance(item, dict)}
     for stage, refs in expected.items():
-        if requirements.get(stage) == "required" and not set(refs).issubset(set(observed.get(stage, []))):
-            errors.append(f"required procedure references not observed: {stage}")
+        if requirements.get(stage) == "required":
+            if not set(refs).issubset(set(observed.get(stage, []))):
+                errors.append(f"required procedure references not observed: {stage}")
+            stage_record = run["stages"].get(stage, {})
+            stage_evidence = stage_record.get("evidence", []) if isinstance(stage_record, dict) else []
+            if not stage_evidence:
+                errors.append(f"required stage lacks observable evidence: {stage}")
+            elif not any(evidence_by_id.get(evidence_id, {}).get("procedure") == stage for evidence_id in stage_evidence):
+                errors.append(f"required stage evidence is not procedure-bound: {stage}")
     for name, requirement in requirements.items():
         status = run["stages"][name]["status"]
         if requirement == "required" and status != "passed":

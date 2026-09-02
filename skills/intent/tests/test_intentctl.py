@@ -77,8 +77,11 @@ class IntentCtlTests(unittest.TestCase):
             if stage["status"] == "blocked":
                 stage["status"] = "passed"
                 stage.pop("reason", None)
-        data["evidence"] = [{"id": "E1", "locator": "AGENTS.md", "kind": "repository", "observed_at": "2026-09-02T00:00:00Z"}]
-        data["claims"] = [{"id": "C1", "text": "known", "state": "CONFIRMED", "evidence": ["E1"]}]
+        data["evidence"] = []
+        for stage in data["stages"]:
+            data["evidence"].append({"id": f"E_{stage}", "locator": f"evidence/{stage}", "kind": "procedure-output", "procedure": stage, "observed_at": "2026-09-02T00:00:00Z"})
+            data["stages"][stage]["evidence"] = [f"E_{stage}"]
+        data["claims"] = [{"id": "C1", "text": "known", "state": "CONFIRMED", "evidence": ["E_workspace_anchor"]}]
         data["intent"].update(
             objective="A bounded objective",
             why="Current evidence requires a bounded handoff",
@@ -101,6 +104,17 @@ class IntentCtlTests(unittest.TestCase):
         data["trust"].update(completeness="complete", evidence_traceability="complete")
         errors = MODULE.readiness({"intent_run": data})
         self.assertTrue(any("not observed" in error for error in errors))
+
+    def test_readiness_rejects_trace_copy_without_stage_evidence(self):
+        data = self._run()["intent_run"]
+        for stage in data["stages"].values():
+            if stage["status"] == "blocked":
+                stage["status"] = "passed"
+                stage.pop("reason", None)
+        data["procedure_trace"]["observed"] = data["procedure_trace"]["expected"]
+        data["trust"].update(completeness="complete", evidence_traceability="complete")
+        errors = MODULE.readiness({"intent_run": data})
+        self.assertTrue(any("lacks observable evidence" in error for error in errors))
 
     def test_staleness_detects_changed_head_without_invalidation(self):
         data = self._run()["intent_run"]

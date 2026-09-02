@@ -53,3 +53,11 @@ cases:
     questions: []
     unnecessary_actions: []
     artifacts: {intent_packet: true, session_packet: true, orientation: true}
+  idea_deep_material_relationships:
+    observed_capability: idea-intake
+    observed_references: [source-contract.md, workspace-resolution.md, context-resolution.md, evidence-classification.md, relationship-audit.md, adaptive-depth.md, convergence-audit.md, orientation-view.md, intent-handoff.md, quality-gates.md, run-state.md]
+    required_observables: [origin_locator, workspace_anchor, local_context, claim_evidence, related_work, relationships_checked, convergence_audit, orientation, handoff]
+    observables: [origin_locator, workspace_anchor, local_context, claim_evidence, related_work, relationships_checked, convergence_audit, orientation, handoff]
+    questions: []
+    unnecessary_actions: []
+    artifacts: {intent_packet: true, session_packet: true, orientation: true}

@@ -75,7 +75,17 @@ def run(cases: dict[str, Any], observations: dict[str, Any], policy: dict[str, A
         if obs is not None and "required_observables" not in obs:
             obs["required_observables"] = []
         results.append(review(case, obs, policy))
-    return {"schema_version": 1, "reviewer": observations.get("reviewer", "independent-deterministic-reviewer"), "results": results}
+    return {
+        "schema_version": 1,
+        "reviewer": observations.get("reviewer", "independent-deterministic-reviewer"),
+        "execution": {
+            "mode": "deterministic_fixture",
+            "blind_prompts": True,
+            "native_routing": "NOT_ASSESSED",
+            "reason": "the local host exposes no isolated agent transcript/tool-selection events",
+        },
+        "results": results,
+    }
 
 
 def main() -> int:
