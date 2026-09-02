@@ -39,12 +39,15 @@ SESSION_ID = r"[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}"
 TRACKED_SESSION_PATH = re.compile(
     rf"^documentation/sessions/(?:README\.md|{SESSION_ID}/(?:session\.yaml|context\.md|spec\.md|plan\.md|task\.md|franky\.ticket\.yaml|franky\.results\.yaml|references\.yaml|\.rag/manifest\.yaml))$"
 )
+TRACKED_SESSION_PLAN_RECORD_PATH = re.compile(
+    r"^documentation/sessions/records/plans/PLAN-[^/]+\.md$"
+)
 
 
 def is_allowed_path(path: str) -> bool:
     """Return whether a tracked path belongs to an admitted repository surface."""
     if path.startswith(TRACKED_SESSION_PREFIXES):
-        return bool(TRACKED_SESSION_PATH.fullmatch(path))
+        return bool(TRACKED_SESSION_PATH.fullmatch(path) or TRACKED_SESSION_PLAN_RECORD_PATH.fullmatch(path))
     if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
         return True
     if path.startswith(ALLOWED_SKILL_SHARED_PREFIXES):
@@ -78,7 +81,10 @@ def main() -> int:
             if not is_allowed_path(path):
                 raise ValueError(f"tracked path outside allowlist: {path}")
             protected_marker = any(marker in path for marker in FORBIDDEN_MARKERS)
-            tracked_packet = bool(TRACKED_SESSION_PATH.fullmatch(path))
+            tracked_packet = bool(
+                TRACKED_SESSION_PATH.fullmatch(path)
+                or TRACKED_SESSION_PLAN_RECORD_PATH.fullmatch(path)
+            )
             if protected_marker and not tracked_packet:
                 raise ValueError(f"sensitive path is tracked: {path}")
     except (OSError, subprocess.CalledProcessError, ValueError) as exc:
