@@ -151,6 +151,11 @@ def load_reference_policy() -> dict[str, Any]:
     for name in references:
         if not (REFERENCE_POLICY_PATH.parent / name).is_file():
             raise IntentError(f"reference-selection policy points to missing reference: {name}")
+        metadata = references[name]
+        if not isinstance(metadata, dict) or metadata.get("class") not in {"procedural", "output_contract", "matrix", "schema_reference"}:
+            raise IntentError(f"reference-selection metadata class is invalid: {name}")
+        if not isinstance(metadata.get("required_observables"), list):
+            raise IntentError(f"reference-selection required_observables must be a list: {name}")
     return data
 
 
@@ -337,6 +342,9 @@ def validate_run(data: Any) -> list[str]:
         for field in ("locator", "kind", "observed_at"):
             if not isinstance(item.get(field), str) or not item.get(field).strip():
                 errors.append(f"evidence[{index}].{field} is required")
+        observables = item.get("observables", [])
+        if not isinstance(observables, list) or any(not isinstance(value, str) or not value.strip() for value in observables):
+            errors.append(f"evidence[{index}].observables must be a list of strings")
     if isinstance(stages, dict):
         for stage, record in stages.items():
             refs = record.get("evidence", []) if isinstance(record, dict) else []
@@ -461,6 +469,7 @@ def readiness(data: dict[str, Any]) -> list[str]:
     trace = run["procedure_trace"]
     expected = trace["expected"]
     observed = trace["observed"]
+    policy = load_reference_policy()
     evidence_by_id = {item.get("id"): item for item in run.get("evidence", []) if isinstance(item, dict)}
     for stage, refs in expected.items():
         if requirements.get(stage) == "required":
@@ -472,6 +481,19 @@ def readiness(data: dict[str, Any]) -> list[str]:
                 errors.append(f"required stage lacks observable evidence: {stage}")
             elif not any(evidence_by_id.get(evidence_id, {}).get("procedure") == stage for evidence_id in stage_evidence):
                 errors.append(f"required stage evidence is not procedure-bound: {stage}")
+            else:
+                observable_ids = {
+                    observable
+                    for evidence_id in stage_evidence
+                    for observable in evidence_by_id.get(evidence_id, {}).get("observables", [])
+                }
+                for ref in refs:
+                    required_observables = policy["references"].get(ref, {}).get("required_observables", [])
+                    missing_observables = set(required_observables) - observable_ids
+                    if missing_observables:
+                        errors.append(
+                            f"procedure observable proof missing: {stage}/{ref}: {sorted(missing_observables)}"
+                        )
     for name, requirement in requirements.items():
         status = run["stages"][name]["status"]
         if requirement == "required" and status != "passed":
@@ -549,6 +571,66 @@ def _resolve_packet_path(run: dict[str, Any], packet: Any) -> Path | None:
     return (Path(repo_root) / path).resolve()
 
 
+def _frontmatter(path: Path) -> tuple[dict[str, Any], str]:
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        raise IntentError(f"intent artifact is missing frontmatter: {path}")
+    try:
+        _, header, body = text.split("---\n", 2)
+        metadata = yaml.safe_load(header)
+    except (ValueError, yaml.YAMLError) as exc:
+        raise IntentError(f"invalid intent artifact frontmatter: {exc}") from exc
+    if not isinstance(metadata, dict):
+        raise IntentError("intent artifact frontmatter must be a mapping")
+    return metadata, body
+
+
+def _canonical_packet_intent(run: dict[str, Any]) -> dict[str, Any]:
+    intent = run["intent"]
+    return {
+        "origin": run["origin"],
+        "objective": intent["objective"],
+        "why": intent["why"],
+        "current_state": intent["current_state"],
+        "target_state": intent["target_state"],
+        "success_criteria": list(intent["success_criteria"]),
+        "scope": list(intent["scope"]),
+        "out_of_scope": list(intent["out_of_scope"]),
+        "decisions": list(run.get("decisions", [])),
+        "unknowns": list(run.get("unknowns", [])),
+        "relationships": list(run.get("relationships", [])),
+        "evidence": list(run.get("evidence", [])),
+        "orientation": run.get("orientation"),
+        "trust": dict(run.get("trust", {})),
+    }
+
+
+def materialize_intent_artifact(data: dict[str, Any]) -> Path:
+    errors = validate_run(data)
+    if errors:
+        raise IntentError("invalid run state: " + "; ".join(errors))
+    run = data["intent_run"]
+    packet_path = _resolve_packet_path(run, run.get("handoff", {}).get("packet"))
+    if packet_path is None or not packet_path.is_dir():
+        raise IntentError("cannot materialize intent artifact without an existing handoff packet")
+    path = packet_path / "intent.md"
+    metadata, _ = _frontmatter(path)
+    metadata["intent"] = _canonical_packet_intent(run)
+    metadata["status"] = "observed"
+    body = f"""\n# Intent\n\n## STATUS\nOBSERVED\n\n## ORIGIN\n{run['origin']['type']}: {run['origin']['locator']}\n\n## WHY\n{run['intent']['why']}\n\n## OBJECTIVE\n{run['intent']['objective']}\n\n## CURRENT STATE\n{run['intent']['current_state']}\n\n## TARGET STATE\n{run['intent']['target_state']}\n\n## SCOPE\n""" + "\n".join(f"- {item}" for item in run["intent"]["scope"]) + "\n\n## OUT OF SCOPE\n" + "\n".join(f"- {item}" for item in run["intent"]["out_of_scope"]) + "\n\n## SUCCESS CRITERIA\n" + "\n".join(f"- {item}" for item in run["intent"]["success_criteria"]) + "\n\n## EVIDENCE STATE\nCanonical machine-readable intent is stored in frontmatter under `intent`; evidence pointers remain bounded in the run state.\n\n## READINESS\nINTENT_READY_RECOMMENDATION\n"
+    path.write_text("---\n" + yaml.safe_dump(metadata, sort_keys=False).rstrip() + "\n---\n" + body, encoding="utf-8")
+    return path
+
+
+def _packet_canonical_intent(run: dict[str, Any]) -> dict[str, Any] | None:
+    packet_path = _resolve_packet_path(run, run.get("handoff", {}).get("packet"))
+    if packet_path is None or not packet_path.is_dir() or not (packet_path / "intent.md").is_file():
+        return None
+    metadata, _ = _frontmatter(packet_path / "intent.md")
+    value = metadata.get("intent")
+    return value if isinstance(value, dict) else None
+
+
 def staleness(data: dict[str, Any], cwd: Path) -> dict[str, Any]:
     errors = validate_run(data)
     if errors:
@@ -604,6 +686,15 @@ def fresh_context(data: dict[str, Any]) -> dict[str, Any]:
     if profile.endswith(("_focused", "_deep")) and (packet_path is None or not packet_path.exists()):
         missing.append("session_packet")
         burden += 1
+    if profile.endswith(("_focused", "_deep")) and packet_path is not None and packet_path.exists():
+        canonical = _packet_canonical_intent(run)
+        expected = _canonical_packet_intent(run)
+        if canonical is None:
+            missing.append("session_intent_artifact")
+            burden += 1
+        elif canonical != expected:
+            missing.append("session_intent_artifact_binding")
+            burden += 1
     status = "passed" if score >= 10 and burden == 0 and unsupported == 0 else "blocked"
     return {
         "status": status,
@@ -635,6 +726,9 @@ def main(argv: list[str] | None = None) -> int:
     init.add_argument("--depth", choices=("light", "focused", "deep"), default="light")
     init.add_argument("--cwd", type=Path, default=Path.cwd())
     init.add_argument("--output", type=Path, required=True)
+    materialize = sub.add_parser("materialize")
+    materialize.add_argument("run", type=Path)
+    materialize.add_argument("--json", action="store_true", help="emit JSON")
     for name in ("status", "validate", "staleness", "readiness", "fresh-context"):
         command = sub.add_parser(name)
         command.add_argument("--json", action="store_true", help="emit JSON")
@@ -657,6 +751,10 @@ def main(argv: list[str] | None = None) -> int:
             emit({"status": "initialized", "output": str(args.output), "profile": data["intent_run"]["profile"]}, args.json)
             return 0
         data = load_run(args.run)
+        if args.command == "materialize":
+            path = materialize_intent_artifact(data)
+            emit({"status": "materialized", "path": str(path)}, args.json)
+            return 0
         if args.command == "validate":
             errors = validate_run(data)
             if errors:

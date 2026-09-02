@@ -20,7 +20,14 @@ resolve. `procedure_trace.expected` is derived from
 `reference-selection.yaml` plus origin/depth and material conditions;
 `procedure_trace.observed` records the bounded outputs/evidence actually
 produced. It is not a claim that a model literally read file tokens, and
-readiness rejects required references that remain unobserved.
+readiness rejects required references that remain unobserved. Each
+procedure-bound evidence entry must also list the observable IDs declared by
+that reference; matching a procedure name alone is insufficient.
+
+For focused/deep handoff, `intentctl materialize` writes the canonical
+`intent` mapping into the shared packet's `intent.md` frontmatter. Fresh-context
+recovery and readiness read that artifact and require an exact binding to the
+run-state intent, so a blank or stale plan-facing packet cannot pass G6.
 
 `intentctl readiness` is the capability's deterministic readiness
 recommendation. The canonical operating workflow/task contract owns the

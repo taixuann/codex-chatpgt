@@ -50,6 +50,15 @@ class ReferenceSelectionTests(unittest.TestCase):
         result = harness.review(case, {"observed_capability": "issue-intake", "observed_references": list(policy["profiles"]["issue_focused"]), "required_observables": ["handoff"], "observables": []}, policy)
         self.assertEqual(result["overall"], "fail")
 
+    def test_conformance_expectations_ignore_observation_supplied_rubric(self):
+        harness = load_module("run_conformance_independent", ROOT / "evals/run_conformance.py")
+        policy = yaml.safe_load((ROOT / "references/reference-selection.yaml").read_text(encoding="utf-8"))
+        case = {"id": "idea_no_external_research", "origin": "user_idea", "depth": "light", "capability": "idea-intake", "prompt": "small"}
+        observation = {"observed_capability": "idea-intake", "observed_references": policy["profiles"]["idea_light"], "observables": [], "required_observables": []}
+        result = harness.review(case, observation, policy)
+        self.assertTrue(result["steps"]["required"])
+        self.assertEqual(result["overall"], "fail")
+
     def test_conformance_penalizes_unnecessary_action(self):
         harness = load_module("run_conformance_overaction", ROOT / "evals/run_conformance.py")
         policy = yaml.safe_load((ROOT / "references/reference-selection.yaml").read_text(encoding="utf-8"))

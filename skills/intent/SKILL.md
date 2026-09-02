@@ -111,9 +111,11 @@ python3 skills/intent/scripts/intentctl.py validate intent-run.yaml
 python3 skills/intent/scripts/intentctl.py staleness intent-run.yaml
 python3 skills/intent/scripts/intentctl.py readiness intent-run.yaml
 python3 skills/intent/scripts/intentctl.py fresh-context intent-run.yaml
+python3 skills/intent/scripts/intentctl.py materialize intent-run.yaml
 ```
 
-Scripts enforce machine-observable invariants only; they do not interpret
+`materialize` binds the canonical run-state intent into the shared packet's
+`intent.md` artifact consumed by Plan. Scripts enforce machine-observable invariants only; they do not interpret
 architecture or user intent. A successful run returns an intent readiness
 recommendation after applicable G1–G6 evidence is present; the canonical
 operating workflow/task contract alone authorizes the transition to Plan.

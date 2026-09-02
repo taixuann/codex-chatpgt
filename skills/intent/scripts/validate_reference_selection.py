@@ -11,7 +11,8 @@ import yaml
 
 
 PROFILES = {"issue_light", "issue_focused", "issue_deep", "idea_light", "idea_focused", "idea_deep"}
-METADATA = {"purpose", "trigger", "observable", "negative_boundary"}
+METADATA = {"class", "purpose", "trigger", "required_observables", "negative_boundary"}
+CLASSES = {"procedural", "output_contract", "matrix", "schema_reference"}
 
 
 def validate(data: Any, root: Path) -> list[str]:
@@ -61,9 +62,14 @@ def validate(data: Any, root: Path) -> list[str]:
             errors.append(f"reference does not exist: {name}")
         if not isinstance(metadata, dict) or not METADATA <= set(metadata):
             errors.append(f"reference metadata incomplete: {name}")
-    dead = set(references) - used
-    if dead:
-        errors.append(f"dead references are not selected by any stage: {sorted(dead)}")
+            continue
+        if metadata.get("class") not in CLASSES:
+            errors.append(f"reference class invalid: {name}")
+        observables = metadata.get("required_observables")
+        if not isinstance(observables, list) or any(not isinstance(item, str) or not item.strip() for item in observables):
+            errors.append(f"reference required_observables must be a list of strings: {name}")
+        if metadata.get("class") == "procedural" and name not in used:
+            errors.append(f"dead procedural reference is not selected by any stage: {name}")
     return errors
 
 

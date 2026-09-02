@@ -79,7 +79,8 @@ class IntentCtlTests(unittest.TestCase):
                 stage.pop("reason", None)
         data["evidence"] = []
         for stage in data["stages"]:
-            data["evidence"].append({"id": f"E_{stage}", "locator": f"evidence/{stage}", "kind": "procedure-output", "procedure": stage, "observed_at": "2026-09-02T00:00:00Z"})
+            observables = sorted({item for ref in data["procedure_trace"]["expected"].get(stage, []) for item in MODULE.load_reference_policy()["references"][ref].get("required_observables", [])})
+            data["evidence"].append({"id": f"E_{stage}", "locator": f"evidence/{stage}", "kind": "procedure-output", "procedure": stage, "observables": observables, "observed_at": "2026-09-02T00:00:00Z"})
             data["stages"][stage]["evidence"] = [f"E_{stage}"]
         data["claims"] = [{"id": "C1", "text": "known", "state": "CONFIRMED", "evidence": ["E_workspace_anchor"]}]
         data["intent"].update(
@@ -177,6 +178,32 @@ class IntentCtlTests(unittest.TestCase):
             written = yaml.safe_load(output.read_text())
             self.assertIsInstance(written["intent_run"]["handoff"]["recovery"], dict)
             self.assertIn("status", written["intent_run"]["handoff"]["recovery"])
+
+    def test_focused_handoff_binds_materialized_intent_artifact(self):
+        session_spec = importlib.util.spec_from_file_location(
+            "sessionctl_for_intent", Path.cwd() / "skills/control-plane/session-packet-management/scripts/sessionctl.py"
+        )
+        assert session_spec and session_spec.loader
+        sessionctl = importlib.util.module_from_spec(session_spec)
+        session_spec.loader.exec_module(sessionctl)
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            MODULE.run_git(repo, "init", "-q")
+            MODULE.run_git(repo, "-c", "user.email=test@example.com", "-c", "user.name=test", "commit", "--allow-empty", "-qm", "init")
+            packet = sessionctl.init_packet(repo, "20260902_intent_001", "intent", "conversation")
+            data = self._run("user_idea", "focused")
+            run = data["intent_run"]
+            run["workspace"] = MODULE.workspace_report(repo)
+            run["handoff"]["packet"] = str(packet.relative_to(repo))
+            run["intent"].update(objective="bounded", why="evidence", current_state="anchored", target_state="ready", success_criteria=["pass"], scope=["intent"], out_of_scope=["plan"])
+            run["evidence"] = [{"id": "E1", "locator": "AGENTS.md", "kind": "repository", "observed_at": "2026-09-02T00:00:00Z"}]
+            run["trust"]["evidence_traceability"] = "complete"
+            self.assertEqual(MODULE.materialize_intent_artifact(data).resolve(), (packet / "intent.md").resolve())
+            self.assertEqual(MODULE._packet_canonical_intent(run), MODULE._canonical_packet_intent(run))
+            (packet / "intent.md").write_text((packet / "intent.md").read_text().replace("bounded", "tampered"), encoding="utf-8")
+            result = MODULE.fresh_context(data)
+            self.assertEqual(result["status"], "blocked")
+            self.assertIn("session_intent_artifact_binding", result["missing"])
 
     def test_behavioral_fixture_covers_required_cases(self):
         fixture = yaml.safe_load((ROOT / "tests/fixtures/behavioral-cases.yaml").read_text(encoding="utf-8"))

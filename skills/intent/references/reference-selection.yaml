@@ -92,63 +92,99 @@ conditional:
     condition: material_relationships
 
 references:
+  intent-packet.md:
+    class: output_contract
+    purpose: bounded intent packet output contract
+    trigger: handoff output
+    required_observables: []
+    negative_boundary: does not define lifecycle transitions
+  requirement-matrix.yaml:
+    class: matrix
+    purpose: origin and depth requiredness matrix
+    trigger: requirement selection
+    required_observables: []
+    negative_boundary: does not execute workflow stages
+  scenario-routing.md:
+    class: schema_reference
+    purpose: origin and subskill routing guidance
+    trigger: origin routing
+    required_observables: []
+    negative_boundary: does not replace root orchestration
+  source-audit.md:
+    class: schema_reference
+    purpose: source and claim audit guidance
+    trigger: source audit
+    required_observables: []
+    negative_boundary: does not assert unsupported facts
   source-contract.md:
+    class: procedural
     purpose: canonical two-origin locator and source boundary
     trigger: always
-    observable: origin locator retained in canonical grammar
+    required_observables: [origin_locator]
     negative_boundary: does not retrieve or mutate source systems
   workspace-resolution.md:
+    class: procedural
     purpose: anchor CWD, Git root, and instruction chain
     trigger: always
-    observable: workspace report retains cwd, repo_root, head, and instruction chain
+    required_observables: [workspace_anchor]
     negative_boundary: does not hunt sibling repositories
   context-resolution.md:
+    class: procedural
     purpose: route factual gaps to authoritative sources
     trigger: context_resolution
-    observable: each factual gap is mapped to a bounded source class
+    required_observables: [claim_evidence]
     negative_boundary: does not prescribe implementation
   evidence-classification.md:
+    class: procedural
     purpose: classify claims and retain evidence IDs
     trigger: claim_audit or evidence_acquisition
-    observable: material claims carry epistemic state and evidence IDs
+    required_observables: [claim_evidence]
     negative_boundary: does not build a knowledge graph
   issue-audit.md:
+    class: procedural
     purpose: audit GitHub Issue claims and current state
     trigger: origin github_issue
-    observable: Issue locator, observed state, and material claims are retained
+    required_observables: [issue_state]
     negative_boundary: does not edit Issues
   relationship-audit.md:
+    class: procedural
     purpose: inspect material overlap, dependency, and supersession
     trigger: focused/deep Issue or discovered related work
-    observable: relationships are classified or explicitly recorded as none-found
+    required_observables: [relationships_checked]
     negative_boundary: no relationship is not assumed without a bounded check
   adaptive-depth.md:
+    class: procedural
     purpose: escalate investigation only on material triggers
     trigger: depth may escalate
-    observable: selected depth and escalation reason are retained
+    required_observables: [claim_evidence]
     negative_boundary: no file-count or time-count thresholds
   convergence-audit.md:
+    class: procedural
     purpose: compare synthesized intent with evidence and decisions
     trigger: convergence
-    observable: contradictions, scope drift, and dangling evidence are checked
+    required_observables: [convergence_audit]
     negative_boundary: does not create a plan
   orientation-view.md:
+    class: procedural
     purpose: project concise evidence-backed context
     trigger: non-trivial orientation
-    observable: orientation separates confirmed, inferred, unknown, and proposed state
+    required_observables: [orientation]
     negative_boundary: no implementation instructions
   intent-handoff.md:
+    class: procedural
     purpose: persist bounded handoff and recovery signals
     trigger: session handoff
-    observable: packet pointer and trust/recovery fields validate
+    required_observables: [handoff]
     negative_boundary: does not own workflow transitions
   quality-gates.md:
+    class: procedural
     purpose: provide intent readiness evidence to the operating workflow
     trigger: readiness
-    observable: gate evidence and blockers are reported without transition authority
+    required_observables: [handoff]
     negative_boundary: canonical workflow owns transitions
   run-state.md:
+    class: schema_reference
     purpose: explain compact intent_run fields and deterministic checks
     trigger: machine-readable run state
-    observable: run-state fields and controlled statuses validate
+    required_observables: [handoff]
     negative_boundary: not a workflow database

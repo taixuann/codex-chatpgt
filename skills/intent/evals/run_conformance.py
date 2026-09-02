@@ -31,6 +31,15 @@ def expected_refs(policy: dict[str, Any], profile: str, material_relationships: 
     return refs
 
 
+def expected_observables(policy: dict[str, Any], refs: set[str]) -> set[str]:
+    """Derive reviewer rubric from the canonical reference policy."""
+    result: set[str] = set()
+    for ref in refs:
+        metadata = policy.get("references", {}).get(ref, {})
+        result.update(metadata.get("required_observables", []))
+    return result
+
+
 def review(case: dict[str, Any], observation: dict[str, Any] | None, policy: dict[str, Any]) -> dict[str, Any]:
     if observation is None:
         return {
@@ -45,7 +54,9 @@ def review(case: dict[str, Any], observation: dict[str, Any] | None, policy: dic
     observed = set(observation.get("observed_references", []))
     missing = sorted(expected - observed)
     extra = sorted(observed - expected)
-    required = set(observation.get("required_observables", []))
+    # Expectations are reviewer-owned case rubric, never supplied by the
+    # authored observation fixture under review.
+    required = set(case.get("required_observables", [])) or expected_observables(policy, expected)
     actual = set(observation.get("observables", []))
     missing_observables = sorted(required - actual)
     routing_ok = observation.get("observed_capability") == case["capability"]
@@ -72,8 +83,6 @@ def run(cases: dict[str, Any], observations: dict[str, Any], policy: dict[str, A
     results = []
     for case in cases.get("cases", []):
         obs = observations.get("cases", {}).get(case["id"])
-        if obs is not None and "required_observables" not in obs:
-            obs["required_observables"] = []
         results.append(review(case, obs, policy))
     return {
         "schema_version": 1,
