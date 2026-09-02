@@ -61,11 +61,18 @@ class GitAllowlistTests(unittest.TestCase):
             "documentation/sessions/records/plans/README.md",
             "documentation/sessions/records/plans/PLAN-example.yaml",
             "documentation/sessions/records/plans/nested/PLAN-example.md",
-            "documentation/sessions/records/reviews/ISSUE-96-REVIEW.yaml",
+            "documentation/sessions/records/reviews/README.md",
+            "documentation/sessions/records/reviews/ISSUE-96-REVIEW.json",
+            "documentation/sessions/records/reviews/nested/ISSUE-96-REVIEW.yaml",
         )
         for path in rejected:
             with self.subTest(path=path):
                 self.assertFalse(validate_git_allowlist.is_allowed_path(path))
+        self.assertTrue(
+            validate_git_allowlist.is_allowed_path(
+                "documentation/sessions/records/reviews/ISSUE-57-ATHENA-REVIEW.yaml"
+            )
+        )
 
 
 if __name__ == "__main__":
