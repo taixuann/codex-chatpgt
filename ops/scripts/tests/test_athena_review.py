@@ -60,7 +60,9 @@ class AthenaReviewContractTests(unittest.TestCase):
         value = copy.deepcopy(self.request); value["criteria"]["source"] = []
         with self.assertRaises(ValueError): validator.validate_request(value)
     def test_not_assessed_cannot_clear(self):
-        value = copy.deepcopy(self.result); value["recommendation"]["status"] = "clear_for_parent_decision"
+        value = copy.deepcopy(self.result)
+        value["criteria"][0]["status"] = "not_assessed"
+        value["recommendation"]["status"] = "clear_for_parent_decision"
         with self.assertRaises(ValueError): validator.validate_result(value)
     def test_final_acceptance_forbidden(self):
         value = copy.deepcopy(self.result); value["system_accepted"] = True
