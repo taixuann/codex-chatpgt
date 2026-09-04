@@ -31,7 +31,7 @@
       "scholarship_hunting"
     ],
     "scientific_writing": [
-      "synthid_text"
+      "scientific_peer_review"
     ],
     "user_gold": [
       "user_sop_gold"
@@ -188,6 +188,27 @@
       ],
       "failure_codes": [
         "internal_contradiction"
+      ],
+      "status_values": [
+        "PASS",
+        "FAIL",
+        "UNRESOLVED"
+      ]
+    },
+    {
+      "id": "G10",
+      "name": "AUTHORSHIP_INTEGRITY_BOUNDARY",
+      "definition": "The requested operation does not ask the skill to evade AI detectors/watermarks, fabricate human authorship signals, or deliberately degrade prose.",
+      "applicable_modes": [
+        "DRAFT_FROM_EVIDENCE",
+        "REVISE_PRESERVE_MEANING",
+        "COMPARE_VARIANTS",
+        "FIT_ADAPT"
+      ],
+      "failure_codes": [
+        "detector_evasion_goal",
+        "watermark_removal_goal",
+        "deliberate_human_signal_injection"
       ],
       "status_values": [
         "PASS",
