@@ -127,12 +127,6 @@ def validate_catalog(root: Path, catalog: dict[str, Any], tracked: set[str]) -> 
             owners[name] = disposition
 
     missing = tracked - set(owners)
-    extra = set(owners) - tracked
-    if missing:
-        errors.append(f"tracked packages missing a disposition: {', '.join(sorted(missing))}")
-    if extra:
-        errors.append(f"catalog names are not tracked packages: {', '.join(sorted(extra))}")
-
     overlays = catalog.get("noncanonical_overlays", [])
     if not isinstance(overlays, list):
         errors.append("noncanonical_overlays must be a list")
@@ -151,6 +145,12 @@ def validate_catalog(root: Path, catalog: dict[str, Any], tracked: set[str]) -> 
             errors.append(f"overlay cannot also be a tracked package: {overlay['name']}")
         if not overlay.get("local_only") and not (root / overlay["path"]).exists():
             errors.append(f"overlay path does not exist: {overlay['path']}")
+
+    extra = set(owners) - tracked
+    if missing:
+        errors.append(f"tracked packages missing a disposition: {', '.join(sorted(missing))}")
+    if extra:
+        errors.append(f"catalog names are not tracked packages: {', '.join(sorted(extra))}")
 
     canonical = catalog.get("canonical_active")
     if not isinstance(canonical, list) or not canonical:
