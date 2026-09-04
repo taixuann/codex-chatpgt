@@ -1,28 +1,46 @@
 # Authorship, AI-assistance, detector, and watermark boundary
 
-Resolve the most specific target-program/application policy before drafting or rewriting.
+Resolve the most specific target-program/application policy before drafting, rewriting, or reviewing application text when that policy governs AI assistance.
 
-## Policy states
+## Policy model
+
+Do not collapse permission and disclosure into one enum.
+
+### Assistance level
 
 - `UNKNOWN`
 - `DRAFTING_ALLOWED`
 - `EDITING_ONLY`
 - `BRAINSTORMING_ONLY`
 - `PROHIBITED`
-- `DISCLOSURE_REQUIRED`
+
+### Disclosure obligation
+
+- `UNKNOWN`
+- `NOT_REQUIRED`
+- `REQUIRED`
+
+### Attestation obligation
+
+- `UNKNOWN`
+- `NONE`
+- `REQUIRED`
+
+Also record the exact allowed/prohibited operations from the source policy when wording is more specific than these coarse labels.
 
 Program/application-specific policy overrides generic institutional guidance. Do not infer a permissive policy from silence.
 
-## Operation mapping
+## Operation rules
 
-| Policy | Draft | Rewrite substantive prose | Diagnose / score | Brainstorm |
-| --- | --- | --- | --- | --- |
-| DRAFTING_ALLOWED | yes | yes | yes | yes |
-| EDITING_ONLY | no new substantive content | line/clarity edits only | yes | yes |
-| BRAINSTORMING_ONLY | no | no | yes | yes |
-| PROHIBITED | no | no | no application-text authorship | policy-safe general guidance only |
-| DISCLOSURE_REQUIRED | only within stated policy | only within stated policy | yes | yes |
-| UNKNOWN | unresolved when material | unresolved when material | yes | yes |
+- `DRAFTING_ALLOWED`: substantive drafting is permitted only to the extent the actual policy says so.
+- `EDITING_ONLY`: do not author new substantive claims, stories, or paragraphs; preserve user-authored content and restrict edits to the allowed scope.
+- `BRAINSTORMING_ONLY`: organize questions/ideas or provide general feedback; do not compose final application prose.
+- `PROHIBITED`: do not use the capability on application text beyond policy-safe general guidance.
+- `UNKNOWN`: surface unresolved policy status when it materially affects the requested operation.
+- `disclosure=REQUIRED`: surface the obligation; do not imply it was satisfied.
+- `attestation=REQUIRED`: do not help create a false attestation or silently proceed when the requested operation conflicts with it.
+
+A policy may, for example, allow editing **and** require disclosure. Those facts must coexist rather than one overwriting the other.
 
 ## Three different concepts
 
