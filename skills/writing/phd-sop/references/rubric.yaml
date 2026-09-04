@@ -12,9 +12,6 @@
     "repo_design": [
       "repo_skill_guidance"
     ],
-    "official_application_policy": [
-      "runtime_target_policy"
-    ],
     "gopen_swan": [
       "gopen_swan"
     ],
@@ -35,6 +32,14 @@
     ],
     "user_gold": [
       "user_sop_gold"
+    ],
+    "official_target_policy": [
+      "runtime_target_policy"
+    ],
+    "official_sop_guidance": [
+      "stanford_sop_guidance",
+      "duke_sop_guidance",
+      "cornell_asop_guidance"
     ]
   },
   "hard_gates": [
@@ -874,7 +879,7 @@
         "FIT_ADAPT"
       ],
       "source_basis": [
-        "official_application_policy",
+        "official_target_policy",
         "repo_design"
       ],
       "not_assessed_when": [
@@ -902,7 +907,8 @@
         "FIT_ADAPT"
       ],
       "source_basis": [
-        "official_application_policy",
+        "official_sop_guidance",
+        "official_target_policy",
         "repo_design"
       ],
       "not_assessed_when": [
@@ -958,7 +964,8 @@
         "FIT_ADAPT"
       ],
       "source_basis": [
-        "repo_design"
+        "repo_design",
+        "official_sop_guidance"
       ],
       "not_assessed_when": [
         "research_experience_absent"
@@ -1068,7 +1075,8 @@
         "FIT_ADAPT"
       ],
       "source_basis": [
-        "official_application_policy",
+        "official_sop_guidance",
+        "official_target_policy",
         "repo_design"
       ],
       "not_assessed_when": [
@@ -1096,6 +1104,7 @@
         "FIT_ADAPT"
       ],
       "source_basis": [
+        "official_sop_guidance",
         "repo_design"
       ],
       "not_assessed_when": [
@@ -1123,7 +1132,7 @@
         "FIT_ADAPT"
       ],
       "source_basis": [
-        "official_application_policy",
+        "official_target_policy",
         "repo_design"
       ],
       "not_assessed_when": [
