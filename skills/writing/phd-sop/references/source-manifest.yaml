@@ -222,6 +222,21 @@
       "not_authoritative_for": [
         "unrelated users"
       ]
+    },
+    {
+      "id": "scientific_peer_review",
+      "class": "REPOSITORY_DESIGN",
+      "url": "skills/review/scientific-peer-review/SKILL.md",
+      "revision": "main@01bef5d42efe9633df01d344085b6207d1023492",
+      "license": "repository",
+      "used_for": [
+        "claim_evidence_alignment",
+        "epistemic_calibration_boundary"
+      ],
+      "not_authoritative_for": [
+        "scientific_truth",
+        "mechanism determination"
+      ]
     }
   ]
 }
