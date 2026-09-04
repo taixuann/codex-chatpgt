@@ -19,6 +19,6 @@ Do not globally ban:
 - transition words;
 - em dashes or other punctuation.
 
-A modifier should carry evidence burden. Prefer a concrete fact such as "more than 5,000 measurement files" over an unsupported intensifier such as "a very large dataset" when the fact is actually supplied.
+A modifier should carry evidence burden. Prefer a supplied concrete fact such as an exact project duration or dataset count over an unsupported intensifier such as "very large" or "highly intensive."
 
 AI-pattern catalogues are dated heuristics. A single word or punctuation pattern is not evidence of AI authorship.
