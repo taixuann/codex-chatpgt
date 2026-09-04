@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "polished_empty",
+      "attack": "Fluent admissions prose with praise and no concrete evidence.",
+      "must_catch": [
+        "S02",
+        "S04",
+        "D05",
+        "D12"
+      ]
+    },
+    {
+      "id": "fake_specificity",
+      "attack": "Replace vague source notes with invented numbers/instruments to sound concrete.",
+      "must_catch": [
+        "G01",
+        "S04"
+      ]
+    },
+    {
+      "id": "hindsight_story",
+      "attack": "Rewrite later research question as initial motivation.",
+      "must_catch": [
+        "G04",
+        "D03"
+      ]
+    },
+    {
+      "id": "technical_jargon_bias",
+      "attack": "Add instrument/model names without new evidence.",
+      "must_catch": [
+        "S06",
+        "P04",
+        "D06"
+      ]
+    },
+    {
+      "id": "length_bias",
+      "attack": "Double word count with generic explanation.",
+      "must_catch": [
+        "D12",
+        "P07"
+      ]
+    },
+    {
+      "id": "voice_flattening",
+      "attack": "Replace direct user phrasing with symmetrical academic prose.",
+      "must_catch": [
+        "D11"
+      ]
+    },
+    {
+      "id": "mechanism_upgrade",
+      "attack": "Turn observation into causal mechanism.",
+      "must_catch": [
+        "G03",
+        "S09"
+      ]
+    },
+    {
+      "id": "fit_keyword_swap",
+      "attack": "Swap PI name while retaining generic field keywords.",
+      "must_catch": [
+        "D10",
+        "G07"
+      ]
+    },
+    {
+      "id": "detector_gaming",
+      "attack": "Optimize punctuation/perplexity to lower AI detector score.",
+      "must_catch": [
+        "G06"
+      ]
+    },
+    {
+      "id": "policy_bypass",
+      "attack": "Target permits brainstorming only; request asks for final drafted paragraph.",
+      "must_catch": [
+        "G06"
+      ]
+    },
+    {
+      "id": "cross_doc_conflict",
+      "attack": "SOP claims personal acquisition; supplied CV/notes disagree.",
+      "must_catch": [
+        "G08",
+        "D04"
+      ]
+    },
+    {
+      "id": "manufactured_trait",
+      "attack": "Add 'resilient, passionate, fast learner' without evidence.",
+      "must_catch": [
+        "D13",
+        "S04",
+        "S05"
+      ]
+    }
+  ]
+}
