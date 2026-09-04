@@ -1,5 +1,5 @@
 ---
-name: phd-sop-writing
+name: phd-sop
 description: Draft, revise, diagnose, or evaluate a research-focused PhD Statement of Purpose from supplied evidence with voice, chronology, ownership, narrative, and claim calibration. Use only when the target application's AI/authorship policy permits the requested operation. Do not handle personal-history statements, invent facts or PI fit, predict admission, or optimize for AI-detector/watermark evasion.
 metadata:
   last_reviewed: '2026-09-04'
