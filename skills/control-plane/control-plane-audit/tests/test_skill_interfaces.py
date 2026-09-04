@@ -23,7 +23,7 @@ class SkillInterfaceDiscoveryTests(unittest.TestCase):
         self.assertGreaterEqual(len(names), 10)
         self.assertIn("external-handoff", names)
         self.assertIn("shared-session-closeout", names)
-        self.assertIn("socratic", names)
+        self.assertIn("architecture-preflight", names)
         self.assertIn("skill-retrospective", names)
         self.assertIn("api-and-interface-design", names)
         self.assertNotIn("workflow-manager", names)
