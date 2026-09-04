@@ -9,7 +9,7 @@ source:
     kind: user
     locator: conversation
 scenario: planning-and-task-breakdown
-subskill: planning-and-task-breakdown
+capabilities: [planning-and-task-breakdown]
 objective: Validate the plan family structure.
 assumptions: []
 dependencies: []

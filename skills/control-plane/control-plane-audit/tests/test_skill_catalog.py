@@ -18,6 +18,30 @@ def load_module():
 
 
 class SkillCatalogTests(unittest.TestCase):
+    def test_local_only_overlay_is_valid_absent_or_present(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); self._write_skill(root, "one", "false")
+            (root / "skills/one/SKILL.md").write_text("---\nname: one\ndescription: Validate one bounded package only; do not execute unrelated work.\n---\n# Trigger\n# Inputs\n# Output\n# Boundary\n# Stop\n# Validation\n", encoding="utf-8")
+            catalog = {"schema_version": 1, "dispositions": {"KEEP": ["one"]}, "canonical_active": ["one"], "capability_keys": {"one": "one"}, "evidence": {"one": {"utility": "PASS", "structural": "PASS", "behavioral": "NOT_ASSESSED", "basis": "test"}}, "noncanonical_overlays": [{"name": "phd-sop", "path": "skills/writing/phd-sop", "disposition": "EXPLICIT_ONLY", "local_only": True}]}
+            self.assertEqual(module.validate_catalog(root, catalog, {"one"}), [])
+            overlay = root / "skills/writing/phd-sop"; (overlay / "agents").mkdir(parents=True)
+            (overlay / "SKILL.md").write_text("---\nname: phd-sop\ndescription: Explicit reference package; do not invoke implicitly.\n---\n", encoding="utf-8")
+            (overlay / "agents/openai.yaml").write_text("policy:\n  allow_implicit_invocation: false\n", encoding="utf-8")
+            self.assertEqual(module.validate_catalog(root, catalog, {"one", "phd-sop"}), [])
+
+    def test_writing_taxonomy_is_counted_as_tracked(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            package = root / "skills/writing/phd-sop"
+            package.mkdir(parents=True)
+            (package / "SKILL.md").write_text(
+                "---\nname: phd-sop\ndescription: Explicit writing package.\n---\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(module.tracked_skill_names(root), ["phd-sop"])
+
     def _write_skill(self, root: Path, name: str, policy: str = "") -> None:
         skill_dir = root / "skills" / name
         (skill_dir / "agents").mkdir(parents=True)

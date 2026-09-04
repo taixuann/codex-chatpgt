@@ -1,0 +1,10 @@
+skill: plan
+cases:
+  - {id: simple-accepted-intent, expected: [], prompt: "Accepted Intent has no architecture uncertainty and trivial decomposition."}
+  - {id: accepted-intent-needs-decomposition, expected: [planning-and-task-breakdown], prompt: "Accepted Intent needs ordered implementation tasks."}
+  - {id: material-architecture-uncertainty, expected: [architecture-preflight], prompt: "Accepted Intent contains material unresolved architecture decisions."}
+  - {id: architecture-plus-decomposition, expected: [architecture-preflight, planning-and-task-breakdown], prompt: "Accepted Intent has material architecture uncertainty and requires decomposition."}
+  - {id: goal-scope-ambiguity, expected: [RETURN_TO_INTENT], prompt: "Goal or scope is not confirmed."}
+  - {id: canonical-pattern, expected: [], prompt: "Existing canonical pattern resolves design uncertainty."}
+  - {id: light-readiness, mode: LIGHT, expected_review_class: null, prompt: "Routine accepted Intent needs decomposition only."}
+  - {id: deep-readiness, mode: DEEP, expected_review_class: plan_contract, prompt: "Consequential accepted Intent requires independent deep Plan critique."}

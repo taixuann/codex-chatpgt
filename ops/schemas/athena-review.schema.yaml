@@ -12,7 +12,7 @@ properties:
     properties:
       ref: {type: string, minLength: 1}
       revision: {type: string, minLength: 1}
-  review_class: {enum: [implementation, architecture_contract, readiness, scientific_evidence, risk_security]}
+  review_class: {enum: [implementation, architecture_contract, plan_contract, readiness, scientific_evidence, risk_security]}
   criteria:
     type: object
     additionalProperties: false

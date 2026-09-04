@@ -1,0 +1,6 @@
+interface:
+  display_name: "Architecture Preflight"
+  short_description: "Resolve material design uncertainty before planning"
+  default_prompt: "Use $architecture-preflight only for material architecture uncertainty in an accepted Intent; return a bounded architecture contract and stop before execution."
+policy:
+  allow_implicit_invocation: false

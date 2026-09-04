@@ -2,9 +2,18 @@ $schema: https://json-schema.org/draft/2020-12/schema
 title: Athena formal review result
 type: object
 additionalProperties: false
-required: [kind, target_revision, coverage, criteria, findings, recommendation, limitations, human_review]
+required: [kind, review_class, target_ref, target_revision, reviewer, coverage, criteria, findings, recommendation, limitations, human_review]
 properties:
   kind: {const: athena.review-result.v1}
+  review_class: {enum: [implementation, architecture_contract, plan_contract, readiness, scientific_evidence, risk_security]}
+  target_ref: {type: string, minLength: 1}
+  reviewer:
+    type: object
+    additionalProperties: false
+    required: [independent, provenance]
+    properties:
+      independent: {const: true}
+      provenance: {type: string, minLength: 1}
   target_revision: {type: string, minLength: 1}
   coverage:
     type: object

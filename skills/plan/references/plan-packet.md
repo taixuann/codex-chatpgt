@@ -13,8 +13,8 @@ source:
     packet_schema_version: 1 # canonical skills/intent intent_packet contract
     kind: user               # user | github_issue
     locator: conversation
-scenario: planning-and-task-breakdown
-subskill: planning-and-task-breakdown
+scenario: planning-and-task-breakdown # reporting label only
+capabilities: [planning-and-task-breakdown]
 objective: "..."
 assumptions: []
 dependencies: []
@@ -35,7 +35,10 @@ approved: false
 side_effects: none
 ```
 
-Task IDs must be unique and dependencies must form an acyclic graph.
+`capabilities` is the minimum necessary composition and may contain either
+active leaf or both active leaves; for root-only framing use `scenario: none`
+and `capabilities: []`; `scenario` is a reporting label only. Task
+IDs must be unique and dependencies must form an acyclic graph.
 `--ready-for-build` requires `approved: true` and no open questions. Approval
 does not itself authorize code changes; the task contract still governs them.
 

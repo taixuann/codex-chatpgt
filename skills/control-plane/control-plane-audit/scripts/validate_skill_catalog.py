@@ -29,15 +29,11 @@ DISPOSITIONS = {
 
 
 def tracked_skill_names(root: Path) -> list[str]:
-    result = subprocess.run(
-        ["git", "-C", str(root), "ls-files", "skills/**/SKILL.md"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        return []
-    return sorted(Path(path).parent.name for path in result.stdout.splitlines() if path)
+    # Validate the live filesystem, not the Git index. This keeps audits valid
+    # in dirty worktrees and during staged migrations; archive roots are not
+    # canonical skill packages.
+    taxonomies = {"control-plane", "code", "reconnaissance", "review", "research", "design", "intent", "plan", "deploy", "runtime", "media", "interaction", "writing"}
+    return sorted({path.parent.name for path in (root / "skills").rglob("SKILL.md") if len(path.relative_to(root / "skills").parts) > 1 and path.relative_to(root / "skills").parts[0] in taxonomies})
 
 
 def skill_package_path(root: Path, name: str) -> Path:
@@ -130,13 +126,6 @@ def validate_catalog(root: Path, catalog: dict[str, Any], tracked: set[str]) -> 
                 errors.append(f"{name} must have exactly one disposition")
             owners[name] = disposition
 
-    missing = tracked - set(owners)
-    extra = set(owners) - tracked
-    if missing:
-        errors.append(f"tracked packages missing a disposition: {', '.join(sorted(missing))}")
-    if extra:
-        errors.append(f"catalog names are not tracked packages: {', '.join(sorted(extra))}")
-
     overlays = catalog.get("noncanonical_overlays", [])
     if not isinstance(overlays, list):
         errors.append("noncanonical_overlays must be a list")
@@ -151,10 +140,16 @@ def validate_catalog(root: Path, catalog: dict[str, Any], tracked: set[str]) -> 
         if overlay["name"] in overlay_names:
             errors.append(f"duplicate noncanonical overlay: {overlay['name']}")
         overlay_names.add(overlay["name"])
-        if overlay["name"] in owners:
-            errors.append(f"overlay cannot also be a tracked package: {overlay['name']}")
         if not overlay.get("local_only") and not (root / overlay["path"]).exists():
             errors.append(f"overlay path does not exist: {overlay['path']}")
+
+    tracked_canonical = tracked - overlay_names
+    missing = tracked_canonical - set(owners)
+    extra = set(owners) - tracked_canonical
+    if missing:
+        errors.append(f"tracked packages missing a disposition: {', '.join(sorted(missing))}")
+    if extra:
+        errors.append(f"catalog names are not tracked packages: {', '.join(sorted(extra))}")
 
     canonical = catalog.get("canonical_active")
     if not isinstance(canonical, list) or not canonical:
