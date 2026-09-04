@@ -47,8 +47,7 @@ def main() -> int:
         app = gate.get("applicable_modes", [])
         if app != ["all"] and not set(app).issubset(modes):
             errors.append(f"{gid}: unknown applicable mode")
-        if not gate.get("failure_codes"):
-            errors.append(f"{gid}: missing failure_codes")
+        if not gate.get("failure_codes"):\n            errors.append(f"{gid}: missing failure_codes")\n        if not str(gate.get("applies_when", "")).strip():\n            errors.append(f"{gid}: missing applies_when")
 
     required = {"id","name","level","definition","applicable_modes","source_basis","not_assessed_when","anchors"}
     allowed_levels = {"sentence","sentence_pair","paragraph","document"}
