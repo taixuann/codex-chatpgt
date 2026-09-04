@@ -237,6 +237,56 @@
         "scientific_truth",
         "mechanism determination"
       ]
+    },
+    {
+      "id": "stanford_sop_guidance",
+      "class": "OFFICIAL_APPLICATION_GUIDANCE",
+      "url": "https://gradadmissions.stanford.edu/apply/statements",
+      "revision": "checked 2026-09-04",
+      "license": "official university guidance",
+      "used_for": [
+        "SOP preparation",
+        "research interests",
+        "future plans",
+        "program-specific prompt precedence"
+      ],
+      "not_authoritative_for": [
+        "universal word limits",
+        "other programs' AI policies"
+      ]
+    },
+    {
+      "id": "duke_sop_guidance",
+      "class": "OFFICIAL_APPLICATION_GUIDANCE",
+      "url": "https://gradschool.duke.edu/admissions/application-instructions/statement-purpose/",
+      "revision": "checked 2026-09-04",
+      "license": "official university guidance",
+      "used_for": [
+        "graduate-study objectives",
+        "research experience",
+        "program/faculty reasons"
+      ],
+      "not_authoritative_for": [
+        "universal SOP architecture"
+      ]
+    },
+    {
+      "id": "cornell_asop_guidance",
+      "class": "OFFICIAL_APPLICATION_GUIDANCE",
+      "url": "https://gradschool.cornell.edu/admissions/application-steps/statements-of-purpose/",
+      "revision": "checked 2026-09-04",
+      "license": "official university guidance",
+      "used_for": [
+        "specific research role",
+        "specific examples",
+        "feedback/setbacks",
+        "future study",
+        "program/faculty fit"
+      ],
+      "not_authoritative_for": [
+        "universal admissions rubric",
+        "other programs' prompts"
+      ]
     }
   ]
 }
