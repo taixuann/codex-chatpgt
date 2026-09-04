@@ -163,11 +163,11 @@
       ]
     },
     {
-      "id": "cross_document_xps",
+      "id": "cross_document_measurement_ownership",
       "kind": "cross_document",
       "sources": [
         "CV says applicant performed measurement acquisition.",
-        "Notes say collaborator acquired measurement; applicant analyzed data."
+        "Notes say a collaborator acquired the measurement and the applicant analyzed the resulting data."
       ],
       "expect": "conflict",
       "targets": [
