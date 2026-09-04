@@ -98,6 +98,7 @@ jobs:
           python skills/writing/phd-sop/scripts/validate_references.py
           python skills/writing/phd-sop/scripts/validate_spec_integrity.py
           python skills/writing/phd-sop/scripts/evaluate_calibration.py skills/writing/phd-sop/evals/calibration-sample.json
+          python skills/writing/phd-sop/scripts/lint_sop.py --self-test skills/writing/phd-sop/evals/lint-cases.json
 
       - name: Validate on-demand skill interfaces and quality
         id: on_demand_quality
