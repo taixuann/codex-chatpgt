@@ -1,0 +1,11 @@
+skill: architecture-preflight
+cases:
+  - id: material-architecture-uncertainty
+    prompt: "Accepted Intent spans a new API, durable state, and an external trust boundary with unresolved design choices."
+    expect: architecture-preflight
+  - id: canonical-pattern-resolves-design
+    prompt: "Accepted Intent matches an existing repository pattern and has no material design uncertainty."
+    expect: no-match
+  - id: goal-scope-ambiguity
+    prompt: "The request does not yet have confirmed scope or success criteria."
+    expect: return-to-intent

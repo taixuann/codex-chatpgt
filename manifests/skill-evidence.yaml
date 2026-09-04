@@ -106,7 +106,7 @@ adapt_tournament:
     - test-driven-development
   second_round_default_policy:
     - git-workflow-and-versioning
-    - spec-driven-development
+    - architecture-preflight
     - planning-and-task-breakdown
     - code-review-and-quality
     - context-engineering

@@ -25,7 +25,7 @@ ALLOWED_SKILL_PACKAGES = frozenset({
     "observability-and-instrumentation", "performance-optimization", "planning-and-task-breakdown", "playwright",
     "playwright-interactive", "render-deploy", "screenshot", "security-and-hardening",
     "security-best-practices", "security-ownership-map", "security-threat-model", "sentry", "shipping-and-launch",
-    "skill-retrospective", "socratic", "source-driven-development", "spec-driven-development", "speech",
+    "skill-retrospective", "architecture-preflight", "source-driven-development", "speech",
     "test-driven-development", "transcribe", "using-agent-skills", "vercel-deploy", "winui-app",
     "scientific-evidence-synthesis", "hypothesis-and-test-design", "scientific-method-critique", "session-packet-management",
     "codebase-reconnaissance", "research-source-discovery", "reference-state-reconnaissance",

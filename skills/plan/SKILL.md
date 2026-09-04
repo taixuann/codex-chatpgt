@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Turn a confirmed user or GitHub Issue intent into a bounded, validated plan packet by routing to one planning subskill. Use when requirements or implementation tasks need structure; do not use to implement, commit, or replace Issue/PLAN authority.
+description: Turn a confirmed user or GitHub Issue intent into a bounded, validated plan packet by composing the minimum necessary planning capabilities. Use when requirements or implementation tasks need structure; do not use to implement, commit, or replace Issue/PLAN authority.
 metadata:
   family: plan
   status: explicit_only
@@ -38,9 +38,8 @@ provenance; it does not grant build, commit, or publication authority.
 
 | Signal | Load | Do not use when |
 | --- | --- | --- |
-| Requirements/specification is absent, contradictory, or needs explicit assumptions and success criteria | `spec-driven-development` | a validated specification already exists |
-| Architecture or cross-domain decisions may invalidate the approach | `socratic` | the task is already mechanically decomposed |
-| Intent/specification is accepted and needs ordered tasks, dependencies, acceptance, and verification | `planning-and-task-breakdown` | the request is still an unconfirmed idea |
+| Material architecture or cross-domain decisions may invalidate the approach | `architecture-preflight` | canonical evidence already resolves the design |
+| Accepted Intent needs ordered tasks, dependencies, acceptance, and verification | `planning-and-task-breakdown` | the request is still an unconfirmed idea |
 
 Use [scenario-routing.md](references/scenario-routing.md) for tie-breaks. Load
 only the selected leaf and its necessary references; do not load the whole
@@ -48,16 +47,20 @@ family by default.
 
 ## Bounded procedure
 
-1. Verify the input source and confirmation state. Stop if no user/GitHub Issue
+1. Verify the input source and confirmation state. Return to Intent if no user/GitHub Issue
    provenance is available or if an intent packet is unconfirmed.
-2. Select one primary scenario. Record any unresolved architecture or
-   requirements question rather than silently inventing an answer.
-3. Run that leaf's procedure. The leaf may recommend a supporting capability,
-   but the parent must not turn the recommendation into an automatic lifecycle.
+2. Determine the minimum necessary capability set from accepted Intent,
+   architecture uncertainty, and decomposition needs. The reporting
+   `primary`/`scenario` label must not restrict supporting composition.
+3. Run only the selected procedures. The valid set is none,
+   `architecture-preflight`, `planning-and-task-breakdown`, or both. Record
+   unresolved authority questions rather than silently inventing answers.
 4. Produce a `plan_packet` containing source, objective, assumptions,
    dependencies, ordered tasks, acceptance criteria, verification commands,
    checkpoints, out-of-scope items, and open questions.
-5. Run the deterministic validator:
+5. Project tasks with `scripts/project_tasks.py`; this deterministic,
+   idempotent projection does not grant execution authority.
+6. Run the deterministic validator:
 
    ```bash
    python3 skills/plan/scripts/validate_plan_packet.py PACKET.yaml

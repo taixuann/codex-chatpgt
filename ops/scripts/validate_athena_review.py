@@ -7,7 +7,7 @@ import sys
 from typing import Any
 import yaml
 
-CLASSES = {"implementation", "architecture_contract", "readiness", "scientific_evidence", "risk_security"}
+CLASSES = {"implementation", "architecture_contract", "plan_contract", "readiness", "scientific_evidence", "risk_security"}
 STATUSES = {"fulfilled", "partial", "unfulfilled", "not_assessed"}
 RECOMMENDATIONS = {"clear_for_parent_decision", "issues_found", "insufficient_evidence"}
 REASONS = {"ambiguous_criterion", "conflicting_authority", "critical_evidence_missing", "multiple_valid_consequential_interpretations", "authority_or_policy_change", "scientific_claim_exceeds_evidence", "producer_reviewer_material_disagreement", "explicit_policy_gate"}
@@ -19,7 +19,7 @@ SCOPE_KEYS = {"include", "exclude"}
 CONTEXT_KEYS = {"optional_refs"}
 AUTHORITY_KEYS = {"mutation", "final_acceptance"}
 OUTPUT_KEYS = {"require"}
-RESULT_KEYS = {"kind", "target_revision", "coverage", "criteria", "findings", "recommendation", "limitations", "human_review"}
+RESULT_KEYS = {"kind", "review_class", "target_ref", "target_revision", "reviewer", "coverage", "criteria", "findings", "recommendation", "limitations", "human_review"}
 COVERAGE_KEYS = {"reviewed", "not_reviewed", "complete"}
 CRITERION_KEYS = {"id", "status", "evidence", "rationale"}
 FINDING_KEYS = {"severity", "criterion", "location", "evidence", "rationale", "suggested_action"}
@@ -69,6 +69,11 @@ def validate_result(doc: dict[str, Any], expected_revision: str | None = None) -
     doc = mapping(doc, "result")
     exact_keys(doc, RESULT_KEYS, "result")
     if doc.get("kind") != "athena.review-result.v1": raise ValueError("result kind must be athena.review-result.v1")
+    if doc.get("review_class") not in CLASSES: raise ValueError("result review_class is not supported")
+    if not isinstance(doc.get("target_ref"), str) or not doc["target_ref"].strip(): raise ValueError("target_ref is required")
+    reviewer = mapping(doc.get("reviewer"), "reviewer"); exact_keys(reviewer, {"independent", "provenance"}, "reviewer")
+    if reviewer.get("independent") is not True: raise ValueError("reviewer.independent must be true")
+    if not isinstance(reviewer.get("provenance"), str) or not reviewer["provenance"].strip(): raise ValueError("reviewer.provenance is required")
     revision = doc.get("target_revision")
     if not isinstance(revision, str) or not revision.strip(): raise ValueError("target_revision is required")
     if expected_revision and revision != expected_revision: raise ValueError("result target revision is stale")

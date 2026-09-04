@@ -12,7 +12,9 @@ metadata:
 
 ## Overview
 
-Decompose work into small, verifiable tasks with explicit acceptance criteria. Good task breakdown is the difference between an agent that completes work reliably and one that produces a tangled mess. Every task should be small enough to implement, test, and verify in a single focused session.
+Decompose work into bounded, verifiable tasks with explicit acceptance criteria.
+Size tasks using coupling, uncertainty, blast radius, authority, shared write
+surface, dependency structure, and verification complexity.
 
 ## When to Use
 
@@ -109,7 +111,8 @@ Each task follows this structure:
 - `src/path/to/file.ts`
 - `tests/path/to/test.ts`
 
-**Estimated scope:** [Small: 1-2 files | Medium: 3-5 files | Large: 5+ files]
+**Scope factors:** coupling, uncertainty, blast radius, authority/risk, shared
+write surface, dependency structure, and verification complexity.
 ```
 
 ### Step 5: Order and Checkpoint
@@ -118,7 +121,7 @@ Arrange tasks so that:
 
 1. Dependencies are satisfied (build foundation first)
 2. Each task leaves the system in a working state
-3. Verification checkpoints occur after every 2-3 tasks
+3. Verification checkpoints occur at material dependency or risk boundaries
 4. High-risk tasks are early (fail fast)
 
 Add explicit checkpoints:
@@ -131,23 +134,10 @@ Add explicit checkpoints:
 - [ ] Review with human before proceeding
 ```
 
-## Task Sizing Guidelines
-
-| Size | Files | Scope | Example |
-|------|-------|-------|---------|
-| **XS** | 1 | Single function or config change | Add a validation rule |
-| **S** | 1-2 | One component or endpoint | Add a new API endpoint |
-| **M** | 3-5 | One feature slice | User registration flow |
-| **L** | 5-8 | Multi-component feature | Search with filtering and pagination |
-| **XL** | 8+ | **Too large — break it down further** | — |
-
-If a task is L or larger, it should be broken into smaller tasks. An agent performs best on S and M tasks.
-
 **When to break a task down further:**
-- It would take more than one focused session (roughly 2+ hours of agent work)
-- You cannot describe the acceptance criteria in 3 or fewer bullet points
+- It spans multiple independent risk or authority boundaries
+- Acceptance or verification cannot be stated as a bounded, testable contract
 - It touches two or more independent subsystems (e.g., auth and billing)
-- You find yourself writing "and" in the task title (a sign it is two tasks)
 
 ## Output and persistence
 
@@ -162,64 +152,11 @@ Issue/PLAN contracts and the session-packet-management skill own persistence;
 this leaf supplies a derived task breakdown and never creates durable state on
 its own.
 
-## Plan Document Template
-
-```markdown
-# Implementation Plan: [Feature/Project Name]
-
-## Overview
-[One paragraph summary of what we're building]
-
-## Architecture Decisions
-- [Key decision 1 and rationale]
-- [Key decision 2 and rationale]
-
-## Task List
-
-### Phase 1: Foundation
-- [ ] Task 1: ...
-- [ ] Task 2: ...
-
-### Checkpoint: Foundation
-- [ ] Tests pass, builds clean
-
-### Phase 2: Core Features
-- [ ] Task 3: ...
-- [ ] Task 4: ...
-
-### Checkpoint: Core Features
-- [ ] End-to-end flow works
-
-### Phase 3: Polish
-- [ ] Task 5: ...
-- [ ] Task 6: ...
-
-### Checkpoint: Complete
-- [ ] All acceptance criteria met
-- [ ] Ready for review
-
-## Risks and Mitigations
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| [Risk] | [High/Med/Low] | [Strategy] |
-
-## Open Questions
-- [Question needing human input]
-```
-
-## Parallelization Opportunities
-
-When multiple agents or sessions are available:
-
-- **Safe to parallelize:** Independent feature slices, tests for already-implemented features, documentation
-- **Must be sequential:** Database migrations, shared state changes, dependency chains
-- **Needs coordination:** Features that share an API contract (define the contract first, then parallelize)
-
 ## Common Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "I'll figure it out as I go" | That's how you end up with a tangled mess and rework. 10 minutes of planning saves hours. |
+| "I'll figure it out as I go" | That's how you end up with a tangled mess and rework. |
 | "The tasks are obvious" | Write them down anyway. Explicit tasks surface hidden dependencies and forgotten edge cases. |
 | "Planning is overhead" | Planning is the task. Implementation without a plan is just typing. |
 | "I can hold it all in my head" | Context windows are finite. Written plans survive session boundaries and compaction. |
@@ -240,7 +177,7 @@ Before starting implementation, confirm:
 - [ ] Every task has acceptance criteria
 - [ ] Every task has a verification step
 - [ ] Task dependencies are identified and ordered correctly
-- [ ] No task touches more than ~5 files
+- [ ] Each task has an explicit bounded write surface and verification contract
 - [ ] Checkpoints exist between major phases
 - [ ] The human has reviewed and approved the plan
 

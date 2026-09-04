@@ -29,15 +29,11 @@ DISPOSITIONS = {
 
 
 def tracked_skill_names(root: Path) -> list[str]:
-    result = subprocess.run(
-        ["git", "-C", str(root), "ls-files", "skills/**/SKILL.md"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        return []
-    return sorted(Path(path).parent.name for path in result.stdout.splitlines() if path)
+    # Validate the live filesystem, not the Git index. This keeps audits valid
+    # in dirty worktrees and during staged migrations; archive roots are not
+    # canonical skill packages.
+    taxonomies = {"control-plane", "code", "reconnaissance", "review", "research", "design", "intent", "plan", "deploy", "runtime", "media", "interaction"}
+    return sorted({path.parent.name for path in (root / "skills").rglob("SKILL.md") if len(path.relative_to(root / "skills").parts) > 1 and path.relative_to(root / "skills").parts[0] in taxonomies})
 
 
 def skill_package_path(root: Path, name: str) -> Path:

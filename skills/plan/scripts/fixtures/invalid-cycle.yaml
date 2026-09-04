@@ -4,7 +4,7 @@ source:
   kind: github_issue
   locator: org/repo#42
 scenario: planning-and-task-breakdown
-subskill: planning-and-task-breakdown
+capabilities: [planning-and-task-breakdown]
 objective: A cyclic plan.
 tasks:
   - id: T1

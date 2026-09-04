@@ -6,7 +6,7 @@ explicit_overlay_root: skills/ (entries listed under noncanonical_overlays are n
 vendor_reference_roots:
   - vendor-repos/
   - skills-archive/
-retired_root: skill-archive/20260811-system-skill-cleanup/
+retired_root: skills-archive/
 policy: >-
   A package is canonical only when it is explicitly listed as KEEP and has
   repository-grounded capability/utility evidence. All other packages remain
@@ -54,8 +54,8 @@ dispositions:
     - incremental-implementation
     - observability-and-instrumentation
     - planning-and-task-breakdown
+    - architecture-preflight
     - security-and-hardening
-    - spec-driven-development
     - test-driven-development
     - scientific-evidence-synthesis
     - hypothesis-and-test-design
@@ -97,7 +97,6 @@ dispositions:
     - security-ownership-map
     - security-threat-model
     - shipping-and-launch
-    - socratic
     - source-driven-development
     - transcribe
     - winui-app
@@ -207,6 +206,15 @@ evidence:
       - skills/review/independent-artifact-review/evals
       - skills/references/athena-review-kernel.md
       - skills/references/athena-overlap-audit.yaml
+  architecture-preflight:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Bounded post-Intent architecture decision procedure with explicit uncertainty and verification boundaries.
+    evidence_paths:
+      - skills/plan/architecture-preflight/SKILL.md
+      - skills/plan/architecture-preflight/evals
+      - skills/plan/architecture-preflight/references/retrieval-policy.md
   scientific-peer-review:
     utility: PASS
     structural: PASS
