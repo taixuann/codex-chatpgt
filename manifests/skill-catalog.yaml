@@ -107,6 +107,7 @@ dispositions:
   RETIRE:
     - skill-retrospective
 noncanonical_overlays:
+  # Present only when supplied by the merge base; never add to dispositions.
   - {name: phd-sop, path: skills/writing/phd-sop, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: archify-reference, path: documentation/architecture/archify, disposition: REFERENCE_ONLY, local_only: false}
   - {name: docling-document-processing, path: skills/knowledge/docling-document-processing, disposition: EXPLICIT_ONLY, local_only: true}
