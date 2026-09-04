@@ -87,7 +87,8 @@ def main() -> int:
         "repo_skill_guidance","athena_kernel","better_writing","addictive_writing",
         "scholarship_hunting","sop_rubric_evaluator","agent_writing","story_skills",
         "liang_detectors","synthid_text","style_confounds_2026","gopen_swan",
-        "brookhart_rubric","moskal_leydens","user_sop_gold","scientific_peer_review"
+        "brookhart_rubric","moskal_leydens","user_sop_gold","scientific_peer_review",
+        "stanford_sop_guidance","duke_sop_guidance","cornell_asop_guidance"
     }
     missing_sources = sorted(required_sources - source_ids)
     if missing_sources:
