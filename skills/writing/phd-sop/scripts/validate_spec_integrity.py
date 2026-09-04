@@ -15,7 +15,7 @@ def main() -> int:
     cmap = load("references/construct-map.yaml")
     anchors = load("evals/anchors.yaml")
     cases = load("evals/cases.yaml")
-    adversarial = load("evals/adversarial.yaml")
+    adversarial = load("evals/adversarial.yaml")\n    patterns = load("references/ai-pattern-catalog.yaml")
 
     errors = []
     gate_ids = {x["id"] for x in rubric["hard_gates"]}
@@ -81,6 +81,20 @@ def main() -> int:
             errors.append(f"{cid}: incomplete anchors")
         if "not_assessed_when" not in item:
             errors.append(f"{cid}: missing not_assessed_when")
+
+    # AI-pattern catalogue is dated and diagnostic-only.
+    pattern_ids = []
+    for pattern in patterns.get("patterns", []):
+        pid = pattern.get("id")
+        pattern_ids.append(pid)
+        for key in ("id", "category", "first_observed", "last_reviewed", "confidence", "genres", "triggers", "false_positive_notes"):
+            if not pattern.get(key):
+                errors.append(f"pattern {pid or '<missing>'}: missing {key}")
+        if pattern.get("diagnostic_only") is not True:
+            errors.append(f"pattern {pid or '<missing>'}: diagnostic_only must be true")
+    duplicates = sorted({pid for pid in pattern_ids if pid and pattern_ids.count(pid) > 1})
+    if duplicates:
+        errors.append(f"duplicate AI-pattern ids: {duplicates}")
 
     # Mandatory core sources from the canonical issue are present.
     required_sources = {
