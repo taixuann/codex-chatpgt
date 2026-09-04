@@ -87,7 +87,7 @@ def main() -> int:
         errors.append("arithmetic_overall_score_forbidden must be true")
 
     expected = {
-        "G01","G02","G03","G04","G05","G06","G07","G08","G09",
+        "G01","G02","G03","G04","G05","G06","G07","G08","G09","G10",
         *{f"S{i:02d}" for i in range(1,10)},
         *{f"PAIR{i:02d}" for i in range(1,5)},
         *{f"P{i:02d}" for i in range(1,11)},
