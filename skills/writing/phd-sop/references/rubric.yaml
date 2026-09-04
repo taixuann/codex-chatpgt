@@ -53,7 +53,8 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "material factual claims are present"
     },
     {
       "id": "G02",
@@ -72,7 +73,8 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "a source draft/locked meaning exists for preservation"
     },
     {
       "id": "G03",
@@ -89,7 +91,8 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "material empirical/causal/evaluative claims are present"
     },
     {
       "id": "G04",
@@ -108,7 +111,8 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "chronology, collaboration, or ownership is material"
     },
     {
       "id": "G05",
@@ -125,33 +129,35 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "a target prompt/format requirement is supplied or target compliance is requested"
     },
     {
       "id": "G06",
       "name": "PROGRAM_AI_POLICY",
       "definition": "The requested writing operation is permitted by the most specific available application AI/authorship policy.",
       "applicable_modes": [
-        "DRAFT_FROM_EVIDENCE",
-        "REVISE_PRESERVE_MEANING",
-        "FIT_ADAPT"
+        "all"
       ],
       "failure_codes": [
         "policy_prohibits_operation",
-        "policy_unresolved_material"
+        "policy_unresolved_material",
+        "disclosure_requirement_ignored",
+        "attestation_conflict"
       ],
       "status_values": [
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "the requested operation concerns target application text governed by an AI/authorship policy"
     },
     {
       "id": "G07",
       "name": "PI_FACT_INTEGRITY",
       "definition": "Material PI/program facts used for fit are verified and current enough for the claim.",
       "applicable_modes": [
-        "FIT_ADAPT"
+        "all"
       ],
       "failure_codes": [
         "unverified_pi_claim",
@@ -161,7 +167,8 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "material PI/program fit claims are present"
     },
     {
       "id": "G08",
@@ -177,7 +184,8 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "multiple supplied application/source artifacts overlap materially"
     },
     {
       "id": "G09",
@@ -193,17 +201,15 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "a multi-sentence application artifact is being evaluated"
     },
     {
       "id": "G10",
       "name": "AUTHORSHIP_INTEGRITY_BOUNDARY",
       "definition": "The requested operation does not ask the skill to evade AI detectors/watermarks, fabricate human authorship signals, or deliberately degrade prose.",
       "applicable_modes": [
-        "DRAFT_FROM_EVIDENCE",
-        "REVISE_PRESERVE_MEANING",
-        "COMPARE_VARIANTS",
-        "FIT_ADAPT"
+        "all"
       ],
       "failure_codes": [
         "detector_evasion_goal",
@@ -214,7 +220,8 @@
         "PASS",
         "FAIL",
         "UNRESOLVED"
-      ]
+      ],
+      "applies_when": "any requested operation could be used for detector/watermark evasion or deliberate authorship-signal manipulation"
     }
   ],
   "criteria": [
