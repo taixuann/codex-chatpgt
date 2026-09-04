@@ -122,7 +122,7 @@
     },
     {
       "id": "liang_detectors",
-      "class": "PEER_REVIEWED_WRITING_OR_MEASUREMENT",
+      "class": "PEER_REVIEWED_RESEARCH",
       "url": "https://doi.org/10.1016/j.patter.2023.100779",
       "revision": "Patterns 4(7), 2023",
       "license": "publisher",
@@ -137,7 +137,7 @@
     },
     {
       "id": "synthid_text",
-      "class": "PEER_REVIEWED_WRITING_OR_MEASUREMENT",
+      "class": "PEER_REVIEWED_RESEARCH",
       "url": "https://doi.org/10.1038/s41586-024-08025-4",
       "revision": "Nature 634, 2024",
       "license": "publisher",
@@ -150,7 +150,7 @@
     },
     {
       "id": "style_confounds_2026",
-      "class": "PEER_REVIEWED_WRITING_OR_MEASUREMENT",
+      "class": "PREPRINT_RESEARCH",
       "url": "https://arxiv.org/abs/2608.26710",
       "revision": "arXiv:2608.26710; presented EMNLP 2026",
       "license": "arXiv",
@@ -164,7 +164,7 @@
     },
     {
       "id": "gopen_swan",
-      "class": "PEER_REVIEWED_WRITING_OR_MEASUREMENT",
+      "class": "PROFESSIONAL_WRITING_GUIDANCE",
       "url": "https://www.americanscientist.org/blog/the-long-view/the-science-of-scientific-writing",
       "revision": "principles from Gopen & Swan",
       "license": "publisher",
@@ -179,7 +179,7 @@
     },
     {
       "id": "brookhart_rubric",
-      "class": "PEER_REVIEWED_WRITING_OR_MEASUREMENT",
+      "class": "RUBRIC_METHOD_GUIDANCE",
       "url": "https://www.ascd.org/books/how-to-create-and-use-rubrics-for-formative-assessment-and-grading",
       "revision": "rubric design principles",
       "license": "publisher",
@@ -194,7 +194,7 @@
     },
     {
       "id": "moskal_leydens",
-      "class": "PEER_REVIEWED_WRITING_OR_MEASUREMENT",
+      "class": "PEER_REVIEWED_RESEARCH",
       "url": "https://scholarworks.umass.edu/pare/vol7/iss1/10/",
       "revision": "Practical Assessment, Research & Evaluation 7(10)",
       "license": "publisher",
