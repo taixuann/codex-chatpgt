@@ -71,7 +71,7 @@
       "id": "detector_gaming",
       "attack": "Optimize punctuation/perplexity to lower AI detector score.",
       "must_catch": [
-        "G06"
+        "G10"
       ]
     },
     {
