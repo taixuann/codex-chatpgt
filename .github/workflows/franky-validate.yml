@@ -91,6 +91,15 @@ jobs:
             PYTHONDONTWRITEBYTECODE=1 python skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
           done < <(git ls-files 'skills/**/SKILL.md')
 
+      - name: Validate PhD SOP writing specification
+        id: phd_sop
+        run: |
+          python skills/writing/phd-sop/scripts/validate_rubric.py
+          python skills/writing/phd-sop/scripts/validate_references.py
+          python skills/writing/phd-sop/scripts/validate_spec_integrity.py
+          python skills/writing/phd-sop/scripts/evaluate_calibration.py skills/writing/phd-sop/evals/calibration-sample.json
+          python skills/writing/phd-sop/scripts/lint_sop.py --self-test skills/writing/phd-sop/evals/lint-cases.json
+
       - name: Validate on-demand skill interfaces and quality
         id: on_demand_quality
         run: |
@@ -255,6 +264,7 @@ jobs:
             echo '| Athena review contracts and cases | ${{ steps.athena_review.outcome }} |'
             echo '| Reversible documentation archive index | ${{ steps.archive_index.outcome }} |'
             echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
+            echo '| PhD SOP rubric/spec integrity | ${{ steps.phd_sop.outcome }} |'
             echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
             echo '| Agent adapters | ${{ steps.agents.outcome }} |'
             echo '| Canonical role boundaries | ${{ steps.role_boundaries.outcome }} |'

@@ -33,6 +33,7 @@ capability_keys:
   independent-artifact-review: independent-artifact-review
   scientific-peer-review: scientific-peer-review
   risk-security-review: risk-security-review
+  phd-sop: phd-sop
 dispositions:
   KEEP:
     - control-plane-audit
@@ -66,6 +67,7 @@ dispositions:
     - independent-artifact-review
     - scientific-peer-review
     - risk-security-review
+    - phd-sop
   EXPLICIT_ONLY:
     - intent
     - issue-intake
@@ -216,6 +218,16 @@ evidence:
       - skills/review/scientific-peer-review/SKILL.md
       - skills/review/scientific-peer-review/evals
       - skills/references/athena-review-kernel.md
+  phd-sop:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Evidence-bounded PhD SOP construction/revision with canonical rubric, provenance, policy guard, adversarial fixtures, and deterministic spec-integrity validators.
+    evidence_paths:
+      - skills/writing/phd-sop/SKILL.md
+      - skills/writing/phd-sop/references
+      - skills/writing/phd-sop/evals
+      - skills/writing/phd-sop/scripts
   risk-security-review:
     utility: PASS
     structural: PASS
