@@ -30,6 +30,18 @@ class SkillCatalogTests(unittest.TestCase):
             (overlay / "agents/openai.yaml").write_text("policy:\n  allow_implicit_invocation: false\n", encoding="utf-8")
             self.assertEqual(module.validate_catalog(root, catalog, {"one", "phd-sop"}), [])
 
+    def test_writing_taxonomy_is_counted_as_tracked(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            package = root / "skills/writing/phd-sop"
+            package.mkdir(parents=True)
+            (package / "SKILL.md").write_text(
+                "---\nname: phd-sop\ndescription: Explicit writing package.\n---\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(module.tracked_skill_names(root), ["phd-sop"])
+
     def _write_skill(self, root: Path, name: str, policy: str = "") -> None:
         skill_dir = root / "skills" / name
         (skill_dir / "agents").mkdir(parents=True)

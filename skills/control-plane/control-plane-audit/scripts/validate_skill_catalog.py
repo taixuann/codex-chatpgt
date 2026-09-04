@@ -32,7 +32,7 @@ def tracked_skill_names(root: Path) -> list[str]:
     # Validate the live filesystem, not the Git index. This keeps audits valid
     # in dirty worktrees and during staged migrations; archive roots are not
     # canonical skill packages.
-    taxonomies = {"control-plane", "code", "reconnaissance", "review", "research", "design", "intent", "plan", "deploy", "runtime", "media", "interaction"}
+    taxonomies = {"control-plane", "code", "reconnaissance", "review", "research", "design", "intent", "plan", "deploy", "runtime", "media", "interaction", "writing"}
     return sorted({path.parent.name for path in (root / "skills").rglob("SKILL.md") if len(path.relative_to(root / "skills").parts) > 1 and path.relative_to(root / "skills").parts[0] in taxonomies})
 
 
