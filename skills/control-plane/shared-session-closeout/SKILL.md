@@ -33,8 +33,8 @@ technical, scientific, or operator decisions.
    surface.
 2. Locate the canonical record. Prefer the GitHub Issue/PLAN/PR and CI state
    for ordinary work. Use an explicitly selected external goal package only when that lifecycle is
-   explicitly selected. Use `ops/changes/YYYY/CHG-*/change.yaml` only when a
-   real machine/audit consumer or an explicit contract requires it.
+   explicitly selected. Use the named Issue/PLAN/PR evidence unless a real
+   machine/audit consumer explicitly requires another record.
 3. Run the deterministic state check:
 
    ```text

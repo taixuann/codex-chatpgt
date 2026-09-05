@@ -19,14 +19,18 @@ REQUIRED_KINDS = {"positive", "negative", "neighbor", "none", "ambiguous"}
 
 
 def tracked_skills(root: Path) -> set[str]:
-    catalog = yaml.safe_load((root / "manifests/skill-catalog.yaml").read_text(encoding="utf-8")) or {}
-    names = set()
-    for values in (catalog.get("dispositions") or {}).values():
-        if isinstance(values, list):
-            names.update(name for name in values if isinstance(name, str))
+    result = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "skills/**/SKILL.md"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return set()
     return {
-        name for name in names
-        if any(".system" not in path.parts for path in (root / "skills").rglob(f"{name}/SKILL.md"))
+        Path(path).parent.name
+        for path in result.stdout.splitlines()
+        if path and ".system" not in Path(path).parts
     }
 
 

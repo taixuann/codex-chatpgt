@@ -27,15 +27,7 @@ class SkillInterfaceDiscoveryTests(unittest.TestCase):
         self.assertIn("skill-retrospective", names)
         self.assertIn("api-and-interface-design", names)
         self.assertNotIn("workflow-manager", names)
-        optional_root = root.parent / "ops" / "on-demand-skills"
-        optional = module.discover_packages(optional_root)
-        self.assertEqual({package.name for package in optional}, {
-            "anthropic-skill-creator",
-            "franky-cron-installer",
-            "franky-promotion",
-            "franky-source-migration",
-            "install-project-link",
-        })
+        self.assertFalse((root.parent / "ops").exists())
 
 
 if __name__ == "__main__":

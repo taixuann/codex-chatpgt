@@ -21,9 +21,9 @@ Empty placeholder adapters are retained only when explicitly documented and
 are not treated as active runtime agents.
 ## Capability and runtime materialization
 
-The approved/eligible capability repertoire for every retained adapter is
-defined once in [`../manifests/agent-repertoires.yaml`](../manifests/agent-repertoires.yaml).
-It is not a persona-owned skill namespace and does not route tasks by itself.
+The approved capability repertoire is bounded by `skills/AGENTS.md` and the
+active task contract. It is not a persona-owned skill namespace and does not
+route tasks by itself.
 Explicit named-agent invocation and automatic capability-first routing remain
 separate entry modes.
 
@@ -33,7 +33,6 @@ enable/disable and native `@franky` dispatch remain `NOT_ASSESSED` until a
 model turn exposes observable child-agent/skill-selection evidence. Franky
 therefore uses explicit required-capability task packets as the v1 fallback.
 
-The repository-owned global `[agents]` baseline is the checked-in fixture at
-`../ops/schemas/examples/codex-agents-settings.toml`; validate it with
-`python ../ops/scripts/validate_codex_runtime_config.py ...`. Do not copy the
-fixture over a user's local config without an explicit runtime-change decision.
+The repository-owned global `[agents]` baseline is the TOML block in
+`agents/AGENTS.md`. Do not copy it over a user's local config without an
+explicit runtime-change decision.

@@ -43,13 +43,12 @@ packet manifest and references rather than invented schema fields.
 
 ## Franky records
 
-`franky.ticket.yaml` must remain compatible with
-`ops/schemas/franky-task.schema.yaml`; use the existing `franky.task.v1`
-contract rather than inventing a session-specific task schema.
+`franky.ticket.yaml` must use the `franky.task.v1` kind when a Franky task
+contract is selected; do not invent a session-specific task schema.
 
-`franky.results.yaml` must remain compatible with
-`ops/schemas/franky-result.schema.yaml`; include source-state-bound validation,
-review status, rollback, limitations, and the exact human approval boundary.
+`franky.results.yaml` must use the `franky.result.v1` kind when a Franky task
+contract is selected; include source-state-bound validation, review status,
+rollback, limitations, and the exact human approval boundary.
 
 The packet may reference these records; it must not redefine their authority.
 

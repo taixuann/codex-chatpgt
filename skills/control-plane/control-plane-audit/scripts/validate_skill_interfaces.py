@@ -30,7 +30,9 @@ def discover_packages(root: Path) -> list[Path]:
     # is staged and must never miss nested packages.
     discovered = sorted(
         path.parent.resolve() for path in root.rglob("SKILL.md")
-        if path.is_file() and path.parent != root
+        if path.is_file()
+        and path.parent != root
+        and not {".system", ".tmp", ".agents", "backups", "vendor-repos", "skills-archive", "plugins"}.intersection(path.parts)
     )
     if discovered:
         return discovered

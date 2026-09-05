@@ -12,8 +12,7 @@ metadata:
 
 Intent is a bounded context-acquisition and convergence stage. It is not a
 planning engine, workflow engine, memory platform, or lifecycle database. GitHub
-Issues/Plans/PRs and `documentation/architecture/workflow/operation.md` remain
-the durable authority.
+Issues/Plans/PRs and the root `AGENTS.md` remain the durable authority.
 
 ## Origins and routing
 

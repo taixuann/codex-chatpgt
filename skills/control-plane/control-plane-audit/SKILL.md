@@ -32,9 +32,9 @@ Start with a read-only inventory. Inspect only the approved control-plane scope.
 5. Produce a report with exact paths, evidence, impact, and recommended next
    action.
 6. Apply changes only after human approval. Use the Issue/PLAN/PR/CI surface
-   for ordinary work. Create an `ops/changes/YYYY/CHG-YYYYMMDD-NNN/change.yaml`
-   only when a real machine/audit consumer or explicit contract requires it;
-   use a full goal package only when that lifecycle is explicitly selected.
+   for ordinary work. Use a named task-contract record only when a real
+   machine/audit consumer or explicit contract requires it; use a full goal
+   package only when that lifecycle is explicitly selected.
 7. Treat promotion preparation as a separate report with source hashes,
    destination registry changes, branch/update scope, and rollback metadata.
 

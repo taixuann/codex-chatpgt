@@ -1,7 +1,7 @@
 multi_source_current:
   intent: {question: 'locate registry ownership', consumer: parent}
-  bounded_path_source_service: {paths: [manifests/agent-repertoires.yaml], sources: [Issue-90], services: []}
-  scope: {include: [manifests, agents/argus.toml], exclude: [linked-projects, credentials]}
+  bounded_path_source_service: {paths: [agents/AGENTS.md], sources: [Issue-90], services: []}
+  scope: {include: [agents, skills], exclude: [linked-projects, credentials]}
   authority: [external-registry, portable-reference, adapter]
   priority: [external-registry, portable-reference, adapter]
   load_strategy: minimum-first
@@ -10,8 +10,8 @@ multi_source_current:
   dependencies: []
 stale_conflict:
   intent: {question: 'compare old and live state', consumer: parent}
-  bounded_path_source_service: {paths: [documentation/architecture/decisions.md], sources: [old-plan], services: []}
-  scope: {include: [documentation/architecture/decisions.md], exclude: [runtime-private]}
+  bounded_path_source_service: {paths: [AGENTS.md], sources: [old-plan], services: []}
+  scope: {include: [AGENTS.md], exclude: [runtime-private]}
   authority: [live-registry, old-plan]
   priority: [live-registry, old-plan]
   load_strategy: controlled-expansion

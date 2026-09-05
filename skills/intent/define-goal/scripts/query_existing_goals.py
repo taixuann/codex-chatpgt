@@ -11,7 +11,7 @@ from pathlib import Path
 def get_repo_root() -> Path:
     curr = Path(__file__).resolve().parent
     for candidate in (curr, *curr.parents):
-        if (candidate / ".git").exists() or (candidate / "manifests" / "skill-catalog.yaml").is_file():
+        if (candidate / ".git").exists():
             return candidate
     raise RuntimeError("Could not locate repo root")
 

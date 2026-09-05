@@ -132,33 +132,6 @@ class SessionPacketValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(PacketError, "packet_root"):
             validate(root)
 
-    def test_stage_less_packet_is_historical_only(self) -> None:
-        root = self._packet()
-        repository = root.parents[2]
-        historical = repository / "documentation" / "sessions" / root.name
-        historical.parent.mkdir(parents=True)
-        root.rename(historical)
-        (historical / "intent.md").unlink()
-        session = yaml.safe_load((historical / "session.yaml").read_text(encoding="utf-8"))
-        session.pop("stage", None)
-        session["packet_root"] = f"documentation/sessions/{historical.name}"
-        session["artifacts"] = {"context": "context.md", "plan": "plan.md", "tasks": "task.md", "references": "references.yaml"}
-        (historical / "session.yaml").write_text(yaml.safe_dump(session, sort_keys=False), encoding="utf-8")
-        context = (historical / "context.md").read_text(encoding="utf-8").replace("  - intent.md\n", "")
-        (historical / "context.md").write_text(context, encoding="utf-8")
-        plan = (historical / "plan.md").read_text(encoding="utf-8").replace("  - intent.md\n", "")
-        (historical / "plan.md").write_text(plan, encoding="utf-8")
-        validate(historical)
-
-    def test_stage_less_packet_at_arbitrary_path_is_rejected(self) -> None:
-        root = self._packet()
-        session = yaml.safe_load((root / "session.yaml").read_text(encoding="utf-8"))
-        session.pop("stage", None)
-        session["packet_root"] = "elsewhere/" + root.name
-        (root / "session.yaml").write_text(yaml.safe_dump(session, sort_keys=False), encoding="utf-8")
-        with self.assertRaisesRegex(PacketError, "historical surface"):
-            validate(root)
-
     def test_shared_templates_are_role_neutral(self) -> None:
         for name in ("context.md", "plan.md", "spec.md", "task.md"):
             text = (TEMPLATE_ROOT / name).read_text(encoding="utf-8")

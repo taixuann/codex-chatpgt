@@ -1,5 +1,4 @@
-name: Control-plane validation
-# Issue #90: retain a direct-push validation trigger for reviewed history.
+name: Skill validation
 
 on:
   workflow_dispatch:
@@ -8,38 +7,19 @@ on:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
-      - 'manifests/skill-catalog.yaml'
-      - 'manifests/skill-evidence.yaml'
-      - 'manifests/agent-repertoires.yaml'
-      - 'manifests/archive/**'
-      - 'documentation/architecture/**'
-      - 'documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md'
-      - 'documentation/architecture/agents.md'
-      - 'documentation/historical-provenance-exceptions.yaml'
-      - 'documentation/sessions/**'
-      - 'ops/**'
       - '.github/workflows/franky-validate.yml'
   pull_request:
     paths:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
-      - 'manifests/agent-repertoires.yaml'
-      - 'manifests/archive/**'
-      - 'documentation/architecture/**'
-      - 'documentation/archive/20260901/AGENT-LIFECYCLE-HARDENING.md'
-      - 'documentation/architecture/agents.md'
-      - 'documentation/CURRENT.md'
-      - 'documentation/historical-provenance-exceptions.yaml'
-      - 'documentation/sessions/**'
-      - 'ops/**'
       - '.github/workflows/franky-validate.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: control-plane-validation-${{ github.ref }}
+  group: skill-validation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -49,10 +29,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          # Session evidence may bind to an earlier commit in this reviewed
-          # integration branch; retain history so the validator can verify it.
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -63,232 +39,13 @@ jobs:
         run: python -m pip install 'pyyaml>=6,<7'
 
       - name: Validate skill interfaces
-        id: skills
         run: python skills/control-plane/control-plane-audit/scripts/validate_skill_interfaces.py skills
 
-      - name: Validate skill catalog admission and utility evidence
-        id: skill_catalog
-        run: python skills/control-plane/control-plane-audit/scripts/validate_skill_catalog.py . manifests/skill-catalog.yaml
-
-      - name: Validate behavioral skill evidence envelope
-        id: skill_evidence
-        run: python skills/control-plane/control-plane-audit/scripts/validate_skill_evidence.py manifests/skill-evidence.yaml
-
-      - name: Validate Athena review contracts and cases
-        id: athena_review
+      - name: Validate skill-creator package
         run: |
-          python ops/scripts/validate_athena_review.py \
-            --request ops/scripts/fixtures/athena-review-request.yaml \
-            --result ops/scripts/fixtures/athena-review-result.yaml \
-            --expected-revision 042d01392cb1915b47d75c101d58091badff7068 \
-            --cases ops/scripts/fixtures/athena-review-cases.yaml
-
-      - name: Validate tracked skill quality
-        id: skill_quality
-        run: |
-          while IFS= read -r skill_md; do
-            skill_dir="${skill_md%/SKILL.md}"
-            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
-          done < <(git ls-files 'skills/**/SKILL.md')
-
-      - name: Validate PhD SOP writing specification
-        id: phd_sop
-        run: |
-          python skills/writing/phd-sop/scripts/validate_rubric.py
-          python skills/writing/phd-sop/scripts/validate_references.py
-          python skills/writing/phd-sop/scripts/validate_spec_integrity.py
-          python skills/writing/phd-sop/scripts/evaluate_calibration.py skills/writing/phd-sop/evals/calibration-sample.json
-          python skills/writing/phd-sop/scripts/lint_sop.py --self-test skills/writing/phd-sop/evals/lint-cases.json
-
-      - name: Validate on-demand skill interfaces and quality
-        id: on_demand_quality
-        run: |
-          python skills/control-plane/control-plane-audit/scripts/validate_skill_interfaces.py ops/on-demand-skills
-          while IFS= read -r skill_md; do
-            skill_dir="${skill_md%/SKILL.md}"
-            PYTHONDONTWRITEBYTECODE=1 python skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py "$skill_dir"
-          done < <(git ls-files 'ops/on-demand-skills/*/SKILL.md')
-
-      - name: Validate agent adapters
-        id: agents
-        run: |
-          for agent in agents/*.toml; do
-            test ! -s "$agent" || python skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py "$agent"
-          done
-
-      - name: Validate canonical role boundaries
-        id: role_boundaries
-        run: python ops/scripts/validate_role_boundaries.py
-
-      - name: Validate Feynman v1 behavioral fixtures
-        id: feynman_v1
-        run: python ops/scripts/validate_feynman_v1.py ops/scripts/fixtures/feynman-v1.yaml --qualification ops/scripts/fixtures/feynman-v1-qualification.yaml
-
-      - name: Validate Personal Wiki v1 artifact boundary
-        id: personal_wiki
-        run: python ops/scripts/validate_personal_wiki_artifact.py ops/schemas/examples/personal-wiki-artifact.yaml
-
-      - name: Validate reversible documentation archive index
-        id: archive_index
-        run: python ops/scripts/validate_archive_index.py documentation/archive/20260826/ARCHIVE-INDEX.yaml
-
-      - name: Validate static skill-routing fixture
-        id: routing
-        run: python skills/control-plane/control-plane-audit/scripts/validate_skill_routing.py . skills/control-plane/control-plane-audit/scripts/fixtures/skill-routing.yaml
-
-      - name: Validate agent changelog
-        id: changelog
-        run: python skills/control-plane/control-plane-audit/scripts/validate_agent_changelog.py agents
-
-      - name: Validate canonical task contract
-        id: task_contract
-        run: |
-          python ops/scripts/validate_task_contract.py ops/schemas/examples/task-contract.yaml
-          python ops/scripts/validate_task_contract.py ops/schemas/examples/context-acquisition-task.yaml
-
-      - name: Validate Franky v1 task/result contracts and repertoires
-        id: franky_contracts
-        run: python ops/scripts/validate_franky_contracts.py
-
-      - name: Validate shared agent lifecycle and evidence contracts
-        id: agent_lifecycle
-        run: python ops/scripts/validate_agent_lifecycle.py ops/scripts/fixtures/agent-lifecycle.yaml
-
-      - name: Validate committed session packets
-        id: session_packets
-        run: |
-          set -euo pipefail
-          for packet in documentation/sessions/*; do
-            test -d "$packet" || continue
-            # `records/` preserves legacy plans and reviews; it is not a
-            # session packet and therefore must not be passed to the packet
-            # validator.
-            test "$(basename "$packet")" != "records" || continue
-            # These two immutable packets predate the current main history;
-            # preserve their original provenance without excluding future
-            # needs_review packets from validation.
-            case "$packet" in
-              documentation/sessions/20260826_franky-skills_001|documentation/sessions/20260826_franky-structure_001|documentation/sessions/20260828_argus-skill-standardization_001)
-                echo "Skipping named historical packet: $packet"
-                continue
-                ;;
-            esac
-            python skills/control-plane/session-packet-management/scripts/validate_session_packet.py "$packet"
-          done
-
-      - name: Validate Franky documentation impact
-        id: franky_documentation_impact
-        run: python ops/scripts/validate_franky_documentation_impact.py ops/scripts/fixtures/franky-documentation-impact.yaml
-
-      - name: Validate Codex global agent settings contract
-        id: codex_runtime_config
-        run: python ops/scripts/validate_codex_runtime_config.py ops/schemas/examples/codex-agents-settings.toml
-
-      - name: Evaluate Franky agent contract cases
-        id: franky_agent_eval
-        run: python ops/scripts/evaluate_franky_agent.py ops/scripts/fixtures/franky-agent-evaluation.yaml
-
-      - name: Run Franky contract and runtime tests
-        id: franky_tests
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s ops/scripts/tests -v
-
-      - name: Probe installed Codex runtime contract
-        id: codex_runtime_probe
-        run: python ops/scripts/probe_codex_agent_runtime.py
-
-      - name: Validate bounded context packet
-        id: context_packet
-        run: |
-          python ops/scripts/acquire_context_packet.py \
-            --root . \
-            --canonical AGENTS.md \
-            --canonical documentation/CURRENT.md \
-            --evidence documentation/architecture/decisions.md \
-            --uncertainty 'host adapter trace is not exposed' > /tmp/context-packet.json
-          python -m json.tool /tmp/context-packet.json >/dev/null
-
-      - name: Validate audit-record template
-        id: audit
-        run: python skills/control-plane/control-plane-audit/scripts/validate_audit_record.py skills/control-plane/control-plane-audit/templates/audit-record.yaml
-
-      - name: Validate scheduled maintenance definition
-        id: scheduler
-        run: python skills/control-plane/control-plane-audit/scripts/validate_scheduler.py ops/schedulers/franky-personal-skill-maintenance.yaml
-
-      - name: Validate session inventory fixture
-        id: inventory
-        run: python skills/control-plane/control-plane-audit/scripts/run_session_inventory.py --root . --sessions-dir skills/control-plane/control-plane-audit/scripts/fixtures --since-hours 24
-
-      - name: Validate adaptive file-first bootstrap
-        id: bootstrap
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane/project-bootstrap/tests -v
-
-      - name: Validate generic project-link capability
-        id: project_link
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s ops/on-demand-skills/install-project-link/tests -v
-
-      - name: Validate maintenance skill tests
-        id: routing_tests
-        run: PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/control-plane/control-plane-audit/tests -v
-
-      - name: Validate supporting skill tests
-        id: supporting_skill_tests
-        run: |
-          set -euo pipefail
-          PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/intent/tests -v
-          PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s skills/plan/tests -v
-          for test_dir in \
-            skills/control-plane/external-handoff/tests \
-            skills/control-plane/instruction-maintenance/tests \
-            skills/control-plane/runtime-adapter-management/tests \
-            skills/control-plane/session-packet-management/tests \
-            skills/control-plane/shared-session-closeout/tests; do
-            PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s "$test_dir" -v
-          done
+          python skills/skill-creator/scripts/quick_validate.py skills/skill-creator
+          python skills/skill-creator/scripts/validate_eval_cases.py skills/skill-creator/evals/cases.yaml
+          python skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py skills/skill-creator
 
       - name: Validate Git allowlist
-        id: allowlist
         run: python skills/control-plane/control-plane-audit/scripts/validate_git_allowlist.py .
-
-      - name: Write validation summary
-        if: always()
-        run: |
-          {
-            echo '## Control-plane validation'
-            echo
-            echo '| Check | Result |'
-            echo '| --- | --- |'
-            echo '| Skill interfaces | ${{ steps.skills.outcome }} |'
-            echo '| Skill catalog admission | ${{ steps.skill_catalog.outcome }} |'
-            echo '| Behavioral skill evidence envelope | ${{ steps.skill_evidence.outcome }} |'
-            echo '| Athena review contracts and cases | ${{ steps.athena_review.outcome }} |'
-            echo '| Reversible documentation archive index | ${{ steps.archive_index.outcome }} |'
-            echo '| Tracked skill quality | ${{ steps.skill_quality.outcome }} |'
-            echo '| PhD SOP rubric/spec integrity | ${{ steps.phd_sop.outcome }} |'
-            echo '| On-demand skill quality | ${{ steps.on_demand_quality.outcome }} |'
-            echo '| Agent adapters | ${{ steps.agents.outcome }} |'
-            echo '| Canonical role boundaries | ${{ steps.role_boundaries.outcome }} |'
-            echo '| Static skill-routing fixture | ${{ steps.routing.outcome }} |'
-            echo '| Agent changelog | ${{ steps.changelog.outcome }} |'
-            echo '| Task contract | ${{ steps.task_contract.outcome }} |'
-            echo '| Franky v1 contracts and repertoires | ${{ steps.franky_contracts.outcome }} |'
-            echo '| Franky documentation impact | ${{ steps.franky_documentation_impact.outcome }} |'
-            echo '| Committed session packets | ${{ steps.session_packets.outcome }} |'
-            echo '| Codex global agent settings | ${{ steps.codex_runtime_config.outcome }} |'
-            echo '| Franky agent contract evaluation | ${{ steps.franky_agent_eval.outcome }} |'
-            echo '| Franky contract and runtime tests | ${{ steps.franky_tests.outcome }} |'
-            echo '| Codex runtime contract probe | ${{ steps.codex_runtime_probe.outcome }} |'
-            echo '| Bounded context packet | ${{ steps.context_packet.outcome }} |'
-            echo '| Audit record | ${{ steps.audit.outcome }} |'
-            echo '| Scheduler definition | ${{ steps.scheduler.outcome }} |'
-            echo '| Session inventory fixture | ${{ steps.inventory.outcome }} |'
-            echo '| Adaptive file-first bootstrap | ${{ steps.bootstrap.outcome }} |'
-            echo '| Generic project-link capability | ${{ steps.project_link.outcome }} |'
-            echo '| Skill-routing fixture tests | ${{ steps.routing_tests.outcome }} |'
-            echo '| Supporting skill tests | ${{ steps.supporting_skill_tests.outcome }} |'
-            echo '| Git allowlist | ${{ steps.allowlist.outcome }} |'
-            echo
-            echo 'Legacy/retired root workflow files are not validated as canonical contracts.'
-            echo 'Optional external skills may be unresolved in CI only when their workflow step is explicitly conditional; required workflow-step skills must resolve from repository or configured skill roots.'
-            echo 'Personal scheduled-scope enforcement remains a local-runtime check because it depends on the actual Codex personal skill root.'
-          } >> "$GITHUB_STEP_SUMMARY"

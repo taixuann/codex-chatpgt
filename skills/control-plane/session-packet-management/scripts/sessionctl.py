@@ -98,7 +98,7 @@ def init_packet(root: Path, session_id: str, stage: str, origin: str, force: boo
         "session_id": session_id,
         "references": [
             {"path": origin, "kind": "intent-origin", "state": "observed", "commit_or_hash": observed, "observed_at": recorded, "relationship": "source-origin"},
-            {"path": "documentation/architecture/workflow/operation.md", "kind": "canonical-policy", "state": "current", "commit_or_hash": observed, "observed_at": recorded, "relationship": "governing-lifecycle"},
+            {"path": "AGENTS.md", "kind": "canonical-policy", "state": "current", "commit_or_hash": observed, "observed_at": recorded, "relationship": "governing-lifecycle"},
         ],
     }
     (packet / "references.yaml").write_text(yaml.safe_dump(references, sort_keys=False), encoding="utf-8")

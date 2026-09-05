@@ -12,8 +12,8 @@ metadata:
 
 This family packages planning capabilities; it is not a universal lifecycle or
 workflow engine. The repository's Issue/PLAN contract and
-`documentation/architecture/workflow/operation.md` remain authoritative for
-durable state, gates, approvals, and sequencing.
+the root `AGENTS.md` remain authoritative for durable state, gates, approvals,
+and sequencing.
 
 ## Accepted inputs
 

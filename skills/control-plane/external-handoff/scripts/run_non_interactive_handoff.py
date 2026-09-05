@@ -26,10 +26,6 @@ def _verified_root(candidate: Path) -> Path:
         candidate / "AGENTS.md",
         candidate / "agents" / "AGENTS.md",
         candidate / "skills" / "AGENTS.md",
-        candidate / "documentation" / "OPERATING-WORKFLOW.md",
-        candidate / "ops" / "schemas" / "franky-task.schema.yaml",
-        candidate / "ops" / "schemas" / "franky-result.schema.yaml",
-        candidate / "manifests" / "agent-repertoires.yaml",
     )
     if any(not path.is_file() for path in required_files):
         raise RuntimeError(f"not a control-plane repository root: {candidate}")
@@ -54,7 +50,7 @@ def get_repo_root(explicit: Path | None = None) -> Path:
         return _verified_root(explicit)
     current = Path(__file__).resolve().parent
     for candidate in (current, *current.parents):
-        if (candidate / "ops" / "schemas").is_dir() and (candidate / "manifests").is_dir():
+        if (candidate / "AGENTS.md").is_file() and (candidate / "skills" / "AGENTS.md").is_file():
             return _verified_root(candidate)
     raise RuntimeError("cannot locate control-plane repository root")
 

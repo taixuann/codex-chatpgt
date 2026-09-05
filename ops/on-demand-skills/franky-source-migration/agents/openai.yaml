@@ -1,4 +1,0 @@
-interface:
-  display_name: "Franky source migration"
-  short_description: "Migrate named external tool artifacts into Codex."
-  default_prompt: "Audit a named Claude Code, OpenCode, or Antigravity source and prepare a collision-safe Codex migration proposal."

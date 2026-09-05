@@ -5,12 +5,11 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import re
 import subprocess
 import sys
 
 
-ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/control-plane/control-plane-audit/", "skills/control-plane/runtime-adapter-management/", "skills/control-plane/instruction-maintenance/", "skills/control-plane/project-bootstrap/", "skills/control-plane/external-handoff/", "skills/control-plane/shared-session-closeout/", "skills/control-plane/session-packet-management/", "skills/control-plane/skill-creator/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/", "ops/on-demand-skills/")
+ALLOWED_PREFIXES = ("agents/", "skills/control-plane/control-plane-audit/", "skills/control-plane/runtime-adapter-management/", "skills/control-plane/instruction-maintenance/", "skills/control-plane/project-bootstrap/", "skills/control-plane/external-handoff/", "skills/control-plane/shared-session-closeout/", "skills/control-plane/session-packet-management/", "skills/skill-creator/", ".github/")
 ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "skills/ADDYOSMANI-AGENT-SKILLS-LICENSE", "workflows/AGENTS.md"}
 ALLOWED_SKILL_PACKAGES = frozenset({
     "api-and-interface-design", "aspnet-core", "browser-testing-with-devtools", "chatgpt-apps",
@@ -42,21 +41,8 @@ SENSITIVE_MARKERS = tuple(marker for marker in FORBIDDEN_MARKERS if marker != "s
 
 def is_sensitive_path(path: str) -> bool:
     return any(marker in path for marker in SENSITIVE_MARKERS)
-TRACKED_SESSION_PREFIXES = ("documentation/sessions/",)
-SESSION_ID = r"[0-9]{8}_[a-z0-9]+(?:-[a-z0-9]+)*_[0-9]{3}"
-TRACKED_SESSION_PATH = re.compile(
-    rf"^documentation/sessions/(?:README\.md|{SESSION_ID}/(?:session\.yaml|context\.md|spec\.md|plan\.md|task\.md|franky\.ticket\.yaml|franky\.results\.yaml|references\.yaml|\.rag/manifest\.yaml))$"
-)
-TRACKED_SESSION_RECORD_PATH = re.compile(
-    r"^documentation/sessions/records/(?:plans/PLAN-[A-Za-z0-9][A-Za-z0-9._-]*\.md|reviews/ISSUE-[A-Za-z0-9][A-Za-z0-9._-]*\.yaml)$"
-)
-
-
 def is_allowed_path(path: str) -> bool:
     """Return whether a tracked path belongs to an admitted repository surface."""
-    if path.startswith(TRACKED_SESSION_PREFIXES):
-        admitted = bool(TRACKED_SESSION_PATH.fullmatch(path) or TRACKED_SESSION_RECORD_PATH.fullmatch(path))
-        return admitted and not is_sensitive_path(path)
     if path in ALLOWED_FILES or path.startswith(ALLOWED_PREFIXES):
         return True
     if path.startswith(ALLOWED_SKILL_SHARED_PREFIXES):

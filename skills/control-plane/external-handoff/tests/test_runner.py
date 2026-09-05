@@ -19,8 +19,8 @@ class NonInteractiveRunnerTests(unittest.TestCase):
 
     def test_repository_root_is_verified(self):
         root = get_repo_root()
-        self.assertTrue((root / "ops" / "schemas" / "franky-task.schema.yaml").is_file())
-        self.assertTrue((root / "manifests" / "agent-repertoires.yaml").is_file())
+        self.assertTrue((root / "AGENTS.md").is_file())
+        self.assertTrue((root / "skills" / "AGENTS.md").is_file())
 
     def test_consequential_runner_rejects_omitted_root(self):
         with self.assertRaisesRegex(ValueError, "explicit --repo-root"):
@@ -35,7 +35,7 @@ class NonInteractiveRunnerTests(unittest.TestCase):
         source = get_repo_root()
         with tempfile.TemporaryDirectory() as directory:
             fake = Path(directory) / "fake-root"
-            for relative in ("AGENTS.md", "agents/AGENTS.md", "skills/AGENTS.md", "documentation/OPERATING-WORKFLOW.md", "ops/schemas/franky-task.schema.yaml", "ops/schemas/franky-result.schema.yaml", "manifests/agent-repertoires.yaml"):
+            for relative in ("AGENTS.md", "agents/AGENTS.md", "skills/AGENTS.md"):
                 target = fake / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source / relative, target)

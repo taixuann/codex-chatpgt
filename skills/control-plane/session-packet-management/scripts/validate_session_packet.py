@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
 from pathlib import Path
 import re
 import subprocess
@@ -24,7 +23,6 @@ REQUIRED_BY_STAGE = {
     "closeout": {"context.md", "intent.md", "plan.md", "references.yaml"},
 }
 REQUIRED = REQUIRED_BY_STAGE["plan"]
-LEGACY_REQUIRED = {"context.md", "plan.md", "task.md", "references.yaml"}
 OPTIONAL = {"spec.md", "task.md", "franky.ticket.yaml", "franky.results.yaml"}
 ARTIFACT_KEYS = {"context", "intent", "spec", "plan", "tasks", "ticket", "results", "references", "rag_manifest"}
 REQUIRED_ARTIFACT_KEYS = {"context", "intent", "references"}
@@ -93,11 +91,8 @@ def validate(packet: Path) -> None:
     if session.get("kind") != "codex.session-packet.v1":
         raise PacketError("session.yaml kind must be codex.session-packet.v1")
     stage = session.get("stage")
-    legacy = stage is None
-    if stage is not None and stage not in STAGES:
+    if stage not in STAGES:
         raise PacketError("session.yaml stage is invalid")
-    if legacy:
-        stage = "plan"
     source_state = session.get("source_state")
     if not isinstance(source_state, dict) or not source_state.get("commit") or not source_state.get("recorded_at"):
         raise PacketError("session.yaml source_state.commit and recorded_at are required")
@@ -107,7 +102,7 @@ def validate(packet: Path) -> None:
         raise PacketError("session.yaml repository_root is required")
     if not isinstance(packet_root, str) or not packet_root:
         raise PacketError("session.yaml packet_root is required")
-    if not legacy and packet_root != f".agents/sessions/{session_id}":
+    if packet_root != f".agents/sessions/{session_id}":
         raise PacketError("live packet_root must be .agents/sessions/<session-id>")
     if repository_root == ".":
         try:
@@ -123,10 +118,6 @@ def validate(packet: Path) -> None:
         repository_path = Path(repository_root).expanduser()
     if not repository_path.is_absolute() or not repository_path.is_dir():
         raise PacketError("session.yaml repository_root must be '.' or an existing absolute directory")
-    if legacy:
-        historical_root = (repository_path / "documentation/sessions").resolve()
-        if historical_root not in packet.resolve().parents:
-            raise PacketError("stage-less packets are valid only under documentation/sessions historical surface")
     if Path(packet_root).is_absolute():
         raise PacketError("session.yaml packet_root must be relative to repository_root")
     expected_packet = (repository_path / packet_root).resolve()
@@ -141,16 +132,14 @@ def validate(packet: Path) -> None:
     unknown_keys = set(artifacts) - ARTIFACT_KEYS
     if unknown_keys:
         raise PacketError(f"unknown artifact-map key(s): {sorted(unknown_keys)}")
-    required_artifact_keys = {"context", "plan", "tasks", "references"} if legacy else set(REQUIRED_ARTIFACT_KEYS)
-    if not legacy and stage in {"plan", "execution", "review", "closeout"}:
+    required_artifact_keys = set(REQUIRED_ARTIFACT_KEYS)
+    if stage in {"plan", "execution", "review", "closeout"}:
         required_artifact_keys.add("plan")
     missing_keys = required_artifact_keys - set(artifacts)
     if missing_keys:
         raise PacketError(f"missing artifact-map key(s): {sorted(missing_keys)}")
     names = {path.name for path in packet.iterdir() if path.is_file()}
     required_files = set(REQUIRED_BY_STAGE[stage])
-    if legacy:
-        required_files = set(LEGACY_REQUIRED)
     missing = required_files - names
     if missing:
         raise PacketError(f"missing required artifacts: {sorted(missing)}")
@@ -181,7 +170,7 @@ def validate(packet: Path) -> None:
 
     frontmatter_links: dict[str, dict[str, list[str]]] = {}
     artifact_link_names: dict[str, dict[str, list[str]]] = {}
-    for name in sorted((REQUIRED_BY_STAGE[stage] | OPTIONAL) if not legacy else (LEGACY_REQUIRED | OPTIONAL)):
+    for name in sorted(REQUIRED_BY_STAGE[stage] | OPTIONAL):
         path = packet / name
         if not path.exists():
             continue
@@ -291,19 +280,6 @@ def validate(packet: Path) -> None:
         task_links = artifact_link_names.get("task.md", {})
         if "franky.ticket.yaml" not in task_links.get("upstream", []) or "franky.results.yaml" not in task_links.get("downstream", []):
             raise PacketError("task.md must link to the Franky ticket upstream and result downstream")
-    if ticket.is_file() and result.is_file():
-        root = next((candidate for candidate in (packet, *packet.parents) if (candidate / "ops/schemas/franky-task.schema.yaml").is_file()), None)
-        if root is not None:
-            validator_path = root / "ops/scripts/validate_franky_contracts.py"
-            spec = importlib.util.spec_from_file_location("franky_contracts", validator_path)
-            if spec is None or spec.loader is None:
-                raise PacketError("cannot load Franky contract validator")
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            try:
-                module.validate(ticket, result, root / "manifests/agent-repertoires.yaml")
-            except (OSError, ValueError) as exc:
-                raise PacketError(f"Franky contract validation failed: {exc}") from exc
 
 
 def main(argv: list[str] | None = None) -> int:

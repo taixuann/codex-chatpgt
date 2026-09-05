@@ -31,5 +31,5 @@ one for every raw idea, and do not treat silence as approval to write files.
 ## Target convention
 
 Every repository uses `<repository-root>/.agents/sessions/<session-id>/` for
-new live packets. Existing `documentation/sessions/**` material is retained
-only as explicitly classified legacy/history and is never a new packet target.
+new live packets. Existing legacy session material is history only and is never
+a new packet target.

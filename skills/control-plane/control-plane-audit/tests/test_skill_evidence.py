@@ -3,7 +3,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import yaml
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "validate_skill_evidence.py"
@@ -36,11 +35,6 @@ class SkillEvidenceTests(unittest.TestCase):
     def test_rejects_missing_behavioral_dimensions(self):
         module = load_module()
         self.assertTrue(module.validate_evidence({"schema_version": 1}))
-
-    def test_repository_manifest_is_valid(self):
-        module = load_module()
-        path = Path(__file__).parents[4] / "manifests" / "skill-evidence.yaml"
-        self.assertEqual(module.validate_evidence(yaml.safe_load(path.read_text())), [])
 
 
 if __name__ == "__main__":

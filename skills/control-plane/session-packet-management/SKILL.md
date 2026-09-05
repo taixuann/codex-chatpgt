@@ -20,8 +20,8 @@ metadata:
   canonical Issues, plans, workflows, role authority, or acceptance.
 - **Stop:** stop on unclear target convention, scope conflict, missing
   provenance, missing approval, protected paths, or incomplete validation.
-- **Validation:** validate the applicable Franky task/result schemas and use
-  shared-session-closeout for final status mapping when those contracts apply.
+- **Validation:** validate the packet contract and use shared-session-closeout
+  for final status mapping when the task contract requires it.
 
 Use this role-neutral skill to keep one bounded work run coherent across
 context recovery, planning, execution, validation, review, and closeout. Franky
@@ -31,9 +31,6 @@ use it when their governing project contract permits session records.
 ## Target location
 
 - For every repository, use `<repository-root>/.agents/sessions/<session-id>/`.
-- `documentation/sessions/**` is legacy/history in this repository, not a live
-  target for new packets. Do not create a new convention to accommodate a
-  historical packet.
 - Do not write to runtime/private session stores, linked projects, credentials,
   or ignored host state.
 
@@ -83,7 +80,7 @@ reports availability; it does not claim indexing, retrieval quality, or
 permission isolation.
 
 The validator checks artifact identity/status/provenance, reciprocal links,
-Franky record kinds, required session metadata, and protected `.rag/` placement.
+required session metadata, and protected `.rag/` placement.
 It does not prove that a human approved the task, that Franky was natively
 dispatched, or that LightRAG loaded.
 

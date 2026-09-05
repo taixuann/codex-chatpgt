@@ -1,5 +1,5 @@
 # Copy into the packet and replace the example values before execution.
-# Validate against ops/schemas/franky-task.schema.yaml.
+# Validate against the active task contract.
 kind: franky.task.v1
 version: 1
 contract_version: {major: 1, minor: 1}

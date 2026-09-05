@@ -1,5 +1,5 @@
 # Copy into the packet after execution and replace the example values.
-# Validate against ops/schemas/franky-result.schema.yaml and the Franky contract validator.
+# Validate against the active task contract before recording the result.
 kind: franky.result.v1
 version: 1
 contract_version: {major: 1, minor: 1}
@@ -31,7 +31,7 @@ review:
   reviewer_id: parent-control-plane
   reviewer_role: parent_acceptance
   review_session_id: 00000000-0000-0000-0000-000000000000
-  review_record: documentation/sessions/records/reviews/pending.yaml
+  review_record: ISSUE-PR-CI review evidence
 unresolved:
   blockers: [Replace example values and complete the approved task.]
   limitations: [This is a template, not an acceptance claim.]

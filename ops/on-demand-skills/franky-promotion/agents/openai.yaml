@@ -1,4 +1,0 @@
-interface:
-  display_name: "Promotion manifest"
-  short_description: "Prepare explicit Codex-to-AI Labs export."
-  default_prompt: "Prepare an approved Codex-to-AI Labs promotion with hashes, registry mapping, validation, and rollback."

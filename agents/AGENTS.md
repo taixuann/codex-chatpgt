@@ -4,8 +4,7 @@ This directory contains runtime adapters. The external AI Labs registry is the
 deployment authority for canonical role identity when available, but its
 absolute local path is runtime-only and not portable repository authority. The
 portable semantic reference is this file plus
-`documentation/architecture/agents.md`; adapters must not rename, merge, or
-repurpose roles.
+the root `AGENTS.md`; adapters must not rename, merge, or repurpose roles.
 
 ## Runtime adapters
 
@@ -32,17 +31,15 @@ The authority chain is intentionally one-way:
 1. The external AI Labs deployment registry and definitions, when available,
    supply canonical role identity for deployment. The local path
    `/Users/tai/ai-labs/ops/agents/agents.yaml` is a runtime hint only.
-2. This file and `documentation/architecture/agents.md` are the portable semantic
-   reference for the three roles and their boundaries.
+2. This file and the root `AGENTS.md` are the portable semantic reference for
+   the three roles and their boundaries.
 3. `agents/*.toml` are runtime adapters. They may express permission, input,
    output, delegation, and escalation boundaries, but they cannot create,
    rename, or redefine a canonical role.
 4. Root `AGENTS.md` is runtime policy for this repository and cannot override
    the canonical registry or expand adapter authority.
-5. `documentation/` explains accepted semantics and evidence; it is not a
-   runtime authority and cannot override the registry, adapters, or policy.
-6. `manifests/` records capability eligibility and bounded support contracts;
-   it is not a second canonical role registry.
+5. `skills/` contains reusable capabilities; skill packages do not redefine
+   roles or own lifecycle state.
 
 If these surfaces disagree, stop and report the conflict. Update the owning
 external definition when deployment semantics are changing, then reconcile the
@@ -94,8 +91,7 @@ supporting capabilities, and the lifecycle closeout capability for consequential
 work. It must not spawn recursively or independently system-accept its own
 consequential changes.
 
-The minimal global Codex baseline is repository-documented and validated in
-`../ops/schemas/examples/codex-agents-settings.toml`:
+The minimal global Codex baseline is:
 
 ```toml
 [agents]

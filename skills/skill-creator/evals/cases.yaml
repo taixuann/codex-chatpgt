@@ -1,0 +1,23 @@
+schema_version: 1
+skill: skill-creator
+purpose: Compact routing and lifecycle regression coverage; outcomes are recorded by the executing harness.
+cases:
+  - {id: route-explicit-positive, kind: routing, polarity: positive, expected: skill-creator, prompt: "Create a Codex skill for a repeated document transformation with provenance and validation."}
+  - {id: route-implicit-positive, kind: routing, polarity: positive, expected: skill-creator, prompt: "This procedure keeps recurring across repositories; should it become a skill, and where should it live?"}
+  - {id: route-contextual-positive, kind: routing, polarity: positive, expected: skill-creator, prompt: "While reviewing a project setup, compare the existing skills and decide whether a small local skill is justified."}
+  - {id: route-adjacent-negative, kind: routing, polarity: negative, expected: none, prompt: "Fix the failing parser implementation and add a unit test."}
+  - {id: route-sibling-conflict, kind: routing, polarity: negative, expected: none, prompt: "Use the existing PDF skill to rotate this PDF; do not create or modify a skill."}
+  - {id: create-local-upstream, kind: CREATE, expected: CLONE_AND_ADAPT, prompt: "Adapt a maintained upstream baseline into a small project-local skill."}
+  - {id: create-multimode-one-skill, kind: CREATE, expected: CLONE_AND_ADAPT, prompt: "Support create, update, maintain, and evaluate behavior without making subskills."}
+  - {id: create-no-skill, kind: CREATE, expected: REJECT, prompt: "The task needs one shell command only; decide whether a skill is necessary."}
+  - {id: update-bounded, kind: UPDATE, expected: UPDATE_EXISTING, prompt: "Tighten a skill description while preserving its name and provenance."}
+  - {id: update-substantive, kind: UPDATE, expected: UPDATE_EXISTING, prompt: "Change a skill's workflow materially and rerun its regression evidence."}
+  - {id: maintain-upstream-drift, kind: MAINTAIN, expected: CLONE_AND_ADAPT, prompt: "The pinned upstream skill changed; compare drift before updating the local adaptation."}
+  - {id: maintain-overlap, kind: MAINTAIN, expected: MERGE, prompt: "Two active skills have overlapping triggers; choose a single owner."}
+  - {id: maintain-localize, kind: MAINTAIN, expected: LOCALIZE, prompt: "A domain-specific global skill is used by one repository; move it local-first."}
+  - {id: maintain-retire, kind: MAINTAIN, expected: RETIRE, prompt: "A global skill is stale and redundant; remove it from active discovery."}
+  - {id: evaluate-good, kind: EVALUATE, expected: PASS, prompt: "Evaluate a skill with valid structure, bounded routing, provenance, and complete process evidence."}
+  - {id: evaluate-broad-description, kind: EVALUATE, expected: REJECT, prompt: "Evaluate a skill whose description attracts every coding request."}
+  - {id: evaluate-sibling-collision, kind: EVALUATE, expected: REJECT, prompt: "Evaluate an isolated skill that steals a sibling's trigger in the active catalog."}
+  - {id: evaluate-decorative-resources, kind: EVALUATE, expected: SIMPLIFY, prompt: "Evaluate a skill containing unused scripts and decorative references."}
+  - {id: evaluate-skipped-process, kind: EVALUATE, expected: REJECT, prompt: "The output looks correct, but the required provenance search was skipped."}
