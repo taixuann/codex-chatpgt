@@ -149,7 +149,10 @@ Use `assets/` for files that belong in generated output rather than in the model
 
 ### UI Metadata and Invocation Policy
 
-`agents/openai.yaml` can provide UI-facing metadata such as `display_name`, `short_description`, and `default_prompt`, along with invocation policy. When creating or updating those settings, read [references/openai_yaml.md](references/openai_yaml.md) and keep the values consistent with the skill.
+`agents/openai.yaml` can provide UI-facing metadata such as `display_name`,
+`short_description`, and `default_prompt`, along with invocation policy. Add
+it only when the target runtime has a demonstrated consumer; otherwise omit
+the file and its assets.
 
 Automatic skill selection is allowed by default. Change that default only when the user explicitly requests an explicit-only skill:
 
