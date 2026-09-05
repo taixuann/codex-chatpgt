@@ -73,7 +73,7 @@ jobs:
               actual = subprocess.check_output(['git', 'hash-object', path], text=True).strip()
               assert actual == blob, (path, actual, blob)
           PY
-          git diff --check "origin/${GITHUB_BASE_REF}...HEAD"
+          git diff --check origin/main...HEAD
 
       - name: Validate skill-creator package
         run: |
