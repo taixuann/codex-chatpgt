@@ -60,6 +60,8 @@ def main() -> int:
                 continue
             interface = yaml.safe_load(interface_path.read_text(encoding="utf-8"))
             ui = interface.get("interface", {})
+            if not ui:
+                continue
             if not ui.get("display_name") or not ui.get("short_description"):
                 raise ValueError(f"{package.name}: incomplete interface metadata")
     except (OSError, ValueError, yaml.YAMLError) as exc:
