@@ -33,6 +33,7 @@ GATES = {
 PARTITIONS = {"must_pass", "regression", "held_out"}
 KINDS = {"routing", "CREATE", "UPDATE", "MAINTAIN", "EVALUATE"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
+ORIGIN_TYPES = {"observed_failure", "user_requirement", "upstream_change", "model_change", "architecture_contract"}
 EXPECTED_CASE_COUNT = 26
 EXPECTED_ROUTING_CASE_COUNT = 12
 EXPECTED_LIFECYCLE_CASE_COUNT = 14
@@ -124,6 +125,14 @@ def validate(path: Path) -> list[str]:
             errors.append(f"{case_id}: prompt is required")
         if not isinstance(case.get("expected"), str) or not case["expected"].strip():
             errors.append(f"{case_id}: expected outcome is required")
+        origin = case.get("origin")
+        if (
+            not isinstance(origin, dict)
+            or origin.get("type") not in ORIGIN_TYPES
+            or not isinstance(origin.get("source"), str)
+            or not origin["source"].strip()
+        ):
+            errors.append(f"{case_id}: origin.type and non-empty origin.source are required")
         if case.get("kind") == "routing" and case.get("polarity") not in {"positive", "negative"}:
             errors.append(f"{case_id}: routing polarity must be positive or negative")
         if case.get("kind") != "routing" and not isinstance(case.get("trace_markers"), list):
@@ -384,6 +393,46 @@ def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str]) -> t
     return False, f"unknown artifact operation {operation}"
 
 
+NECESSITY_CHECKS = {"native", "agents", "scripts", "existing", "upstream"}
+
+
+def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
+    if case.get("kind") not in {"CREATE", "UPDATE", "MAINTAIN"}:
+        return True, "necessity gate not applicable"
+    evidence = report.get("necessity")
+    if not isinstance(evidence, dict):
+        return False, "structured necessity evidence is missing"
+    checks = evidence.get("checks")
+    if not isinstance(checks, list) or not NECESSITY_CHECKS.issubset(checks):
+        return False, "necessity evidence does not cover native, AGENTS, scripts, existing, and upstream alternatives"
+    if not isinstance(evidence.get("justification"), str) or not evidence["justification"].strip():
+        return False, "necessity justification is missing"
+    return True, "structured necessity evidence observed"
+
+
+def _recomputed_record(item: dict, case: dict) -> dict | None:
+    events = item.get("trace_events")
+    before = item.get("before_snapshot")
+    after = item.get("after_snapshot")
+    report = item.get("final_report")
+    if not isinstance(events, list) or not isinstance(before, dict) or not isinstance(after, dict) or not isinstance(report, dict):
+        return None
+    key = "selected_skill" if case["kind"] == "routing" else "disposition"
+    artifact_ok, artifact_reason = _artifact_ok(case, before, after)
+    necessity_ok, necessity_reason = _necessity_ok(case, report)
+    return {
+        "observed": report.get(key),
+        "activation": _runtime_activation(events),
+        "process_observed": _process_observed(events),
+        "trace_matches": _trace_matches(case, events),
+        "changed_paths": sorted(_changed_paths(before, after)),
+        "artifact_ok": artifact_ok,
+        "artifact_reason": artifact_reason,
+        "necessity_observed": necessity_ok,
+        "necessity_reason": necessity_reason,
+    }
+
+
 def _seed_case(fixture_root: Path, case: dict) -> None:
     skills_root = fixture_root / ".agents" / "skills"
     case_id = case["id"]
@@ -469,14 +518,18 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             )
         else:
             artifact_instruction = (
-                f"The required observable artifact is {artifact['operation']} at "
-                f"{artifact['path']}. Perform the operation, not just a plan. "
+                "No artifact is required; preserve the fixture and reject unnecessary skill creation. "
+                if not artifact else (
+                    f"The required observable artifact is {artifact['operation']} at "
+                    f"{artifact['path']}. Perform the operation, not just a plan. "
+                )
             )
             prompt = (
                 "Complete this natural user request in the isolated fixture using available instructions "
                 "and tools. You may modify only the fixture. Return exactly one JSON object with keys "
-                "disposition, artifacts, and process. The artifacts value lists changed relative paths; "
-                "the process value lists the concrete steps performed. "
+                "disposition, necessity, artifacts, and process. The necessity value must be an object "
+                "with checks (native, agents, scripts, existing, upstream) and a non-empty justification. "
+                "The artifacts value lists changed relative paths; the process value lists the concrete steps performed. "
                 f"{artifact_instruction}\n\n{case['prompt']}"
             )
         base = {
@@ -514,6 +567,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         after_snapshot = _snapshot(operation_root)
         changed_paths = _changed_paths(before_snapshot, after_snapshot)
         artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot)
+        necessity_ok, necessity_reason = _necessity_ok(case, report)
         side_effect_free = not changed_paths
         unavailable = any(
             marker in (process.stderr or "").lower()
@@ -540,6 +594,8 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
         elif observed != case["expected"]:
             status, reason = "FAIL", f"expected {case['expected']}, observed {observed!r}"
+        elif case["kind"] in {"CREATE", "UPDATE", "MAINTAIN"} and with_skill and not necessity_ok:
+            status, reason = "FAIL", necessity_reason
         elif case["kind"] != "routing" and not (process_observed and trace_matches and artifact_ok):
             status, reason = "FAIL", artifact_reason if not artifact_ok else "required process trace was not observed"
         elif observed == case["expected"]:
@@ -555,12 +611,18 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "activation": activation,
             "process_observed": process_observed,
             "trace_matches": trace_matches,
+            "necessity_observed": necessity_ok,
+            "necessity_reason": necessity_reason,
             "side_effect_free": side_effect_free,
             "coexistence_fixture": (((fixture / "project") if case["id"] == "maintain-localize" else fixture) / ".fixture-coexistence").is_file(),
             "artifact_ok": artifact_ok,
             "artifact_reason": artifact_reason,
             "changed_paths": sorted(changed_paths),
             "cost_metrics": cost_metrics,
+            "trace_events": events,
+            "before_snapshot": before_snapshot,
+            "after_snapshot": after_snapshot,
+            "final_report": report,
             "events": len(events),
             "returncode": process.returncode,
             "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -686,6 +748,12 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             case = cases_by_id[item["case_id"]]
             if item.get("status") != "PASS" or item.get("observed") != case["expected"]:
                 return False
+            recomputed = _recomputed_record(item, case)
+            if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
+                "observed", "activation", "process_observed", "trace_matches", "changed_paths",
+                "artifact_ok", "necessity_observed",
+            )):
+                return False
             activation = item.get("activation")
             if item.get("kind", "routing") == "routing":
                 if activation not in {"loaded", "unloaded"}:
@@ -695,6 +763,14 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
                 return False
             metrics = item.get("cost_metrics")
             if not isinstance(metrics, dict) or not all(isinstance(metrics.get(field), int) for field in ("tool_calls", "command_count", "artifact_count")):
+                return False
+        for item in baseline_results:
+            case = cases_by_id[item["case_id"]]
+            recomputed = _recomputed_record(item, case)
+            if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
+                "observed", "activation", "process_observed", "trace_matches", "changed_paths",
+                "artifact_ok", "necessity_observed",
+            )):
                 return False
         for gate in GATES - {"G6_EFFICIENCY", "G7_INDEPENDENT_REVIEW"}:
             if _case_gate_status(results, gate) != gates.get(gate):

@@ -65,6 +65,24 @@ class EvalContractTests(unittest.TestCase):
             results = []
             for case in cases:
                 routing = case["kind"] == "routing"
+                expected = "none" if case.get("expected") == "none" else case["expected"]
+                if routing:
+                    trace_events = [{"skill_loads": [] if expected == "none" else ["skill-creator"]}]
+                    before_snapshot = {}
+                    after_snapshot = {}
+                else:
+                    trace_events = [{"skill_loads": ["skill-creator"], "item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}]
+                    contract = module._artifact_contract(case)
+                    if contract.get("operation") == "modified":
+                        before_snapshot = {contract["path"]: "old"}
+                        after_snapshot = {contract["path"]: "new"}
+                    elif contract.get("operation") == "created":
+                        before_snapshot = {}
+                        after_snapshot = {contract["path"]: "new"}
+                    else:
+                        before_snapshot = {}
+                        after_snapshot = {}
+                final_report = {"selected_skill": expected} if routing else {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "justification": "fixture alternatives compared"}}
                 results.append({
                     "case_id": case["id"],
                     "kind": case["kind"],
@@ -74,13 +92,18 @@ class EvalContractTests(unittest.TestCase):
                     "gate": case["gate"],
                     "gates": case.get("gates", [case["gate"]]),
                     "status": "PASS",
-                    "observed": "none" if case.get("expected") == "none" else case["expected"],
-                    "activation": "unloaded" if case.get("expected") == "none" else "loaded",
+                    "observed": expected,
+                    "activation": "unloaded" if expected == "none" else "loaded",
                     "process_observed": not routing,
-                    "trace_matches": not routing,
-                    "artifact_ok": not routing,
-                    "changed_paths": [] if routing else [f".evaluation/{case['id']}.json"],
+                    "trace_matches": True,
+                    "artifact_ok": True,
+                    "necessity_observed": True,
+                    "changed_paths": sorted(module._changed_paths(before_snapshot, after_snapshot)),
                     "cost_metrics": {"tool_calls": 1, "command_count": 1, "artifact_count": 1},
+                    "trace_events": trace_events,
+                    "before_snapshot": before_snapshot,
+                    "after_snapshot": after_snapshot,
+                    "final_report": final_report,
                 })
             gates = {gate: "PASS" for gate in module.GATES}
             gates["G7_INDEPENDENT_REVIEW"] = "NOT_ASSESSED"
@@ -89,6 +112,16 @@ class EvalContractTests(unittest.TestCase):
             for case in cases:
                 if case.get("paired") is not True:
                     continue
+                contract = module._artifact_contract(case)
+                if contract.get("operation") == "modified":
+                    baseline_before = {contract["path"]: "old"}
+                    baseline_after = {contract["path"]: "new"}
+                elif contract.get("operation") == "created":
+                    baseline_before = {}
+                    baseline_after = {contract["path"]: "new"}
+                else:
+                    baseline_before = {}
+                    baseline_after = {}
                 baseline = {
                     "case_id": case["id"],
                     "kind": case["kind"],
@@ -99,11 +132,17 @@ class EvalContractTests(unittest.TestCase):
                     "gates": case.get("gates", [case["gate"]]),
                     "status": "OBSERVED",
                     "observed": "baseline",
+                    "activation": None,
                     "process_observed": True,
                     "trace_matches": True,
                     "artifact_ok": True,
-                    "changed_paths": [f".baseline/{case['id']}.json"],
+                    "necessity_observed": case["kind"] == "EVALUATE",
+                    "changed_paths": sorted(module._changed_paths(baseline_before, baseline_after)),
                     "cost_metrics": {"tool_calls": 1, "command_count": 1, "artifact_count": 1},
+                    "trace_events": [{"item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}],
+                    "before_snapshot": baseline_before,
+                    "after_snapshot": baseline_after,
+                    "final_report": {"disposition": "baseline"},
                 }
                 baseline_results.append(baseline)
                 candidate = next(item for item in results if item["case_id"] == case["id"])

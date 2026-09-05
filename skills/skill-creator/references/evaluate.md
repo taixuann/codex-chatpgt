@@ -32,7 +32,8 @@ answer or caller-supplied review flag is not evidence of execution or
 independent review. Use a structured result with the exact case, condition,
 expected/observed outcome, trace/load signal, artifact delta, cost fields, and
 raw limitation; qualitative review must not be reduced to an ungrounded prose
-score.
+score. Every case also declares `origin.type` and `origin.source` so regressions
+remain attributable.
 
 ## Runtime result semantics
 
@@ -63,3 +64,9 @@ diagnostic, not the admission metric. Paired efficiency cases require complete
 baseline and candidate outcome/process/artifact evidence, an observed outcome
 or artifact delta, and a resource-vector comparison; missing corpus or evidence
 fails closed.
+
+Persist the raw process/tool events, before snapshot, after snapshot, and final
+structured report for every assessed case. The comparator must recompute
+activation, process observation, trace markers, changed paths, artifact
+contracts, and necessity evidence from those raw records; summary booleans are
+only valid when they match the recomputation.
