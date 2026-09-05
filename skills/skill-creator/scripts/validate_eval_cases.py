@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
+import hashlib
 import json
 import math
 import os
@@ -180,12 +181,27 @@ def _process_observed(events: list[dict]) -> bool:
 
 
 def _trace_matches(case: dict, events: list[dict]) -> bool:
-    trace = " ".join(
-        json.dumps(event.get("item", event), sort_keys=True).lower()
-        for event in events
-        if (event.get("item", {}).get("type") if isinstance(event.get("item"), dict) else event.get("type")) in PROCESS_ITEM_TYPES
-    )
-    return all(marker.lower() in trace for marker in case.get("trace_markers", []))
+    for marker in case.get("trace_markers", []):
+        if not any(marker.lower() in _process_payload(event) for event in events):
+            return False
+    return True
+
+
+def _process_payload(event: dict) -> str:
+    item = event.get("item") if isinstance(event.get("item"), dict) else event
+    item_type = item.get("type") if isinstance(item, dict) else None
+    if item_type not in PROCESS_ITEM_TYPES:
+        return ""
+    fields = {key: item.get(key) for key in ("command", "name", "arguments", "input", "call_id", "tool", "function", "output") if key in item}
+    return json.dumps(fields, sort_keys=True).lower()
+
+
+def _snapshot(root: Path) -> dict[str, str]:
+    files = {}
+    for path in root.rglob("*"):
+        if path.is_file():
+            files[path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return files
 
 
 def _cost(result: dict | None) -> float | None:
@@ -205,22 +221,24 @@ def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Ite
             encoding="utf-8",
         )
         if with_skill:
-            target = root / ".agents" / "skills" / "skill-creator"
+            fixture_root = root / "project" if case and case["id"] == "maintain-localize" else root
+            target = fixture_root / ".agents" / "skills" / "skill-creator"
             shutil.copytree(skill_dir, target, ignore=shutil.ignore_patterns("__pycache__"))
             if case and case["id"] in COEXISTENCE_CASES:
-                sibling = root / ".agents" / "skills" / "pdf"
+                sibling = fixture_root / ".agents" / "skills" / "pdf"
                 sibling.mkdir(parents=True)
                 (sibling / "SKILL.md").write_text(
                     "---\nname: pdf\ndescription: Rotate and inspect PDF files.\n---\n\nUse the PDF workflow.\n",
                     encoding="utf-8",
                 )
                 if case["id"] == "maintain-localize":
-                    local = root / "project" / ".agents" / "skills" / "domain-workflow"
+                    local = fixture_root / ".agents" / "skills" / "domain-workflow"
                     local.mkdir(parents=True)
                     (local / "SKILL.md").write_text(
                         "---\nname: domain-workflow\ndescription: Repository-local domain workflow.\n---\n\nUse the local workflow.\n",
                         encoding="utf-8",
                     )
+                (fixture_root / ".fixture-coexistence").write_text("true\n", encoding="utf-8")
         yield root
 
 
@@ -243,11 +261,12 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             return {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"}
         command = [
             runtime, "exec", "--json", "--ephemeral", "--sandbox", "read-only",
-            "--skip-git-repo-check", "--ignore-user-config", "--cd", str(fixture), prompt,
+            "--skip-git-repo-check", "--ignore-user-config", "--cd",
+            str(fixture / "project" if case["id"] == "maintain-localize" else fixture), prompt,
         ]
         environment = os.environ.copy()
         environment["CODEX_HOME"] = str(fixture / ".codex-home")
-        before_paths = sorted(path.relative_to(fixture).as_posix() for path in fixture.rglob("*") if path.is_file())
+        before_snapshot = _snapshot(fixture)
         started = time.monotonic()
         try:
             process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=environment)
@@ -262,11 +281,12 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         loaded = activation == "loaded" or _runtime_observed(events, stdout, fixture)
         process_observed = _process_observed(events)
         trace_matches = _trace_matches(case, events)
-        after_paths = sorted(path.relative_to(fixture).as_posix() for path in fixture.rglob("*") if path.is_file())
-        side_effect_free = before_paths == after_paths
+        side_effect_free = before_snapshot == _snapshot(fixture)
         if process.returncode != 0:
             status, reason = "NOT_ASSESSED", f"runtime exit {process.returncode}"
-        elif with_skill and case["kind"] == "routing" and case["expected"] == "none" and not (activation == "unloaded" and observed == "none"):
+        elif with_skill and case["kind"] == "routing" and case["expected"] == "none" and activation == "unloaded" and observed == "none":
+            status, reason = "PASS", "explicit runtime non-activation and expected outcome observed"
+        elif with_skill and case["kind"] == "routing" and case["expected"] == "none":
             status, reason = "NOT_ASSESSED", "runtime did not expose an explicit non-activation signal"
         elif not loaded and with_skill:
             status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
@@ -287,7 +307,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "process_observed": process_observed,
             "trace_matches": trace_matches,
             "side_effect_free": side_effect_free,
-            "coexistence_fixture": bool(with_skill and case["id"] in COEXISTENCE_CASES),
+            "coexistence_fixture": (fixture / ".fixture-coexistence").is_file(),
             "events": len(events),
             "returncode": process.returncode,
             "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -387,6 +407,10 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         pair = [item for item in results if item["case_id"] == case["id"]]
         with_skill = next((item for item in pair if item["condition"] == "with_skill"), None)
         without_skill = next((item for item in pair if item["condition"] == "without_skill"), None)
+        with_cost = _cost(with_skill)
+        without_cost = _cost(without_skill)
+        cost_delta = with_cost - without_cost if with_cost is not None and without_cost is not None else None
+        cost_ratio = with_cost / without_cost if with_cost is not None and without_cost not in (None, 0) else None
         paired.append({
             "case_id": case["id"],
             "with_status": with_skill.get("status") if with_skill else "NOT_ASSESSED",
@@ -396,11 +420,11 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             "with_process_observed": bool(with_skill and with_skill.get("process_observed")),
             "without_process_observed": bool(without_skill and without_skill.get("process_observed")),
             "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
-            "cost_observed": _cost(with_skill) is not None and _cost(without_skill) is not None,
-            "cost_delta": (_cost(with_skill) - _cost(without_skill)) if _cost(with_skill) is not None and _cost(without_skill) is not None else None,
-            "cost_ratio": (_cost(with_skill) / _cost(without_skill)) if _cost(with_skill) is not None and _cost(without_skill) not in (None, 0) else None,
-            "cost_comparison_observed": _cost(with_skill) is not None and _cost(without_skill) is not None,
-            "cost_within_bound": _cost(with_skill) is not None and _cost(without_skill) not in (None, 0) and _cost(with_skill) / _cost(without_skill) <= COST_OVERHEAD_LIMIT,
+            "cost_observed": with_cost is not None and without_cost is not None,
+            "cost_delta": cost_delta,
+            "cost_ratio": cost_ratio,
+            "cost_comparison_observed": cost_delta is not None and cost_ratio is not None,
+            "cost_within_bound": cost_ratio is not None and cost_ratio <= COST_OVERHEAD_LIMIT,
             "added_value_observed": bool(
                 with_skill and with_skill.get("status") == "PASS"
                 and with_skill.get("process_observed")
@@ -408,9 +432,9 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
                 and without_skill and without_skill.get("status") == "OBSERVED"
                 and without_skill.get("process_observed")
                 and without_skill.get("trace_matches")
-                and _cost(with_skill) is not None
-                and _cost(without_skill) is not None
-                and _cost(with_skill) / _cost(without_skill) <= COST_OVERHEAD_LIMIT
+                and cost_delta is not None
+                and cost_ratio is not None
+                and cost_ratio <= COST_OVERHEAD_LIMIT
                 and with_skill.get("observed") != without_skill.get("observed")
                 and with_skill.get("elapsed_seconds") is not None
                 and without_skill.get("elapsed_seconds") is not None

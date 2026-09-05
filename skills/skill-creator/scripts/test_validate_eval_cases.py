@@ -54,6 +54,17 @@ class EvalContractTests(unittest.TestCase):
     def test_independent_review_is_not_caller_supplied(self):
         self.assertNotIn("--review-status", SCRIPT.read_text(encoding="utf-8"))
 
+    def test_negative_activation_requires_explicit_empty_load_signal(self):
+        module = load_module()
+        self.assertEqual(module._runtime_activation([{"skill_loads": []}]), "unloaded")
+        self.assertIsNone(module._runtime_activation([{"item": {"type": "agent_message", "text": "none"}}]))
+
+    def test_trace_markers_are_bound_to_process_payloads(self):
+        module = load_module()
+        case = {"trace_markers": ["clone"]}
+        self.assertFalse(module._trace_matches(case, [{"item": {"type": "agent_message", "text": "clone"}}]))
+        self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "command": "git clone source"}}]))
+
 
 if __name__ == "__main__":
     unittest.main()
