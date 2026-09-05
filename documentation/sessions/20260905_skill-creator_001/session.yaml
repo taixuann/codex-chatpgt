@@ -10,7 +10,7 @@ source_state:
   base_sha: 159b8102229503ebe404535dc6b2a1ee298436cf
   recorded_at: '2026-09-05T20:25:46+07:00'
 owner: prometheus
-status: awaiting_final_review
+status: draft_pr_pending
 artifacts:
   context: context.md
   spec: spec.md

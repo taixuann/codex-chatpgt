@@ -13,5 +13,5 @@ provenance: {source_commit: 159b8102229503ebe404535dc6b2a1ee298436cf, recorded_b
 - [x] Update catalog and Git allowlist for the admitted package.
 - [x] Run full validation and runtime probes.
 - [x] Obtain Athena review and repair stale resource references.
-- [ ] Obtain final fresh Athena re-review on the repaired revision.
+- [x] Obtain final fresh Athena re-review on the repaired revision.
 - [ ] Open Draft PR; do not merge or close the Issue.
