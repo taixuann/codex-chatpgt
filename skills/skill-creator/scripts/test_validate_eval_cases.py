@@ -31,6 +31,15 @@ class EvalContractTests(unittest.TestCase):
             self.assertFalse((fixture / ".fixture-coexistence").is_file())
             self.assertTrue((fixture / "project" / ".fixture-coexistence").is_file())
 
+    def test_snapshot_excludes_runtime_home(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".codex-home").mkdir()
+            (root / ".codex-home" / "cache").write_text("runtime", encoding="utf-8")
+            (root / "artifact.txt").write_text("artifact", encoding="utf-8")
+            self.assertEqual(set(module._snapshot(root)), {"artifact.txt"})
+
     def test_repository_case_contract_has_all_gates_and_partitions(self):
         module = load_module()
         self.assertEqual(module.validate(SCRIPT.parents[1] / "evals" / "cases.yaml"), [])
@@ -53,11 +62,38 @@ class EvalContractTests(unittest.TestCase):
             after = root / "after.json"
             cases_path = SCRIPT.parents[1] / "evals" / "cases.yaml"
             cases = module.load_cases(cases_path)["cases"]
-            results = [{"case_id": case["id"], "condition": "with_skill", "partition": case["partition"], "status": "PASS"} for case in cases]
-            payload = {"coverage": {"full_corpus": False}, "results": results}
+            results = []
+            for case in cases:
+                routing = case["kind"] == "routing"
+                results.append({
+                    "case_id": case["id"],
+                    "kind": case["kind"],
+                    "condition": "with_skill",
+                    "partition": case["partition"],
+                    "status": "PASS",
+                    "observed": "none" if case.get("expected") == "none" else case["expected"],
+                    "activation": "unloaded" if case.get("expected") == "none" else "loaded",
+                    "process_observed": not routing,
+                    "trace_matches": not routing,
+                    "artifact_ok": not routing,
+                    "changed_paths": [] if routing else [f".evaluation/{case['id']}.json"],
+                    "cost_metrics": {"tool_calls": 1, "command_count": 1, "artifact_count": 1},
+                })
+            gates = {gate: "PASS" for gate in module.GATES}
+            gates["G7_INDEPENDENT_REVIEW"] = "NOT_ASSESSED"
+            payload = {
+                "coverage": {"full_corpus": True},
+                "gates": gates,
+                "routing": {"status": "PASS", "precision": 1.0, "recall": 1.0},
+                "results": results,
+            }
             before.write_text(json.dumps(payload), encoding="utf-8")
             after.write_text(json.dumps(payload), encoding="utf-8")
             self.assertEqual(module._compare(before, after, cases_path)["status"], "PASS")
+            incomplete = json.loads(json.dumps(payload))
+            incomplete["results"][0].pop("activation")
+            before.write_text(json.dumps(incomplete), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
 
     def test_independent_review_is_not_caller_supplied(self):
         self.assertNotIn("--review-status", SCRIPT.read_text(encoding="utf-8"))

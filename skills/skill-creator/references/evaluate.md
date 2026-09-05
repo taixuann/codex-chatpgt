@@ -58,4 +58,7 @@ Record before/after snapshots for the operation workspace only. Exclude the
 temporary `CODEX_HOME` so plugin synchronization and runtime caches cannot
 masquerade as skill artifacts. Efficiency evidence records command count, tool
 calls, token usage when exposed, and changed-resource count; wall-clock time is
-diagnostic, not the admission metric.
+diagnostic, not the admission metric. Paired efficiency cases require complete
+baseline and candidate outcome/process/artifact evidence, an observed outcome
+or artifact delta, and a resource-vector comparison; missing corpus or evidence
+fails closed.

@@ -32,6 +32,9 @@ GATES = {
 PARTITIONS = {"must_pass", "regression", "held_out"}
 KINDS = {"routing", "CREATE", "UPDATE", "MAINTAIN", "EVALUATE"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
+EXPECTED_CASE_COUNT = 26
+EXPECTED_ROUTING_CASE_COUNT = 12
+EXPECTED_LIFECYCLE_CASE_COUNT = 14
 EXPECTED_FILES = {
     "SKILL.md", "license.txt", "evals/cases.yaml",
     "references/create.md", "references/evaluate.md", "references/maintain.md",
@@ -243,7 +246,10 @@ def _snapshot(root: Path) -> dict[str, str]:
     files = {}
     for path in root.rglob("*"):
         if path.is_file():
-            files[path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+            relative = path.relative_to(root)
+            if ".codex-home" in relative.parts:
+                continue
+            files[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return files
 
 
@@ -286,6 +292,8 @@ def _cost(result: dict | None) -> dict | None:
 
 
 def _artifact_contract(case: dict) -> dict:
+    if case["id"] == "create-no-skill":
+        return {}
     if case.get("artifact") and case.get("artifact_path"):
         return {"operation": case["artifact"], "path": case["artifact_path"]}
     if case.get("kind") != "routing":
@@ -411,6 +419,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             )
         base = {
             "case_id": case["id"],
+            "kind": case["kind"],
             "expected": case["expected"],
             "condition": "with_skill" if with_skill else "without_skill",
             "fixture": ("project/.agents/skills/skill-creator" if case["id"] == "maintain-localize" else ".agents/skills/skill-creator") if with_skill else "no skill fixture",
@@ -453,7 +462,12 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         elif process.returncode != 0:
             status, reason = "FAIL", f"runtime exit {process.returncode}"
         elif not with_skill:
-            status, reason = "OBSERVED", "baseline output recorded without skill fixture"
+            if observed is None or not process_observed:
+                status, reason = "NOT_ASSESSED", "baseline outcome or process evidence was not observed"
+            elif case["kind"] != "routing" and not artifact_ok:
+                status, reason = "NOT_ASSESSED", artifact_reason
+            else:
+                status, reason = "OBSERVED", "baseline output and evidence recorded without skill fixture"
         elif case["kind"] == "routing" and case["expected"] == "none" and activation == "unloaded" and observed == "none":
             status, reason = "PASS", "explicit runtime non-activation and expected outcome observed"
         elif case["kind"] == "routing" and case["expected"] == "none" and activation == "loaded":
@@ -538,6 +552,33 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     def with_skill(data: dict) -> list[dict]:
         return [item for item in data.get("results", []) if item.get("condition") == "with_skill"]
 
+    def evidence_complete(data: dict, results: list[dict]) -> bool:
+        coverage = data.get("coverage", {})
+        gates = data.get("gates", {})
+        routing = data.get("routing", {})
+        if coverage.get("full_corpus") is not True or set(gates) != set(GATES):
+            return False
+        if any(gates.get(gate) == "NOT_ASSESSED" for gate in GATES if gate != "G7_INDEPENDENT_REVIEW"):
+            return False
+        if routing.get("status") not in {"PASS", "FAIL"} or not all(
+            isinstance(routing.get(field), (int, float)) for field in ("precision", "recall")
+        ):
+            return False
+        for item in results:
+            if item.get("status") not in {"PASS", "FAIL"} or item.get("observed") is None:
+                return False
+            activation = item.get("activation")
+            if item.get("kind", "routing") == "routing":
+                if activation not in {"loaded", "unloaded"}:
+                    return False
+                continue
+            if activation != "loaded" or not all(item.get(field) is True for field in ("process_observed", "trace_matches", "artifact_ok")):
+                return False
+            metrics = item.get("cost_metrics")
+            if not isinstance(metrics, dict) or not all(isinstance(metrics.get(field), int) for field in ("tool_calls", "command_count", "artifact_count")):
+                return False
+        return True
+
     before_results = with_skill(before)
     after_results = with_skill(after)
     before_keys = {(item.get("case_id"), item.get("partition")) for item in before_results}
@@ -545,13 +586,18 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     expected_keys = {(case["id"], case["partition"]) for case in expected_cases}
     statuses = {"PASS", "FAIL"}
     comparable = (
-        bool(expected_keys)
+        len(expected_cases) == EXPECTED_CASE_COUNT
+        and sum(case.get("kind") == "routing" for case in expected_cases) == EXPECTED_ROUTING_CASE_COUNT
+        and sum(case.get("kind") != "routing" for case in expected_cases) == EXPECTED_LIFECYCLE_CASE_COUNT
+        and bool(expected_keys)
         and bool(before_results)
         and before_keys == after_keys
         and before_keys == expected_keys
         and len(before_results) == len(expected_keys)
         and len(after_results) == len(expected_keys)
         and all(item.get("status") in statuses for item in before_results + after_results)
+        and evidence_complete(before, before_results)
+        and evidence_complete(after, after_results)
     )
 
     def score(results: list[dict], partition: str, status: str = "PASS") -> int:
@@ -637,6 +683,14 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             {key: with_cost[key] - without_cost[key] for key in with_cost if isinstance(with_cost[key], int) and isinstance(without_cost[key], int)}
             if with_cost is not None and without_cost is not None else None
         )
+        artifact_delta_observed = bool(
+            with_skill and without_skill
+            and with_skill.get("changed_paths") != without_skill.get("changed_paths")
+        )
+        outcome_delta_observed = bool(
+            with_skill and without_skill
+            and (with_skill.get("observed") != without_skill.get("observed") or artifact_delta_observed)
+        )
         paired.append({
             "case_id": case["id"],
             "with_status": with_skill.get("status") if with_skill else "NOT_ASSESSED",
@@ -646,6 +700,8 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             "with_process_observed": bool(with_skill and with_skill.get("process_observed")),
             "without_process_observed": bool(without_skill and without_skill.get("process_observed")),
             "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
+            "artifact_delta_observed": artifact_delta_observed,
+            "outcome_delta_observed": outcome_delta_observed,
             "cost_observed": with_cost is not None and without_cost is not None,
             "cost_delta": cost_delta,
             "cost_comparison_observed": cost_delta is not None,
@@ -657,6 +713,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
                 and without_skill.get("process_observed")
                 and without_skill.get("trace_matches")
                 and cost_delta is not None
+                and outcome_delta_observed
             ),
         })
     structure_check = subprocess.run(
