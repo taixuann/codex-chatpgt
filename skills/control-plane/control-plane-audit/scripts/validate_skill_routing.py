@@ -55,7 +55,7 @@ def descriptions(root: Path, names: set[str]) -> dict[str, str]:
         if interface_path.exists():
             interface = yaml.safe_load(interface_path.read_text(encoding="utf-8")) or {}
             ui = interface.get("interface", {})
-            if not isinstance(ui, dict) or len(str(ui.get("short_description", "")).split()) < 3:
+            if ui and (not isinstance(ui, dict) or len(str(ui.get("short_description", "")).split()) < 3):
                 raise ValueError(f"{name}: interface short_description is too vague for routing")
         result[name] = description
     return result

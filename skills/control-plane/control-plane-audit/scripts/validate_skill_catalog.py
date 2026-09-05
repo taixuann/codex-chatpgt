@@ -82,7 +82,10 @@ def validate_invocation_policies(
     }
     all_names = {**owners, **overlay_dispositions}
     for name, disposition in all_names.items():
-        matches = sorted(path.parent for path in (root / "skills").rglob("SKILL.md") if path.parent.name == name)
+        matches = sorted(
+            path.parent for path in (root / "skills").rglob("SKILL.md")
+            if path.parent.name == name and ".system" not in path.parts
+        )
         if len(matches) != 1:
             # Noncanonical local overlays may be intentionally absent from the
             # checked-in repository; they do not participate in policy checks.

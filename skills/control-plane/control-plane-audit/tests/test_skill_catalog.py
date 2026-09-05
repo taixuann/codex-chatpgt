@@ -115,6 +115,25 @@ class SkillCatalogTests(unittest.TestCase):
         errors = module.validate_catalog(Path("."), catalog, {"one"})
         self.assertTrue(any("utility evidence" in error for error in errors))
 
+    def test_invocation_policy_ignores_system_overlay_duplicate(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_skill(root, "one", "false")
+            overlay = root / "skills" / ".system" / "one"
+            (overlay / "agents").mkdir(parents=True)
+            (overlay / "SKILL.md").write_text(
+                "---\nname: one\ndescription: Overlay\n---\n", encoding="utf-8"
+            )
+            errors = module.validate_invocation_policies(
+                root,
+                {"canonical_active": ["one"]},
+                {"one": "KEEP"},
+                {"one": {"behavioral": "NOT_ASSESSED"}},
+                [],
+            )
+            self.assertEqual(errors, [])
+
     def test_rejects_duplicate_canonical_capability_keys(self):
         module = load_module()
         catalog = {

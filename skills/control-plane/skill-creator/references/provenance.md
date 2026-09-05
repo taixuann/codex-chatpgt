@@ -28,7 +28,7 @@ boundary required here; the OpenAI baseline remains dominant.
 | `SKILL.md` | KEEP_WITH_SMALL_ADAPTATION | Add lifecycle, placement, and review boundaries. |
 | `scripts/*` | KEEP_UNCHANGED | Upstream deterministic initializer, metadata generator, and validator. |
 | `references/openai_yaml.md` | REMOVE_AS_UNNECESSARY | Its only consumer, the removed UI metadata file, is not retained. |
-| `agents/openai.yaml` | REMOVE_AS_UNNECESSARY | The bounded native runtime probe did not show a consumer; implicit loading remains unproven. |
+| `agents/openai.yaml` | KEEP_WITH_SMALL_ADAPTATION | Policy-only explicit invocation is needed to prevent unproven implicit loading; no UI metadata or assets are retained. |
 | `assets/*` | REMOVE_AS_UNNECESSARY | These assets served only the removed UI metadata. |
 | `license.txt` | KEEP_UNCHANGED | Required attribution and license terms. |
 | `references/lifecycle.md` | ADD | Small mode-specific procedure not present in the baseline. |
@@ -37,6 +37,6 @@ boundary required here; the OpenAI baseline remains dominant.
 | `scripts/validate_eval_cases.py` | ADD | Deterministically checks that required cases remain present. |
 
 The upstream UI metadata, its reference, and image assets were removed after
-the independent review found no successful current-runtime consumer. The repository catalog
-uses absence of the adapter as explicit-only until native loading is proven;
-that state is recorded as `NOT_ASSESSED`, not as runtime acceptance.
+the independent review found no successful current-runtime consumer. A
+policy-only adapter remains to enforce explicit-only admission; native loading
+and dispatch are still `NOT_ASSESSED`, not runtime acceptance.

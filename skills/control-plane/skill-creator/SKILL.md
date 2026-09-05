@@ -53,6 +53,11 @@ Use the bundled helpers with `python3` unless their executable bit has been
 verified. Stop on unclear licensing/provenance, unauthorized mutation,
 missing baseline, or evidence that would require a broader platform.
 
+This repository package intentionally uses a policy-only
+`agents/openai.yaml` with `allow_implicit_invocation: false` until a
+revision-bound native runtime test proves implicit loading useful. Keep that
+boundary when adapting this package.
+
 ## Procedure contract
 
 **Trigger:** a reusable skill needs creation, change, qualification, placement,
