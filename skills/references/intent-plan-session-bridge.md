@@ -15,11 +15,11 @@ one for every raw idea, and do not treat silence as approval to write files.
 
 1. Keep the validated `intent_packet` in the conversation until the user
    confirms it.
-2. When persistence is approved, use
-   `skills/control-plane/session-packet-management` and its templates. Record
-   the intent packet as bounded source/context evidence and retain its source
-   locator, confirmation state, and observed commit or timestamp in
-   `references.yaml`/`context.md`.
+2. When persistence is approved, use the owning repository's current session
+   contract and templates. Record the intent packet as bounded source/context
+   evidence and retain its source locator, confirmation state, and observed
+   commit or timestamp in `references.yaml`/`context.md`; do not route to a
+   retired session-management skill path.
 3. Materialize one intent-stage packet at `<repository-root>/.agents/sessions/<session-id>/`
    with `context.md`, `intent.md`, and `references.yaml`. Feed only a confirmed
    intent packet into `plan`; Plan extends the same packet with `plan.md` (and

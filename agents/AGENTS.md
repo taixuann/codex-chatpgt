@@ -9,13 +9,13 @@ the root `AGENTS.md`; adapters must not rename, merge, or repurpose roles.
 ## Runtime adapters
 
 The registry defines the three canonical planning roles: Feynman, Prometheus,
-and Franky. Argus and Athena are support adapters only; they do not expand the
-canonical role registry and cannot own an independent workflow.
+and Franky. The active local adapters are Prometheus, Athena, and Franky;
+Athena is a support adapter only and does not expand the canonical role
+registry or own an independent workflow. Feynman remains a canonical role
+defined by the external registry; this checkout carries no Feynman adapter.
 
 | Adapter | Function | Default boundary |
 | --- | --- | --- |
-| `argus` | non-canonical read-only exploration and repository mapping | `read-only` |
-| `feynman` | bounded research and evidence work | `read-only` |
 | `prometheus` | bounded implementation and code review handoff | `workspace-write` |
 | `athena` | non-canonical independent review and critique | `read-only` |
 | `franky` | Codex/AI Labs control-plane operation | `read-only`, no subagents |
@@ -51,9 +51,7 @@ The retained adapters have distinct agent-specific reasons:
 
 | Adapter | Why an agent is justified | Return boundary |
 | --- | --- | --- |
-| Argus | read-only context isolation for broad repository mapping | paths, evidence, and uncertainty only |
 | Athena | independent judgment after execution/validation | severity-ranked critique, no edits |
-| Feynman | evidence/provenance boundary and scientific read-only scope | sources, findings, disagreements, handoff |
 | Prometheus | bounded workspace-write execution boundary | changed paths, tests, deviations, rollback |
 | Franky | control-plane permission/workflow boundary | scope, findings, validation, approval boundary |
 
@@ -124,5 +122,6 @@ Codex adapters can be placed in:
 - Project-scoped: `<project>/.codex/agents/*.toml`
 
 The `templates/agent.toml` file is an inert source template and is not an
-active adapter. Validate every instantiated adapter with
-`skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py` before use.
+active adapter. Validate every instantiated adapter against the active task
+contract and CI checks before use. This checkout no longer carries the retired
+`runtime-adapter-management` validator.

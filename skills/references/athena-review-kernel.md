@@ -19,7 +19,7 @@ review skills. It is a review contract, not a router or workflow engine.
    `insufficient_evidence`; never emit final acceptance.
 9. Stop before mutation, repair, criterion rewriting, policy promotion,
    orchestration, or spawning. The parent routes findings to Prometheus,
-   Argus, Feynman, Franky, or a human as appropriate.
+   Feynman, Franky, or a human as appropriate.
 
 ## Freshness and independence
 

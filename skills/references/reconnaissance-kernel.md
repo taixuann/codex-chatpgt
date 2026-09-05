@@ -1,7 +1,7 @@
-# Argus reconnaissance kernel (internal reference)
+# Read-only reconnaissance kernel (internal reference)
 
 This is a shared procedure reference, not a discoverable skill, role, or
-workflow. Apply it inside one of the three Argus reconnaissance profiles.
+workflow. Apply it inside a bounded read-only exploration task.
 
 1. Before searching, record the exact question, bounded source scope,
    consumer, authority order, freshness requirement, required evidence classes,
@@ -29,5 +29,5 @@ authority, artifact, relationship, freshness/supersession, and current-state
 categories for reference work. Stop at saturation or unsupported coverage.
 
 The kernel has no write, indexing, session-management, routing, or acceptance
-side effect. Session ownership remains with `session-packet-management` and
-the parent lifecycle.
+side effect. Session ownership remains with the parent lifecycle and the
+owning repository's current session contract.

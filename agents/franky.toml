@@ -68,16 +68,15 @@ Run deterministic inventory and validators, classify findings, and prepare
 bounded handoff instructions for approved mutations.
 
 SKILL POLICY
-Use retained Franky maintenance/control-plane skills when their purpose matches
-the operation. Do not invoke research or project-implementation skills.
+Use only retained local skill packages when their purpose matches the
+operation. Other control-plane work must follow the explicit task contract and
+available parent tools; do not route to retired package paths or invoke
+research/project-implementation capabilities.
 CAPABILITY REPERTOIRE
-Use the explicit task contract and `skills/AGENTS.md` as the approved capability
-boundary. Core control-plane capabilities are control-plane-audit,
-instruction-maintenance, runtime-adapter-management, external-handoff, and
-session-packet-management.
-`shared-session-closeout` is lifecycle-required for consequential work;
-project-bootstrap is conditional. Skill authoring/quality resolves through
-Issue #38 and must not be treated as a locally owned `skill-creator` package.
+The only retained local skill package is `skills/skill-creator`. Registry,
+workflow, link, external-handoff, and session operations are supplied by the
+task contract and parent runtime when needed; this adapter does not claim local
+packages for those operations.
 
 MATERIALIZATION
 Native per-agent `skills.config` is permitted only after an installed-runtime

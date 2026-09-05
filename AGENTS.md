@@ -17,12 +17,11 @@ Default to read-first planning. For non-trivial work, inspect the governing file
 - Franky: workflow routing, registry/platform maintenance, links, schedules,
   and the Codex control plane. Do not edit research-project contents.
 
-Argus and Athena are non-canonical runtime support adapters. Argus provides
-read-only internal exploration; Athena provides independent read-only review.
-They are bounded leaf profiles, not additional planning roles, and may only be
-selected or spawned by an active canonical role/workflow with an explicit task
-contract. Their presence under `agents/` must not be interpreted as a change to
-the AI Labs role registry.
+Athena is a non-canonical runtime support adapter providing independent
+read-only review. It is a bounded leaf profile, not an additional planning
+role, and may only be selected or spawned by an active canonical role/workflow
+with an explicit task contract. Its presence under `agents/` must not be
+interpreted as a change to the AI Labs role registry.
 
 No active machine workflow is installed for the specialized
 `franky_control_plane` scope. Admission is governed by the repository role,
