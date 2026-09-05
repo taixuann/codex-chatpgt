@@ -138,36 +138,22 @@ def _json_object(text: str) -> dict:
     return value if isinstance(value, dict) else {}
 
 
-def _runtime_observed(events: list[dict], stdout: str, fixture: Path) -> bool:
-    """Accept only an observable load/trace signal, never the prompt itself."""
-    names = ("skill_loads", "loaded_skills", "loaded_skill", "skill")
-    for event in events:
-        for key in names:
-            value = event.get(key)
-            values = value if isinstance(value, list) else [value]
-            if any(isinstance(item, str) and ("skill-creator" in item or str(fixture) in item) for item in values):
-                return True
-            if any(isinstance(item, dict) and "skill-creator" in json.dumps(item) for item in values):
-                return True
-        item = event.get("item")
-        if isinstance(item, dict) and item.get("type") == "skill":
-            return True
-    return any(marker in stdout for marker in (".agents/skills/skill-creator", "skill-creator/SKILL.md"))
-
-
 def _runtime_activation(events: list[dict]) -> str | None:
-    """Return loaded/unloaded only when the runtime emits an explicit list."""
-    saw_signal = False
+    """Return loaded/unloaded only from an explicit structured activation event."""
     for event in events:
         for key in ("skill_loads", "loaded_skills", "loaded_skill"):
             if key not in event:
                 continue
-            saw_signal = True
             value = event[key]
-            values = value if isinstance(value, list) else [value]
-            if any("skill-creator" in json.dumps(item) for item in values):
+            if isinstance(value, list) and any("skill-creator" in json.dumps(item) for item in value):
                 return "loaded"
-    return "unloaded" if saw_signal else None
+            if isinstance(value, list) and not value:
+                return "unloaded"
+            if isinstance(value, str) and value.lower() in {"none", "unloaded"}:
+                return "unloaded"
+            if isinstance(value, dict) and value.get("status") in {"none", "unloaded"}:
+                return "unloaded"
+    return None
 
 
 def _process_observed(events: list[dict]) -> bool:
@@ -278,7 +264,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         key = "selected_skill" if case["kind"] == "routing" else "disposition"
         observed = report.get(key)
         activation = _runtime_activation(events)
-        loaded = activation == "loaded" or _runtime_observed(events, stdout, fixture)
+        loaded = activation == "loaded"
         process_observed = _process_observed(events)
         trace_matches = _trace_matches(case, events)
         side_effect_free = before_snapshot == _snapshot(fixture)
