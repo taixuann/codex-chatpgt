@@ -2,7 +2,7 @@ schema_version: 2
 skill: skill-creator
 purpose: Bound routing and lifecycle evaluation with must-pass, regression, and held-out evidence.
 gates:
-  - {id: G0_NECESSITY, evidence: native/AGENTS/script/existing-skill comparison and justified disposition}
+  - {id: G0_NECESSITY, evidence: full native/AGENTS/script/project-local/user-global/upstream/plugin/sibling/localization/ordinary-instruction comparison and case-consistent disposition}
   - {id: G1_STRUCTURE, evidence: frontmatter/resources/placeholders/portability}
   - {id: G2_PROVENANCE, evidence: source/ref/path/license/adaptation-diff}
   - {id: G3_ROUTING, evidence: TP/FN/FP/TN and precision/recall}

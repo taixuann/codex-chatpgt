@@ -7,7 +7,7 @@ first; a polished output cannot compensate for skipped process evidence.
 
 | Gate | Required evidence |
 | --- | --- |
-| `G0_NECESSITY` | structured native/AGENTS/script/existing-skill/upstream comparisons and justified disposition |
+| `G0_NECESSITY` | structured native/AGENTS/script/project-local/user-global/upstream/plugin/sibling/localization/ordinary-instruction comparisons and case-consistent disposition |
 | `G1_STRUCTURE` | frontmatter, name/path, placeholders, references/resources, portability |
 | `G2_PROVENANCE` | exact source/ref/path, license, adaptation diff, donor boundary |
 | `G3_ROUTING` | positive, ambiguous/noisy, adjacent-negative, sibling-negative, and explicit opt-out cases |
