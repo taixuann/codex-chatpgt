@@ -13,5 +13,5 @@ description.
 Measure activation separately from task quality. Record TP/FN/FP/TN, precision,
 recall, false-positive rate, the prompt partition, and the exact description
 revision. A static case file does not prove native runtime routing; use an
-isolated `.agents/skills/<skill-name>/` fixture for runtime checks and fail
+isolated `.agents/skills/$SKILL_NAME/` fixture for runtime checks and fail
 closed when the host exposes no load or trace signal.
