@@ -1,6 +1,0 @@
-component_type: guidance
-component_id: AGENTS.md
-operation: audit_guidance
-status: pass
-checks: [scope, persona_drift, path_scope, protected_paths]
-findings: []

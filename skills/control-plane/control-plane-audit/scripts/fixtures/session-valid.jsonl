@@ -1,2 +1,0 @@
-{"role":"user","content":"The workflow validation failed twice; please fix the skill trigger."}
-{"role":"assistant","content":"Using $control-plane-audit and validating the selected skill."}

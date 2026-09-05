@@ -1,6 +1,0 @@
-interface:
-  display_name: "Hypothesis and Test Design"
-  short_description: "Design discriminating scientific hypotheses and tests"
-
-policy:
-  allow_implicit_invocation: false

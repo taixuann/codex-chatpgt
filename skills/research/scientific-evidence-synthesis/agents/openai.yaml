@@ -1,6 +1,0 @@
-interface:
-  display_name: "Scientific Evidence Synthesis"
-  short_description: "Synthesize bounded scientific evidence with calibrated claims"
-
-policy:
-  allow_implicit_invocation: false

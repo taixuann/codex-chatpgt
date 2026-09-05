@@ -1,6 +1,0 @@
-interface:
-  display_name: "Scientific Method Critique"
-  short_description: "Critique scientific method admissibility and claim strength"
-
-policy:
-  allow_implicit_invocation: false
