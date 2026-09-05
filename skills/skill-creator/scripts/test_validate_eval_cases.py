@@ -82,7 +82,11 @@ class EvalContractTests(unittest.TestCase):
                     else:
                         before_snapshot = {}
                         after_snapshot = {}
-                final_report = {"selected_skill": expected} if routing else {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "justification": "fixture alternatives compared"}}
+                if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
+                    before_snapshot[".fixture-coexistence"] = "fixture"
+                    after_snapshot[".fixture-coexistence"] = "fixture"
+                final_report = {"selected_skill": expected} if routing else {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "evidence": {check: "fixture alternative compared" for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
+                changed_paths = sorted(module._changed_paths(before_snapshot, after_snapshot))
                 results.append({
                     "case_id": case["id"],
                     "kind": case["kind"],
@@ -98,8 +102,9 @@ class EvalContractTests(unittest.TestCase):
                     "trace_matches": True,
                     "artifact_ok": True,
                     "necessity_observed": True,
-                    "changed_paths": sorted(module._changed_paths(before_snapshot, after_snapshot)),
-                    "cost_metrics": {"tool_calls": 1, "command_count": 1, "artifact_count": 1},
+                    "coexistence_fixture": ".fixture-coexistence" in before_snapshot,
+                    "changed_paths": changed_paths,
+                    "cost_metrics": module._cost_metrics(trace_events, set(changed_paths)),
                     "trace_events": trace_events,
                     "before_snapshot": before_snapshot,
                     "after_snapshot": after_snapshot,
@@ -122,6 +127,11 @@ class EvalContractTests(unittest.TestCase):
                 else:
                     baseline_before = {}
                     baseline_after = {}
+                if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
+                    baseline_before[".fixture-coexistence"] = "fixture"
+                    baseline_after[".fixture-coexistence"] = "fixture"
+                baseline_changed_paths = sorted(module._changed_paths(baseline_before, baseline_after))
+                baseline_events = [{"item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}]
                 baseline = {
                     "case_id": case["id"],
                     "kind": case["kind"],
@@ -137,9 +147,10 @@ class EvalContractTests(unittest.TestCase):
                     "trace_matches": True,
                     "artifact_ok": True,
                     "necessity_observed": case["kind"] == "EVALUATE",
-                    "changed_paths": sorted(module._changed_paths(baseline_before, baseline_after)),
-                    "cost_metrics": {"tool_calls": 1, "command_count": 1, "artifact_count": 1},
-                    "trace_events": [{"item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}],
+                    "coexistence_fixture": ".fixture-coexistence" in baseline_before,
+                    "changed_paths": baseline_changed_paths,
+                    "cost_metrics": module._cost_metrics(baseline_events, set(baseline_changed_paths)),
+                    "trace_events": baseline_events,
                     "before_snapshot": baseline_before,
                     "after_snapshot": baseline_after,
                     "final_report": {"disposition": "baseline"},
@@ -151,7 +162,7 @@ class EvalContractTests(unittest.TestCase):
             payload = {
                 "coverage": {"full_corpus": True},
                 "gates": gates,
-                "routing": {"status": "PASS", "precision": 1.0, "recall": 1.0},
+                "routing": {"status": "PASS", "TP": 5, "FN": 0, "FP": 0, "TN": 7, "precision": 1.0, "recall": 1.0, "false_positive_rate": 0.0, "assessed_cases": 12, "total_cases": 12},
                 "paired": paired,
                 "results": results,
             }

@@ -378,18 +378,19 @@ def _case_gates(case: dict) -> list[str]:
 
 def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str]) -> tuple[bool, str]:
     contract = _artifact_contract(case)
+    changed = _changed_paths(before, after)
     if not contract:
-        return True, "no artifact required"
+        return (not changed, "no artifact required")
     path = contract["path"]
     operation = contract["operation"]
     exists_before = path in before
     exists_after = path in after
     if operation == "created":
-        return (not exists_before and exists_after, f"expected created artifact {path}")
+        return (not exists_before and exists_after and changed == {path}, f"expected only created artifact {path}")
     if operation == "modified":
-        return (exists_before and exists_after and before[path] != after[path], f"expected modified artifact {path}")
+        return (exists_before and exists_after and before[path] != after[path] and changed == {path}, f"expected only modified artifact {path}")
     if operation == "deleted":
-        return (exists_before and not exists_after, f"expected deleted artifact {path}")
+        return (exists_before and not exists_after and changed == {path}, f"expected only deleted artifact {path}")
     return False, f"unknown artifact operation {operation}"
 
 
@@ -405,6 +406,12 @@ def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
     checks = evidence.get("checks")
     if not isinstance(checks, list) or not NECESSITY_CHECKS.issubset(checks):
         return False, "necessity evidence does not cover native, AGENTS, scripts, existing, and upstream alternatives"
+    details = evidence.get("evidence")
+    if not isinstance(details, dict) or any(
+        not isinstance(details.get(check), str) or not details[check].strip()
+        for check in NECESSITY_CHECKS
+    ):
+        return False, "necessity evidence needs a non-empty comparison for every alternative"
     if not isinstance(evidence.get("justification"), str) or not evidence["justification"].strip():
         return False, "necessity justification is missing"
     return True, "structured necessity evidence observed"
@@ -420,16 +427,19 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
     key = "selected_skill" if case["kind"] == "routing" else "disposition"
     artifact_ok, artifact_reason = _artifact_ok(case, before, after)
     necessity_ok, necessity_reason = _necessity_ok(case, report)
+    changed_paths = sorted(_changed_paths(before, after))
     return {
         "observed": report.get(key),
         "activation": _runtime_activation(events),
         "process_observed": _process_observed(events),
         "trace_matches": _trace_matches(case, events),
-        "changed_paths": sorted(_changed_paths(before, after)),
+        "changed_paths": changed_paths,
         "artifact_ok": artifact_ok,
         "artifact_reason": artifact_reason,
         "necessity_observed": necessity_ok,
         "necessity_reason": necessity_reason,
+        "coexistence_fixture": ".fixture-coexistence" in before or ".fixture-coexistence" in after,
+        "cost_metrics": _cost_metrics(events, set(changed_paths)),
     }
 
 
@@ -528,7 +538,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
                 "Complete this natural user request in the isolated fixture using available instructions "
                 "and tools. You may modify only the fixture. Return exactly one JSON object with keys "
                 "disposition, necessity, artifacts, and process. The necessity value must be an object "
-                "with checks (native, agents, scripts, existing, upstream) and a non-empty justification. "
+                "with checks (native, agents, scripts, existing, upstream), an evidence object mapping each check to a non-empty comparison, and a non-empty justification. "
                 "The artifacts value lists changed relative paths; the process value lists the concrete steps performed. "
                 f"{artifact_instruction}\n\n{case['prompt']}"
             )
@@ -568,6 +578,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         changed_paths = _changed_paths(before_snapshot, after_snapshot)
         artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot)
         necessity_ok, necessity_reason = _necessity_ok(case, report)
+        coexistence_fixture = (((fixture / "project") if case["id"] == "maintain-localize" else fixture) / ".fixture-coexistence").is_file()
         side_effect_free = not changed_paths
         unavailable = any(
             marker in (process.stderr or "").lower()
@@ -596,6 +607,8 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             status, reason = "FAIL", f"expected {case['expected']}, observed {observed!r}"
         elif case["kind"] in {"CREATE", "UPDATE", "MAINTAIN"} and with_skill and not necessity_ok:
             status, reason = "FAIL", necessity_reason
+        elif with_skill and "G5_COEXISTENCE" in _case_gates(case) and not coexistence_fixture:
+            status, reason = "FAIL", "coexistence fixture evidence is missing"
         elif case["kind"] != "routing" and not (process_observed and trace_matches and artifact_ok):
             status, reason = "FAIL", artifact_reason if not artifact_ok else "required process trace was not observed"
         elif observed == case["expected"]:
@@ -613,8 +626,8 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "trace_matches": trace_matches,
             "necessity_observed": necessity_ok,
             "necessity_reason": necessity_reason,
+            "coexistence_fixture": coexistence_fixture,
             "side_effect_free": side_effect_free,
-            "coexistence_fixture": (((fixture / "project") if case["id"] == "maintain-localize" else fixture) / ".fixture-coexistence").is_file(),
             "artifact_ok": artifact_ok,
             "artifact_reason": artifact_reason,
             "changed_paths": sorted(changed_paths),
@@ -751,7 +764,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             recomputed = _recomputed_record(item, case)
             if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
                 "observed", "activation", "process_observed", "trace_matches", "changed_paths",
-                "artifact_ok", "necessity_observed",
+                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics",
             )):
                 return False
             activation = item.get("activation")
@@ -769,9 +782,25 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             recomputed = _recomputed_record(item, case)
             if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
                 "observed", "activation", "process_observed", "trace_matches", "changed_paths",
-                "artifact_ok", "necessity_observed",
+                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics",
             )):
                 return False
+        recomputed_routing = []
+        for item in results:
+            if item.get("kind") != "routing":
+                continue
+            case = cases_by_id[item["case_id"]]
+            recomputed = _recomputed_record(item, case)
+            if recomputed is None:
+                return False
+            status = "PASS" if recomputed["activation"] in {"loaded", "unloaded"} and recomputed["observed"] == case["expected"] else "FAIL"
+            recomputed_routing.append({"case_id": item["case_id"], "status": status, "observed": recomputed["observed"]})
+        expected_routing = _routing_metrics(recomputed_routing, expected_cases)
+        if any(routing.get(field) != expected_routing.get(field) for field in (
+            "status", "TP", "FN", "FP", "TN", "precision", "recall", "false_positive_rate",
+            "assessed_cases", "total_cases",
+        )):
+            return False
         for gate in GATES - {"G6_EFFICIENCY", "G7_INDEPENDENT_REVIEW"}:
             if _case_gate_status(results, gate) != gates.get(gate):
                 return False
