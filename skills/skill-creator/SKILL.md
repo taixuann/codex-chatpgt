@@ -165,8 +165,8 @@ A short skill can instead route to details only when an advanced operation needs
 
 Handle ordinary edits directly.
 
-- For tracked changes, read [references/redlining.md](references/redlining.md).
-- For document internals, read [references/ooxml.md](references/ooxml.md).
+- For tracked changes, read the skill's tracked-changes reference.
+- For document internals, read the skill's document-internals reference.
 ```
 
 These examples illustrate options, not a required structure. Choose the organization that makes the skill easier to use without loading irrelevant material.
