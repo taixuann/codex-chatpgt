@@ -130,7 +130,7 @@ This keeps the skill available when explicitly invoked as `$skill-name` without 
 The initializer creates this file automatically. For new or interface-only metadata, generate it with:
 
 ```bash
-scripts/generate_openai_yaml.py <path/to/skill-folder> --interface key=value
+scripts/generate_openai_yaml.py "$SKILL_FOLDER" --interface key=value
 ```
 
 The generator replaces the entire file. If an existing file contains `policy` or `dependencies`, update only the intended fields in place instead of regenerating it.
@@ -199,7 +199,7 @@ Create those resources only when their concrete benefit justifies them. If the u
 For a new skill, use the bundled initializer when it helps create the required files consistently:
 
 ```bash
-scripts/init_skill.py <skill-name> --path <output-directory> [--resources scripts,references,assets] [--examples]
+scripts/init_skill.py "$SKILL_NAME" --path "$OUTPUT_DIRECTORY" [--resources scripts,references,assets] [--examples]
 ```
 
 For example:
@@ -232,7 +232,7 @@ Write only the instructions needed for another Codex instance to perform the tas
 Validate the completed skill with:
 
 ```bash
-scripts/quick_validate.py <path/to/skill-folder>
+scripts/quick_validate.py "$SKILL_FOLDER"
 ```
 
 The validator checks frontmatter, naming, and unfinished scaffold placeholders; it does not prove that the skill makes good decisions. Also check that descriptions remain discriminating, instructions preserve user intent, references are discoverable, and any added scripts actually work.
