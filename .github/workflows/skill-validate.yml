@@ -1,0 +1,82 @@
+name: Skill validation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AGENTS.md'
+      - 'agents/**'
+      - 'skills/**'
+      - '.github/workflows/skill-validate.yml'
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'agents/**'
+      - 'skills/**'
+      - '.github/workflows/skill-validate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skill-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependency
+        run: python -m pip install 'pyyaml>=6,<7'
+
+      - name: Validate retained agent adapters
+        run: >-
+          python -c "import glob,pathlib,tomllib; paths=sorted(glob.glob('agents/*.toml')); names=[pathlib.Path(p).stem for p in paths]; assert names == ['athena', 'franky', 'prometheus'], names; [tomllib.load(open(p, 'rb')) for p in paths]"
+
+      - name: Validate reduced active tree
+        run: |
+          test ! -d documentation
+          test ! -d manifests
+          test ! -d ops
+          test ! -d plans
+          test ! -d skills/references
+          test ! -e skills/ADDYOSMANI-AGENT-SKILLS-LICENSE
+          test ! -e agents/README.md
+          test ! -e agents/CHANGELOG.md
+          test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 1
+          test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3
+
+      - name: Validate repository references and retained provenance
+        run: |
+          ! git grep -n -E '(^|[[:space:]])(documentation|manifests|ops|plans)/' -- AGENTS.md README.md agents skills .github
+          test "$(git rev-parse refs/remotes/origin/archive/pre-minimal-kernel-v2)" = "159b8102229503ebe404535dc6b2a1ee298436cf"
+          python - <<'PY'
+          import subprocess
+          expected = {
+              'skills/skill-creator/scripts/generate_openai_yaml.py': '870eefcea9bd0184806b8eb305526e883d2f7241',
+              'skills/skill-creator/scripts/init_skill.py': '2ed2fa3125c720fcce60a29f3dd82d04b14d9fa0',
+              'skills/skill-creator/scripts/quick_validate.py': 'e27023ece4bd259ef36560e19995eec7b6a345bf',
+              'skills/skill-creator/license.txt': 'd645695673349e3947e8e5ae42332d0ac3164cd7',
+          }
+          for path, blob in expected.items():
+              actual = subprocess.check_output(['git', 'hash-object', path], text=True).strip()
+              assert actual == blob, (path, actual, blob)
+          PY
+          git diff --check origin/main...HEAD
+
+      - name: Validate skill-creator package
+        run: |
+          python skills/skill-creator/scripts/quick_validate.py skills/skill-creator
+          python skills/skill-creator/scripts/validate_eval_cases.py skills/skill-creator/evals/cases.yaml
+          python -m unittest skills/skill-creator/scripts/test_validate_eval_cases.py

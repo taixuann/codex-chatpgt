@@ -1,5 +1,0 @@
-interface:
-  display_name: Risk and security review
-  short_description: Evidence-bound security and authority review
-policy:
-  allow_implicit_invocation: false

@@ -1,7 +1,0 @@
-interface:
-  display_name: "Session Packet Management"
-  short_description: "Create provenance-linked session packets for governed work"
-  default_prompt: "Create or resume a bounded session packet with provenance-linked context, plan, tasks, ticket, and results. Preserve the repository's canonical authority and approval boundaries."
-
-policy:
-  allow_implicit_invocation: false

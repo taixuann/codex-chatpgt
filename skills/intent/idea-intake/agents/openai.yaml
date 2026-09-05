@@ -1,7 +1,0 @@
-interface:
-  display_name: "Idea Intake"
-  short_description: "Investigate a user idea in its active context"
-  default_prompt: "Use $idea-intake to preserve and investigate a user idea before planning."
-
-policy:
-  allow_implicit_invocation: false

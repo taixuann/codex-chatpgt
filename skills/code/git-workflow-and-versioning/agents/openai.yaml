@@ -1,6 +1,0 @@
-interface:
-  display_name: "Git Workflow and Versioning"
-  short_description: "Help with Git Workflow and Versioning tasks"
-
-policy:
-  allow_implicit_invocation: false
