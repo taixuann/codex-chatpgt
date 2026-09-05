@@ -32,7 +32,9 @@ answer or caller-supplied review flag is not evidence of execution or
 independent review. Use a structured result with the exact case, condition,
 expected/observed outcome, trace/load signal, artifact delta, cost fields, and
 raw limitation; qualitative review must not be reduced to an ungrounded prose
-score. Lifecycle results include a non-empty comparison for each G0 alternative.
+score. Lifecycle results include a typed disposition and a substantive reason
+for each G0 alternative. Coexistence cases bind evidence to the actual sibling
+or local `SKILL.md` paths in the fixture snapshots.
 Every case also declares `origin.type` and `origin.source` so regressions
 remain attributable.
 

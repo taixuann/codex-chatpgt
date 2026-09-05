@@ -83,9 +83,10 @@ class EvalContractTests(unittest.TestCase):
                         before_snapshot = {}
                         after_snapshot = {}
                 if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
-                    before_snapshot[".fixture-coexistence"] = "fixture"
-                    after_snapshot[".fixture-coexistence"] = "fixture"
-                final_report = {"selected_skill": expected} if routing else {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "evidence": {check: "fixture alternative compared" for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
+                    for path in module.COEXISTENCE_PATHS[case["id"]]:
+                        before_snapshot[path] = "fixture"
+                        after_snapshot[path] = "fixture"
+                final_report = {"selected_skill": expected} if routing else {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": "retain_global", "evidence": {check: {"disposition": "retain_global", "reason": "fixture alternative was compared against the requested reusable capability"} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
                 changed_paths = sorted(module._changed_paths(before_snapshot, after_snapshot))
                 results.append({
                     "case_id": case["id"],
@@ -102,7 +103,7 @@ class EvalContractTests(unittest.TestCase):
                     "trace_matches": True,
                     "artifact_ok": True,
                     "necessity_observed": True,
-                    "coexistence_fixture": ".fixture-coexistence" in before_snapshot,
+                    "coexistence_fixture": module.COEXISTENCE_PATHS.get(case["id"], set()).issubset(before_snapshot),
                     "changed_paths": changed_paths,
                     "cost_metrics": module._cost_metrics(trace_events, set(changed_paths)),
                     "trace_events": trace_events,
@@ -128,8 +129,9 @@ class EvalContractTests(unittest.TestCase):
                     baseline_before = {}
                     baseline_after = {}
                 if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
-                    baseline_before[".fixture-coexistence"] = "fixture"
-                    baseline_after[".fixture-coexistence"] = "fixture"
+                    for path in module.COEXISTENCE_PATHS[case["id"]]:
+                        baseline_before[path] = "fixture"
+                        baseline_after[path] = "fixture"
                 baseline_changed_paths = sorted(module._changed_paths(baseline_before, baseline_after))
                 baseline_events = [{"item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}]
                 baseline = {
@@ -147,7 +149,7 @@ class EvalContractTests(unittest.TestCase):
                     "trace_matches": True,
                     "artifact_ok": True,
                     "necessity_observed": case["kind"] == "EVALUATE",
-                    "coexistence_fixture": ".fixture-coexistence" in baseline_before,
+                    "coexistence_fixture": module.COEXISTENCE_PATHS.get(case["id"], set()).issubset(baseline_before),
                     "changed_paths": baseline_changed_paths,
                     "cost_metrics": module._cost_metrics(baseline_events, set(baseline_changed_paths)),
                     "trace_events": baseline_events,
@@ -229,6 +231,18 @@ class EvalContractTests(unittest.TestCase):
         before = {"target/SKILL.md": "old"}
         self.assertEqual(module._artifact_ok(case, before, before)[0], False)
         self.assertEqual(module._artifact_ok(case, before, {"target/SKILL.md": "new"})[0], True)
+        self.assertEqual(module._artifact_ok(case, before, {"target/SKILL.md": "new", "extra": "changed"})[0], False)
+
+    def test_necessity_and_coexistence_evidence_are_structured(self):
+        module = load_module()
+        case = {"id": "create-local-upstream", "kind": "CREATE"}
+        weak = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "evidence": {check: {"disposition": "reject", "reason": "x"} for check in module.NECESSITY_CHECKS}, "justification": "x"}}
+        self.assertFalse(module._necessity_ok(case, weak)[0])
+        strong = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": "adapt_upstream", "evidence": {check: {"disposition": "adapt_upstream", "reason": "This alternative was compared against the requested reusable capability."} for check in module.NECESSITY_CHECKS}, "justification": "The maintained upstream baseline is the smallest justified owner."}}
+        self.assertTrue(module._necessity_ok(case, strong)[0])
+        coexistence = {path: "hash" for path in module.COEXISTENCE_PATHS["maintain-overlap"]}
+        self.assertFalse(module._recomputed_record({"trace_events": [], "before_snapshot": {".fixture-coexistence": "hash"}, "after_snapshot": {}, "final_report": {}}, {"id": "maintain-overlap", "kind": "MAINTAIN"})["coexistence_fixture"])
+        self.assertTrue(module._recomputed_record({"trace_events": [], "before_snapshot": coexistence, "after_snapshot": coexistence, "final_report": {}}, {"id": "maintain-overlap", "kind": "MAINTAIN"})["coexistence_fixture"])
 
     def test_case_owned_gates_include_declared_additional_gates(self):
         module = load_module()

@@ -395,6 +395,16 @@ def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str]) -> t
 
 
 NECESSITY_CHECKS = {"native", "agents", "scripts", "existing", "upstream"}
+NECESSITY_DISPOSITIONS = {
+    "use_native", "use_agents", "use_script", "reuse_existing", "adapt_upstream",
+    "retain_global", "localize", "merge", "retire", "reject",
+}
+COEXISTENCE_PATHS = {
+    "maintain-overlap": {".agents/skills/pdf/SKILL.md", ".agents/skills/overlap-skill/SKILL.md"},
+    "maintain-localize": {".agents/skills/pdf/SKILL.md", ".agents/skills/domain-workflow/SKILL.md"},
+    "maintain-retire": {".agents/skills/pdf/SKILL.md", ".agents/skills/stale-skill/SKILL.md"},
+    "evaluate-sibling-collision": {".agents/skills/pdf/SKILL.md", ".agents/skills/candidate-skill/SKILL.md"},
+}
 
 
 def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
@@ -406,12 +416,18 @@ def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
     checks = evidence.get("checks")
     if not isinstance(checks, list) or not NECESSITY_CHECKS.issubset(checks):
         return False, "necessity evidence does not cover native, AGENTS, scripts, existing, and upstream alternatives"
+    disposition = evidence.get("disposition")
+    if disposition not in NECESSITY_DISPOSITIONS:
+        return False, "necessity evidence needs a typed disposition"
     details = evidence.get("evidence")
     if not isinstance(details, dict) or any(
-        not isinstance(details.get(check), str) or not details[check].strip()
+        not isinstance(details.get(check), dict)
+        or details[check].get("disposition") not in NECESSITY_DISPOSITIONS
+        or not isinstance(details[check].get("reason"), str)
+        or len(details[check]["reason"].strip()) < 20
         for check in NECESSITY_CHECKS
     ):
-        return False, "necessity evidence needs a non-empty comparison for every alternative"
+        return False, "necessity evidence needs a substantive typed comparison for every alternative"
     if not isinstance(evidence.get("justification"), str) or not evidence["justification"].strip():
         return False, "necessity justification is missing"
     return True, "structured necessity evidence observed"
@@ -428,6 +444,7 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
     artifact_ok, artifact_reason = _artifact_ok(case, before, after)
     necessity_ok, necessity_reason = _necessity_ok(case, report)
     changed_paths = sorted(_changed_paths(before, after))
+    coexistence_ok = COEXISTENCE_PATHS.get(case["id"], set()).issubset(before)
     return {
         "observed": report.get(key),
         "activation": _runtime_activation(events),
@@ -438,7 +455,7 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
         "artifact_reason": artifact_reason,
         "necessity_observed": necessity_ok,
         "necessity_reason": necessity_reason,
-        "coexistence_fixture": ".fixture-coexistence" in before or ".fixture-coexistence" in after,
+        "coexistence_fixture": coexistence_ok,
         "cost_metrics": _cost_metrics(events, set(changed_paths)),
     }
 
@@ -495,7 +512,7 @@ def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Ite
         if with_skill:
             target = fixture_root / ".agents" / "skills" / "skill-creator"
             shutil.copytree(skill_dir, target, ignore=shutil.ignore_patterns("__pycache__"))
-        if case and case["id"] in {"maintain-overlap", "maintain-localize", "evaluate-sibling-collision"}:
+        if case and case["id"] in {"maintain-overlap", "maintain-localize", "maintain-retire", "evaluate-sibling-collision"}:
             sibling = fixture_root / ".agents" / "skills" / "pdf"
             sibling.mkdir(parents=True, exist_ok=True)
             (sibling / "SKILL.md").write_text(
@@ -538,7 +555,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
                 "Complete this natural user request in the isolated fixture using available instructions "
                 "and tools. You may modify only the fixture. Return exactly one JSON object with keys "
                 "disposition, necessity, artifacts, and process. The necessity value must be an object "
-                "with checks (native, agents, scripts, existing, upstream), an evidence object mapping each check to a non-empty comparison, and a non-empty justification. "
+                "with checks (native, agents, scripts, existing, upstream), a typed disposition, and an evidence object mapping each check to a typed disposition plus a substantive reason of at least 20 characters. "
                 "The artifacts value lists changed relative paths; the process value lists the concrete steps performed. "
                 f"{artifact_instruction}\n\n{case['prompt']}"
             )
