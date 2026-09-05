@@ -81,10 +81,20 @@ class EvalContractTests(unittest.TestCase):
                 })
             gates = {gate: "PASS" for gate in module.GATES}
             gates["G7_INDEPENDENT_REVIEW"] = "NOT_ASSESSED"
+            paired = [
+                {
+                    "case_id": case["id"],
+                    "added_value_observed": True,
+                    "cost_comparison_observed": True,
+                    "outcome_delta_observed": True,
+                }
+                for case in cases if case.get("paired") is True
+            ]
             payload = {
                 "coverage": {"full_corpus": True},
                 "gates": gates,
                 "routing": {"status": "PASS", "precision": 1.0, "recall": 1.0},
+                "paired": paired,
                 "results": results,
             }
             before.write_text(json.dumps(payload), encoding="utf-8")
@@ -93,6 +103,14 @@ class EvalContractTests(unittest.TestCase):
             incomplete = json.loads(json.dumps(payload))
             incomplete["results"][0].pop("activation")
             before.write_text(json.dumps(incomplete), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            invalid_gate = json.loads(json.dumps(payload))
+            invalid_gate["gates"]["G7_INDEPENDENT_REVIEW"] = "PASS"
+            before.write_text(json.dumps(invalid_gate), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            missing_pair = json.loads(json.dumps(payload))
+            missing_pair["paired"] = []
+            before.write_text(json.dumps(missing_pair), encoding="utf-8")
             self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
 
     def test_independent_review_is_not_caller_supplied(self):

@@ -35,6 +35,23 @@ PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", 
 EXPECTED_CASE_COUNT = 26
 EXPECTED_ROUTING_CASE_COUNT = 12
 EXPECTED_LIFECYCLE_CASE_COUNT = 14
+EXPECTED_PARTITIONS = {
+    "must_pass": frozenset({
+        "route-explicit-positive", "route-implicit-positive", "route-contextual-positive",
+        "route-explicit-negative", "route-adjacent-negative", "route-sibling-negative",
+        "create-local-upstream", "create-multimode-one-skill", "update-bounded", "evaluate-good",
+    }),
+    "regression": frozenset({
+        "create-no-skill", "update-substantive", "maintain-upstream-drift", "maintain-retire",
+        "evaluate-broad-description", "evaluate-decorative-resources",
+    }),
+    "held_out": frozenset({
+        "route-ambiguous-positive", "route-noisy-positive", "route-agents-negative",
+        "route-script-negative", "route-native-negative", "route-noisy-negative",
+        "maintain-overlap", "maintain-localize", "evaluate-sibling-collision", "evaluate-skipped-process",
+    }),
+}
+EXPECTED_CASE_IDS = frozenset().union(*EXPECTED_PARTITIONS.values())
 EXPECTED_FILES = {
     "SKILL.md", "license.txt", "evals/cases.yaml",
     "references/create.md", "references/evaluate.md", "references/maintain.md",
@@ -111,6 +128,12 @@ def validate(path: Path) -> list[str]:
         if case.get("kind") != "routing" and not isinstance(case.get("trace_markers"), list):
             errors.append(f"{case_id}: lifecycle cases require trace_markers")
     routing = [case for case in cases if isinstance(case, dict) and case.get("kind") == "routing"]
+    if seen != EXPECTED_CASE_IDS:
+        errors.append("case ids must match the canonical 26-case corpus")
+    for partition, expected_ids in EXPECTED_PARTITIONS.items():
+        actual_ids = {case.get("id") for case in cases if isinstance(case, dict) and case.get("partition") == partition}
+        if actual_ids != expected_ids:
+            errors.append(f"{partition} partition does not match the canonical corpus")
     if len(routing) < 10:
         errors.append("routing corpus requires at least 10 realistic prompts")
     if not any(case.get("partition") == "held_out" for case in cases if isinstance(case, dict)):
@@ -558,10 +581,29 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
         routing = data.get("routing", {})
         if coverage.get("full_corpus") is not True or set(gates) != set(GATES):
             return False
-        if any(gates.get(gate) == "NOT_ASSESSED" for gate in GATES if gate != "G7_INDEPENDENT_REVIEW"):
+        if any(gates.get(gate) not in {"PASS", "FAIL", "NOT_ASSESSED"} for gate in GATES):
+            return False
+        if gates.get("G7_INDEPENDENT_REVIEW") != "NOT_ASSESSED":
+            return False
+        if any(gates.get(gate) != "PASS" for gate in GATES if gate != "G7_INDEPENDENT_REVIEW"):
             return False
         if routing.get("status") not in {"PASS", "FAIL"} or not all(
             isinstance(routing.get(field), (int, float)) for field in ("precision", "recall")
+        ):
+            return False
+        routing_results = [item for item in results if item.get("kind") == "routing"]
+        expected_routing_status = "FAIL" if any(item.get("status") == "FAIL" for item in routing_results) else "PASS"
+        if routing.get("status") != expected_routing_status or gates.get("G3_ROUTING") != routing.get("status"):
+            return False
+        expected_paired = {case["id"] for case in expected_cases if case.get("paired") is True}
+        paired = data.get("paired")
+        if not isinstance(paired, list) or {item.get("case_id") for item in paired} != expected_paired:
+            return False
+        if gates.get("G6_EFFICIENCY") != "PASS" or any(
+            item.get("added_value_observed") is not True
+            or item.get("cost_comparison_observed") is not True
+            or item.get("outcome_delta_observed") is not True
+            for item in paired
         ):
             return False
         for item in results:
@@ -584,12 +626,13 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     before_keys = {(item.get("case_id"), item.get("partition")) for item in before_results}
     after_keys = {(item.get("case_id"), item.get("partition")) for item in after_results}
     expected_keys = {(case["id"], case["partition"]) for case in expected_cases}
+    canonical_keys = {(case_id, partition) for partition, case_ids in EXPECTED_PARTITIONS.items() for case_id in case_ids}
     statuses = {"PASS", "FAIL"}
     comparable = (
         len(expected_cases) == EXPECTED_CASE_COUNT
         and sum(case.get("kind") == "routing" for case in expected_cases) == EXPECTED_ROUTING_CASE_COUNT
         and sum(case.get("kind") != "routing" for case in expected_cases) == EXPECTED_LIFECYCLE_CASE_COUNT
-        and bool(expected_keys)
+        and expected_keys == canonical_keys
         and bool(before_results)
         and before_keys == after_keys
         and before_keys == expected_keys
@@ -631,7 +674,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
         for payload in (before_routing, after_routing)
         for field in ("precision", "recall")
     )
-    routing_non_regressing = not routing_comparable or (
+    routing_non_regressing = routing_comparable and (
         after_routing["precision"] >= before_routing["precision"]
         and after_routing["recall"] >= before_routing["recall"]
     )
