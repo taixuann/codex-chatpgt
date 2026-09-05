@@ -1,5 +1,9 @@
 interface:
   display_name: "Skill Creator"
-  short_description: "Create or update a skill"
+  short_description: "Create or maintain scoped Codex skills"
+  default_prompt: "Use $skill-creator to evaluate the smallest justified skill change with provenance, routing, and validation evidence."
   icon_small: "./assets/skill-creator-small.svg"
   icon_large: "./assets/skill-creator.png"
+
+policy:
+  allow_implicit_invocation: false

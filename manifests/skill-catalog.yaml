@@ -12,6 +12,7 @@ policy: >-
   repository-grounded capability/utility evidence. All other packages remain
   noncanonical until a bounded admission review promotes them.
 canonical_active:
+  - skill-creator
   - control-plane-audit
   - external-handoff
   - instruction-maintenance
@@ -20,6 +21,7 @@ canonical_active:
   - session-packet-management
   - shared-session-closeout
 capability_keys:
+  skill-creator: skill-creator
   control-plane-audit: control-plane-audit
   external-handoff: external-handoff
   instruction-maintenance: instruction-maintenance
@@ -36,6 +38,7 @@ capability_keys:
   phd-sop: phd-sop
 dispositions:
   KEEP:
+    - skill-creator
     - control-plane-audit
     - external-handoff
     - instruction-maintenance
@@ -120,6 +123,15 @@ noncanonical_overlays:
   - {name: opencode-executor, path: skills/runtime/opencode-executor, disposition: EXPLICIT_ONLY, local_only: true}
   - {name: ragflow-markdown-retrieval, path: skills/knowledge/ragflow-markdown-retrieval, disposition: EXPLICIT_ONLY, local_only: true}
 evidence:
+  skill-creator:
+    utility: PASS
+    structural: PASS
+    behavioral: NOT_ASSESSED
+    basis: Pinned OpenAI clone with deterministic helper smoke tests and compact CREATE/UPDATE/MAINTAIN/EVALUATE case coverage; native model-mediated routing/loading remains unproven.
+    evidence_paths:
+      - skills/control-plane/skill-creator/evals
+      - skills/control-plane/skill-creator/references
+      - skills/control-plane/skill-creator/scripts
   control-plane-audit:
     utility: PASS
     structural: PASS

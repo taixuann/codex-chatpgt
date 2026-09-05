@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 
-ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/control-plane/control-plane-audit/", "skills/control-plane/runtime-adapter-management/", "skills/control-plane/instruction-maintenance/", "skills/control-plane/project-bootstrap/", "skills/control-plane/external-handoff/", "skills/control-plane/shared-session-closeout/", "skills/control-plane/session-packet-management/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/", "ops/on-demand-skills/")
+ALLOWED_PREFIXES = ("agents/", "documentation/", "skills/control-plane/control-plane-audit/", "skills/control-plane/runtime-adapter-management/", "skills/control-plane/instruction-maintenance/", "skills/control-plane/project-bootstrap/", "skills/control-plane/external-handoff/", "skills/control-plane/shared-session-closeout/", "skills/control-plane/session-packet-management/", "skills/control-plane/skill-creator/", ".github/", "manifests/", "ops/schemas/", "ops/scripts/", "ops/schedulers/", "ops/changes/", "ops/on-demand-skills/")
 ALLOWED_FILES = {".gitignore", "AGENTS.md", "README.md", "skills/AGENTS.md", "skills/ADDYOSMANI-AGENT-SKILLS-LICENSE", "workflows/AGENTS.md"}
 ALLOWED_SKILL_PACKAGES = frozenset({
     "api-and-interface-design", "aspnet-core", "browser-testing-with-devtools", "chatgpt-apps",

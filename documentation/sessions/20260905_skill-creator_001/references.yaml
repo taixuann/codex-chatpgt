@@ -1,0 +1,10 @@
+kind: codex.session-references.v1
+session_id: 20260905_skill-creator_001
+references:
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/103, kind: execution_authority, state: live, commit_or_hash: issue-103, relationship: acceptance_and_scope}
+  - {path: https://github.com/taixuann/codex-chatpgt/issues/102, kind: parent_authority, state: live, commit_or_hash: issue-102, relationship: sequential_kernel_boundary}
+  - {path: https://github.com/openai/codex/tree/dee21ec1bc26cdf9f3c4d77a17706cd19dcf05de/codex-rs/skills/src/assets/samples/skill-creator, kind: primary_upstream, state: revision_verified, commit_or_hash: dee21ec1bc26cdf9f3c4d77a17706cd19dcf05de, relationship: exact_clone_baseline, license: Apache-2.0}
+  - {path: https://github.com/anthropics/skills/tree/41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f/skills/skill-creator, kind: bounded_donor, state: inspected_reference_only, commit_or_hash: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f, relationship: trigger_and_independence_concepts, license: Apache-2.0}
+  - {path: agents/AGENTS.md, kind: governing_role_policy, state: current, commit_or_hash: 159b8102229503ebe404535dc6b2a1ee298436cf, relationship: role_and_delegation_boundary}
+  - {path: skills/AGENTS.md, kind: governing_skill_policy, state: current, commit_or_hash: 159b8102229503ebe404535dc6b2a1ee298436cf, relationship: package_admission_boundary}
+  - {path: manifests/skill-catalog.yaml, kind: canonical_catalog, state: current, commit_or_hash: 159b8102229503ebe404535dc6b2a1ee298436cf, relationship: active_admission}

@@ -24,11 +24,17 @@ def tracked_skills(root: Path) -> set[str]:
     for values in (catalog.get("dispositions") or {}).values():
         if isinstance(values, list):
             names.update(name for name in values if isinstance(name, str))
-    return {name for name in names if list((root / "skills").rglob(f"{name}/SKILL.md"))}
+    return {
+        name for name in names
+        if any(".system" not in path.parts for path in (root / "skills").rglob(f"{name}/SKILL.md"))
+    }
 
 
 def skill_dir(root: Path, name: str) -> Path:
-    matches = [p.parent for p in (root / "skills").rglob("SKILL.md") if p.parent.name == name]
+    matches = [
+        p.parent for p in (root / "skills").rglob("SKILL.md")
+        if p.parent.name == name and ".system" not in p.parts
+    ]
     if len(matches) != 1:
         raise ValueError(f"expected one package named {name}, found {len(matches)}")
     return matches[0]

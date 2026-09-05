@@ -1,8 +1,10 @@
 ---
 name: skill-creator
-description: Create or update a Codex skill with appropriately scoped instructions and any needed supporting resources.
+description: Create, update, evaluate, or retire Codex skills when a reusable procedure needs provenance, routing, and validation; do not use for ordinary code changes or one-off instructions.
 metadata:
-  short-description: Create or update a skill
+  short-description: Create or maintain scoped skills
+  last_reviewed: 2026-09-05
+  review_interval_days: 90
 ---
 
 # Skill Creator
@@ -17,6 +19,60 @@ Create skills that give Codex useful, non-obvious guidance without constraining 
 
 Approval to complete a task does not expand its scope or execution permissions. For retrying or externally mutating workflows, define a stopping condition proportional to the risk.
 
+## Kernel lifecycle
+
+This is one skill with four internal modes: CREATE, UPDATE, MAINTAIN, and
+EVALUATE. Do not create a subskill, registry, workflow engine, or second
+discoverable creator for a mode.
+
+Before CREATE, inspect existing local, project-local, installed/global, and
+maintained upstream candidates, plus simpler owners such as `AGENTS.md`, a
+deterministic script, native model behavior, or an existing tool. Prefer one
+of `USE_EXISTING`, `CLONE_AND_ADAPT`, `UPDATE_EXISTING`, `LOCALIZE`, `MERGE`,
+`DISABLE_IMPLICIT`, `RETIRE`, or `REJECT`. Use
+`CREATE_FROM_SCRATCH_WITH_JUSTIFICATION` only when the search evidence shows
+that no suitable baseline exists.
+
+Default repo- or domain-specific skills to the project's `.agents/skills/`.
+Use a global location only when cross-project reuse is demonstrated. Keep the
+description concise, front-loaded, and bounded against sibling skills.
+
+For UPDATE, MAINTAIN, or EVALUATE, read
+[references/lifecycle.md](references/lifecycle.md) for the mode-specific
+checks, then record provenance, changed/removed resources, trigger cases,
+behavioral results, and unresolved limits. Run deterministic checks before
+model judgment. A good result that skipped a required process check is not a
+pass.
+
+Prepare evidence for an independent reviewer when the change is complex,
+global, fragile, or otherwise consequential. The creator may prepare the
+packet but must not approve itself; Athena remains the independent reviewer
+and the parent/human remains the acceptance authority.
+
+Use the bundled helpers with `python3` unless their executable bit has been
+verified. Stop on unclear licensing/provenance, unauthorized mutation,
+missing baseline, or evidence that would require a broader platform.
+
+## Procedure contract
+
+**Trigger:** a reusable skill needs creation, change, qualification, placement,
+localization, or retirement.
+
+**Inputs:** the capability request, candidate skills, authoritative upstream
+source/ref/license, target repository, and permitted mutation scope.
+
+**Output:** the smallest justified disposition, changed skill resources, and
+evidence for structure, routing, behavior, provenance, and review.
+
+**Boundary:** this skill owns skill procedure/evidence only; GitHub lifecycle,
+agent identity, project logic, and final acceptance remain external owners.
+
+**Stop:** stop on missing provenance, unclear license, unauthorized mutation,
+unresolved sibling collision, or unsupported runtime claim.
+
+**Validation:** run the upstream helpers, the compact case validator, relevant
+scenario cases, `git diff --check`, and independent review when warranted.
+
 **Match specificity to the risk.** Give the model room to choose an appropriate approach when multiple approaches are reasonable. Use detailed steps, deterministic scripts, or absolute language only when correctness, safety, permissions, or a genuinely fragile workflow requires them.
 
 For open-ended work, describe the outcome and relevant decision criteria. For workflows with a preferred shape, offer useful examples or configurable scripts. Reserve fixed sequences and narrow parameters for operations where deviation would cause a concrete problem. Preserve non-obvious operational invariants, distinguish actual requirements from optional recommendations or local conventions, and avoid restating policies already enforced elsewhere.
@@ -26,6 +82,10 @@ For open-ended work, describe the outcome and relevant decision criteria. For wo
 Keep skills self-contained; refer to another skill or tool only when the requested workflow genuinely requires it and it is available in the target environment. Specialized review, hardening, or audit workflows should apply when requested or genuinely needed, not merely because ordinary work touches the same subject.
 
 **Disclose detail progressively.** Keep shared purpose, essential constraints, and useful routing in `SKILL.md`. Put substantial mode-specific guidance, schemas, examples, or procedures in supporting references and read only the references relevant to the current task. A simple self-contained skill does not need a router or extra files.
+
+For the repository adaptation, read [references/lifecycle.md](references/lifecycle.md)
+only when a mode needs its detailed checks; [references/provenance.md](references/provenance.md)
+records the pinned clone and bounded donor audit.
 
 ## Anatomy of a Skill
 
