@@ -10,6 +10,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -34,6 +35,24 @@ KINDS = {"routing", "CREATE", "UPDATE", "MAINTAIN", "EVALUATE"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
 COEXISTENCE_CASES = {"maintain-overlap", "maintain-localize", "evaluate-sibling-collision"}
 COST_OVERHEAD_LIMIT = 1.25
+EXPECTED_FILES = {
+    "SKILL.md", "license.txt", "evals/cases.yaml",
+    "references/create.md", "references/evaluate.md", "references/maintain.md",
+    "references/provenance.md", "references/routing.md", "references/update.md",
+    "scripts/generate_openai_yaml.py", "scripts/init_skill.py", "scripts/quick_validate.py",
+    "scripts/test_validate_eval_cases.py", "scripts/validate_eval_cases.py",
+}
+UPSTREAM_MARKERS = (
+    "Repository: `openai/codex`",
+    "Ref: `dee21ec1bc26cdf9f3c4d77a17706cd19dcf05de`",
+    "Source path: `codex-rs/skills/src/assets/samples/skill-creator/`",
+    "License: Apache-2.0",
+    "Baseline commit: `bb288fd`",
+    "`scripts/generate_openai_yaml.py`, `870eefcea9bd0184806b8eb305526e883d2f7241`",
+    "`scripts/init_skill.py`, `2ed2fa3125c720fcce60a29f3dd82d04b14d9fa0`",
+    "`scripts/quick_validate.py`, `e27023ece4bd259ef36560e19995eec7b6a345bf`",
+    "`license.txt`, `d645695673349e3947e8e5ae42332d0ac3164cd7`",
+)
 
 
 def load_cases(path: Path) -> dict:
@@ -190,6 +209,33 @@ def _snapshot(root: Path) -> dict[str, str]:
     return files
 
 
+def _package_structure_ok(skill_dir: Path) -> bool:
+    files = {
+        path.relative_to(skill_dir).as_posix()
+        for path in skill_dir.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
+    }
+    if files != EXPECTED_FILES:
+        return False
+    markdown = "\n".join(path.read_text(encoding="utf-8") for path in skill_dir.rglob("*.md"))
+    links = re.findall(r"\]\(([^)#]+)", markdown)
+    if any(link.startswith(("/", "file:")) for link in links):
+        return False
+    if any(not (skill_dir / link).is_file() for link in links if not link.startswith(("http:", "https:"))):
+        return False
+    if any(marker in markdown for marker in ("TODO", "TBD", "<path/to/", "<skill-name>")):
+        return False
+    return all((skill_dir / path).stat().st_size > 0 for path in files)
+
+
+def _provenance_ok(skill_dir: Path) -> bool:
+    path = skill_dir / "references" / "provenance.md"
+    if not path.is_file():
+        return False
+    text = path.read_text(encoding="utf-8")
+    return all(marker in text for marker in UPSTREAM_MARKERS)
+
+
 def _cost(result: dict | None) -> float | None:
     if not result or not isinstance(result.get("elapsed_seconds"), (int, float)) or not isinstance(result.get("stdout_bytes"), int):
         return None
@@ -241,7 +287,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "case_id": case["id"],
             "expected": case["expected"],
             "condition": "with_skill" if with_skill else "without_skill",
-            "fixture": ".agents/skills/skill-creator" if with_skill else "no skill fixture",
+            "fixture": ("project/.agents/skills/skill-creator" if case["id"] == "maintain-localize" else ".agents/skills/skill-creator") if with_skill else "no skill fixture",
         }
         if not shutil.which(runtime):
             return {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"}
@@ -432,8 +478,8 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         [sys.executable, str(skill_dir / "scripts" / "quick_validate.py"), str(skill_dir)],
         capture_output=True, text=True, check=False,
     )
-    provenance_text = (skill_dir / "references" / "provenance.md").read_text(encoding="utf-8") if (skill_dir / "references" / "provenance.md").is_file() else ""
-    provenance_ok = all(marker in provenance_text for marker in ("openai/codex", "Source path:", "License:"))
+    structure_ok = structure_check.returncode == 0 and _package_structure_ok(skill_dir)
+    provenance_ok = _provenance_ok(skill_dir)
     behavior_cases = [case for case in cases if case["kind"] != "routing"]
     behavior_results = [item for item in results if item["condition"] == "with_skill" and item["case_id"] in {case["id"] for case in behavior_cases}]
     coexistence_cases = COEXISTENCE_CASES
@@ -441,7 +487,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
     full_corpus = len(cases) == len(data["cases"])
     paired_complete = len(paired) == sum(case.get("paired") is True for case in cases)
     status_by_gate = {
-        "G1_STRUCTURE": "PASS" if structure_check.returncode == 0 else "FAIL",
+        "G1_STRUCTURE": "PASS" if structure_ok else "FAIL",
         "G2_PROVENANCE": "PASS" if provenance_ok else "FAIL",
         "G3_ROUTING": routing["status"],
         "G4_BEHAVIOR": "PASS" if full_corpus and behavior_cases and len(behavior_results) == len(behavior_cases) and all(item["status"] == "PASS" for item in behavior_results) else "NOT_ASSESSED",

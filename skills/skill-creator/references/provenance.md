@@ -15,6 +15,13 @@ The baseline was copied before adaptation and its nine files matched the
 pinned Git blob IDs recorded in Issue #103. The baseline is therefore
 recoverable and the adaptation remains diffable against it.
 
+Retained unchanged baseline blobs:
+
+- `scripts/generate_openai_yaml.py`, `870eefcea9bd0184806b8eb305526e883d2f7241`
+- `scripts/init_skill.py`, `2ed2fa3125c720fcce60a29f3dd82d04b14d9fa0`
+- `scripts/quick_validate.py`, `e27023ece4bd259ef36560e19995eec7b6a345bf`
+- `license.txt`, `d645695673349e3947e8e5ae42332d0ac3164cd7`
+
 ## Secondary donor
 
 Anthropic `anthropics/skills` at
