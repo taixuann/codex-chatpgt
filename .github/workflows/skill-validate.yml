@@ -7,13 +7,13 @@ on:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
-      - '.github/workflows/franky-validate.yml'
+      - '.github/workflows/skill-validate.yml'
   pull_request:
     paths:
       - 'AGENTS.md'
       - 'agents/**'
       - 'skills/**'
-      - '.github/workflows/franky-validate.yml'
+      - '.github/workflows/skill-validate.yml'
 
 permissions:
   contents: read
@@ -37,6 +37,10 @@ jobs:
 
       - name: Install validation dependency
         run: python -m pip install 'pyyaml>=6,<7'
+
+      - name: Validate retained agent adapters
+        run: >-
+          python -c "import glob,pathlib,tomllib; paths=sorted(glob.glob('agents/*.toml')); names=[pathlib.Path(p).stem for p in paths]; assert names == ['athena', 'franky', 'prometheus'], names; [tomllib.load(open(p, 'rb')) for p in paths]"
 
       - name: Validate skill-creator package
         run: |

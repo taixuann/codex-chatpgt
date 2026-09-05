@@ -7,7 +7,6 @@ import argparse
 from contextlib import contextmanager
 import hashlib
 import json
-import math
 import os
 from pathlib import Path
 import re
@@ -33,8 +32,6 @@ GATES = {
 PARTITIONS = {"must_pass", "regression", "held_out"}
 KINDS = {"routing", "CREATE", "UPDATE", "MAINTAIN", "EVALUATE"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
-COEXISTENCE_CASES = {"maintain-overlap", "maintain-localize", "evaluate-sibling-collision"}
-COST_OVERHEAD_LIMIT = 1.25
 EXPECTED_FILES = {
     "SKILL.md", "license.txt", "evals/cases.yaml",
     "references/create.md", "references/evaluate.md", "references/maintain.md",
@@ -99,6 +96,9 @@ def validate(path: Path) -> list[str]:
             errors.append(f"{case_id}: partition must be one of {sorted(PARTITIONS)}")
         if case.get("gate") not in GATES:
             errors.append(f"{case_id}: gate is invalid")
+        case_gates = case.get("gates", [case.get("gate")])
+        if not isinstance(case_gates, list) or not case_gates or any(gate not in GATES for gate in case_gates):
+            errors.append(f"{case_id}: gates must contain only known gate ids")
         if not isinstance(case.get("prompt"), str) or not case["prompt"].strip():
             errors.append(f"{case_id}: prompt is required")
         if not isinstance(case.get("expected"), str) or not case["expected"].strip():
@@ -201,12 +201,54 @@ def _process_payload(event: dict) -> str:
     return json.dumps(fields, sort_keys=True).lower()
 
 
+def _process_events(events: list[dict]) -> list[dict]:
+    return [event for event in events if _process_payload(event)]
+
+
+def _usage_tokens(events: list[dict]) -> int | None:
+    total = 0
+    observed = False
+    for event in events:
+        usage = event.get("usage")
+        if not isinstance(usage, dict):
+            response = event.get("response")
+            usage = response.get("usage") if isinstance(response, dict) else None
+        if not isinstance(usage, dict):
+            continue
+        values = [usage.get(key) for key in ("total_tokens", "input_tokens", "output_tokens")]
+        numbers = [value for value in values if isinstance(value, int)]
+        if numbers:
+            observed = True
+            total += usage.get("total_tokens") if isinstance(usage.get("total_tokens"), int) else sum(numbers)
+    return total if observed else None
+
+
+def _cost_metrics(events: list[dict], changed_paths: set[str]) -> dict:
+    process_events = _process_events(events)
+    commands = sum(
+        1 for event in process_events
+        if (event.get("item", event).get("type") if isinstance(event.get("item", event), dict) else None) == "command_execution"
+    )
+    tokens = _usage_tokens(events)
+    return {
+        "tool_calls": len(process_events),
+        "command_count": commands,
+        "token_count": tokens,
+        "artifact_count": len(changed_paths),
+        "tokens_observed": tokens is not None,
+    }
+
+
 def _snapshot(root: Path) -> dict[str, str]:
     files = {}
     for path in root.rglob("*"):
         if path.is_file():
             files[path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return files
+
+
+def _changed_paths(before: dict[str, str], after: dict[str, str]) -> set[str]:
+    return {path for path in set(before) | set(after) if before.get(path) != after.get(path)}
 
 
 def _package_structure_ok(skill_dir: Path) -> bool:
@@ -236,11 +278,77 @@ def _provenance_ok(skill_dir: Path) -> bool:
     return all(marker in text for marker in UPSTREAM_MARKERS)
 
 
-def _cost(result: dict | None) -> float | None:
-    if not result or not isinstance(result.get("elapsed_seconds"), (int, float)) or not isinstance(result.get("stdout_bytes"), int):
+def _cost(result: dict | None) -> dict | None:
+    metrics = result.get("cost_metrics") if result else None
+    if not isinstance(metrics, dict):
         return None
-    value = result["elapsed_seconds"] + result["stdout_bytes"] / 100000
-    return value if math.isfinite(value) else None
+    return {key: metrics.get(key) for key in ("tool_calls", "command_count", "token_count", "artifact_count")}
+
+
+def _artifact_contract(case: dict) -> dict:
+    if case.get("artifact") and case.get("artifact_path"):
+        return {"operation": case["artifact"], "path": case["artifact_path"]}
+    if case.get("kind") != "routing":
+        return {"operation": "created", "path": f".evaluation/{case['id']}.json"}
+    return {}
+
+
+def _case_gates(case: dict) -> list[str]:
+    return case.get("gates", [case["gate"]])
+
+
+def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str]) -> tuple[bool, str]:
+    contract = _artifact_contract(case)
+    if not contract:
+        return True, "no artifact required"
+    path = contract["path"]
+    operation = contract["operation"]
+    exists_before = path in before
+    exists_after = path in after
+    if operation == "created":
+        return (not exists_before and exists_after, f"expected created artifact {path}")
+    if operation == "modified":
+        return (exists_before and exists_after and before[path] != after[path], f"expected modified artifact {path}")
+    if operation == "deleted":
+        return (exists_before and not exists_after, f"expected deleted artifact {path}")
+    return False, f"unknown artifact operation {operation}"
+
+
+def _seed_case(fixture_root: Path, case: dict) -> None:
+    skills_root = fixture_root / ".agents" / "skills"
+    case_id = case["id"]
+    if case_id in {"update-bounded", "update-substantive", "maintain-upstream-drift"}:
+        target = skills_root / "existing-skill"
+        (target / "references").mkdir(parents=True, exist_ok=True)
+        (target / "SKILL.md").write_text(
+            "---\nname: existing-skill\ndescription: Existing bounded skill.\n---\n\nBefore version.\n",
+            encoding="utf-8",
+        )
+        (target / "references" / "provenance.md").write_text(
+            "Pinned upstream baseline: old-ref\n",
+            encoding="utf-8",
+        )
+    elif case_id == "maintain-overlap":
+        target = skills_root / "overlap-skill"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "SKILL.md").write_text(
+            "---\nname: overlap-skill\ndescription: Rotate and inspect PDF files.\n---\n\nOverlapping workflow.\n",
+            encoding="utf-8",
+        )
+    elif case_id == "maintain-retire":
+        target = skills_root / "stale-skill"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "SKILL.md").write_text(
+            "---\nname: stale-skill\ndescription: Stale redundant workflow.\n---\n\nRetire me.\n",
+            encoding="utf-8",
+        )
+    elif case_id.startswith("evaluate-"):
+        target = skills_root / "candidate-skill"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "SKILL.md").write_text(
+            "---\nname: candidate-skill\ndescription: Candidate evaluation fixture.\n---\n\nCandidate content.\n",
+            encoding="utf-8",
+        )
 
 
 @contextmanager
@@ -252,37 +360,55 @@ def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Ite
             "# Isolated skill evaluation\n\nUse available skills only when the request matches their description.\n",
             encoding="utf-8",
         )
+        fixture_root = root / "project" if case and case["id"] == "maintain-localize" else root
+        if case and case["id"] == "maintain-localize":
+            fixture_root.mkdir(parents=True, exist_ok=True)
         if with_skill:
-            fixture_root = root / "project" if case and case["id"] == "maintain-localize" else root
             target = fixture_root / ".agents" / "skills" / "skill-creator"
             shutil.copytree(skill_dir, target, ignore=shutil.ignore_patterns("__pycache__"))
-            if case and case["id"] in COEXISTENCE_CASES:
-                sibling = fixture_root / ".agents" / "skills" / "pdf"
-                sibling.mkdir(parents=True)
-                (sibling / "SKILL.md").write_text(
-                    "---\nname: pdf\ndescription: Rotate and inspect PDF files.\n---\n\nUse the PDF workflow.\n",
+        if case and case["id"] in {"maintain-overlap", "maintain-localize", "evaluate-sibling-collision"}:
+            sibling = fixture_root / ".agents" / "skills" / "pdf"
+            sibling.mkdir(parents=True, exist_ok=True)
+            (sibling / "SKILL.md").write_text(
+                "---\nname: pdf\ndescription: Rotate and inspect PDF files.\n---\n\nUse the PDF workflow.\n",
+                encoding="utf-8",
+            )
+            if case["id"] == "maintain-localize":
+                local = fixture_root / ".agents" / "skills" / "domain-workflow"
+                local.mkdir(parents=True, exist_ok=True)
+                (local / "SKILL.md").write_text(
+                    "---\nname: domain-workflow\ndescription: Repository-local domain workflow.\n---\n\nUse the local workflow.\n",
                     encoding="utf-8",
                 )
-                if case["id"] == "maintain-localize":
-                    local = fixture_root / ".agents" / "skills" / "domain-workflow"
-                    local.mkdir(parents=True)
-                    (local / "SKILL.md").write_text(
-                        "---\nname: domain-workflow\ndescription: Repository-local domain workflow.\n---\n\nUse the local workflow.\n",
-                        encoding="utf-8",
-                    )
-                (fixture_root / ".fixture-coexistence").write_text("true\n", encoding="utf-8")
+            (fixture_root / ".fixture-coexistence").write_text("true\n", encoding="utf-8")
+        if case:
+            _seed_case(fixture_root, case)
         yield root
 
 
 def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
     with _fixture(skill_dir, with_skill, case) as fixture:
-        marker = "$skill-creator " if with_skill and case["kind"] != "routing" else ""
-        prompt = (
-            f"{marker}Run this bounded read-only skill-creator evaluation. "
-            "Return exactly one JSON object with keys selected_skill and disposition. "
-            "selected_skill is skill-creator or none.\n\n"
-            f"Case {case['id']} ({case['kind']}): {case['prompt']}"
-        )
+        operation_root = fixture / "project" if case["id"] == "maintain-localize" else fixture
+        artifact = _artifact_contract(case)
+        if case["kind"] == "routing":
+            prompt = (
+                "Handle this natural user request in the isolated fixture. Do not change files. "
+                "Return exactly one JSON object with key selected_skill, whose value is the selected "
+                "skill name or none.\n\n"
+                f"{case['prompt']}"
+            )
+        else:
+            artifact_instruction = (
+                f"The required observable artifact is {artifact['operation']} at "
+                f"{artifact['path']}. Perform the operation, not just a plan. "
+            )
+            prompt = (
+                "Complete this natural user request in the isolated fixture using available instructions "
+                "and tools. You may modify only the fixture. Return exactly one JSON object with keys "
+                "disposition, artifacts, and process. The artifacts value lists changed relative paths; "
+                "the process value lists the concrete steps performed. "
+                f"{artifact_instruction}\n\n{case['prompt']}"
+            )
         base = {
             "case_id": case["id"],
             "expected": case["expected"],
@@ -291,14 +417,15 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         }
         if not shutil.which(runtime):
             return {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"}
+        sandbox = "read-only" if case["kind"] == "routing" else "workspace-write"
         command = [
-            runtime, "exec", "--json", "--ephemeral", "--sandbox", "read-only",
+            runtime, "exec", "--json", "--ephemeral", "--sandbox", sandbox,
             "--skip-git-repo-check", "--ignore-user-config", "--cd",
             str(fixture / "project" if case["id"] == "maintain-localize" else fixture), prompt,
         ]
         environment = os.environ.copy()
         environment["CODEX_HOME"] = str(fixture / ".codex-home")
-        before_snapshot = _snapshot(fixture)
+        before_snapshot = _snapshot(operation_root)
         started = time.monotonic()
         try:
             process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=environment)
@@ -313,23 +440,37 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         loaded = activation == "loaded"
         process_observed = _process_observed(events)
         trace_matches = _trace_matches(case, events)
-        side_effect_free = before_snapshot == _snapshot(fixture)
-        if process.returncode != 0:
+        after_snapshot = _snapshot(operation_root)
+        changed_paths = _changed_paths(before_snapshot, after_snapshot)
+        artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot)
+        side_effect_free = not changed_paths
+        unavailable = any(
+            marker in (process.stderr or "").lower()
+            for marker in ("401 unauthorized", "missing bearer", "authentication")
+        )
+        if process.returncode != 0 and (not events or unavailable):
             status, reason = "NOT_ASSESSED", f"runtime exit {process.returncode}"
-        elif with_skill and case["kind"] == "routing" and case["expected"] == "none" and activation == "unloaded" and observed == "none":
-            status, reason = "PASS", "explicit runtime non-activation and expected outcome observed"
-        elif with_skill and case["kind"] == "routing" and case["expected"] == "none":
-            status, reason = "NOT_ASSESSED", "runtime did not expose an explicit non-activation signal"
-        elif not loaded and with_skill:
-            status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
-        elif with_skill and observed == case["expected"] and case["kind"] != "routing" and not (process_observed and trace_matches and side_effect_free):
-            status, reason = "NOT_ASSESSED", "runtime outcome lacked the required observable process trace"
-        elif with_skill and observed == case["expected"]:
-            status, reason = "PASS", "skill fixture/load signal and expected outcome observed"
+        elif process.returncode != 0:
+            status, reason = "FAIL", f"runtime exit {process.returncode}"
         elif not with_skill:
             status, reason = "OBSERVED", "baseline output recorded without skill fixture"
-        else:
+        elif case["kind"] == "routing" and case["expected"] == "none" and activation == "unloaded" and observed == "none":
+            status, reason = "PASS", "explicit runtime non-activation and expected outcome observed"
+        elif case["kind"] == "routing" and case["expected"] == "none" and activation == "loaded":
+            status, reason = "FAIL", "skill activated for an explicit negative request"
+        elif case["kind"] == "routing" and activation is None:
+            status, reason = "NOT_ASSESSED", "runtime did not expose an explicit non-activation signal"
+        elif activation is None:
+            status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
+        elif observed != case["expected"]:
             status, reason = "FAIL", f"expected {case['expected']}, observed {observed!r}"
+        elif case["kind"] != "routing" and not (process_observed and trace_matches and artifact_ok):
+            status, reason = "FAIL", artifact_reason if not artifact_ok else "required process trace was not observed"
+        elif observed == case["expected"]:
+            status, reason = "PASS", "expected outcome, process trace, and artifact evidence observed"
+        else:
+            status, reason = "NOT_ASSESSED", "runtime outcome unavailable"
+        cost_metrics = _cost_metrics(events, changed_paths)
         return {
             **base,
             "status": status,
@@ -339,7 +480,11 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "process_observed": process_observed,
             "trace_matches": trace_matches,
             "side_effect_free": side_effect_free,
-            "coexistence_fixture": (fixture / ".fixture-coexistence").is_file(),
+            "coexistence_fixture": (((fixture / "project") if case["id"] == "maintain-localize" else fixture) / ".fixture-coexistence").is_file(),
+            "artifact_ok": artifact_ok,
+            "artifact_reason": artifact_reason,
+            "changed_paths": sorted(changed_paths),
+            "cost_metrics": cost_metrics,
             "events": len(events),
             "returncode": process.returncode,
             "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -351,7 +496,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
 
 def _routing_metrics(results: list[dict], cases: list[dict]) -> dict:
     by_id = {case["id"]: case for case in cases}
-    assessed = [result for result in results if result.get("status") == "PASS"]
+    assessed = [result for result in results if result.get("status") in {"PASS", "FAIL"} and result.get("observed") is not None]
     tp = sum(by_id[result["case_id"]].get("polarity") == "positive" for result in assessed if result.get("observed") == "skill-creator")
     fn = sum(by_id[result["case_id"]].get("polarity") == "positive" for result in assessed if result.get("observed") != "skill-creator")
     fp = sum(by_id[result["case_id"]].get("polarity") == "negative" for result in assessed if result.get("observed") == "skill-creator")
@@ -360,8 +505,11 @@ def _routing_metrics(results: list[dict], cases: list[dict]) -> dict:
     denominator_recall = tp + fn
     expected_cases = [case for case in cases if case.get("kind") == "routing"]
     complete = len(results) == len(expected_cases) and bool(results)
+    status = "PASS" if complete and len(assessed) == len(results) and not any(item.get("status") == "FAIL" for item in results) else (
+        "FAIL" if any(item.get("status") == "FAIL" for item in results) else "NOT_ASSESSED"
+    )
     return {
-        "status": "PASS" if complete and len(assessed) == len(results) else "NOT_ASSESSED",
+        "status": status,
         "TP": tp, "FN": fn, "FP": fp, "TN": tn,
         "precision": round(tp / denominator_precision, 3) if denominator_precision else None,
         "recall": round(tp / denominator_recall, 3) if denominator_recall else None,
@@ -369,6 +517,15 @@ def _routing_metrics(results: list[dict], cases: list[dict]) -> dict:
         "assessed_cases": len(assessed),
         "total_cases": len(results),
     }
+
+
+def _case_gate_status(results: list[dict], gate: str) -> str:
+    owned = [item for item in results if item.get("condition") == "with_skill" and gate in item.get("gates", [item.get("gate")])]
+    if not owned:
+        return "NOT_ASSESSED"
+    if any(item.get("status") == "FAIL" for item in owned):
+        return "FAIL"
+    return "PASS" if all(item.get("status") == "PASS" for item in owned) else "NOT_ASSESSED"
 
 
 def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None) -> dict:
@@ -406,14 +563,45 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     after_regression = score(after_results, "regression", "FAIL")
     before_must_pass_failures = sum(item.get("partition") == "must_pass" and item.get("status") != "PASS" for item in before_results)
     after_must_pass_failures = sum(item.get("partition") == "must_pass" and item.get("status") != "PASS" for item in after_results)
+    before_by_case = {item.get("case_id"): item for item in before_results}
+    after_by_case = {item.get("case_id"): item for item in after_results}
+    case_deltas = [
+        {
+            "case_id": case_id,
+            "before_status": before_by_case[case_id].get("status"),
+            "after_status": after_by_case[case_id].get("status"),
+            "before_observed": before_by_case[case_id].get("observed"),
+            "after_observed": after_by_case[case_id].get("observed"),
+            "before_changed_paths": before_by_case[case_id].get("changed_paths", []),
+            "after_changed_paths": after_by_case[case_id].get("changed_paths", []),
+            "status_changed": before_by_case[case_id].get("status") != after_by_case[case_id].get("status"),
+        }
+        for case_id in sorted(before_by_case)
+    ]
+    before_routing = before.get("routing", {})
+    after_routing = after.get("routing", {})
+    routing_comparable = all(
+        isinstance(payload.get(field), (int, float))
+        for payload in (before_routing, after_routing)
+        for field in ("precision", "recall")
+    )
+    routing_non_regressing = not routing_comparable or (
+        after_routing["precision"] >= before_routing["precision"]
+        and after_routing["recall"] >= before_routing["recall"]
+    )
     return {
-        "status": "PASS" if comparable and before_must_pass_failures == 0 and after_must_pass_failures == 0 and after_held > 0 and after_held >= before_held and after_regression <= before_regression else "REJECT",
+        "status": "PASS" if comparable and before_must_pass_failures == 0 and after_must_pass_failures == 0 and after_held > 0 and after_held >= before_held and after_regression <= before_regression and routing_non_regressing else "REJECT",
         "held_out_before": before_held,
         "held_out_after": after_held,
         "regression_failures_before": before_regression,
         "regression_failures_after": after_regression,
         "must_pass_failures_before": before_must_pass_failures,
         "must_pass_failures_after": after_must_pass_failures,
+        "routing_precision_before": before_routing.get("precision"),
+        "routing_precision_after": after_routing.get("precision"),
+        "routing_recall_before": before_routing.get("recall"),
+        "routing_recall_after": after_routing.get("recall"),
+        "case_deltas": case_deltas,
         "validation_gated": comparable,
     }
 
@@ -425,10 +613,14 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
     for case in cases:
         result = _run_once(case, runtime, timeout, skill_dir, True)
         result["partition"] = case["partition"]
+        result["gate"] = case["gate"]
+        result["gates"] = _case_gates(case)
         results.append(result)
         if case.get("paired"):
             baseline = _run_once(case, runtime, timeout, skill_dir, False)
             baseline["partition"] = case["partition"]
+            baseline["gate"] = case["gate"]
+            baseline["gates"] = _case_gates(case)
             results.append(baseline)
     routing_ids = {case["id"] for case in cases if case["kind"] == "routing"}
     routing = _routing_metrics([item for item in results if item["condition"] == "with_skill" and item["case_id"] in routing_ids], cases)
@@ -441,8 +633,10 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         without_skill = next((item for item in pair if item["condition"] == "without_skill"), None)
         with_cost = _cost(with_skill)
         without_cost = _cost(without_skill)
-        cost_delta = with_cost - without_cost if with_cost is not None and without_cost is not None else None
-        cost_ratio = with_cost / without_cost if with_cost is not None and without_cost not in (None, 0) else None
+        cost_delta = (
+            {key: with_cost[key] - without_cost[key] for key in with_cost if isinstance(with_cost[key], int) and isinstance(without_cost[key], int)}
+            if with_cost is not None and without_cost is not None else None
+        )
         paired.append({
             "case_id": case["id"],
             "with_status": with_skill.get("status") if with_skill else "NOT_ASSESSED",
@@ -454,9 +648,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
             "cost_observed": with_cost is not None and without_cost is not None,
             "cost_delta": cost_delta,
-            "cost_ratio": cost_ratio,
-            "cost_comparison_observed": cost_delta is not None and cost_ratio is not None,
-            "cost_within_bound": cost_ratio is not None and cost_ratio <= COST_OVERHEAD_LIMIT,
+            "cost_comparison_observed": cost_delta is not None,
             "added_value_observed": bool(
                 with_skill and with_skill.get("status") == "PASS"
                 and with_skill.get("process_observed")
@@ -465,13 +657,6 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
                 and without_skill.get("process_observed")
                 and without_skill.get("trace_matches")
                 and cost_delta is not None
-                and cost_ratio is not None
-                and cost_ratio <= COST_OVERHEAD_LIMIT
-                and with_skill.get("observed") != without_skill.get("observed")
-                and with_skill.get("elapsed_seconds") is not None
-                and without_skill.get("elapsed_seconds") is not None
-                and with_skill.get("stdout_bytes") is not None
-                and without_skill.get("stdout_bytes") is not None
             ),
         })
     structure_check = subprocess.run(
@@ -482,19 +667,25 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
     provenance_ok = _provenance_ok(skill_dir)
     behavior_cases = [case for case in cases if case["kind"] != "routing"]
     behavior_results = [item for item in results if item["condition"] == "with_skill" and item["case_id"] in {case["id"] for case in behavior_cases}]
-    coexistence_cases = COEXISTENCE_CASES
-    coexistence_results = [item for item in behavior_results if item["case_id"] in coexistence_cases]
+    paired_by_id = {item["case_id"]: item for item in paired}
     full_corpus = len(cases) == len(data["cases"])
     paired_complete = len(paired) == sum(case.get("paired") is True for case in cases)
-    status_by_gate = {
-        "G1_STRUCTURE": "PASS" if structure_ok else "FAIL",
-        "G2_PROVENANCE": "PASS" if provenance_ok else "FAIL",
-        "G3_ROUTING": routing["status"],
-        "G4_BEHAVIOR": "PASS" if full_corpus and behavior_cases and len(behavior_results) == len(behavior_cases) and all(item["status"] == "PASS" for item in behavior_results) else "NOT_ASSESSED",
-        "G5_COEXISTENCE": "PASS" if full_corpus and len(coexistence_results) == len(coexistence_cases) and all(item["status"] == "PASS" and item.get("coexistence_fixture") for item in coexistence_results) else "NOT_ASSESSED",
-        "G6_EFFICIENCY": "PASS" if full_corpus and paired_complete and paired and all(item["added_value_observed"] and item["cost_observed"] for item in paired) else "NOT_ASSESSED",
-        "G7_INDEPENDENT_REVIEW": "NOT_ASSESSED",
-    }
+    status_by_gate = {gate: _case_gate_status(results, gate) for gate in GATES}
+    status_by_gate["G1_STRUCTURE"] = "FAIL" if not structure_ok else status_by_gate["G1_STRUCTURE"]
+    status_by_gate["G2_PROVENANCE"] = "FAIL" if not provenance_ok else status_by_gate["G2_PROVENANCE"]
+    status_by_gate["G3_ROUTING"] = routing["status"]
+    if not full_corpus:
+        for gate in GATES - {"G7_INDEPENDENT_REVIEW"}:
+            if status_by_gate[gate] == "PASS":
+                status_by_gate[gate] = "NOT_ASSESSED"
+    efficiency_cases = [case for case in cases if "G6_EFFICIENCY" in _case_gates(case)]
+    efficiency_pairs = [paired_by_id[case["id"]] for case in efficiency_cases if case.get("paired") and case["id"] in paired_by_id]
+    status_by_gate["G6_EFFICIENCY"] = (
+        "FAIL" if any(item.get("with_status") == "FAIL" for item in efficiency_pairs)
+        else "PASS" if full_corpus and efficiency_pairs and len(efficiency_pairs) == len(efficiency_cases)
+        and all(item["added_value_observed"] for item in efficiency_pairs)
+        else "NOT_ASSESSED"
+    )
     return {
         "schema_version": 2,
         "skill": "skill-creator",

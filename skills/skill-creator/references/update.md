@@ -18,5 +18,12 @@ ACCEPT or REJECT`
   no critical regression, and any improvement is observable. Otherwise reject
   or revert the candidate.
 
+Compare exact per-case deltas, not only aggregate counts. Report each case's
+before/after status and observed outcome, routing precision/recall, process
+trace, artifact/resource changes, and measured command/tool/token cost. A
+candidate is not an improvement merely because its text changed; it must fix
+the target failure without a new must-pass, safety, provenance, or held-out
+regression, with any resource or cost increase visible and justified.
+
 For a narrow wording change, structural and affected routing checks may be
 enough. Do not call a change substantive without fresh comparison evidence.

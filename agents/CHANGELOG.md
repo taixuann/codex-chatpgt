@@ -1,5 +1,8 @@
 # Franky agent change log
 
+> HISTORICAL ONLY. This append-only record is not runtime authority; paths and
+> adapter names in older entries may no longer exist.
+
 Append-only record of governed agent adapter changes.
 
 ```yaml

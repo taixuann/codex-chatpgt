@@ -29,5 +29,33 @@ remain passing, held-out performance is non-zero and non-regressing, regression
 failures do not increase, and no required gate is `NOT_ASSESSED`. A polished
 answer or caller-supplied review flag is not evidence of execution or
 independent review. Use a structured result with the exact case, condition,
-expected/observed outcome, trace/load signal, cost fields, and raw limitation;
-qualitative review must not be reduced to an ungrounded prose score.
+expected/observed outcome, trace/load signal, artifact delta, cost fields, and
+raw limitation; qualitative review must not be reduced to an ungrounded prose
+score.
+
+## Runtime result semantics
+
+Run CREATE and UPDATE cases in an isolated writable fixture. The agent must
+perform the requested operation, and the harness must grade the resulting
+files/resources plus the structured process trace. A disposition alone is not
+behavioral proof.
+
+Use the following status boundary:
+
+- `PASS`: expected outcome, required process trace, and artifact contract are
+  all observed.
+- `FAIL`: runtime evidence exists but the outcome, trace, or artifact contract
+  is wrong or incomplete.
+- `NOT_ASSESSED`: the host/runtime is unavailable, times out, exits before
+  producing evidence, or withholds a required structured signal.
+
+Aggregate each case into its declared `gate` (and optional additional `gates`)
+from the case file. Any observed failure makes that gate `FAIL`; an incomplete
+or unavailable case makes it `NOT_ASSESSED`. Do not replace case-owned gate
+aggregation with hard-coded case sets.
+
+Record before/after snapshots for the operation workspace only. Exclude the
+temporary `CODEX_HOME` so plugin synchronization and runtime caches cannot
+masquerade as skill artifacts. Efficiency evidence records command count, tool
+calls, token usage when exposed, and changed-resource count; wall-clock time is
+diagnostic, not the admission metric.

@@ -23,6 +23,14 @@ class EvalContractTests(unittest.TestCase):
         with module._fixture(skill_dir, True) as fixture:
             self.assertTrue((fixture / ".agents" / "skills" / "skill-creator" / "SKILL.md").is_file())
 
+    def test_localize_coexistence_marker_is_in_project_fixture(self):
+        module = load_module()
+        skill_dir = SCRIPT.parents[1]
+        case = {"id": "maintain-localize", "kind": "MAINTAIN"}
+        with module._fixture(skill_dir, True, case) as fixture:
+            self.assertFalse((fixture / ".fixture-coexistence").is_file())
+            self.assertTrue((fixture / "project" / ".fixture-coexistence").is_file())
+
     def test_repository_case_contract_has_all_gates_and_partitions(self):
         module = load_module()
         self.assertEqual(module.validate(SCRIPT.parents[1] / "evals" / "cases.yaml"), [])
@@ -64,6 +72,34 @@ class EvalContractTests(unittest.TestCase):
         case = {"trace_markers": ["clone"]}
         self.assertFalse(module._trace_matches(case, [{"item": {"type": "agent_message", "text": "clone"}}]))
         self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "command": "git clone source"}}]))
+
+    def test_routing_metrics_counts_observed_failures(self):
+        module = load_module()
+        cases = [
+            {"id": "positive", "kind": "routing", "polarity": "positive"},
+            {"id": "negative", "kind": "routing", "polarity": "negative"},
+        ]
+        results = [
+            {"case_id": "positive", "status": "FAIL", "observed": "none"},
+            {"case_id": "negative", "status": "PASS", "observed": "skill-creator"},
+        ]
+        report = module._routing_metrics(results, cases)
+        self.assertEqual(report["FN"], 1)
+        self.assertEqual(report["FP"], 1)
+        self.assertEqual(report["status"], "FAIL")
+
+    def test_artifact_contract_requires_real_change(self):
+        module = load_module()
+        case = {"id": "update-bounded", "kind": "UPDATE", "artifact": "modified", "artifact_path": "target/SKILL.md"}
+        before = {"target/SKILL.md": "old"}
+        self.assertEqual(module._artifact_ok(case, before, before)[0], False)
+        self.assertEqual(module._artifact_ok(case, before, {"target/SKILL.md": "new"})[0], True)
+
+    def test_case_owned_gates_include_declared_additional_gates(self):
+        module = load_module()
+        result = {"condition": "with_skill", "status": "FAIL", "gates": ["G4_BEHAVIOR", "G6_EFFICIENCY"]}
+        self.assertEqual(module._case_gate_status([result], "G6_EFFICIENCY"), "FAIL")
+        self.assertEqual(module._case_gate_status([result], "G1_STRUCTURE"), "NOT_ASSESSED")
 
 
 if __name__ == "__main__":

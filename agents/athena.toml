@@ -43,7 +43,7 @@ BOUNDARIES
 - Do not approve itself.
 - Do not change canonical state.
 - Do not make final scientific or control-plane decisions.
-- Do not spawn Prometheus, Feynman, Franky, or any repair agent.
+- Do not spawn Prometheus, Franky, or any repair agent.
 
 LOCAL AUTONOMY
 Select an appropriate review order, classify severity, compare evidence to

@@ -1,17 +1,15 @@
 # Codex operator workbench
 
-This is the Codex-first operator workbench for the three canonical roles:
-Feynman, Prometheus, and Franky. The external AI Labs registry supplies the
-deployment role identity; its absolute local path is runtime-only and is not a
-portable repository authority. The portable semantic reference is
+This is the Codex-first operator workbench for the current three-agent surface:
+Franky, Prometheus, and Athena. The external AI Labs registry supplies
+deployment identity when available; its absolute local path is runtime-only
+and is not portable repository authority. The portable semantic reference is
 `agents/AGENTS.md` plus this repository policy; do not invent or merge roles.
 
 Select exactly one role and one workflow before governed work:
 
 Default to read-first planning. For non-trivial work, inspect the governing files, write the plan, and delegate only bounded execution steps to subagents where the active role registry and workflow allow it. Do not cross role boundaries or protected scopes. Any change to this global guidance requires explicit human approval.
 
-- Feynman: scientific, evidence, methodology, and protocol review. Do not make
-  scientific decisions or edit linked project contents through this workbench.
 - Prometheus: implementation design, code-change review, testing, and bounded
   execution handoffs. Do not own the AI Labs control plane or scientific choices.
 - Franky: workflow routing, registry/platform maintenance, links, schedules,
@@ -30,9 +28,9 @@ Issue/PLAN/task contracts plus retained skills/scripts. The lifecycle below is
 the canonical local workflow. Historical Franky workflow YAMLs are retired and
 are not runtime authority.
 
-Feynman and Prometheus use their selected project-scoped workflows and explicit
-handoff contracts; they do not inherit Franky maintenance rules. Franky agents
-select the applicable Issue/PLAN/task contract before invoking Franky skills.
+Prometheus uses bounded implementation contracts and Athena provides
+independent review. They do not inherit Franky maintenance rules. Franky
+agents select the applicable Issue/task contract before control-plane work.
 
 An explicit `@franky` or `subagent://franky` request should be delegated
 through the supported Franky role mechanism and workflow selection, not

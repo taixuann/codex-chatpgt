@@ -15,3 +15,9 @@ recall, false-positive rate, the prompt partition, and the exact description
 revision. A static case file does not prove native runtime routing; use an
 isolated `.agents/skills/$SKILL_NAME/` fixture for runtime checks and fail
 closed when the host exposes no load or trace signal.
+
+The with-skill and without-skill controls must receive the same natural user
+request. Do not tell the control group the skill name, intended disposition, or
+that it is participating in a skill evaluation. Keep fixture setup and grading
+outside the prompt, and treat an observed wrong selection as `FAIL`; reserve
+`NOT_ASSESSED` for missing runtime evidence.

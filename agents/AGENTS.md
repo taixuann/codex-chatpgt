@@ -8,11 +8,11 @@ the root `AGENTS.md`; adapters must not rename, merge, or repurpose roles.
 
 ## Runtime adapters
 
-The registry defines the three canonical planning roles: Feynman, Prometheus,
-and Franky. The active local adapters are Prometheus, Athena, and Franky;
-Athena is a support adapter only and does not expand the canonical role
-registry or own an independent workflow. Feynman remains a canonical role
-defined by the external registry; this checkout carries no Feynman adapter.
+The retained local control-plane surface is Prometheus, Athena, and Franky.
+Athena is a bounded support adapter and does not own an independent workflow.
+This checkout carries no Argus or Feynman adapter and makes no local contract
+claim for either role; external deployment identity, when available, remains
+outside this repository's authority.
 
 | Adapter | Function | Default boundary |
 | --- | --- | --- |

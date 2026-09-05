@@ -8,14 +8,15 @@ the local runtime boundary.
 
 Agent TOML files intentionally contain no runtime `version` field. Versioning
 belongs to workflows, goal packages, promotion artifacts, and the change log;
-the adapters are runtime role boundaries validated by their schema.
+the adapters are runtime role boundaries validated by Python TOML parsing and
+the active CI contract.
 
 ## Change logging
 
 Agent changes must be recorded in [`CHANGELOG.md`](CHANGELOG.md) with the
 reason, goal ID, workflow ID, changed paths, validation evidence, approval,
-rollback, and the local Git change commit SHA. Franky install and maintenance
-workflows update the changelog whenever an agent adapter changes.
+rollback, and the local Git change commit SHA. The changelog is a historical
+record; no local install or maintenance workflow updates it automatically.
 
 Empty placeholder adapters are retained only when explicitly documented and
 are not treated as active runtime agents.
