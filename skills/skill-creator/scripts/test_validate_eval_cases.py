@@ -43,19 +43,16 @@ class EvalContractTests(unittest.TestCase):
             root = Path(directory)
             before = root / "before.json"
             after = root / "after.json"
-            results = [
-                {"case_id": "must", "condition": "with_skill", "partition": "must_pass", "status": "PASS"},
-                {"case_id": "held", "condition": "with_skill", "partition": "held_out", "status": "PASS"},
-                {"case_id": "reg", "condition": "with_skill", "partition": "regression", "status": "PASS"},
-            ]
-            payload = {"coverage": {"full_corpus": True}, "results": results}
+            cases_path = SCRIPT.parents[1] / "evals" / "cases.yaml"
+            cases = module.load_cases(cases_path)["cases"]
+            results = [{"case_id": case["id"], "condition": "with_skill", "partition": case["partition"], "status": "PASS"} for case in cases]
+            payload = {"coverage": {"full_corpus": False}, "results": results}
             before.write_text(json.dumps(payload), encoding="utf-8")
             after.write_text(json.dumps(payload), encoding="utf-8")
-            self.assertEqual(module._compare(before, after)["status"], "PASS")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "PASS")
 
-    def test_review_flag_without_exact_attestation_stays_unassessed(self):
-        module = load_module()
-        self.assertEqual(module._independent_review_status("PASS", None, SCRIPT.parents[1]), "NOT_ASSESSED")
+    def test_independent_review_is_not_caller_supplied(self):
+        self.assertNotIn("--review-status", SCRIPT.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

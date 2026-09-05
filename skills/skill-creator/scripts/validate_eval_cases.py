@@ -82,6 +82,8 @@ def validate(path: Path) -> list[str]:
             errors.append(f"{case_id}: expected outcome is required")
         if case.get("kind") == "routing" and case.get("polarity") not in {"positive", "negative"}:
             errors.append(f"{case_id}: routing polarity must be positive or negative")
+        if case.get("kind") != "routing" and not isinstance(case.get("trace_markers"), list):
+            errors.append(f"{case_id}: lifecycle cases require trace_markers")
     routing = [case for case in cases if isinstance(case, dict) and case.get("kind") == "routing"]
     if len(routing) < 10:
         errors.append("routing corpus requires at least 10 realistic prompts")
@@ -159,6 +161,11 @@ def _process_observed(events: list[dict]) -> bool:
     return False
 
 
+def _trace_matches(case: dict, events: list[dict]) -> bool:
+    trace = " ".join(json.dumps(event, sort_keys=True).lower() for event in events)
+    return all(marker.lower() in trace for marker in case.get("trace_markers", []))
+
+
 @contextmanager
 def _fixture(skill_dir: Path, with_skill: bool) -> Iterator[Path]:
     with tempfile.TemporaryDirectory(prefix="skill-creator-eval-") as directory:
@@ -209,12 +216,13 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         observed = report.get(key)
         loaded = _runtime_observed(events, stdout, fixture)
         process_observed = _process_observed(events)
+        trace_matches = _trace_matches(case, events)
         if process.returncode != 0:
             status, reason = "NOT_ASSESSED", f"runtime exit {process.returncode}"
         elif not loaded and with_skill:
             status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
-        elif with_skill and observed == case["expected"] and case["kind"] != "routing" and not process_observed:
-            status, reason = "NOT_ASSESSED", "runtime outcome lacked an observable tool/command trace"
+        elif with_skill and observed == case["expected"] and case["kind"] != "routing" and not (process_observed and trace_matches):
+            status, reason = "NOT_ASSESSED", "runtime outcome lacked the required observable process trace"
         elif with_skill and observed == case["expected"]:
             status, reason = "PASS", "skill fixture/load signal and expected outcome observed"
         elif not with_skill:
@@ -227,6 +235,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "observed": observed,
             "runtime_observed": loaded,
             "process_observed": process_observed,
+            "trace_matches": trace_matches,
             "events": len(events),
             "returncode": process.returncode,
             "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -258,9 +267,13 @@ def _routing_metrics(results: list[dict], cases: list[dict]) -> dict:
     }
 
 
-def _compare(before_path: Path, after_path: Path) -> dict:
-    before = json.loads(before_path.read_text(encoding="utf-8"))
-    after = json.loads(after_path.read_text(encoding="utf-8"))
+def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None) -> dict:
+    try:
+        before = json.loads(before_path.read_text(encoding="utf-8"))
+        after = json.loads(after_path.read_text(encoding="utf-8"))
+        expected_cases = load_cases(cases_path).get("cases", []) if cases_path else []
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+        return {"status": "REJECT", "validation_gated": False, "reason": "invalid before/after/case evidence"}
     def with_skill(data: dict) -> list[dict]:
         return [item for item in data.get("results", []) if item.get("condition") == "with_skill"]
 
@@ -268,13 +281,15 @@ def _compare(before_path: Path, after_path: Path) -> dict:
     after_results = with_skill(after)
     before_keys = {(item.get("case_id"), item.get("partition")) for item in before_results}
     after_keys = {(item.get("case_id"), item.get("partition")) for item in after_results}
+    expected_keys = {(case["id"], case["partition"]) for case in expected_cases}
     statuses = {"PASS", "FAIL"}
     comparable = (
-        before.get("coverage", {}).get("full_corpus") is True
-        and after.get("coverage", {}).get("full_corpus") is True
+        bool(expected_keys)
         and bool(before_results)
         and before_keys == after_keys
-        and {partition for _, partition in before_keys} == PARTITIONS
+        and before_keys == expected_keys
+        and len(before_results) == len(expected_keys)
+        and len(after_results) == len(expected_keys)
         and all(item.get("status") in statuses for item in before_results + after_results)
     )
 
@@ -299,26 +314,7 @@ def _compare(before_path: Path, after_path: Path) -> dict:
     }
 
 
-def _independent_review_status(requested: str, evidence_path: Path | None, skill_dir: Path) -> str:
-    if requested != "PASS" or not evidence_path or not evidence_path.is_file():
-        return "NOT_ASSESSED"
-    try:
-        evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
-        current = subprocess.run(
-            ["git", "-C", str(skill_dir), "rev-parse", "HEAD"],
-            capture_output=True, text=True, check=False,
-        ).stdout.strip()
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        return "NOT_ASSESSED"
-    return "PASS" if (
-        evidence.get("verdict") == "PASS"
-        and evidence.get("reviewer")
-        and evidence.get("independent") is True
-        and evidence.get("target_revision") == current
-    ) else "NOT_ASSESSED"
-
-
-def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[str] | None, review_status: str, review_evidence: Path | None) -> dict:
+def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[str] | None) -> dict:
     data = load_cases(path)
     cases = [case for case in data["cases"] if not case_ids or case["id"] in case_ids]
     results = []
@@ -346,12 +342,18 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             "with_runtime_observed": bool(with_skill and with_skill.get("runtime_observed")),
             "without_runtime_observed": bool(without_skill and without_skill.get("runtime_observed")),
             "with_process_observed": bool(with_skill and with_skill.get("process_observed")),
+            "without_process_observed": bool(without_skill and without_skill.get("process_observed")),
             "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
             "cost_observed": bool(with_skill and without_skill and with_skill.get("elapsed_seconds") is not None and without_skill.get("elapsed_seconds") is not None and with_skill.get("stdout_bytes") is not None and without_skill.get("stdout_bytes") is not None),
+            "cost_delta": ((with_skill.get("elapsed_seconds") + with_skill.get("stdout_bytes", 0) / 100000) - (without_skill.get("elapsed_seconds") + without_skill.get("stdout_bytes", 0) / 100000)) if with_skill and without_skill and with_skill.get("elapsed_seconds") is not None and without_skill.get("elapsed_seconds") is not None else None,
+            "cost_comparison_observed": bool(with_skill and without_skill and with_skill.get("elapsed_seconds") is not None and without_skill.get("elapsed_seconds") is not None and with_skill.get("stdout_bytes") is not None and without_skill.get("stdout_bytes") is not None),
             "added_value_observed": bool(
                 with_skill and with_skill.get("status") == "PASS"
                 and with_skill.get("process_observed")
+                and with_skill.get("trace_matches")
                 and without_skill and without_skill.get("status") == "OBSERVED"
+                and without_skill.get("process_observed")
+                and without_skill.get("trace_matches")
                 and with_skill.get("observed") != without_skill.get("observed")
                 and with_skill.get("elapsed_seconds") is not None
                 and without_skill.get("elapsed_seconds") is not None
@@ -377,8 +379,8 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         "G3_ROUTING": routing["status"],
         "G4_BEHAVIOR": "PASS" if full_corpus and behavior_cases and len(behavior_results) == len(behavior_cases) and all(item["status"] == "PASS" for item in behavior_results) else "NOT_ASSESSED",
         "G5_COEXISTENCE": "PASS" if full_corpus and len(coexistence_results) == len(coexistence_cases) and all(item["status"] == "PASS" for item in coexistence_results) else "NOT_ASSESSED",
-        "G6_EFFICIENCY": "PASS" if full_corpus and paired_complete and paired and all(item["added_value_observed"] for item in paired) else "NOT_ASSESSED",
-        "G7_INDEPENDENT_REVIEW": _independent_review_status(review_status, review_evidence, skill_dir),
+        "G6_EFFICIENCY": "PASS" if full_corpus and paired_complete and paired and all(item["added_value_observed"] and item["cost_observed"] for item in paired) else "NOT_ASSESSED",
+        "G7_INDEPENDENT_REVIEW": "NOT_ASSESSED",
     }
     return {
         "schema_version": 2,
@@ -399,8 +401,6 @@ def main() -> int:
     parser.add_argument("--case-id", action="append")
     parser.add_argument("--runtime", default="codex")
     parser.add_argument("--timeout", type=int, default=30)
-    parser.add_argument("--review-status", choices=("PASS", "NOT_ASSESSED"), default="NOT_ASSESSED")
-    parser.add_argument("--review-evidence", type=Path)
     parser.add_argument("--results", type=Path)
     parser.add_argument("--compare-before", type=Path)
     parser.add_argument("--compare-after", type=Path)
@@ -411,14 +411,14 @@ def main() -> int:
             print(f"FAIL eval cases: {error}")
         return 1
     if args.compare_before and args.compare_after:
-        report = _compare(args.compare_before, args.compare_after)
+        report = _compare(args.compare_before, args.compare_after, args.cases)
         print(json.dumps(report, sort_keys=True))
         return 0 if report["status"] == "PASS" else 1
     if not args.run:
         data = load_cases(args.cases)
         print(f"OK eval cases: {len(data['gates'])} gates, {sum(case['kind'] == 'routing' for case in data['cases'])} routing and {sum(case['kind'] != 'routing' for case in data['cases'])} lifecycle cases")
         return 0
-    report = run(args.cases, args.skill_dir, args.runtime, args.timeout, set(args.case_id) if args.case_id else None, args.review_status, args.review_evidence)
+    report = run(args.cases, args.skill_dir, args.runtime, args.timeout, set(args.case_id) if args.case_id else None)
     if args.results:
         args.results.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, sort_keys=True))
