@@ -29,6 +29,7 @@ GATES = {
 }
 PARTITIONS = {"must_pass", "regression", "held_out"}
 KINDS = {"routing", "CREATE", "UPDATE", "MAINTAIN", "EVALUATE"}
+PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
 
 
 def load_cases(path: Path) -> dict:
@@ -148,6 +149,16 @@ def _runtime_observed(events: list[dict], stdout: str, fixture: Path) -> bool:
     return any(marker in stdout for marker in (".agents/skills/skill-creator", "skill-creator/SKILL.md"))
 
 
+def _process_observed(events: list[dict]) -> bool:
+    """Require an execution/tool trace before claiming behavioral evidence."""
+    for event in events:
+        item = event.get("item")
+        item_type = item.get("type") if isinstance(item, dict) else event.get("type")
+        if item_type in PROCESS_ITEM_TYPES:
+            return True
+    return False
+
+
 @contextmanager
 def _fixture(skill_dir: Path, with_skill: bool) -> Iterator[Path]:
     with tempfile.TemporaryDirectory(prefix="skill-creator-eval-") as directory:
@@ -165,7 +176,7 @@ def _fixture(skill_dir: Path, with_skill: bool) -> Iterator[Path]:
 
 def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
     with _fixture(skill_dir, with_skill) as fixture:
-        marker = "$skill-creator " if with_skill else ""
+        marker = "$skill-creator " if with_skill and case["kind"] != "routing" else ""
         prompt = (
             f"{marker}Run this bounded read-only skill-creator evaluation. "
             "Return exactly one JSON object with keys selected_skill and disposition. "
@@ -197,10 +208,13 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         key = "selected_skill" if case["kind"] == "routing" else "disposition"
         observed = report.get(key)
         loaded = _runtime_observed(events, stdout, fixture)
+        process_observed = _process_observed(events)
         if process.returncode != 0:
             status, reason = "NOT_ASSESSED", f"runtime exit {process.returncode}"
         elif not loaded and with_skill:
             status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
+        elif with_skill and observed == case["expected"] and case["kind"] != "routing" and not process_observed:
+            status, reason = "NOT_ASSESSED", "runtime outcome lacked an observable tool/command trace"
         elif with_skill and observed == case["expected"]:
             status, reason = "PASS", "skill fixture/load signal and expected outcome observed"
         elif not with_skill:
@@ -212,9 +226,11 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "status": status,
             "observed": observed,
             "runtime_observed": loaded,
+            "process_observed": process_observed,
             "events": len(events),
             "returncode": process.returncode,
             "elapsed_seconds": round(time.monotonic() - started, 3),
+            "stdout_bytes": len(stdout.encode("utf-8")),
             "reason": reason,
             "stderr": (process.stderr or "").splitlines()[-5:],
         }
@@ -245,25 +261,64 @@ def _routing_metrics(results: list[dict], cases: list[dict]) -> dict:
 def _compare(before_path: Path, after_path: Path) -> dict:
     before = json.loads(before_path.read_text(encoding="utf-8"))
     after = json.loads(after_path.read_text(encoding="utf-8"))
-    def score(data: dict, partition: str, status: str = "PASS") -> int:
-        return sum(item.get("status") == status and item.get("partition") == partition for item in data.get("results", []))
-    before_held = score(before, "held_out")
-    after_held = score(after, "held_out")
-    before_regression = score(before, "regression", "FAIL")
-    after_regression = score(after, "regression", "FAIL")
-    all_results = before.get("results", []) + after.get("results", [])
-    comparable = bool(before.get("results")) and bool(after.get("results")) and all("partition" in item for item in all_results)
+    def with_skill(data: dict) -> list[dict]:
+        return [item for item in data.get("results", []) if item.get("condition") == "with_skill"]
+
+    before_results = with_skill(before)
+    after_results = with_skill(after)
+    before_keys = {(item.get("case_id"), item.get("partition")) for item in before_results}
+    after_keys = {(item.get("case_id"), item.get("partition")) for item in after_results}
+    statuses = {"PASS", "FAIL"}
+    comparable = (
+        before.get("coverage", {}).get("full_corpus") is True
+        and after.get("coverage", {}).get("full_corpus") is True
+        and bool(before_results)
+        and before_keys == after_keys
+        and {partition for _, partition in before_keys} == PARTITIONS
+        and all(item.get("status") in statuses for item in before_results + after_results)
+    )
+
+    def score(results: list[dict], partition: str, status: str = "PASS") -> int:
+        return sum(item.get("status") == status and item.get("partition") == partition for item in results)
+
+    before_held = score(before_results, "held_out")
+    after_held = score(after_results, "held_out")
+    before_regression = score(before_results, "regression", "FAIL")
+    after_regression = score(after_results, "regression", "FAIL")
+    before_must_pass_failures = sum(item.get("partition") == "must_pass" and item.get("status") != "PASS" for item in before_results)
+    after_must_pass_failures = sum(item.get("partition") == "must_pass" and item.get("status") != "PASS" for item in after_results)
     return {
-        "status": "PASS" if comparable and after_held >= before_held and after_regression <= before_regression else "REJECT",
+        "status": "PASS" if comparable and before_must_pass_failures == 0 and after_must_pass_failures == 0 and after_held > 0 and after_held >= before_held and after_regression <= before_regression else "REJECT",
         "held_out_before": before_held,
         "held_out_after": after_held,
         "regression_failures_before": before_regression,
         "regression_failures_after": after_regression,
+        "must_pass_failures_before": before_must_pass_failures,
+        "must_pass_failures_after": after_must_pass_failures,
         "validation_gated": comparable,
     }
 
 
-def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[str] | None, review_status: str) -> dict:
+def _independent_review_status(requested: str, evidence_path: Path | None, skill_dir: Path) -> str:
+    if requested != "PASS" or not evidence_path or not evidence_path.is_file():
+        return "NOT_ASSESSED"
+    try:
+        evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+        current = subprocess.run(
+            ["git", "-C", str(skill_dir), "rev-parse", "HEAD"],
+            capture_output=True, text=True, check=False,
+        ).stdout.strip()
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return "NOT_ASSESSED"
+    return "PASS" if (
+        evidence.get("verdict") == "PASS"
+        and evidence.get("reviewer")
+        and evidence.get("independent") is True
+        and evidence.get("target_revision") == current
+    ) else "NOT_ASSESSED"
+
+
+def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[str] | None, review_status: str, review_evidence: Path | None) -> dict:
     data = load_cases(path)
     cases = [case for case in data["cases"] if not case_ids or case["id"] in case_ids]
     results = []
@@ -290,7 +345,19 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             "without_status": without_skill.get("status") if without_skill else "NOT_ASSESSED",
             "with_runtime_observed": bool(with_skill and with_skill.get("runtime_observed")),
             "without_runtime_observed": bool(without_skill and without_skill.get("runtime_observed")),
-            "added_value_observed": bool(with_skill and with_skill.get("runtime_observed") and without_skill and not without_skill.get("runtime_observed")),
+            "with_process_observed": bool(with_skill and with_skill.get("process_observed")),
+            "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
+            "cost_observed": bool(with_skill and without_skill and with_skill.get("elapsed_seconds") is not None and without_skill.get("elapsed_seconds") is not None and with_skill.get("stdout_bytes") is not None and without_skill.get("stdout_bytes") is not None),
+            "added_value_observed": bool(
+                with_skill and with_skill.get("status") == "PASS"
+                and with_skill.get("process_observed")
+                and without_skill and without_skill.get("status") == "OBSERVED"
+                and with_skill.get("observed") != without_skill.get("observed")
+                and with_skill.get("elapsed_seconds") is not None
+                and without_skill.get("elapsed_seconds") is not None
+                and with_skill.get("stdout_bytes") is not None
+                and without_skill.get("stdout_bytes") is not None
+            ),
         })
     structure_check = subprocess.run(
         [sys.executable, str(skill_dir / "scripts" / "quick_validate.py"), str(skill_dir)],
@@ -311,7 +378,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         "G4_BEHAVIOR": "PASS" if full_corpus and behavior_cases and len(behavior_results) == len(behavior_cases) and all(item["status"] == "PASS" for item in behavior_results) else "NOT_ASSESSED",
         "G5_COEXISTENCE": "PASS" if full_corpus and len(coexistence_results) == len(coexistence_cases) and all(item["status"] == "PASS" for item in coexistence_results) else "NOT_ASSESSED",
         "G6_EFFICIENCY": "PASS" if full_corpus and paired_complete and paired and all(item["added_value_observed"] for item in paired) else "NOT_ASSESSED",
-        "G7_INDEPENDENT_REVIEW": review_status,
+        "G7_INDEPENDENT_REVIEW": _independent_review_status(review_status, review_evidence, skill_dir),
     }
     return {
         "schema_version": 2,
@@ -333,6 +400,7 @@ def main() -> int:
     parser.add_argument("--runtime", default="codex")
     parser.add_argument("--timeout", type=int, default=30)
     parser.add_argument("--review-status", choices=("PASS", "NOT_ASSESSED"), default="NOT_ASSESSED")
+    parser.add_argument("--review-evidence", type=Path)
     parser.add_argument("--results", type=Path)
     parser.add_argument("--compare-before", type=Path)
     parser.add_argument("--compare-after", type=Path)
@@ -350,7 +418,7 @@ def main() -> int:
         data = load_cases(args.cases)
         print(f"OK eval cases: {len(data['gates'])} gates, {sum(case['kind'] == 'routing' for case in data['cases'])} routing and {sum(case['kind'] != 'routing' for case in data['cases'])} lifecycle cases")
         return 0
-    report = run(args.cases, args.skill_dir, args.runtime, args.timeout, set(args.case_id) if args.case_id else None, args.review_status)
+    report = run(args.cases, args.skill_dir, args.runtime, args.timeout, set(args.case_id) if args.case_id else None, args.review_status, args.review_evidence)
     if args.results:
         args.results.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, sort_keys=True))

@@ -43,10 +43,19 @@ class EvalContractTests(unittest.TestCase):
             root = Path(directory)
             before = root / "before.json"
             after = root / "after.json"
-            payload = {"results": [{"partition": "held_out", "status": "PASS"}, {"partition": "regression", "status": "PASS"}]}
+            results = [
+                {"case_id": "must", "condition": "with_skill", "partition": "must_pass", "status": "PASS"},
+                {"case_id": "held", "condition": "with_skill", "partition": "held_out", "status": "PASS"},
+                {"case_id": "reg", "condition": "with_skill", "partition": "regression", "status": "PASS"},
+            ]
+            payload = {"coverage": {"full_corpus": True}, "results": results}
             before.write_text(json.dumps(payload), encoding="utf-8")
             after.write_text(json.dumps(payload), encoding="utf-8")
             self.assertEqual(module._compare(before, after)["status"], "PASS")
+
+    def test_review_flag_without_exact_attestation_stays_unassessed(self):
+        module = load_module()
+        self.assertEqual(module._independent_review_status("PASS", None, SCRIPT.parents[1]), "NOT_ASSESSED")
 
 
 if __name__ == "__main__":
