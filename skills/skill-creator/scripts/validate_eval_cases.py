@@ -314,6 +314,44 @@ def _cost(result: dict | None) -> dict | None:
     return {key: metrics.get(key) for key in ("tool_calls", "command_count", "token_count", "artifact_count")}
 
 
+def _paired_evidence(with_skill: dict | None, without_skill: dict | None) -> dict:
+    with_cost = _cost(with_skill)
+    without_cost = _cost(without_skill)
+    required_cost = ("tool_calls", "command_count", "artifact_count")
+    cost_delta = (
+        {key: with_cost[key] - without_cost[key] for key in with_cost if isinstance(with_cost[key], int) and isinstance(without_cost[key], int)}
+        if with_cost is not None and without_cost is not None else None
+    )
+    cost_comparison_observed = bool(
+        with_cost is not None and without_cost is not None
+        and all(isinstance(with_cost[key], int) and isinstance(without_cost[key], int) for key in required_cost)
+    )
+    artifact_delta_observed = bool(
+        with_skill and without_skill
+        and with_skill.get("changed_paths") != without_skill.get("changed_paths")
+    )
+    outcome_delta_observed = bool(
+        with_skill and without_skill
+        and (with_skill.get("observed") != without_skill.get("observed") or artifact_delta_observed)
+    )
+    added_value_observed = bool(
+        with_skill and with_skill.get("status") == "PASS"
+        and with_skill.get("process_observed") and with_skill.get("trace_matches") and with_skill.get("artifact_ok")
+        and without_skill and without_skill.get("status") == "OBSERVED"
+        and without_skill.get("process_observed") and without_skill.get("trace_matches") and without_skill.get("artifact_ok")
+        and cost_comparison_observed and outcome_delta_observed
+    )
+    return {
+        "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
+        "artifact_delta_observed": artifact_delta_observed,
+        "outcome_delta_observed": outcome_delta_observed,
+        "cost_observed": with_cost is not None and without_cost is not None,
+        "cost_delta": cost_delta,
+        "cost_comparison_observed": cost_comparison_observed,
+        "added_value_observed": added_value_observed,
+    }
+
+
 def _artifact_contract(case: dict) -> dict:
     if case["id"] == "create-no-skill":
         return {}
@@ -575,7 +613,10 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     def with_skill(data: dict) -> list[dict]:
         return [item for item in data.get("results", []) if item.get("condition") == "with_skill"]
 
-    def evidence_complete(data: dict, results: list[dict]) -> bool:
+    def without_skill(data: dict) -> list[dict]:
+        return [item for item in data.get("results", []) if item.get("condition") == "without_skill"]
+
+    def evidence_complete(data: dict, results: list[dict], baseline_results: list[dict]) -> bool:
         coverage = data.get("coverage", {})
         gates = data.get("gates", {})
         routing = data.get("routing", {})
@@ -606,6 +647,26 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             for item in paired
         ):
             return False
+        paired_cases = {case["id"]: case for case in expected_cases if case.get("paired") is True}
+        baseline_by_case = {item.get("case_id"): item for item in baseline_results}
+        with_by_case = {item.get("case_id"): item for item in results}
+        if set(baseline_by_case) != set(paired_cases) or len(baseline_results) != len(paired_cases):
+            return False
+        for case_id in paired_cases:
+            baseline = baseline_by_case[case_id]
+            if (
+                baseline.get("status") != "OBSERVED"
+                or baseline.get("observed") is None
+                or not all(baseline.get(field) is True for field in ("process_observed", "trace_matches", "artifact_ok"))
+            ):
+                return False
+            metrics = baseline.get("cost_metrics")
+            if not isinstance(metrics, dict) or not all(isinstance(metrics.get(field), int) for field in ("tool_calls", "command_count", "artifact_count")):
+                return False
+            recomputed = _paired_evidence(with_by_case.get(case_id), baseline)
+            summary = next(item for item in paired if item.get("case_id") == case_id)
+            if any(summary.get(field) != recomputed.get(field) for field in recomputed):
+                return False
         for item in results:
             if item.get("status") not in {"PASS", "FAIL"} or item.get("observed") is None:
                 return False
@@ -623,10 +684,15 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
 
     before_results = with_skill(before)
     after_results = with_skill(after)
+    before_baseline = without_skill(before)
+    after_baseline = without_skill(after)
     before_keys = {(item.get("case_id"), item.get("partition")) for item in before_results}
     after_keys = {(item.get("case_id"), item.get("partition")) for item in after_results}
     expected_keys = {(case["id"], case["partition"]) for case in expected_cases}
     canonical_keys = {(case_id, partition) for partition, case_ids in EXPECTED_PARTITIONS.items() for case_id in case_ids}
+    expected_baseline_keys = {(case["id"], case["partition"]) for case in expected_cases if case.get("paired") is True}
+    before_baseline_keys = {(item.get("case_id"), item.get("partition")) for item in before_baseline}
+    after_baseline_keys = {(item.get("case_id"), item.get("partition")) for item in after_baseline}
     statuses = {"PASS", "FAIL"}
     comparable = (
         len(expected_cases) == EXPECTED_CASE_COUNT
@@ -638,9 +704,12 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
         and before_keys == expected_keys
         and len(before_results) == len(expected_keys)
         and len(after_results) == len(expected_keys)
+        and before_baseline_keys == after_baseline_keys == expected_baseline_keys
+        and len(before_baseline) == len(expected_baseline_keys)
+        and len(after_baseline) == len(expected_baseline_keys)
         and all(item.get("status") in statuses for item in before_results + after_results)
-        and evidence_complete(before, before_results)
-        and evidence_complete(after, after_results)
+        and evidence_complete(before, before_results, before_baseline)
+        and evidence_complete(after, after_results, after_baseline)
     )
 
     def score(results: list[dict], partition: str, status: str = "PASS") -> int:
@@ -720,20 +789,6 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         pair = [item for item in results if item["case_id"] == case["id"]]
         with_skill = next((item for item in pair if item["condition"] == "with_skill"), None)
         without_skill = next((item for item in pair if item["condition"] == "without_skill"), None)
-        with_cost = _cost(with_skill)
-        without_cost = _cost(without_skill)
-        cost_delta = (
-            {key: with_cost[key] - without_cost[key] for key in with_cost if isinstance(with_cost[key], int) and isinstance(without_cost[key], int)}
-            if with_cost is not None and without_cost is not None else None
-        )
-        artifact_delta_observed = bool(
-            with_skill and without_skill
-            and with_skill.get("changed_paths") != without_skill.get("changed_paths")
-        )
-        outcome_delta_observed = bool(
-            with_skill and without_skill
-            and (with_skill.get("observed") != without_skill.get("observed") or artifact_delta_observed)
-        )
         paired.append({
             "case_id": case["id"],
             "with_status": with_skill.get("status") if with_skill else "NOT_ASSESSED",
@@ -742,22 +797,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             "without_runtime_observed": bool(without_skill and without_skill.get("runtime_observed")),
             "with_process_observed": bool(with_skill and with_skill.get("process_observed")),
             "without_process_observed": bool(without_skill and without_skill.get("process_observed")),
-            "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
-            "artifact_delta_observed": artifact_delta_observed,
-            "outcome_delta_observed": outcome_delta_observed,
-            "cost_observed": with_cost is not None and without_cost is not None,
-            "cost_delta": cost_delta,
-            "cost_comparison_observed": cost_delta is not None,
-            "added_value_observed": bool(
-                with_skill and with_skill.get("status") == "PASS"
-                and with_skill.get("process_observed")
-                and with_skill.get("trace_matches")
-                and without_skill and without_skill.get("status") == "OBSERVED"
-                and without_skill.get("process_observed")
-                and without_skill.get("trace_matches")
-                and cost_delta is not None
-                and outcome_delta_observed
-            ),
+            **_paired_evidence(with_skill, without_skill),
         })
     structure_check = subprocess.run(
         [sys.executable, str(skill_dir / "scripts" / "quick_validate.py"), str(skill_dir)],

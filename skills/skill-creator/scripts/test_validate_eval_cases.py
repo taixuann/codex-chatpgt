@@ -81,15 +81,28 @@ class EvalContractTests(unittest.TestCase):
                 })
             gates = {gate: "PASS" for gate in module.GATES}
             gates["G7_INDEPENDENT_REVIEW"] = "NOT_ASSESSED"
-            paired = [
-                {
+            baseline_results = []
+            paired = []
+            for case in cases:
+                if case.get("paired") is not True:
+                    continue
+                baseline = {
                     "case_id": case["id"],
-                    "added_value_observed": True,
-                    "cost_comparison_observed": True,
-                    "outcome_delta_observed": True,
+                    "kind": case["kind"],
+                    "condition": "without_skill",
+                    "partition": case["partition"],
+                    "status": "OBSERVED",
+                    "observed": "baseline",
+                    "process_observed": True,
+                    "trace_matches": True,
+                    "artifact_ok": True,
+                    "changed_paths": [f".baseline/{case['id']}.json"],
+                    "cost_metrics": {"tool_calls": 1, "command_count": 1, "artifact_count": 1},
                 }
-                for case in cases if case.get("paired") is True
-            ]
+                baseline_results.append(baseline)
+                candidate = next(item for item in results if item["case_id"] == case["id"])
+                paired.append({"case_id": case["id"], "with_status": "PASS", "without_status": "OBSERVED", **module._paired_evidence(candidate, baseline)})
+            results.extend(baseline_results)
             payload = {
                 "coverage": {"full_corpus": True},
                 "gates": gates,
@@ -111,6 +124,10 @@ class EvalContractTests(unittest.TestCase):
             missing_pair = json.loads(json.dumps(payload))
             missing_pair["paired"] = []
             before.write_text(json.dumps(missing_pair), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            missing_baseline = json.loads(json.dumps(payload))
+            missing_baseline["results"] = [item for item in missing_baseline["results"] if item["condition"] == "with_skill"]
+            before.write_text(json.dumps(missing_baseline), encoding="utf-8")
             self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
 
     def test_independent_review_is_not_caller_supplied(self):
