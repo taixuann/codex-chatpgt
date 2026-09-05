@@ -6,9 +6,9 @@ deployment identity when available; its absolute local path is runtime-only
 and is not portable repository authority. The portable semantic reference is
 `agents/AGENTS.md` plus this repository policy; do not invent or merge roles.
 
-Select exactly one role and one workflow before governed work:
+For governed non-trivial work, select exactly one applicable role and workflow:
 
-Default to read-first planning. For non-trivial work, inspect the governing files, write the plan, and delegate only bounded execution steps to subagents where the active role registry and workflow allow it. Do not cross role boundaries or protected scopes. Any change to this global guidance requires explicit human approval.
+Inspect the governing files and write a plan only when the task's risk or scope warrants it. Delegate only bounded execution steps where the active role registry and workflow allow it. Do not cross role boundaries or protected scopes. Any change to this global guidance requires explicit human approval.
 
 - Prometheus: implementation design, code-change review, testing, and bounded
   execution handoffs. Do not own the AI Labs control plane or scientific choices.
@@ -55,17 +55,16 @@ The lifecycle semantics below are canonical for this workbench. Keep this file
 as concise runtime policy; do not duplicate the full lifecycle procedure here
 or in persona-specific workflows.
 
-For non-trivial work, use this conditional lifecycle:
+For non-trivial or high-risk work, use the smallest applicable lifecycle:
 
 ```text
-RECALL → ORIENT → REASON → PLAN → CRITIQUE PLAN → DELEGATE/EXECUTE
-→ VALIDATE → REVIEW → SYNTHESIZE → FINAL CRITIQUE → COMMIT KNOWLEDGE
+ORIENT → PLAN WHEN NEEDED → EXECUTE → VALIDATE → REVIEW → FINALIZE
 ```
 
-Do not create a separate artifact or subagent for every stage. The main agent
-remains the default orchestrator and delegates only when the work benefits from
-meaningful parallelism, context isolation, independent judgment, or a
-specialized external capability. Ordinary tasks stay in the parent context.
+Do not create a separate artifact or subagent for each stage. The main agent
+remains the default orchestrator; delegate only when parallelism, context
+isolation, independent judgment, or a specialized capability materially helps.
+Ordinary tasks stay in the parent context.
 
 Before execution, distinguish confirmed facts, assumptions, inferred
 constraints, and unresolved uncertainty. Before completion, compare the result

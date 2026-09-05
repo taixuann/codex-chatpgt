@@ -44,7 +44,7 @@ Maintained reference: `https://github.com/anthropics/skills/tree/41bbe19d1a1a7ea
 | `license.txt` | KEEP_UNCHANGED | Required attribution and license terms. |
 | `references/create.md`, `references/update.md`, `references/maintain.md`, `references/evaluate.md`, `references/routing.md` | ADD_FROM_REVIEWED_BASELINE | Mode-specific progressive disclosure derived from the prior lifecycle reference and bounded donor concepts. |
 | `references/provenance.md` | ADD | Makes source, donor, and component decisions auditable. |
-| `evals/cases.yaml` | ADAPT | Adds seven gates, held-out/regression partitions, routing negatives, and paired cases to the existing case contract. |
+| `evals/cases.yaml` | ADAPT | Adds eight gates, including necessity, held-out/regression partitions, routing negatives, and paired cases to the existing case contract. |
 | `scripts/validate_eval_cases.py` | ADAPT | Extends the existing validator with an isolated `.agents/skills` fixture, paired runs, routing metrics, and validation-gated comparison. |
 
 The upstream UI metadata, its reference, image assets, and invocation adapter

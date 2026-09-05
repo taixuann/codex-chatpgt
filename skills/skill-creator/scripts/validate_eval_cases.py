@@ -21,6 +21,7 @@ import yaml
 
 
 GATES = {
+    "G0_NECESSITY",
     "G1_STRUCTURE",
     "G2_PROVENANCE",
     "G3_ROUTING",

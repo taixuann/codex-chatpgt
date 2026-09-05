@@ -1,8 +1,8 @@
 # Codex ChatGPT control plane
 
 This repository is the portable coordination and control-plane layer for the
-Codex setup. It contains runtime adapters, reusable skills, lifecycle
-workflows, validation contracts, and concise cloud handoff state.
+Codex setup. It contains runtime adapters, the retained skill-creator package,
+and the small validation contracts that qualify it.
 
 It is not a research-project repository and must not contain project datasets,
 credentials, session state, caches, or linked project contents.

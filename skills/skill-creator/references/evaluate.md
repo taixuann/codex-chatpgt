@@ -3,10 +3,11 @@
 Use this reference for readiness or quality review. Deterministic checks come
 first; a polished output cannot compensate for skipped process evidence.
 
-## Seven gates
+## Eight gates
 
 | Gate | Required evidence |
 | --- | --- |
+| `G0_NECESSITY` | native/AGENTS/script/existing-skill comparison and justified disposition |
 | `G1_STRUCTURE` | frontmatter, name/path, placeholders, references/resources, portability |
 | `G2_PROVENANCE` | exact source/ref/path, license, adaptation diff, donor boundary |
 | `G3_ROUTING` | positive, ambiguous/noisy, adjacent-negative, sibling-negative, and explicit opt-out cases |

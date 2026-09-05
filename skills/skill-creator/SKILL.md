@@ -3,7 +3,7 @@ name: skill-creator
 description: Create, update, evaluate, or retire Codex skills when a reusable procedure needs provenance, routing, and validation; do not use for ordinary code changes or one-off instructions.
 metadata:
   short-description: Create or maintain scoped skills
-  last_reviewed: 2026-09-05
+  last_reviewed: 2026-09-06
   review_interval_days: 90
 ---
 
@@ -32,6 +32,12 @@ do not create a second discoverable creator. Route only the needed detail:
 
 These are internal references, not discoverable subskills.
 Use bundled helpers with `python3` unless their executable bit is verified.
+
+Before CREATE, UPDATE, or MAINTAIN, decide whether the capability or change is
+necessary at all. Compare native behavior, AGENTS guidance, deterministic
+scripts, existing/local skills, and maintained upstream candidates; choose
+reuse, localization, merge, disable, retire, reject, or a justified change
+before adding global instructions or resources.
 
 **Match specificity to the risk.** Give the model room to choose an appropriate approach when multiple approaches are reasonable. Use detailed steps, deterministic scripts, or absolute language only when correctness, safety, permissions, or a genuinely fragile workflow requires them.
 
