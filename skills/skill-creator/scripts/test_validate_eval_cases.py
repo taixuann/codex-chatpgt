@@ -69,7 +69,10 @@ class EvalContractTests(unittest.TestCase):
                     "case_id": case["id"],
                     "kind": case["kind"],
                     "condition": "with_skill",
+                    "expected": case["expected"],
                     "partition": case["partition"],
+                    "gate": case["gate"],
+                    "gates": case.get("gates", [case["gate"]]),
                     "status": "PASS",
                     "observed": "none" if case.get("expected") == "none" else case["expected"],
                     "activation": "unloaded" if case.get("expected") == "none" else "loaded",
@@ -90,7 +93,10 @@ class EvalContractTests(unittest.TestCase):
                     "case_id": case["id"],
                     "kind": case["kind"],
                     "condition": "without_skill",
+                    "expected": case["expected"],
                     "partition": case["partition"],
+                    "gate": case["gate"],
+                    "gates": case.get("gates", [case["gate"]]),
                     "status": "OBSERVED",
                     "observed": "baseline",
                     "process_observed": True,
@@ -128,6 +134,14 @@ class EvalContractTests(unittest.TestCase):
             missing_baseline = json.loads(json.dumps(payload))
             missing_baseline["results"] = [item for item in missing_baseline["results"] if item["condition"] == "with_skill"]
             before.write_text(json.dumps(missing_baseline), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            relabeled = json.loads(json.dumps(payload))
+            relabeled["results"][0]["kind"] = "CREATE"
+            before.write_text(json.dumps(relabeled), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            gate_mismatch = json.loads(json.dumps(payload))
+            next(item for item in gate_mismatch["results"] if item["case_id"] == "maintain-overlap")["status"] = "FAIL"
+            before.write_text(json.dumps(gate_mismatch), encoding="utf-8")
             self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
 
     def test_independent_review_is_not_caller_supplied(self):

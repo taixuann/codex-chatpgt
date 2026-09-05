@@ -620,6 +620,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
         coverage = data.get("coverage", {})
         gates = data.get("gates", {})
         routing = data.get("routing", {})
+        cases_by_id = {case["id"]: case for case in expected_cases}
         if coverage.get("full_corpus") is not True or set(gates) != set(GATES):
             return False
         if any(gates.get(gate) not in {"PASS", "FAIL", "NOT_ASSESSED"} for gate in GATES):
@@ -650,6 +651,19 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
         paired_cases = {case["id"]: case for case in expected_cases if case.get("paired") is True}
         baseline_by_case = {item.get("case_id"): item for item in baseline_results}
         with_by_case = {item.get("case_id"): item for item in results}
+        for item in results + baseline_results:
+            case = cases_by_id.get(item.get("case_id"))
+            if not case or any(
+                item.get(field) != expected
+                for field, expected in (
+                    ("kind", case["kind"]),
+                    ("expected", case["expected"]),
+                    ("partition", case["partition"]),
+                    ("gate", case["gate"]),
+                    ("gates", _case_gates(case)),
+                )
+            ):
+                return False
         if set(baseline_by_case) != set(paired_cases) or len(baseline_results) != len(paired_cases):
             return False
         for case_id in paired_cases:
@@ -668,7 +682,8 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             if any(summary.get(field) != recomputed.get(field) for field in recomputed):
                 return False
         for item in results:
-            if item.get("status") not in {"PASS", "FAIL"} or item.get("observed") is None:
+            case = cases_by_id[item["case_id"]]
+            if item.get("status") != "PASS" or item.get("observed") != case["expected"]:
                 return False
             activation = item.get("activation")
             if item.get("kind", "routing") == "routing":
@@ -679,6 +694,9 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
                 return False
             metrics = item.get("cost_metrics")
             if not isinstance(metrics, dict) or not all(isinstance(metrics.get(field), int) for field in ("tool_calls", "command_count", "artifact_count")):
+                return False
+        for gate in GATES - {"G6_EFFICIENCY", "G7_INDEPENDENT_REVIEW"}:
+            if _case_gate_status(results, gate) != gates.get(gate):
                 return False
         return True
 
