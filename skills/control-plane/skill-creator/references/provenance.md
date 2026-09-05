@@ -28,10 +28,15 @@ boundary required here; the OpenAI baseline remains dominant.
 | `SKILL.md` | KEEP_WITH_SMALL_ADAPTATION | Add lifecycle, placement, and review boundaries. |
 | `scripts/*` | KEEP_UNCHANGED | Upstream deterministic initializer, metadata generator, and validator. |
 | `references/openai_yaml.md` | KEEP_UNCHANGED | Documents the retained UI/policy file. |
-| `agents/openai.yaml` | KEEP_WITH_SMALL_ADAPTATION | UI identity plus explicit-only policy is useful for this catalog; implicit routing remains unproven. |
-| `assets/*` | KEEP_UNCHANGED | Upstream UI assets used by the retained metadata. |
+| `agents/openai.yaml` | REMOVE_AS_UNNECESSARY | The bounded native runtime probe did not show a consumer; implicit loading remains unproven. |
+| `assets/*` | REMOVE_AS_UNNECESSARY | These assets served only the removed UI metadata. |
 | `license.txt` | KEEP_UNCHANGED | Required attribution and license terms. |
 | `references/lifecycle.md` | ADD | Small mode-specific procedure not present in the baseline. |
 | `references/provenance.md` | ADD | Makes source, donor, and component decisions auditable. |
 | `evals/cases.yaml` | ADD | Compact rerunnable coverage for routing and lifecycle behavior. |
 | `scripts/validate_eval_cases.py` | ADD | Deterministically checks that required cases remain present. |
+
+The upstream UI metadata and image assets were removed after the independent
+review found no successful current-runtime consumer. The repository catalog
+uses absence of the adapter as explicit-only until native loading is proven;
+that state is recorded as `NOT_ASSESSED`, not as runtime acceptance.

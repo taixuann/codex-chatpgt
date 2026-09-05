@@ -92,8 +92,8 @@ def validate_invocation_policies(
         if value is None:
             if disposition != "RETIRE" and policy_path.exists():
                 errors.append(f"{name} requires boolean allow_implicit_invocation policy")
-            elif disposition not in {"RETIRE"} and name in owners:
-                errors.append(f"{name} requires agents/openai.yaml invocation policy")
+            elif disposition == "KEEP" and evidence.get(name, {}).get("behavioral") == "PASS":
+                errors.append(f"{name} KEEP behavioral PASS requires invocation policy")
             continue
 
         behavioral = evidence.get(name, {}).get("behavioral") if isinstance(evidence.get(name), dict) else None
