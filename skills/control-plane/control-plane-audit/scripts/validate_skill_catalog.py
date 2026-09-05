@@ -42,7 +42,10 @@ def tracked_skill_names(root: Path) -> list[str]:
 
 def skill_package_path(root: Path, name: str) -> Path:
     """Resolve a package by its SKILL.md parent, independent of taxonomy depth."""
-    matches = sorted(path.parent for path in (root / "skills").rglob("SKILL.md") if path.parent.name == name)
+    matches = sorted(
+        path.parent for path in (root / "skills").rglob("SKILL.md")
+        if path.parent.name == name and ".system" not in path.parts
+    )
     if not matches and (root / "skills" / name / "SKILL.md").is_file():
         matches = [root / "skills" / name]
     if len(matches) != 1:
