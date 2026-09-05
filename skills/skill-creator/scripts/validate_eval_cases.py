@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -30,6 +31,8 @@ GATES = {
 PARTITIONS = {"must_pass", "regression", "held_out"}
 KINDS = {"routing", "CREATE", "UPDATE", "MAINTAIN", "EVALUATE"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
+COEXISTENCE_CASES = {"maintain-overlap", "maintain-localize", "evaluate-sibling-collision"}
+COST_OVERHEAD_LIMIT = 1.25
 
 
 def load_cases(path: Path) -> dict:
@@ -151,6 +154,21 @@ def _runtime_observed(events: list[dict], stdout: str, fixture: Path) -> bool:
     return any(marker in stdout for marker in (".agents/skills/skill-creator", "skill-creator/SKILL.md"))
 
 
+def _runtime_activation(events: list[dict]) -> str | None:
+    """Return loaded/unloaded only when the runtime emits an explicit list."""
+    saw_signal = False
+    for event in events:
+        for key in ("skill_loads", "loaded_skills", "loaded_skill"):
+            if key not in event:
+                continue
+            saw_signal = True
+            value = event[key]
+            values = value if isinstance(value, list) else [value]
+            if any("skill-creator" in json.dumps(item) for item in values):
+                return "loaded"
+    return "unloaded" if saw_signal else None
+
+
 def _process_observed(events: list[dict]) -> bool:
     """Require an execution/tool trace before claiming behavioral evidence."""
     for event in events:
@@ -162,12 +180,23 @@ def _process_observed(events: list[dict]) -> bool:
 
 
 def _trace_matches(case: dict, events: list[dict]) -> bool:
-    trace = " ".join(json.dumps(event, sort_keys=True).lower() for event in events)
+    trace = " ".join(
+        json.dumps(event.get("item", event), sort_keys=True).lower()
+        for event in events
+        if (event.get("item", {}).get("type") if isinstance(event.get("item"), dict) else event.get("type")) in PROCESS_ITEM_TYPES
+    )
     return all(marker.lower() in trace for marker in case.get("trace_markers", []))
 
 
+def _cost(result: dict | None) -> float | None:
+    if not result or not isinstance(result.get("elapsed_seconds"), (int, float)) or not isinstance(result.get("stdout_bytes"), int):
+        return None
+    value = result["elapsed_seconds"] + result["stdout_bytes"] / 100000
+    return value if math.isfinite(value) else None
+
+
 @contextmanager
-def _fixture(skill_dir: Path, with_skill: bool) -> Iterator[Path]:
+def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Iterator[Path]:
     with tempfile.TemporaryDirectory(prefix="skill-creator-eval-") as directory:
         root = Path(directory)
         (root / ".codex-home").mkdir()
@@ -178,11 +207,25 @@ def _fixture(skill_dir: Path, with_skill: bool) -> Iterator[Path]:
         if with_skill:
             target = root / ".agents" / "skills" / "skill-creator"
             shutil.copytree(skill_dir, target, ignore=shutil.ignore_patterns("__pycache__"))
+            if case and case["id"] in COEXISTENCE_CASES:
+                sibling = root / ".agents" / "skills" / "pdf"
+                sibling.mkdir(parents=True)
+                (sibling / "SKILL.md").write_text(
+                    "---\nname: pdf\ndescription: Rotate and inspect PDF files.\n---\n\nUse the PDF workflow.\n",
+                    encoding="utf-8",
+                )
+                if case["id"] == "maintain-localize":
+                    local = root / "project" / ".agents" / "skills" / "domain-workflow"
+                    local.mkdir(parents=True)
+                    (local / "SKILL.md").write_text(
+                        "---\nname: domain-workflow\ndescription: Repository-local domain workflow.\n---\n\nUse the local workflow.\n",
+                        encoding="utf-8",
+                    )
         yield root
 
 
 def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
-    with _fixture(skill_dir, with_skill) as fixture:
+    with _fixture(skill_dir, with_skill, case) as fixture:
         marker = "$skill-creator " if with_skill and case["kind"] != "routing" else ""
         prompt = (
             f"{marker}Run this bounded read-only skill-creator evaluation. "
@@ -204,6 +247,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         ]
         environment = os.environ.copy()
         environment["CODEX_HOME"] = str(fixture / ".codex-home")
+        before_paths = sorted(path.relative_to(fixture).as_posix() for path in fixture.rglob("*") if path.is_file())
         started = time.monotonic()
         try:
             process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=environment)
@@ -214,14 +258,19 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
         report = _json_object(_final_text(events))
         key = "selected_skill" if case["kind"] == "routing" else "disposition"
         observed = report.get(key)
-        loaded = _runtime_observed(events, stdout, fixture)
+        activation = _runtime_activation(events)
+        loaded = activation == "loaded" or _runtime_observed(events, stdout, fixture)
         process_observed = _process_observed(events)
         trace_matches = _trace_matches(case, events)
+        after_paths = sorted(path.relative_to(fixture).as_posix() for path in fixture.rglob("*") if path.is_file())
+        side_effect_free = before_paths == after_paths
         if process.returncode != 0:
             status, reason = "NOT_ASSESSED", f"runtime exit {process.returncode}"
+        elif with_skill and case["kind"] == "routing" and case["expected"] == "none" and not (activation == "unloaded" and observed == "none"):
+            status, reason = "NOT_ASSESSED", "runtime did not expose an explicit non-activation signal"
         elif not loaded and with_skill:
             status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
-        elif with_skill and observed == case["expected"] and case["kind"] != "routing" and not (process_observed and trace_matches):
+        elif with_skill and observed == case["expected"] and case["kind"] != "routing" and not (process_observed and trace_matches and side_effect_free):
             status, reason = "NOT_ASSESSED", "runtime outcome lacked the required observable process trace"
         elif with_skill and observed == case["expected"]:
             status, reason = "PASS", "skill fixture/load signal and expected outcome observed"
@@ -234,8 +283,11 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "status": status,
             "observed": observed,
             "runtime_observed": loaded,
+            "activation": activation,
             "process_observed": process_observed,
             "trace_matches": trace_matches,
+            "side_effect_free": side_effect_free,
+            "coexistence_fixture": bool(with_skill and case["id"] in COEXISTENCE_CASES),
             "events": len(events),
             "returncode": process.returncode,
             "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -344,9 +396,11 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
             "with_process_observed": bool(with_skill and with_skill.get("process_observed")),
             "without_process_observed": bool(without_skill and without_skill.get("process_observed")),
             "behavior_delta_observed": bool(with_skill and without_skill and with_skill.get("observed") != without_skill.get("observed")),
-            "cost_observed": bool(with_skill and without_skill and with_skill.get("elapsed_seconds") is not None and without_skill.get("elapsed_seconds") is not None and with_skill.get("stdout_bytes") is not None and without_skill.get("stdout_bytes") is not None),
-            "cost_delta": ((with_skill.get("elapsed_seconds") + with_skill.get("stdout_bytes", 0) / 100000) - (without_skill.get("elapsed_seconds") + without_skill.get("stdout_bytes", 0) / 100000)) if with_skill and without_skill and with_skill.get("elapsed_seconds") is not None and without_skill.get("elapsed_seconds") is not None else None,
-            "cost_comparison_observed": bool(with_skill and without_skill and with_skill.get("elapsed_seconds") is not None and without_skill.get("elapsed_seconds") is not None and with_skill.get("stdout_bytes") is not None and without_skill.get("stdout_bytes") is not None),
+            "cost_observed": _cost(with_skill) is not None and _cost(without_skill) is not None,
+            "cost_delta": (_cost(with_skill) - _cost(without_skill)) if _cost(with_skill) is not None and _cost(without_skill) is not None else None,
+            "cost_ratio": (_cost(with_skill) / _cost(without_skill)) if _cost(with_skill) is not None and _cost(without_skill) not in (None, 0) else None,
+            "cost_comparison_observed": _cost(with_skill) is not None and _cost(without_skill) is not None,
+            "cost_within_bound": _cost(with_skill) is not None and _cost(without_skill) not in (None, 0) and _cost(with_skill) / _cost(without_skill) <= COST_OVERHEAD_LIMIT,
             "added_value_observed": bool(
                 with_skill and with_skill.get("status") == "PASS"
                 and with_skill.get("process_observed")
@@ -354,6 +408,9 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
                 and without_skill and without_skill.get("status") == "OBSERVED"
                 and without_skill.get("process_observed")
                 and without_skill.get("trace_matches")
+                and _cost(with_skill) is not None
+                and _cost(without_skill) is not None
+                and _cost(with_skill) / _cost(without_skill) <= COST_OVERHEAD_LIMIT
                 and with_skill.get("observed") != without_skill.get("observed")
                 and with_skill.get("elapsed_seconds") is not None
                 and without_skill.get("elapsed_seconds") is not None
@@ -369,7 +426,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
     provenance_ok = all(marker in provenance_text for marker in ("openai/codex", "Source path:", "License:"))
     behavior_cases = [case for case in cases if case["kind"] != "routing"]
     behavior_results = [item for item in results if item["condition"] == "with_skill" and item["case_id"] in {case["id"] for case in behavior_cases}]
-    coexistence_cases = {"maintain-overlap", "evaluate-sibling-collision"}
+    coexistence_cases = COEXISTENCE_CASES
     coexistence_results = [item for item in behavior_results if item["case_id"] in coexistence_cases]
     full_corpus = len(cases) == len(data["cases"])
     paired_complete = len(paired) == sum(case.get("paired") is True for case in cases)
@@ -378,7 +435,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         "G2_PROVENANCE": "PASS" if provenance_ok else "FAIL",
         "G3_ROUTING": routing["status"],
         "G4_BEHAVIOR": "PASS" if full_corpus and behavior_cases and len(behavior_results) == len(behavior_cases) and all(item["status"] == "PASS" for item in behavior_results) else "NOT_ASSESSED",
-        "G5_COEXISTENCE": "PASS" if full_corpus and len(coexistence_results) == len(coexistence_cases) and all(item["status"] == "PASS" for item in coexistence_results) else "NOT_ASSESSED",
+        "G5_COEXISTENCE": "PASS" if full_corpus and len(coexistence_results) == len(coexistence_cases) and all(item["status"] == "PASS" and item.get("coexistence_fixture") for item in coexistence_results) else "NOT_ASSESSED",
         "G6_EFFICIENCY": "PASS" if full_corpus and paired_complete and paired and all(item["added_value_observed"] and item["cost_observed"] for item in paired) else "NOT_ASSESSED",
         "G7_INDEPENDENT_REVIEW": "NOT_ASSESSED",
     }
