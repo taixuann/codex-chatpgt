@@ -22,9 +22,15 @@ Approval to complete a task does not expand its scope or execution permissions. 
 ## Repository adaptation
 
 This is one skill with internal CREATE, UPDATE, MAINTAIN, and EVALUATE modes;
-do not create a second discoverable creator. For mode-specific checks, read
-[references/lifecycle.md](references/lifecycle.md), which also defines
-dispositions, placement, evidence, and the independent-review boundary.
+do not create a second discoverable creator. Route only the needed detail:
+
+- new capability → [references/create.md](references/create.md)
+- bounded change → [references/update.md](references/update.md)
+- drift, overlap, cost, or retirement → [references/maintain.md](references/maintain.md)
+- readiness or quality proof → [references/evaluate.md](references/evaluate.md)
+- trigger design or collision testing → [references/routing.md](references/routing.md)
+
+These are internal references, not discoverable subskills.
 Use bundled helpers with `python3` unless their executable bit is verified.
 
 **Match specificity to the risk.** Give the model room to choose an appropriate approach when multiple approaches are reasonable. Use detailed steps, deterministic scripts, or absolute language only when correctness, safety, permissions, or a genuinely fragile workflow requires them.
@@ -38,7 +44,8 @@ Keep skills self-contained; refer to another skill or tool only when the request
 **Disclose detail progressively.** Keep shared purpose, essential constraints, and useful routing in `SKILL.md`. Put substantial mode-specific guidance, schemas, examples, or procedures in supporting references and read only the references relevant to the current task. A simple self-contained skill does not need a router or extra files.
 
 For this repository adaptation, [references/provenance.md](references/provenance.md)
-records the pinned clone and bounded donor audit.
+records the pinned clone and bounded donor audit. Use it whenever a change
+touches source, license, donor, placement, or adaptation claims.
 
 ## Anatomy of a Skill
 

@@ -45,6 +45,7 @@ jobs:
         run: |
           python skills/skill-creator/scripts/quick_validate.py skills/skill-creator
           python skills/skill-creator/scripts/validate_eval_cases.py skills/skill-creator/evals/cases.yaml
+          python -m unittest skills/skill-creator/scripts/test_validate_eval_cases.py
           python skills/control-plane/control-plane-audit/scripts/validate_skill_quality.py skills/skill-creator
 
       - name: Validate Git allowlist

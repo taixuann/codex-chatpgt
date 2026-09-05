@@ -1,0 +1,53 @@
+import importlib.util
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+
+SCRIPT = Path(__file__).with_name("validate_eval_cases.py")
+
+
+def load_module():
+    spec = importlib.util.spec_from_file_location("validate_eval_cases", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+class EvalContractTests(unittest.TestCase):
+    def test_runtime_fixture_uses_repo_skill_discovery_location(self):
+        module = load_module()
+        skill_dir = SCRIPT.parents[1]
+        with module._fixture(skill_dir, True) as fixture:
+            self.assertTrue((fixture / ".agents" / "skills" / "skill-creator" / "SKILL.md").is_file())
+
+    def test_repository_case_contract_has_all_gates_and_partitions(self):
+        module = load_module()
+        self.assertEqual(module.validate(SCRIPT.parents[1] / "evals" / "cases.yaml"), [])
+
+    def test_compare_rejects_missing_before_or_after_evidence(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            before = root / "before.json"
+            after = root / "after.json"
+            before.write_text(json.dumps({"results": []}), encoding="utf-8")
+            after.write_text(json.dumps({"results": [{"partition": "held_out", "status": "PASS"}]}), encoding="utf-8")
+            self.assertEqual(module._compare(before, after)["status"], "REJECT")
+
+    def test_compare_accepts_non_regressing_held_out_candidate(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            before = root / "before.json"
+            after = root / "after.json"
+            payload = {"results": [{"partition": "held_out", "status": "PASS"}, {"partition": "regression", "status": "PASS"}]}
+            before.write_text(json.dumps(payload), encoding="utf-8")
+            after.write_text(json.dumps(payload), encoding="utf-8")
+            self.assertEqual(module._compare(before, after)["status"], "PASS")
+
+
+if __name__ == "__main__":
+    unittest.main()
