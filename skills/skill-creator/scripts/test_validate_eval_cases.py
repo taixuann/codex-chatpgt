@@ -86,7 +86,10 @@ class EvalContractTests(unittest.TestCase):
                     for path in module.COEXISTENCE_PATHS[case["id"]]:
                         before_snapshot[path] = "fixture"
                         after_snapshot[path] = "fixture"
-                final_report = {"selected_skill": expected} if routing else {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": "retain_global", "evidence": {check: {"disposition": "retain_global", "reason": "fixture alternative was compared against the requested reusable capability"} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
+                final_report = {"selected_skill": expected} if routing else (
+                    {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]], "evidence": {check: {"disposition": "USE_EXISTING", "reason": "fixture alternative was compared against the requested reusable capability"} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
+                    if case["kind"] in {"CREATE", "UPDATE", "MAINTAIN"} else {"disposition": expected}
+                )
                 changed_paths = sorted(module._changed_paths(before_snapshot, after_snapshot))
                 results.append({
                     "case_id": case["id"],
@@ -236,9 +239,9 @@ class EvalContractTests(unittest.TestCase):
     def test_necessity_and_coexistence_evidence_are_structured(self):
         module = load_module()
         case = {"id": "create-local-upstream", "kind": "CREATE"}
-        weak = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "evidence": {check: {"disposition": "reject", "reason": "x"} for check in module.NECESSITY_CHECKS}, "justification": "x"}}
+        weak = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "evidence": {check: {"disposition": "REJECT", "reason": "x"} for check in module.NECESSITY_CHECKS}, "justification": "x"}}
         self.assertFalse(module._necessity_ok(case, weak)[0])
-        strong = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": "adapt_upstream", "evidence": {check: {"disposition": "adapt_upstream", "reason": "This alternative was compared against the requested reusable capability."} for check in module.NECESSITY_CHECKS}, "justification": "The maintained upstream baseline is the smallest justified owner."}}
+        strong = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": "CLONE_AND_ADAPT", "evidence": {check: {"disposition": "USE_EXISTING", "reason": "This alternative was compared against the requested reusable capability."} for check in module.NECESSITY_CHECKS}, "justification": "The maintained upstream baseline is the smallest justified owner."}}
         self.assertTrue(module._necessity_ok(case, strong)[0])
         coexistence = {path: "hash" for path in module.COEXISTENCE_PATHS["maintain-overlap"]}
         self.assertFalse(module._recomputed_record({"trace_events": [], "before_snapshot": {".fixture-coexistence": "hash"}, "after_snapshot": {}, "final_report": {}}, {"id": "maintain-overlap", "kind": "MAINTAIN"})["coexistence_fixture"])

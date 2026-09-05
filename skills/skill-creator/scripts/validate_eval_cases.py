@@ -394,10 +394,25 @@ def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str]) -> t
     return False, f"unknown artifact operation {operation}"
 
 
-NECESSITY_CHECKS = {"native", "agents", "scripts", "existing", "upstream"}
+NECESSITY_CHECKS = {
+    "native", "agents", "scripts", "project_local", "user_global", "upstream",
+    "plugin", "sibling", "localization", "ordinary_instructions",
+}
 NECESSITY_DISPOSITIONS = {
-    "use_native", "use_agents", "use_script", "reuse_existing", "adapt_upstream",
-    "retain_global", "localize", "merge", "retire", "reject",
+    "USE_EXISTING", "CLONE_AND_ADAPT", "UPDATE_EXISTING", "LOCALIZE", "MERGE",
+    "DISABLE_IMPLICIT", "RETIRE", "REJECT", "CREATE_FROM_SCRATCH_WITH_JUSTIFICATION",
+    "BLOCKED",
+}
+EXPECTED_NECESSITY_DISPOSITIONS = {
+    "create-local-upstream": "CLONE_AND_ADAPT",
+    "create-multimode-one-skill": "CLONE_AND_ADAPT",
+    "create-no-skill": "REJECT",
+    "update-bounded": "UPDATE_EXISTING",
+    "update-substantive": "UPDATE_EXISTING",
+    "maintain-upstream-drift": "CLONE_AND_ADAPT",
+    "maintain-overlap": "MERGE",
+    "maintain-localize": "LOCALIZE",
+    "maintain-retire": "RETIRE",
 }
 COEXISTENCE_PATHS = {
     "maintain-overlap": {".agents/skills/pdf/SKILL.md", ".agents/skills/overlap-skill/SKILL.md"},
@@ -417,7 +432,7 @@ def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
     if not isinstance(checks, list) or not NECESSITY_CHECKS.issubset(checks):
         return False, "necessity evidence does not cover native, AGENTS, scripts, existing, and upstream alternatives"
     disposition = evidence.get("disposition")
-    if disposition not in NECESSITY_DISPOSITIONS:
+    if disposition not in NECESSITY_DISPOSITIONS or disposition != EXPECTED_NECESSITY_DISPOSITIONS.get(case.get("id")):
         return False, "necessity evidence needs a typed disposition"
     details = evidence.get("evidence")
     if not isinstance(details, dict) or any(
@@ -555,7 +570,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
                 "Complete this natural user request in the isolated fixture using available instructions "
                 "and tools. You may modify only the fixture. Return exactly one JSON object with keys "
                 "disposition, necessity, artifacts, and process. The necessity value must be an object "
-                "with checks (native, agents, scripts, existing, upstream), a typed disposition, and an evidence object mapping each check to a typed disposition plus a substantive reason of at least 20 characters. "
+                "with checks (native, agents, scripts, project_local, user_global, upstream, plugin, sibling, localization, ordinary_instructions), a typed disposition matching the expected outcome, and an evidence object mapping each check to a typed disposition plus a substantive reason of at least 20 characters. "
                 "The artifacts value lists changed relative paths; the process value lists the concrete steps performed. "
                 f"{artifact_instruction}\n\n{case['prompt']}"
             )
