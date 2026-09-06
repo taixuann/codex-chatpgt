@@ -46,6 +46,7 @@ cases:
       runs: 10
       artifact_valid: 10/10
       reference_script_trace: 10/10
+      trace_invariants: 10/10
       behavior: OBSERVED
       native_skill_activation: NOT_ASSESSED
       aggregate: PASS
