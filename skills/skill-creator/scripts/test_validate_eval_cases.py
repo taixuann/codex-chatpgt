@@ -71,6 +71,7 @@ class EvalContractTests(unittest.TestCase):
             for case in cases:
                 routing = case["kind"] == "routing"
                 expected = "none" if case.get("expected") == "none" else case["expected"]
+                contract = {}
                 if routing:
                     trace_events = [{"skill_loads": [] if expected == "none" else ["skill-creator"]}]
                     before_snapshot = {}
@@ -91,8 +92,11 @@ class EvalContractTests(unittest.TestCase):
                     for path in module.COEXISTENCE_PATHS[case["id"]]:
                         before_snapshot[path] = "fixture"
                         after_snapshot[path] = "fixture"
+                for effect in contract.get("side_effects", []):
+                    if effect["operation"] == "deleted":
+                        after_snapshot.pop(effect["path"], None)
                 final_report = {"selected_skill": expected} if routing else (
-                    {"disposition": expected, "necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]], "evidence": {check: {"disposition": "USE_EXISTING", "reason": "fixture alternative was compared against the requested reusable capability"} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
+                    {"disposition": expected, "necessity": {"disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]], "alternatives": {check: {"state": "CHECKED", "disposition": "USE_EXISTING", "reason": "fixture alternative was compared against the requested reusable capability"} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
                     if case["kind"] in {"CREATE", "UPDATE", "MAINTAIN"} else {"disposition": expected}
                 )
                 changed_paths = sorted(module._changed_paths(before_snapshot, after_snapshot))
@@ -107,6 +111,7 @@ class EvalContractTests(unittest.TestCase):
                     "status": "PASS",
                     "observed": expected,
                     "activation": "unloaded" if expected == "none" else "loaded",
+                    "runtime_evidence": {"skill_discovery": "NOT_ASSESSED", "explicit_invocation": "NOT_REQUESTED", "implicit_activation": "unloaded" if expected == "none" else "loaded", "behavior": "OBSERVED"},
                     "process_observed": not routing,
                     "trace_matches": True,
                     "artifact_ok": True,
@@ -126,7 +131,7 @@ class EvalContractTests(unittest.TestCase):
             for case in cases:
                 if case.get("paired") is not True:
                     continue
-                contract = module._artifact_contract(case)
+                contract = module._artifact_contract(case, False)
                 if contract.get("operation") == "modified":
                     baseline_before = {contract["path"]: "old"}
                     baseline_after = {contract["path"]: "new"}
@@ -153,6 +158,7 @@ class EvalContractTests(unittest.TestCase):
                     "status": "OBSERVED",
                     "observed": "baseline",
                     "activation": None,
+                    "runtime_evidence": {"skill_discovery": "NOT_ASSESSED", "explicit_invocation": "NOT_REQUESTED", "implicit_activation": "NOT_ASSESSED", "behavior": "OBSERVED"},
                     "process_observed": True,
                     "trace_matches": True,
                     "artifact_ok": True,
@@ -219,6 +225,26 @@ class EvalContractTests(unittest.TestCase):
         self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "command": "git clone source"}}]))
         self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "aggregated_output": "git clone source"}}]))
 
+    def test_runtime_prompt_does_not_leak_case_expected_disposition(self):
+        module = load_module()
+        case = {
+            "id": "create-local-upstream",
+            "kind": "CREATE",
+            "expected": "CLONE_AND_ADAPT",
+            "prompt": "Create the requested reusable local skill.",
+            "artifact": "created",
+            "artifact_path": ".agents/skills/generated-skill/SKILL.md",
+        }
+        prompt = module._runtime_prompt(case, Path("/tmp/eval"))
+        self.assertNotIn("must be exactly", prompt)
+        self.assertNotIn("matching the expected", prompt)
+        self.assertEqual(prompt.count(case["expected"]), 1)
+
+    def test_action_dispositions_do_not_use_no_match_state(self):
+        module = load_module()
+        self.assertNotIn("NO_MATCH", module.ACTION_DISPOSITIONS)
+        self.assertIn("NOT_AVAILABLE", module.NECESSITY_STATES)
+
     def test_json_object_allows_trailing_prose(self):
         module = load_module()
         self.assertEqual(module._json_object('{"disposition":"REJECT"}\nDone.'), {"disposition": "REJECT"})
@@ -259,11 +285,11 @@ class EvalContractTests(unittest.TestCase):
     def test_necessity_and_coexistence_evidence_are_structured(self):
         module = load_module()
         case = {"id": "create-local-upstream", "kind": "CREATE"}
-        weak = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "evidence": {check: {"disposition": "REJECT", "reason": "x"} for check in module.NECESSITY_CHECKS}, "justification": "x"}}
+        weak = {"necessity": {"disposition": "CLONE_AND_ADAPT", "alternatives": {"native": {"state": "CHECKED", "disposition": "REJECT", "reason": "x"}}, "justification": "x"}}
         self.assertFalse(module._necessity_ok(case, weak)[0])
-        malformed = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": {}, "evidence": {}, "justification": "malformed model output"}}
+        malformed = {"necessity": {"disposition": {}, "alternatives": {"native": {"state": "NOT_AVAILABLE", "disposition": "REJECT"}}, "justification": "malformed model output"}}
         self.assertFalse(module._necessity_ok(case, malformed)[0])
-        strong = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": "CLONE_AND_ADAPT", "evidence": {check: {"disposition": "USE_EXISTING", "reason": "This alternative was compared against the requested reusable capability."} for check in module.NECESSITY_CHECKS}, "justification": "The maintained upstream baseline is the smallest justified owner."}}
+        strong = {"necessity": {"disposition": "CLONE_AND_ADAPT", "alternatives": {"native": {"state": "CHECKED", "disposition": "REJECT", "reason": "Native behavior was inspected and cannot own this reusable workflow."}, "maintained_candidate": {"state": "CHECKED", "disposition": "CLONE_AND_ADAPT", "reason": "The maintained candidate was inspected and is the closest suitable owner."}, "project_or_user_skill": {"state": "NOT_AVAILABLE"}}, "justification": "The maintained upstream baseline is the smallest justified owner."}}
         self.assertTrue(module._necessity_ok(case, strong)[0])
         coexistence = {path: "hash" for path in module.COEXISTENCE_PATHS["maintain-overlap"]}
         self.assertFalse(module._recomputed_record({"trace_events": [], "before_snapshot": {".fixture-coexistence": "hash"}, "after_snapshot": {}, "final_report": {}}, {"id": "maintain-overlap", "kind": "MAINTAIN"})["coexistence_fixture"])

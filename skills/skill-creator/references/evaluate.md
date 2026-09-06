@@ -7,7 +7,7 @@ first; a polished output cannot compensate for skipped process evidence.
 
 | Gate | Required evidence |
 | --- | --- |
-| `G0_NECESSITY` | structured native/AGENTS/script/project-local/user-global/upstream/plugin/sibling/localization/ordinary-instruction comparisons and case-consistent disposition |
+| `G0_NECESSITY` | structured ownership comparison using native, AGENTS, deterministic-script, project/user-skill, maintained-candidate, sibling/localization, and ordinary-instruction alternatives; checked alternatives carry substantive evidence |
 | `G1_STRUCTURE` | frontmatter, name/path, placeholders, references/resources, portability |
 | `G2_PROVENANCE` | exact source/ref/path, license, adaptation diff, donor boundary |
 | `G3_ROUTING` | positive, ambiguous/noisy, adjacent-negative, sibling-negative, and explicit opt-out cases |
@@ -32,8 +32,10 @@ answer or caller-supplied review flag is not evidence of execution or
 independent review. Use a structured result with the exact case, condition,
 expected/observed outcome, trace/load signal, artifact delta, cost fields, and
 raw limitation; qualitative review must not be reduced to an ungrounded prose
-score. Lifecycle results include a typed disposition and a substantive reason
-for each G0 alternative. Coexistence cases bind evidence to the actual sibling
+score. Lifecycle results include a typed action disposition and an evidence state
+for each inspected G0 alternative. Use `CHECKED`, `NOT_AVAILABLE`, or
+`NOT_RELEVANT`; only `CHECKED` alternatives require substantive evidence, and
+unavailable alternatives must not claim an action disposition. Coexistence cases bind evidence to the actual sibling
 or local `SKILL.md` paths in the fixture snapshots.
 Every case also declares `origin.type` and `origin.source` so regressions
 remain attributable.
@@ -75,7 +77,10 @@ or artifact delta, and a resource-vector comparison; missing corpus or evidence
 fails closed.
 
 Persist the raw process/tool events, before snapshot, after snapshot, and final
-structured report for every assessed case. The comparator must recompute
-activation, process observation, trace markers, changed paths, artifact
-contracts, and necessity evidence from those raw records; summary booleans are
-only valid when they match the recomputation.
+structured report for every assessed case. Keep skill discovery, explicit
+invocation, implicit activation, and behavioral/artifact evidence as separate
+fields. The current `codex exec --json` interface may not expose discovery or
+activation events; retain those fields as `NOT_ASSESSED` rather than inferring
+them from model text. The comparator must recompute process observation, trace
+markers, changed paths, artifact contracts, and necessity evidence from those
+raw records; summary booleans are only valid when they match the recomputation.

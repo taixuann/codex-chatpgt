@@ -34,6 +34,12 @@ GATES = {
 PARTITIONS = {"must_pass", "regression", "held_out"}
 KINDS = {"routing", "CREATE", "UPDATE", "MAINTAIN", "EVALUATE"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
+ACTION_DISPOSITIONS = {
+    "USE_EXISTING", "CLONE_AND_ADAPT", "UPDATE_EXISTING", "LOCALIZE", "MERGE",
+    "DISABLE_IMPLICIT", "RETIRE", "REJECT", "CREATE_FROM_SCRATCH_WITH_JUSTIFICATION", "BLOCKED",
+}
+EVALUATION_DISPOSITIONS = {"PASS", "REJECT", "SIMPLIFY"}
+NECESSITY_STATES = {"CHECKED", "NOT_AVAILABLE", "NOT_RELEVANT"}
 ORIGIN_TYPES = {"observed_failure", "user_requirement", "upstream_change", "model_change", "architecture_contract"}
 EXPECTED_CASE_COUNT = 26
 EXPECTED_ROUTING_CASE_COUNT = 12
@@ -372,11 +378,14 @@ def _paired_evidence(with_skill: dict | None, without_skill: dict | None) -> dic
     }
 
 
-def _artifact_contract(case: dict) -> dict:
+def _artifact_contract(case: dict, with_skill: bool = True) -> dict:
     if case["id"] == "create-no-skill":
         return {}
     if case.get("artifact") and case.get("artifact_path"):
-        return {"operation": case["artifact"], "path": case["artifact_path"]}
+        contract = {"operation": case["artifact"], "path": case["artifact_path"]}
+        if with_skill and case.get("side_effects"):
+            contract["side_effects"] = case["side_effects"]
+        return contract
     if case.get("kind") != "routing":
         return {"operation": "created", "path": f".evaluation/{case['id']}.json"}
     return {}
@@ -386,32 +395,37 @@ def _case_gates(case: dict) -> list[str]:
     return case.get("gates", [case["gate"]])
 
 
-def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str]) -> tuple[bool, str]:
-    contract = _artifact_contract(case)
+def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str], with_skill: bool = True) -> tuple[bool, str]:
+    contract = _artifact_contract(case, with_skill)
     changed = _changed_paths(before, after)
     if not contract:
         return (not changed, "no artifact required")
     path = contract["path"]
     operation = contract["operation"]
+    side_effects = contract.get("side_effects", [])
+    expected_paths = {path, *(effect["path"] for effect in side_effects)}
     exists_before = path in before
     exists_after = path in after
+    side_effects_ok = all(
+        effect.get("operation") == "created" and effect["path"] not in before and effect["path"] in after
+        or effect.get("operation") == "modified" and effect["path"] in before and effect["path"] in after and before[effect["path"]] != after[effect["path"]]
+        or effect.get("operation") == "deleted" and effect["path"] in before and effect["path"] not in after
+        for effect in side_effects
+    )
+    if not side_effects_ok or changed != expected_paths:
+        return False, f"expected only contracted artifact paths {sorted(expected_paths)}"
     if operation == "created":
-        return (not exists_before and exists_after and changed == {path}, f"expected only created artifact {path}")
+        return (not exists_before and exists_after, f"expected only created artifact {path}")
     if operation == "modified":
-        return (exists_before and exists_after and before[path] != after[path] and changed == {path}, f"expected only modified artifact {path}")
+        return (exists_before and exists_after and before[path] != after[path], f"expected only modified artifact {path}")
     if operation == "deleted":
-        return (exists_before and not exists_after and changed == {path}, f"expected only deleted artifact {path}")
+        return (exists_before and not exists_after, f"expected only deleted artifact {path}")
     return False, f"unknown artifact operation {operation}"
 
 
 NECESSITY_CHECKS = {
-    "native", "agents", "scripts", "project_local", "user_global", "upstream",
-    "plugin", "sibling", "localization", "ordinary_instructions",
-}
-NECESSITY_DISPOSITIONS = {
-    "USE_EXISTING", "CLONE_AND_ADAPT", "UPDATE_EXISTING", "LOCALIZE", "MERGE",
-    "DISABLE_IMPLICIT", "RETIRE", "REJECT", "CREATE_FROM_SCRATCH_WITH_JUSTIFICATION",
-    "BLOCKED", "NO_MATCH",
+    "native", "agents", "scripts", "project_or_user_skill", "maintained_candidate",
+    "sibling_or_localization", "ordinary_instructions",
 }
 EXPECTED_NECESSITY_DISPOSITIONS = {
     "create-local-upstream": "CLONE_AND_ADAPT",
@@ -438,21 +452,30 @@ def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
     evidence = report.get("necessity")
     if not isinstance(evidence, dict):
         return False, "structured necessity evidence is missing"
-    checks = evidence.get("checks")
-    if not isinstance(checks, list) or not NECESSITY_CHECKS.issubset(checks):
-        return False, "necessity evidence does not cover native, AGENTS, scripts, existing, and upstream alternatives"
     disposition = evidence.get("disposition")
-    if not isinstance(disposition, str) or disposition not in NECESSITY_DISPOSITIONS or disposition != EXPECTED_NECESSITY_DISPOSITIONS.get(case.get("id")):
+    if not isinstance(disposition, str) or disposition not in ACTION_DISPOSITIONS or disposition != EXPECTED_NECESSITY_DISPOSITIONS.get(case.get("id")):
         return False, "necessity evidence needs a typed disposition"
-    details = evidence.get("evidence")
-    if not isinstance(details, dict) or any(
-        not isinstance(details.get(check), dict)
-        or details[check].get("disposition") not in NECESSITY_DISPOSITIONS
-        or not isinstance(details[check].get("reason"), str)
-        or len(details[check]["reason"].strip()) < 20
-        for check in NECESSITY_CHECKS
-    ):
-        return False, "necessity evidence needs a substantive typed comparison for every alternative"
+    alternatives = evidence.get("alternatives")
+    if not isinstance(alternatives, dict) or not alternatives:
+        return False, "necessity evidence needs available alternative states"
+    if set(alternatives) - NECESSITY_CHECKS:
+        return False, "necessity evidence contains an unknown alternative"
+    checked = 0
+    for name, detail in alternatives.items():
+        if not isinstance(detail, dict) or detail.get("state") not in NECESSITY_STATES:
+            return False, f"necessity alternative {name} needs a valid evidence state"
+        state = detail["state"]
+        if state == "CHECKED":
+            checked += 1
+            if detail.get("disposition") not in ACTION_DISPOSITIONS:
+                return False, f"checked alternative {name} needs a typed action disposition"
+            reason = detail.get("reason")
+            if not isinstance(reason, str) or len(reason.strip()) < 20:
+                return False, f"checked alternative {name} needs substantive evidence"
+        elif "disposition" in detail and detail["disposition"] is not None:
+            return False, f"unavailable alternative {name} must not claim an action disposition"
+    if not checked:
+        return False, "necessity evidence needs at least one checked plausible alternative"
     if not isinstance(evidence.get("justification"), str) or not evidence["justification"].strip():
         return False, "necessity justification is missing"
     return True, "structured necessity evidence observed"
@@ -466,13 +489,20 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
     if not isinstance(events, list) or not isinstance(before, dict) or not isinstance(after, dict) or not isinstance(report, dict):
         return None
     key = "selected_skill" if case["kind"] == "routing" else "disposition"
-    artifact_ok, artifact_reason = _artifact_ok(case, before, after)
+    artifact_ok, artifact_reason = _artifact_ok(case, before, after, item.get("condition") != "without_skill")
     necessity_ok, necessity_reason = _necessity_ok(case, report)
+    runtime_evidence = {
+        "skill_discovery": "NOT_ASSESSED",
+        "explicit_invocation": "NOT_REQUESTED",
+        "implicit_activation": _runtime_activation(events) or "NOT_ASSESSED",
+        "behavior": "OBSERVED" if report.get(key) is not None and (case["kind"] == "routing" or (_process_observed(events) and _trace_matches(case, events) and artifact_ok)) else "NOT_ASSESSED",
+    }
     changed_paths = sorted(_changed_paths(before, after))
     coexistence_ok = COEXISTENCE_PATHS.get(case["id"], set()).issubset(before)
     return {
         "observed": report.get(key),
         "activation": _runtime_activation(events),
+        "runtime_evidence": runtime_evidence,
         "process_observed": _process_observed(events),
         "trace_matches": _trace_matches(case, events),
         "changed_paths": changed_paths,
@@ -561,6 +591,16 @@ def _runtime_preflight(runtime: str, timeout: int) -> dict:
     if not shutil.which(runtime):
         return {"status": "NO_RUNTIME", "reason": f"runtime not found: {runtime}"}
     try:
+        version_process = subprocess.run(
+            [runtime, "--version"], capture_output=True, text=True,
+            timeout=min(timeout, 5), check=False, env=os.environ.copy(),
+        )
+    except subprocess.TimeoutExpired:
+        return {"status": "CONFIG_ERROR", "reason": "runtime version check timed out"}
+    runtime_version = next((line.strip() for line in (version_process.stdout or "").splitlines() if line.strip()), None)
+    if version_process.returncode != 0 or not runtime_version:
+        return {"status": "CONFIG_ERROR", "reason": "runtime version check failed"}
+    try:
         socket.getaddrinfo("chatgpt.com", 443)
     except OSError:
         return {"status": "PROVIDER_UNAVAILABLE", "reason": "provider hostname is not resolvable"}
@@ -576,7 +616,7 @@ def _runtime_preflight(runtime: str, timeout: int) -> dict:
         if any(marker in output for marker in ("not logged", "not authenticated", "no credentials", "unauthorized")):
             return {"status": "NO_AUTH", "reason": "runtime is not authenticated"}
         return {"status": "CONFIG_ERROR", "reason": "login status failed"}
-    return {"status": "READY", "reason": "saved runtime authentication is available"}
+    return {"status": "READY", "reason": "saved runtime authentication is available", "runtime_version": runtime_version}
 
 
 def _timeout_class(output: str) -> str:
@@ -590,49 +630,63 @@ def _timeout_class(output: str) -> str:
     return "TURN_TIMEOUT"
 
 
+def _runtime_prompt(case: dict, operation_root: Path) -> str:
+    if case["kind"] == "routing":
+        task = (
+            "Handle this natural user request in the isolated fixture. Do not change files. "
+            "Return exactly one JSON object with key selected_skill, whose value is the selected "
+            "skill name or none.\n\n"
+            f"{case['prompt']}"
+        )
+    else:
+        artifact = _artifact_contract(case)
+        artifact_instruction = (
+            "No artifact is required; preserve the fixture and reject unnecessary skill creation. "
+            if not artifact else (
+                f"The required observable artifact is {artifact['operation']} at "
+                f"{artifact['path']}. Perform the operation, not just a plan. "
+            )
+        )
+        allowed = ", ".join(sorted(ACTION_DISPOSITIONS if case["kind"] != "EVALUATE" else EVALUATION_DISPOSITIONS))
+        candidates = ", ".join(sorted(NECESSITY_CHECKS))
+        states = ", ".join(sorted(NECESSITY_STATES))
+        task = (
+            "Complete this natural user request in the isolated fixture using available instructions and tools. "
+            "You may modify only the fixture. Return exactly one JSON object with top-level keys "
+            f"disposition, necessity, artifacts, and process. The disposition must be one of: {allowed}. "
+            "For CREATE, UPDATE, and MAINTAIN cases, necessity must contain a field named disposition with an action from the allowed enum, a non-empty justification, and "
+            f"an alternatives object whose candidate keys come from: {candidates}. Each alternative must have "
+            f"state {states}. Use CHECKED only when the fixture was actually inspected; a CHECKED alternative "
+            "must include the fields disposition and reason, with disposition from the allowed action enum and reason of at least 20 characters. "
+            "Use NOT_AVAILABLE or NOT_RELEVANT when inspection is not possible or the candidate does not apply; "
+            "do not invent unsupported plugin, upstream, global-catalog, or sibling facts. Include at least one "
+            "checked plausible alternative. The artifacts value lists changed relative paths; the process value "
+            f"lists the concrete steps performed. {artifact_instruction}\n\n{case['prompt']}"
+        )
+    return (
+        f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
+        "For apply_patch or file-change operations, use paths relative to this working directory; "
+        "never pass an absolute path or a path prefixed with the working directory.\n\n"
+        f"{task}"
+    )
+
+
 def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
     with _fixture(skill_dir, with_skill, case) as fixture:
         operation_root = fixture / "project" if case["id"] == "maintain-localize" else fixture
-        artifact = _artifact_contract(case)
-        if case["kind"] == "routing":
-            prompt = (
-                "Handle this natural user request in the isolated fixture. Do not change files. "
-                "Return exactly one JSON object with key selected_skill, whose value is the selected "
-                "skill name or none.\n\n"
-                f"{case['prompt']}"
-            )
-        else:
-            artifact_instruction = (
-                "No artifact is required; preserve the fixture and reject unnecessary skill creation. "
-                if not artifact else (
-                    f"The required observable artifact is {artifact['operation']} at "
-                    f"{artifact['path']}. Perform the operation, not just a plan. "
-                )
-            )
-            prompt = (
-                "Complete this natural user request in the isolated fixture using available instructions "
-                f"and tools. You may modify only the fixture. Return exactly one JSON object with top-level keys "
-                f"disposition, necessity, artifacts, and process; the top-level disposition value must be exactly {case['expected']!r}. "
-                "For CREATE, UPDATE, and MAINTAIN cases, the necessity value must be an object with checks "
-                "as a JSON list containing exactly native, agents, scripts, project_local, user_global, upstream, plugin, sibling, localization, and ordinary_instructions; "
-                f"a field named disposition whose value is exactly {case['expected']!r}, a non-empty justification, "
-                "and an evidence object mapping each check to a field named disposition plus a substantive reason of at least 20 characters. "
-                "Every typed disposition must use one of USE_EXISTING, UPDATE_EXISTING, CLONE_AND_ADAPT, MERGE, LOCALIZE, DISABLE_IMPLICIT, RETIRE, BLOCKED, REJECT, or CREATE_FROM_SCRATCH_WITH_JUSTIFICATION; never use synonyms or a field named typed_disposition. "
-                "The artifacts value lists changed relative paths; the process value lists the concrete steps performed. "
-                f"{artifact_instruction}\n\n{case['prompt']}"
-            )
-        prompt = (
-            f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
-            "For apply_patch or file-change operations, use paths relative to this working directory; "
-            "never pass an absolute path or a path prefixed with the working directory.\n\n"
-            f"{prompt}"
-        )
+        prompt = _runtime_prompt(case, operation_root)
         base = {
             "case_id": case["id"],
             "kind": case["kind"],
             "expected": case["expected"],
             "condition": "with_skill" if with_skill else "without_skill",
             "fixture": ("project/.agents/skills/skill-creator" if case["id"] == "maintain-localize" else ".agents/skills/skill-creator") if with_skill else "no skill fixture",
+            "runtime_evidence": {
+                "skill_discovery": "NOT_ASSESSED",
+                "explicit_invocation": "NOT_REQUESTED",
+                "implicit_activation": "NOT_ASSESSED",
+                "behavior": "NOT_ASSESSED",
+            },
         }
         if not shutil.which(runtime):
             return {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"}
@@ -644,6 +698,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             "--add-dir", str(fixture / ".agents"), "--cd",
             str(fixture / "project" if case["id"] == "maintain-localize" else fixture), prompt,
         ]
+        base["command"] = command
         # Reuse the caller's authenticated CODEX_HOME. The fixture remains isolated;
         # an empty per-case home only measures auth retry behavior, not skill behavior.
         environment = os.environ.copy()
@@ -674,10 +729,16 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         trace_matches = _trace_matches(case, events)
         after_snapshot = _snapshot(operation_root)
         changed_paths = _changed_paths(before_snapshot, after_snapshot)
-        artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot)
+        artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot, with_skill)
         necessity_ok, necessity_reason = _necessity_ok(case, report)
         coexistence_fixture = (((fixture / "project") if case["id"] == "maintain-localize" else fixture) / ".fixture-coexistence").is_file()
         side_effect_free = not changed_paths
+        runtime_evidence = {
+            "skill_discovery": "NOT_ASSESSED",
+            "explicit_invocation": "NOT_REQUESTED",
+            "implicit_activation": activation or "NOT_ASSESSED",
+            "behavior": "OBSERVED" if observed is not None and (case["kind"] == "routing" or (process_observed and trace_matches and artifact_ok)) else "NOT_ASSESSED",
+        }
         unavailable = any(
             marker in (process.stderr or "").lower()
             for marker in ("401 unauthorized", "missing bearer", "authentication")
@@ -719,6 +780,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             "status": status,
             "observed": observed,
             "runtime_observed": loaded,
+            "runtime_evidence": runtime_evidence,
             "activation": activation,
             "process_observed": process_observed,
             "trace_matches": trace_matches,
@@ -862,7 +924,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             recomputed = _recomputed_record(item, case)
             if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
                 "observed", "activation", "process_observed", "trace_matches", "changed_paths",
-                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics",
+                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics", "runtime_evidence",
             )):
                 return False
             activation = item.get("activation")
@@ -880,7 +942,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             recomputed = _recomputed_record(item, case)
             if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
                 "observed", "activation", "process_observed", "trace_matches", "changed_paths",
-                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics",
+                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics", "runtime_evidence",
             )):
                 return False
         recomputed_routing = []
@@ -1007,12 +1069,14 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
     results = []
     for case in cases:
         result = _run_once(case, runtime, model, reasoning_effort, timeout, skill_dir, True)
+        result["runtime_version"] = preflight.get("runtime_version")
         result["partition"] = case["partition"]
         result["gate"] = case["gate"]
         result["gates"] = _case_gates(case)
         results.append(result)
         if case.get("paired"):
             baseline = _run_once(case, runtime, model, reasoning_effort, timeout, skill_dir, False)
+            baseline["runtime_version"] = preflight.get("runtime_version")
             baseline["partition"] = case["partition"]
             baseline["gate"] = case["gate"]
             baseline["gates"] = _case_gates(case)
@@ -1069,6 +1133,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         "coverage": {"requested_cases": len(cases), "total_cases": len(data["cases"]), "full_corpus": len(cases) == len(data["cases"])},
         "model": model,
         "reasoning_effort": reasoning_effort,
+        "runtime_version": preflight.get("runtime_version"),
         "runtime_preflight": preflight,
         "stage": stage,
         "gates": status_by_gate,
