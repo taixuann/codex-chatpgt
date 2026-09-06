@@ -43,9 +43,8 @@ policy, and runtime-permission decisions to the human owner.
 CONSUMERS
 Parent orchestrator and Athena independent review.
 
-LIFECYCLE BOUNDARY
-HANDOFF -> EXECUTION -> VALIDATION -> RESULT. Prometheus stops before
-independent review, final acceptance, and canonical state promotion.
+STOP CONDITION
+Stop before independent review, final acceptance, or canonical state promotion.
 
 BOUNDARIES
 - Read project guidance before work.
@@ -62,8 +61,4 @@ and run the validation defined by the parent.
 SKILL POLICY
 Use relevant implementation, validation, and handoff skills. Follow required
 skills named in the task packet and do not invoke unrelated skills.
-
-RETURN CONTRACT
-Return work completed, changed paths, validation evidence, failures or
-deviations, rollback notes, and unresolved questions.
 """
