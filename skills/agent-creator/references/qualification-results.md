@@ -6,6 +6,13 @@ remain outside the repository; this record preserves the result, command
 shape, exact runtime metadata, and known evidence limits without secrets or
 hidden reasoning.
 
+The runtime observations were captured against agent-creator skill revision
+`12942a186c9111a7c93e930d9cda9f2fe004e9cf`. The case-manifest/role-contract
+repair was then recorded at parent revision
+`4da584c10f21df97f6929a8212b71a3860697bed`; the final exact-head review must
+bind its receipt to the later published head rather than treating these
+capture revisions as the final head.
+
 ## Runtime
 
 - Codex CLI: `codex-cli 0.149.1`
@@ -60,6 +67,11 @@ The process/artifact fields are `OBSERVED` only where the trace and fixture
 state support them. Discovery, implicit activation, and native role
 application are `NOT_ASSESSED` where the current interface withholds those
 events.
+
+The durable case manifest also includes seven routing classifications and
+explicitly marks missing-capability, user-scope, explicit-delegation, and
+nested-depth runtime surfaces `NOT_ASSESSED` because no supported native event
+was available. These are not inferred from model prose.
 
 ## Role migration evidence
 
