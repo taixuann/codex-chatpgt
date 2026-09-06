@@ -569,7 +569,7 @@ def _runtime_preflight(runtime: str, timeout: int) -> dict:
     return {"status": "READY", "reason": "saved runtime authentication is available"}
 
 
-def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
+def _run_once(case: dict, runtime: str, model: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
     with _fixture(skill_dir, with_skill, case) as fixture:
         operation_root = fixture / "project" if case["id"] == "maintain-localize" else fixture
         artifact = _artifact_contract(case)
@@ -607,7 +607,7 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             return {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"}
         sandbox = "read-only" if case["kind"] == "routing" else "workspace-write"
         command = [
-            runtime, "exec", "--json", "--ephemeral", "--sandbox", sandbox,
+            runtime, "exec", "--model", model, "--json", "--ephemeral", "--sandbox", sandbox,
             "--skip-git-repo-check", "--ignore-user-config", "--cd",
             str(fixture / "project" if case["id"] == "maintain-localize" else fixture), prompt,
         ]
@@ -945,7 +945,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     }
 
 
-def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[str] | None, stage: str = "full") -> dict:
+def run(path: Path, skill_dir: Path, runtime: str, model: str, timeout: int, case_ids: set[str] | None, stage: str = "full") -> dict:
     data = load_cases(path)
     stage_ids = {
         "smoke": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative"},
@@ -965,13 +965,13 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         }
     results = []
     for case in cases:
-        result = _run_once(case, runtime, timeout, skill_dir, True)
+        result = _run_once(case, runtime, model, timeout, skill_dir, True)
         result["partition"] = case["partition"]
         result["gate"] = case["gate"]
         result["gates"] = _case_gates(case)
         results.append(result)
         if case.get("paired"):
-            baseline = _run_once(case, runtime, timeout, skill_dir, False)
+            baseline = _run_once(case, runtime, model, timeout, skill_dir, False)
             baseline["partition"] = case["partition"]
             baseline["gate"] = case["gate"]
             baseline["gates"] = _case_gates(case)
@@ -1026,6 +1026,7 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         "schema_version": 2,
         "skill": "skill-creator",
         "coverage": {"requested_cases": len(cases), "total_cases": len(data["cases"]), "full_corpus": len(cases) == len(data["cases"])},
+        "model": model,
         "runtime_preflight": preflight,
         "stage": stage,
         "gates": status_by_gate,
@@ -1042,6 +1043,7 @@ def main() -> int:
     parser.add_argument("--skill-dir", type=Path, default=Path(__file__).parents[1])
     parser.add_argument("--case-id", action="append")
     parser.add_argument("--runtime", default="codex")
+    parser.add_argument("--model", default="gpt-5.6-luna")
     parser.add_argument("--timeout", type=int, default=60)
     parser.add_argument("--stage", choices=("smoke", "lifecycle", "full"), default="full")
     parser.add_argument("--results", type=Path)
@@ -1061,7 +1063,7 @@ def main() -> int:
         data = load_cases(args.cases)
         print(f"OK eval cases: {len(data['gates'])} gates, {sum(case['kind'] == 'routing' for case in data['cases'])} routing and {sum(case['kind'] != 'routing' for case in data['cases'])} lifecycle cases")
         return 0
-    report = run(args.cases, args.skill_dir, args.runtime, args.timeout, set(args.case_id) if args.case_id else None, args.stage)
+    report = run(args.cases, args.skill_dir, args.runtime, args.model, args.timeout, set(args.case_id) if args.case_id else None, args.stage)
     if args.results:
         args.results.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, sort_keys=True))
