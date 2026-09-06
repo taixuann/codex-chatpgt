@@ -187,11 +187,15 @@ def _json_object(text: str) -> dict:
     cleaned = text.strip().strip("`").strip()
     if cleaned.startswith("json"):
         cleaned = cleaned[4:].strip()
-    try:
-        value = json.loads(cleaned)
-    except json.JSONDecodeError:
-        return {}
-    return value if isinstance(value, dict) else {}
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r"\{", cleaned):
+        try:
+            value, _ = decoder.raw_decode(cleaned[match.start():])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            return value
+    return {}
 
 
 def _runtime_activation(events: list[dict]) -> str | None:
@@ -234,7 +238,7 @@ def _process_payload(event: dict) -> str:
     item_type = item.get("type") if isinstance(item, dict) else None
     if item_type not in PROCESS_ITEM_TYPES:
         return ""
-    fields = {key: item.get(key) for key in ("command", "name", "arguments", "input", "call_id", "tool", "function", "output") if key in item}
+    fields = {key: item.get(key) for key in ("command", "name", "arguments", "input", "call_id", "tool", "function", "output", "aggregated_output") if key in item}
     return json.dumps(fields, sort_keys=True).lower()
 
 
@@ -281,7 +285,12 @@ def _snapshot(root: Path) -> dict[str, str]:
     for path in root.rglob("*"):
         if path.is_file():
             relative = path.relative_to(root)
-            if ".codex-home" in relative.parts or ".git" in relative.parts:
+            if (
+                ".codex-home" in relative.parts
+                or ".git" in relative.parts
+                or "__pycache__" in relative.parts
+                or relative.suffix == ".pyc"
+            ):
                 continue
             files[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return files
@@ -402,7 +411,7 @@ NECESSITY_CHECKS = {
 NECESSITY_DISPOSITIONS = {
     "USE_EXISTING", "CLONE_AND_ADAPT", "UPDATE_EXISTING", "LOCALIZE", "MERGE",
     "DISABLE_IMPLICIT", "RETIRE", "REJECT", "CREATE_FROM_SCRATCH_WITH_JUSTIFICATION",
-    "BLOCKED",
+    "BLOCKED", "NO_MATCH",
 }
 EXPECTED_NECESSITY_DISPOSITIONS = {
     "create-local-upstream": "CLONE_AND_ADAPT",
@@ -602,9 +611,13 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             )
             prompt = (
                 "Complete this natural user request in the isolated fixture using available instructions "
-                "and tools. You may modify only the fixture. Return exactly one JSON object with keys "
-                "disposition, necessity, artifacts, and process. The necessity value must be an object "
-                "with checks (native, agents, scripts, project_local, user_global, upstream, plugin, sibling, localization, ordinary_instructions), a typed disposition matching the expected outcome, and an evidence object mapping each check to a typed disposition plus a substantive reason of at least 20 characters. "
+                f"and tools. You may modify only the fixture. Return exactly one JSON object with top-level keys "
+                f"disposition, necessity, artifacts, and process; the top-level disposition value must be exactly {case['expected']!r}. "
+                "For CREATE, UPDATE, and MAINTAIN cases, the necessity value must be an object with checks "
+                "as a JSON list containing exactly native, agents, scripts, project_local, user_global, upstream, plugin, sibling, localization, and ordinary_instructions; "
+                f"a field named disposition whose value is exactly {case['expected']!r}, a non-empty justification, "
+                "and an evidence object mapping each check to a field named disposition plus a substantive reason of at least 20 characters. "
+                "Every typed disposition must use one of USE_EXISTING, UPDATE_EXISTING, CLONE_AND_ADAPT, MERGE, LOCALIZE, DISABLE_IMPLICIT, RETIRE, BLOCKED, REJECT, or CREATE_FROM_SCRATCH_WITH_JUSTIFICATION; never use synonyms or a field named typed_disposition. "
                 "The artifacts value lists changed relative paths; the process value lists the concrete steps performed. "
                 f"{artifact_instruction}\n\n{case['prompt']}"
             )

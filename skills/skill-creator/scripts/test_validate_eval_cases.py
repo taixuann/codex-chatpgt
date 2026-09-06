@@ -217,6 +217,21 @@ class EvalContractTests(unittest.TestCase):
         case = {"trace_markers": ["clone"]}
         self.assertFalse(module._trace_matches(case, [{"item": {"type": "agent_message", "text": "clone"}}]))
         self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "command": "git clone source"}}]))
+        self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "aggregated_output": "git clone source"}}]))
+
+    def test_json_object_allows_trailing_prose(self):
+        module = load_module()
+        self.assertEqual(module._json_object('{"disposition":"REJECT"}\nDone.'), {"disposition": "REJECT"})
+
+    def test_snapshot_ignores_runtime_bytecode(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "kept.txt").write_text("kept", encoding="utf-8")
+            cache = root / "__pycache__"
+            cache.mkdir()
+            (cache / "generated.cpython-313.pyc").write_bytes(b"cache")
+            self.assertEqual(module._snapshot(root), {"kept.txt": module.hashlib.sha256(b"kept").hexdigest()})
 
     def test_routing_metrics_counts_observed_failures(self):
         module = load_module()
