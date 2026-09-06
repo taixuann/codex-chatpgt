@@ -627,7 +627,8 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         command = [
             runtime, "exec", "--model", model, "-c", f'model_reasoning_effort="{reasoning_effort}"',
             "--json", "--ephemeral", "--sandbox", sandbox,
-            "--skip-git-repo-check", "--ignore-user-config", "--add-dir", str(fixture), "--cd",
+            "--skip-git-repo-check", "--ignore-user-config", "--add-dir", str(fixture),
+            "--add-dir", str(fixture / ".agents"), "--cd",
             str(fixture / "project" if case["id"] == "maintain-localize" else fixture), prompt,
         ]
         # Reuse the caller's authenticated CODEX_HOME. The fixture remains isolated;
