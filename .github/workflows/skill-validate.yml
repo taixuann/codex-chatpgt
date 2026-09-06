@@ -54,7 +54,7 @@ jobs:
           test ! -e skills/ADDYOSMANI-AGENT-SKILLS-LICENSE
           test ! -e agents/README.md
           test ! -e agents/CHANGELOG.md
-          test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 1
+          test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 2
           test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3
 
       - name: Validate repository references and retained provenance
