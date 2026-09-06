@@ -40,6 +40,11 @@ class EvalContractTests(unittest.TestCase):
             (root / "artifact.txt").write_text("artifact", encoding="utf-8")
             self.assertEqual(set(module._snapshot(root)), {"artifact.txt"})
 
+    def test_fixture_is_a_nested_git_project_for_runtime_write_boundaries(self):
+        module = load_module()
+        with module._fixture(SCRIPT.parents[1], True) as fixture:
+            self.assertTrue((fixture / ".git").is_dir())
+
     def test_repository_case_contract_has_all_gates_and_partitions(self):
         module = load_module()
         self.assertEqual(module.validate(SCRIPT.parents[1] / "evals" / "cases.yaml"), [])

@@ -281,7 +281,7 @@ def _snapshot(root: Path) -> dict[str, str]:
     for path in root.rglob("*"):
         if path.is_file():
             relative = path.relative_to(root)
-            if ".codex-home" in relative.parts:
+            if ".codex-home" in relative.parts or ".git" in relative.parts:
                 continue
             files[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return files
@@ -515,8 +515,9 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
 
 @contextmanager
 def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Iterator[Path]:
-    with tempfile.TemporaryDirectory(prefix="skill-creator-eval-") as directory:
+    with tempfile.TemporaryDirectory(prefix="skill-creator-eval-", dir=skill_dir.parents[1]) as directory:
         root = Path(directory)
+        subprocess.run(["git", "init", "--quiet"], cwd=root, check=True, capture_output=True, text=True)
         (root / "AGENTS.md").write_text(
             "# Isolated skill evaluation\n\nUse available skills only when the request matches their description.\n",
             encoding="utf-8",
@@ -633,8 +634,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         except subprocess.TimeoutExpired as exc:
             partial_stdout = str(exc.stdout or "")
             partial_stderr = str(exc.stderr or "")
-            partial = f"{partial_stdout}\n{partial_stderr}".lower()
-            timeout_class = _timeout_class(partial)
+            timeout_class = _timeout_class(partial_stderr)
             return {
                 **base,
                 "status": "NOT_ASSESSED",
