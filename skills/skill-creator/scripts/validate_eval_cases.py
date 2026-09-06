@@ -631,9 +631,18 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         try:
             process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=environment)
         except subprocess.TimeoutExpired as exc:
-            partial = "\n".join(str(value or "") for value in (exc.stdout, exc.stderr)).lower()
+            partial_stdout = str(exc.stdout or "")
+            partial_stderr = str(exc.stderr or "")
+            partial = f"{partial_stdout}\n{partial_stderr}".lower()
             timeout_class = _timeout_class(partial)
-            return {**base, "status": "NOT_ASSESSED", "timeout_class": timeout_class, "reason": f"runtime {timeout_class.lower()} after {timeout}s"}
+            return {
+                **base,
+                "status": "NOT_ASSESSED",
+                "timeout_class": timeout_class,
+                "reason": f"runtime {timeout_class.lower()} after {timeout}s",
+                "stdout_tail": partial_stdout.splitlines()[-20:],
+                "stderr_tail": partial_stderr.splitlines()[-20:],
+            }
         stdout = process.stdout or ""
         events = _events(stdout)
         report = _json_object(_final_text(events))
