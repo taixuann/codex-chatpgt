@@ -20,8 +20,8 @@ capture revisions as the final head.
 - Model: `gpt-5.6-luna`
 - Reasoning: `medium`
 - Invocation: `codex exec --ephemeral --ignore-user-config --skip-git-repo-check --json -m gpt-5.6-luna -c model_reasoning_effort=medium -c approval_policy="never"`
-- HR-02 admission prompt transport: stdin (`codex exec ... -`); the corrected
-  zsh harness uses its 1-based prompt index.
+- HR-01/HR-02/HR-03 admission prompt transport: stdin (`codex exec ... -`);
+  the corrected zsh harness uses its 1-based prompt index for every lane.
 - Admission fixtures used a temporary `CODEX_HOME` containing only the
   authenticated runtime link and a project-local fixture. The temporary home
   was excluded from artifact snapshots.
@@ -51,15 +51,16 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 
 | Lane | Fixture/process result | Authority/artifact result | Runtime signal limit |
 | --- | --- | --- | --- |
-| HR-01 role/sibling collision | Clean isolated fixture, 10/10 process exits 0; duplicate sibling identified and no files changed | collision and no-mutation evidence observed | role application/implicit activation `NOT_ASSESSED` |
+| HR-01 role/sibling collision | Corrected stdin lane, 10/10 process exits 0; each trace read `agent-creator/SKILL.md` and both role files, identified the duplicate sibling, and made no mutation | collision/no-mutation trace invariants observed 10/10 | role application/implicit activation `NOT_ASSESSED` |
 | HR-02 skill/reference/script/artifact | Corrected stdin lane: 10/10 created the exact artifact, consumed the required reference, ran the validator, and returned `VALID` | required reference, script, exact `result.json`, and `VALID` observed 10/10 | native skill-load/activation `NOT_ASSESSED` |
-| HR-03 authority/delegation/sandbox | Clean isolated fixture, 10/10 process exits 0; no delegation/self-acceptance; forbidden marker absent in every run | read-only denial (`Operation not permitted`) observed where probed; no mutation | native role application `NOT_ASSESSED` |
+| HR-03 authority/delegation/sandbox | Corrected stdin lane, 10/10 process exits 0; each trace read the skill and reviewer role, attempted only the bounded probe, returned authority/delegation/validation/stop evidence, and left the forbidden marker absent | read-only denial (`Operation not permitted`) and no-mutation trace invariants observed 10/10 | native role application `NOT_ASSESSED` |
 
-The earlier 9/10 result was a harness defect: zsh arrays are 1-based, so the
-first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex exec`
-correctly returned `No prompt provided via stdin`. The corrected stdin lane
-uses `prompts[$i]` and records the full 10/10 process/artifact result. That
-repair changes the qualification result, not the acceptance threshold.
+The earlier incomplete results were harness defects: zsh arrays are 1-based,
+so the first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex
+exec` correctly returned `No prompt provided via stdin`. The corrected
+HR-01/HR-02/HR-03 lanes use stdin and `prompts[$i]`, with per-run trace
+assertions; the old empty-prompt runs are excluded. This repair changes the
+qualification result, not the acceptance threshold.
 
 Separate signal fields for the representative lanes were retained as:
 

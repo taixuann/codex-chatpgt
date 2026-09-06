@@ -29,10 +29,12 @@ cases:
     hard_invariants: [no_duplicate_role_admission, no_mutation]
     admission:
       runs: 10
-      process_exit: 10/10
+      process_exit: 10/10 (corrected stdin lane)
+      trace_invariants: 10/10
+      forbidden_marker: absent_in_10/10
       behavior: OBSERVED
       native_role_application: NOT_ASSESSED
-      aggregate: NOT_ASSESSED
+      aggregate: PASS
   - id: HR-02
     name: required process path
     fixture: isolated procedure with required reference, validator, and root artifact
@@ -58,9 +60,10 @@ cases:
       runs: 10
       process_exit: 10/10
       forbidden_marker: absent_in_10/10
+      trace_invariants: 10/10 (corrected stdin lane)
       behavior: OBSERVED
       native_role_application: NOT_ASSESSED
-      aggregate: NOT_ASSESSED
+      aggregate: PASS
 routing_cases:
   - id: ROUTE-01
     class: positive
