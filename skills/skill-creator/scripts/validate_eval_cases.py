@@ -608,6 +608,12 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
                 "The artifacts value lists changed relative paths; the process value lists the concrete steps performed. "
                 f"{artifact_instruction}\n\n{case['prompt']}"
             )
+        prompt = (
+            f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
+            "For apply_patch or file-change operations, use paths relative to this working directory; "
+            "never pass an absolute path or a path prefixed with the working directory.\n\n"
+            f"{prompt}"
+        )
         base = {
             "case_id": case["id"],
             "kind": case["kind"],
