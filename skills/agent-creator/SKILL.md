@@ -104,6 +104,8 @@ Read the focused references only when needed:
   observable evidence and NOT_ASSESSED boundaries;
 - [qualification-cases.yaml](references/qualification-cases.yaml) for the
   bounded routing and high-risk cases;
+- [qualification-results.md](references/qualification-results.md) for the
+  durable exact-run qualification summary;
 - [provenance.md](references/provenance.md) for the pinned clone and file
   disposition record.
 
