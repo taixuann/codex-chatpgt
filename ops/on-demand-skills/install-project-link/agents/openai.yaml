@@ -1,4 +1,0 @@
-interface:
-  display_name: "Project link"
-  short_description: "Create approved reversible project links."
-  default_prompt: "Audit and create a reversible project link only within an approved workspace; never inspect linked project contents."

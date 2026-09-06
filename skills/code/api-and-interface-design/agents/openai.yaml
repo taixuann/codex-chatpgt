@@ -1,6 +1,0 @@
-interface:
-  display_name: "API and Interface Design"
-  short_description: "Help with API and Interface Design tasks"
-
-policy:
-  allow_implicit_invocation: false

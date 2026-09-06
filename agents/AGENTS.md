@@ -4,19 +4,18 @@ This directory contains runtime adapters. The external AI Labs registry is the
 deployment authority for canonical role identity when available, but its
 absolute local path is runtime-only and not portable repository authority. The
 portable semantic reference is this file plus
-`documentation/architecture/agents.md`; adapters must not rename, merge, or
-repurpose roles.
+the root `AGENTS.md`; adapters must not rename, merge, or repurpose roles.
 
 ## Runtime adapters
 
-The registry defines the three canonical planning roles: Feynman, Prometheus,
-and Franky. Argus and Athena are support adapters only; they do not expand the
-canonical role registry and cannot own an independent workflow.
+The retained local control-plane surface is Prometheus, Athena, and Franky.
+Athena is a bounded support adapter and does not own an independent workflow.
+This checkout carries no Argus or Feynman adapter and makes no local contract
+claim for either role; external deployment identity, when available, remains
+outside this repository's authority.
 
 | Adapter | Function | Default boundary |
 | --- | --- | --- |
-| `argus` | non-canonical read-only exploration and repository mapping | `read-only` |
-| `feynman` | bounded research and evidence work | `read-only` |
 | `prometheus` | bounded implementation and code review handoff | `workspace-write` |
 | `athena` | non-canonical independent review and critique | `read-only` |
 | `franky` | Codex/AI Labs control-plane operation | `read-only`, no subagents |
@@ -32,17 +31,15 @@ The authority chain is intentionally one-way:
 1. The external AI Labs deployment registry and definitions, when available,
    supply canonical role identity for deployment. The local path
    `/Users/tai/ai-labs/ops/agents/agents.yaml` is a runtime hint only.
-2. This file and `documentation/architecture/agents.md` are the portable semantic
-   reference for the three roles and their boundaries.
+2. This file and the root `AGENTS.md` are the portable semantic reference for
+   the three roles and their boundaries.
 3. `agents/*.toml` are runtime adapters. They may express permission, input,
    output, delegation, and escalation boundaries, but they cannot create,
    rename, or redefine a canonical role.
 4. Root `AGENTS.md` is runtime policy for this repository and cannot override
    the canonical registry or expand adapter authority.
-5. `documentation/` explains accepted semantics and evidence; it is not a
-   runtime authority and cannot override the registry, adapters, or policy.
-6. `manifests/` records capability eligibility and bounded support contracts;
-   it is not a second canonical role registry.
+5. `skills/` contains reusable capabilities; skill packages do not redefine
+   roles or own lifecycle state.
 
 If these surfaces disagree, stop and report the conflict. Update the owning
 external definition when deployment semantics are changing, then reconcile the
@@ -54,9 +51,7 @@ The retained adapters have distinct agent-specific reasons:
 
 | Adapter | Why an agent is justified | Return boundary |
 | --- | --- | --- |
-| Argus | read-only context isolation for broad repository mapping | paths, evidence, and uncertainty only |
 | Athena | independent judgment after execution/validation | severity-ranked critique, no edits |
-| Feynman | evidence/provenance boundary and scientific read-only scope | sources, findings, disagreements, handoff |
 | Prometheus | bounded workspace-write execution boundary | changed paths, tests, deviations, rollback |
 | Franky | control-plane permission/workflow boundary | scope, findings, validation, approval boundary |
 
@@ -94,8 +89,7 @@ supporting capabilities, and the lifecycle closeout capability for consequential
 work. It must not spawn recursively or independently system-accept its own
 consequential changes.
 
-The minimal global Codex baseline is repository-documented and validated in
-`../ops/schemas/examples/codex-agents-settings.toml`:
+The minimal global Codex baseline is:
 
 ```toml
 [agents]
@@ -128,5 +122,6 @@ Codex adapters can be placed in:
 - Project-scoped: `<project>/.codex/agents/*.toml`
 
 The `templates/agent.toml` file is an inert source template and is not an
-active adapter. Validate every instantiated adapter with
-`skills/control-plane/runtime-adapter-management/scripts/validate_agent_toml.py` before use.
+active adapter. Validate every instantiated adapter against the active task
+contract and CI checks before use. This checkout no longer carries the retired
+`runtime-adapter-management` validator.

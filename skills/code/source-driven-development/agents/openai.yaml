@@ -1,6 +1,0 @@
-interface:
-  display_name: "Source Driven Development"
-  short_description: "Help with Source Driven Development tasks"
-
-policy:
-  allow_implicit_invocation: false

@@ -9,11 +9,10 @@ logic, or silently mutate canonical policy. Agent identity belongs to the
 canonical role registry and its adapters; lifecycle and gates belong to the
 operating workflow and task contracts.
 
-The checked-in admission surface is `../manifests/skill-catalog.yaml`. A
-package may be structurally valid and still be noncanonical. Only packages in
-its `canonical_active` list are canonical active capabilities; all other
-tracked packages require explicit/on-demand use or remain reference, merge,
-or retired material.
+Admission is explicit through skill directories and the active task/PR scope;
+no separate catalog is required. A package may be structurally valid without
+being selected for a task. Runtime, plugin, system, and personal packages are
+not silently promoted into this repository.
 
 ## Admission and routing
 
@@ -46,6 +45,6 @@ scorecard merely to make packages look uniform. Retire or merge a package
 before polishing it when an existing task contract, built-in capability, or
 deterministic validator already owns the behavior.
 
-GitHub Issues/Plans and `documentation/architecture/workflow/operation.md` own durable
-execution state and lifecycle. A skill may provide procedure and validation,
-but it must not become a second workflow engine.
+Root `AGENTS.md` and active task contracts own durable execution state and
+lifecycle. A skill may provide procedure and validation, but it must not become
+a second workflow engine.

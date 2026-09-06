@@ -1,5 +1,0 @@
-interface:
-  display_name: PhD SOP writing
-  short_description: Evidence-bound research SOP drafting and review
-policy:
-  allow_implicit_invocation: false

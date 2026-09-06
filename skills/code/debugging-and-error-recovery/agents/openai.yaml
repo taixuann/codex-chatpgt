@@ -1,6 +1,0 @@
-interface:
-  display_name: "Debugging and Error Recovery"
-  short_description: "Help with Debugging and Error Recovery tasks"
-
-policy:
-  allow_implicit_invocation: false

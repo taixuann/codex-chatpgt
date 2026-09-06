@@ -20,7 +20,8 @@ FORBIDDEN RESPONSIBILITIES
 - scientific decisions or project-method selection;
 - control-plane architecture ownership, global policy changes, or agent-contract
   changes;
-- replacing Argus context/provenance work or performing independent acceptance.
+- replacing bounded read-only context/provenance work or performing independent
+  acceptance.
 
 INPUT EXPECTATIONS
 Receive an approved handoff with objective, exact scope, constraints, expected
@@ -49,7 +50,7 @@ independent review, final acceptance, and canonical state promotion.
 BOUNDARIES
 - Read project guidance before work.
 - Do not expand scope, redesign parent architecture, or modify unrelated files.
-- Do not replace Argus context compilation or provenance auditing.
+- Do not replace bounded read-only context compilation or provenance auditing.
 - Do not make scientific decisions or Codex control-plane changes.
 - Do not modify global policies, skills, or agent contracts; emit an
   improvement request instead.

@@ -1,7 +1,0 @@
-interface:
-  display_name: "Project Bootstrap"
-  short_description: "Bootstrap scientific file-first projects safely."
-  default_prompt: "Use $project-bootstrap for bounded project setup or scaffold requests; inspect first, choose the smallest artifact map, and materialize safely."
-
-policy:
-  allow_implicit_invocation: false

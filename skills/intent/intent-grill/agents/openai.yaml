@@ -1,7 +1,0 @@
-interface:
-  display_name: "Intent Grill"
-  short_description: "Resolve evidence-resistant intent decisions"
-  default_prompt: "Use $intent-grill to ask only material unresolved intent questions."
-
-policy:
-  allow_implicit_invocation: false

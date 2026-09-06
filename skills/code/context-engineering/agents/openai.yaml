@@ -1,6 +1,0 @@
-interface:
-  display_name: "Context Engineering"
-  short_description: "Help with Context Engineering tasks"
-
-policy:
-  allow_implicit_invocation: false

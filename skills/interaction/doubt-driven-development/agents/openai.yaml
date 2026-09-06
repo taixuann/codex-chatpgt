@@ -1,6 +1,0 @@
-interface:
-  display_name: "Doubt Driven Development"
-  short_description: "Help with Doubt Driven Development tasks"
-
-policy:
-  allow_implicit_invocation: false

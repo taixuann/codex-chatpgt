@@ -1,7 +1,0 @@
-interface:
-  display_name: "Intent"
-  short_description: "Route user or issue intent"
-  default_prompt: "Use $intent to turn this user request or GitHub Issue into a validated intent packet."
-
-policy:
-  allow_implicit_invocation: false

@@ -1,7 +1,0 @@
-interface:
-  display_name: "Research source discovery"
-  short_description: "Find and qualify bounded research sources."
-  default_prompt: "Discover and qualify only the sources needed for this bounded question, with exact anchors, provenance, authority, license, and gaps."
-
-policy:
-  allow_implicit_invocation: false

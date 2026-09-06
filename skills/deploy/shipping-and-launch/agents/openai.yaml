@@ -1,6 +1,0 @@
-interface:
-  display_name: "Shipping and Launch"
-  short_description: "Help with Shipping and Launch tasks"
-
-policy:
-  allow_implicit_invocation: false

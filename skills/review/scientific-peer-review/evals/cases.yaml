@@ -1,4 +1,0 @@
-cases:
-  - {id: scientific, trigger: "check whether this claim is supported", expect: scientific_evidence}
-  - {id: unsupported_claim, trigger: "review the unsupported central mechanism claim", expect: partial}
-  - {id: adjacent_negative, trigger: "choose the true scientific mechanism", expect: human_escalation}

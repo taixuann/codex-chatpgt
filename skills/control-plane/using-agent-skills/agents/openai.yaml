@@ -1,6 +1,0 @@
-interface:
-  display_name: "Using Agent Skills"
-  short_description: "Help with Using Agent Skills tasks"
-
-policy:
-  allow_implicit_invocation: false

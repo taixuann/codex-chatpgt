@@ -1,6 +1,0 @@
-interface:
-  display_name: "Performance Optimization"
-  short_description: "Help with Performance Optimization tasks"
-
-policy:
-  allow_implicit_invocation: false
