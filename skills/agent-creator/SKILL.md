@@ -50,11 +50,20 @@ Support the requested mode without expanding it:
 
 - `CREATE`: inspect collisions, choose `CREATE_ROLE`, `CLONE_AND_ADAPT`,
   `REUSE_EXISTING`, `NEEDS_SKILL`, `NEEDS_AGENTS_GUIDANCE`, or `BLOCKED`.
-- `UPDATE`: change an existing role only for a demonstrated defect; preserve
-  its authority and verify the changed behavior.
-- `MAINTAIN`: choose `UNCHANGED`, `UPDATE`, `LOCALIZE`, `MERGE`, `DISABLE`,
-  `RETIRE`, or `BLOCKED` after checking provenance, collision, placement,
-  resource use, runtime assumptions, and quality.
+- `UPDATE`: change an existing role only for a demonstrated defect; return
+  `UPDATE_ROLE`, preserve its authority, and verify the changed behavior.
+- `MAINTAIN`: choose `UNCHANGED`, `SIMPLIFY_ROLE`, `MERGE_ROLES`,
+  `LOCALIZE_ROLE`, `PROMOTE_USER_ROLE`, `RETIRE_ROLE`, `REJECT_AGENT`, or
+  `BLOCKED` after checking provenance, collision, placement, resource use,
+  runtime assumptions, and quality.
+
+Use these explicit dispositions rather than hiding the decision behind a
+generic mode label: `UPDATE_ROLE` is the repair outcome, `SIMPLIFY_ROLE` is
+the bounded deletion/simplification outcome, `MERGE_ROLES` and
+`LOCALIZE_ROLE` preserve the corresponding relationship, `PROMOTE_USER_ROLE`
+handles a demonstrated user-scope move, `RETIRE_ROLE` removes an obsolete
+role, and `REJECT_AGENT` records that a role is not warranted. `DISABLE` and
+`RETIRE` are not action dispositions in this contract.
 - `EVALUATE`: report criterion-level evidence and limitations; do not silently
   repair, self-accept, or promote canonical state.
 
