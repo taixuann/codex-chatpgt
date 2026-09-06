@@ -433,7 +433,7 @@ def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
     if not isinstance(checks, list) or not NECESSITY_CHECKS.issubset(checks):
         return False, "necessity evidence does not cover native, AGENTS, scripts, existing, and upstream alternatives"
     disposition = evidence.get("disposition")
-    if disposition not in NECESSITY_DISPOSITIONS or disposition != EXPECTED_NECESSITY_DISPOSITIONS.get(case.get("id")):
+    if not isinstance(disposition, str) or disposition not in NECESSITY_DISPOSITIONS or disposition != EXPECTED_NECESSITY_DISPOSITIONS.get(case.get("id")):
         return False, "necessity evidence needs a typed disposition"
     details = evidence.get("evidence")
     if not isinstance(details, dict) or any(

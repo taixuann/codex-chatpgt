@@ -241,6 +241,8 @@ class EvalContractTests(unittest.TestCase):
         case = {"id": "create-local-upstream", "kind": "CREATE"}
         weak = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "evidence": {check: {"disposition": "REJECT", "reason": "x"} for check in module.NECESSITY_CHECKS}, "justification": "x"}}
         self.assertFalse(module._necessity_ok(case, weak)[0])
+        malformed = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": {}, "evidence": {}, "justification": "malformed model output"}}
+        self.assertFalse(module._necessity_ok(case, malformed)[0])
         strong = {"necessity": {"checks": sorted(module.NECESSITY_CHECKS), "disposition": "CLONE_AND_ADAPT", "evidence": {check: {"disposition": "USE_EXISTING", "reason": "This alternative was compared against the requested reusable capability."} for check in module.NECESSITY_CHECKS}, "justification": "The maintained upstream baseline is the smallest justified owner."}}
         self.assertTrue(module._necessity_ok(case, strong)[0])
         coexistence = {path: "hash" for path in module.COEXISTENCE_PATHS["maintain-overlap"]}
