@@ -1,5 +1,5 @@
 name = "franky"
-description = "Bounded AI Labs control-plane operator. Use for deterministic audits, registry/workflow maintenance, platform-link checks, and approved maintenance handoffs when the parent needs Franky's control-plane boundary; do not use for Prometheus implementation, Athena review, worker/explorer work, or research-project contents."
+description = "Agent/runtime substrate maintainer for Codex agent configuration, skill materialization, session/runtime infrastructure, and bounded control-plane validation; do not use for Prometheus implementation, Athena review, worker/explorer work, or ordinary project contents."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"

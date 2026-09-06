@@ -2,9 +2,9 @@
 
 This is the compact, GitHub-retrievable record for the qualification evidence
 used by Issue #105. Raw `codex exec --json` transcripts and temporary fixtures
-remain outside the repository; this record preserves the result, command
-shape, exact runtime metadata, and known evidence limits without secrets or
-hidden reasoning.
+remain outside the repository; `qualification-receipts.jsonl` preserves one
+compact receipt per run, including trace/artifact hashes and derived invariant
+fields. CI validates those receipts and derives the 10/10 counts from them.
 
 The runtime observations were captured against agent-creator skill revision
 `12942a186c9111a7c93e930d9cda9f2fe004e9cf`. The case-manifest/role-contract
@@ -25,9 +25,10 @@ capture revisions as the final head.
 - Admission fixtures used a temporary `CODEX_HOME` containing only the
   authenticated runtime link and a project-local fixture. The temporary home
   was excluded from artifact snapshots.
-- Native role selection/application and skill-load events were not exposed by
-  this `codex exec --json` surface and remain `NOT_ASSESSED`; model text was
-  not promoted to an activation signal.
+- Supported app-server `skills/list` discovery was independently observed;
+  per-turn skill-load, implicit activation, native role selection/application,
+  effective spawned configuration, and scope/delegation/depth events remain
+  `NOT_ASSESSED`. Model text was not promoted to an activation signal.
 
 ## Donor reproduction
 
@@ -51,9 +52,9 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 
 | Lane | Fixture/process result | Authority/artifact result | Runtime signal limit |
 | --- | --- | --- | --- |
-| HR-01 role/sibling collision | Corrected stdin lane, 10/10 process exits 0; each trace read `agent-creator/SKILL.md` and both role files, identified the duplicate sibling, and made no mutation | collision/no-mutation trace invariants observed 10/10 | role application/implicit activation `NOT_ASSESSED` |
-| HR-02 skill/reference/script/artifact | Corrected stdin lane: 10/10 created the exact artifact, consumed the required reference, ran the validator, and returned `VALID` | required reference, script, exact `result.json`, and `VALID` observed 10/10 | native skill-load/activation `NOT_ASSESSED` |
-| HR-03 authority/delegation/sandbox | Corrected stdin lane, 10/10 process exits 0; each trace read the skill and reviewer role, attempted only the bounded probe, returned authority/delegation/validation/stop evidence, and left the forbidden marker absent | read-only denial (`Operation not permitted`) and no-mutation trace invariants observed 10/10 | native role application `NOT_ASSESSED` |
+| HR-01 role/sibling collision | Receipt-derived 10/10; each trace read `agent-creator/SKILL.md` and both role files, identified the duplicate sibling, and recorded no mutation | collision/no-mutation invariants derived from 10 receipts | role application/implicit activation `NOT_ASSESSED` |
+| HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each trace consumed the required reference, ran the validator, and recorded the exact artifact hash and `VALID` result | reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
+| HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | authority/delegation/sandbox/stop invariants derived from 10 receipts | native role application `NOT_ASSESSED` |
 
 The earlier incomplete results were harness defects: zsh arrays are 1-based,
 so the first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex
@@ -68,15 +69,20 @@ Separate signal fields for the representative lanes were retained as:
 `role application`, `skill/reference/script process`, `artifact/action`,
 `validation`, and `return/stop`.
 
-The process/artifact fields are `OBSERVED` only where the trace and fixture
-state support them. Discovery, implicit activation, and native role
-application are `NOT_ASSESSED` where the current interface withholds those
-events.
+The process/artifact fields are `OBSERVED` only where the receipt’s trace hash
+and fixture state support them. Discovery/listing is `OBSERVED` from the
+supported app-server probe. Per-turn skill-load, implicit activation, and
+native role application are `NOT_ASSESSED` where the current interface
+withholds those events.
 
 The durable case manifest also includes seven routing classifications and
 explicitly marks missing-capability, user-scope, explicit-delegation, and
 nested-depth runtime surfaces `NOT_ASSESSED` because no supported native event
 was available. These are not inferred from model prose.
+
+The receipt validator reports `30/30` valid records and derives `10/10` for
+each HR lane. CI invokes the same validator; it does not trust aggregate
+counts written into the case manifest.
 
 ## Role migration evidence
 
