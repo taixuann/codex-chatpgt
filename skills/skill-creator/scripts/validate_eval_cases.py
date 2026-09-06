@@ -569,6 +569,17 @@ def _runtime_preflight(runtime: str, timeout: int) -> dict:
     return {"status": "READY", "reason": "saved runtime authentication is available"}
 
 
+def _timeout_class(output: str) -> str:
+    text = output.lower()
+    if any(marker in text for marker in ("401", "unauthorized", "missing bearer", "not authenticated", "not logged")):
+        return "AUTH_TIMEOUT"
+    if any(marker in text for marker in ("lookup address", "stream disconnected", "websocket", "connection reset", "connection refused")):
+        return "TRANSPORT_TIMEOUT"
+    if any(marker in text for marker in ("process timeout", "process did not exit", "failed to spawn", "broken pipe", "signal")):
+        return "PROCESS_TIMEOUT"
+    return "TURN_TIMEOUT"
+
+
 def _run_once(case: dict, runtime: str, model: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
     with _fixture(skill_dir, with_skill, case) as fixture:
         operation_root = fixture / "project" if case["id"] == "maintain-localize" else fixture
@@ -620,7 +631,7 @@ def _run_once(case: dict, runtime: str, model: str, timeout: int, skill_dir: Pat
             process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=environment)
         except subprocess.TimeoutExpired as exc:
             partial = "\n".join(str(value or "") for value in (exc.stdout, exc.stderr)).lower()
-            timeout_class = "TRANSPORT_TIMEOUT" if any(marker in partial for marker in ("lookup address", "stream disconnected", "connection")) else "TURN_TIMEOUT"
+            timeout_class = _timeout_class(partial)
             return {**base, "status": "NOT_ASSESSED", "timeout_class": timeout_class, "reason": f"runtime {timeout_class.lower()} after {timeout}s"}
         stdout = process.stdout or ""
         events = _events(stdout)

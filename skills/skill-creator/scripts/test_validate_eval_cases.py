@@ -251,6 +251,13 @@ class EvalContractTests(unittest.TestCase):
         module = load_module()
         self.assertEqual(module._runtime_preflight("definitely-not-a-codex-runtime", 1)["status"], "NO_RUNTIME")
 
+    def test_timeout_classes_preserve_auth_transport_turn_and_process_causes(self):
+        module = load_module()
+        self.assertEqual(module._timeout_class("401 unauthorized"), "AUTH_TIMEOUT")
+        self.assertEqual(module._timeout_class("websocket stream disconnected"), "TRANSPORT_TIMEOUT")
+        self.assertEqual(module._timeout_class("process did not exit"), "PROCESS_TIMEOUT")
+        self.assertEqual(module._timeout_class("model turn still running"), "TURN_TIMEOUT")
+
     def test_case_owned_gates_include_declared_additional_gates(self):
         module = load_module()
         result = {"condition": "with_skill", "status": "FAIL", "gates": ["G4_BEHAVIOR", "G6_EFFICIENCY"]}
