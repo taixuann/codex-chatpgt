@@ -247,6 +247,10 @@ class EvalContractTests(unittest.TestCase):
         self.assertFalse(module._recomputed_record({"trace_events": [], "before_snapshot": {".fixture-coexistence": "hash"}, "after_snapshot": {}, "final_report": {}}, {"id": "maintain-overlap", "kind": "MAINTAIN"})["coexistence_fixture"])
         self.assertTrue(module._recomputed_record({"trace_events": [], "before_snapshot": coexistence, "after_snapshot": coexistence, "final_report": {}}, {"id": "maintain-overlap", "kind": "MAINTAIN"})["coexistence_fixture"])
 
+    def test_runtime_preflight_rejects_missing_runtime_without_launching_cases(self):
+        module = load_module()
+        self.assertEqual(module._runtime_preflight("definitely-not-a-codex-runtime", 1)["status"], "NO_RUNTIME")
+
     def test_case_owned_gates_include_declared_additional_gates(self):
         module = load_module()
         result = {"condition": "with_skill", "status": "FAIL", "gates": ["G4_BEHAVIOR", "G6_EFFICIENCY"]}

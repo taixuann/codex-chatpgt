@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -516,7 +517,6 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
 def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Iterator[Path]:
     with tempfile.TemporaryDirectory(prefix="skill-creator-eval-") as directory:
         root = Path(directory)
-        (root / ".codex-home").mkdir()
         (root / "AGENTS.md").write_text(
             "# Isolated skill evaluation\n\nUse available skills only when the request matches their description.\n",
             encoding="utf-8",
@@ -545,6 +545,28 @@ def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Ite
         if case:
             _seed_case(fixture_root, case)
         yield root
+
+
+def _runtime_preflight(runtime: str, timeout: int) -> dict:
+    if not shutil.which(runtime):
+        return {"status": "NO_RUNTIME", "reason": f"runtime not found: {runtime}"}
+    try:
+        socket.getaddrinfo("chatgpt.com", 443)
+    except OSError:
+        return {"status": "PROVIDER_UNAVAILABLE", "reason": "provider hostname is not resolvable"}
+    try:
+        process = subprocess.run(
+            [runtime, "login", "status"], capture_output=True, text=True,
+            timeout=min(timeout, 10), check=False, env=os.environ.copy(),
+        )
+    except subprocess.TimeoutExpired:
+        return {"status": "AUTH_TIMEOUT", "reason": "login status timed out"}
+    output = f"{process.stdout}\n{process.stderr}".lower()
+    if process.returncode != 0:
+        if any(marker in output for marker in ("not logged", "not authenticated", "no credentials", "unauthorized")):
+            return {"status": "NO_AUTH", "reason": "runtime is not authenticated"}
+        return {"status": "CONFIG_ERROR", "reason": "login status failed"}
+    return {"status": "READY", "reason": "saved runtime authentication is available"}
 
 
 def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
@@ -589,14 +611,17 @@ def _run_once(case: dict, runtime: str, timeout: int, skill_dir: Path, with_skil
             "--skip-git-repo-check", "--ignore-user-config", "--cd",
             str(fixture / "project" if case["id"] == "maintain-localize" else fixture), prompt,
         ]
+        # Reuse the caller's authenticated CODEX_HOME. The fixture remains isolated;
+        # an empty per-case home only measures auth retry behavior, not skill behavior.
         environment = os.environ.copy()
-        environment["CODEX_HOME"] = str(fixture / ".codex-home")
         before_snapshot = _snapshot(operation_root)
         started = time.monotonic()
         try:
             process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=environment)
-        except subprocess.TimeoutExpired:
-            return {**base, "status": "NOT_ASSESSED", "reason": f"runtime timeout after {timeout}s"}
+        except subprocess.TimeoutExpired as exc:
+            partial = "\n".join(str(value or "") for value in (exc.stdout, exc.stderr)).lower()
+            timeout_class = "TRANSPORT_TIMEOUT" if any(marker in partial for marker in ("lookup address", "stream disconnected", "connection")) else "TURN_TIMEOUT"
+            return {**base, "status": "NOT_ASSESSED", "timeout_class": timeout_class, "reason": f"runtime {timeout_class.lower()} after {timeout}s"}
         stdout = process.stdout or ""
         events = _events(stdout)
         report = _json_object(_final_text(events))
@@ -920,9 +945,24 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     }
 
 
-def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[str] | None) -> dict:
+def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[str] | None, stage: str = "full") -> dict:
     data = load_cases(path)
-    cases = [case for case in data["cases"] if not case_ids or case["id"] in case_ids]
+    stage_ids = {
+        "smoke": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative"},
+        "lifecycle": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative", "create-local-upstream", "update-bounded", "maintain-overlap", "evaluate-good"},
+        "full": {case["id"] for case in data["cases"]},
+    }[stage]
+    cases = [case for case in data["cases"] if case["id"] in stage_ids and (not case_ids or case["id"] in case_ids)]
+    preflight = _runtime_preflight(runtime, timeout)
+    if preflight["status"] != "READY":
+        return {
+            "schema_version": 2, "skill": "skill-creator",
+            "coverage": {"requested_cases": len(cases), "total_cases": len(data["cases"]), "full_corpus": False},
+            "runtime_preflight": preflight, "stage": stage,
+            "gates": {gate: "NOT_ASSESSED" for gate in GATES},
+            "routing": {"status": "NOT_ASSESSED", "assessed_cases": 0, "total_cases": 0},
+            "paired": [], "results": [],
+        }
     results = []
     for case in cases:
         result = _run_once(case, runtime, timeout, skill_dir, True)
@@ -986,6 +1026,8 @@ def run(path: Path, skill_dir: Path, runtime: str, timeout: int, case_ids: set[s
         "schema_version": 2,
         "skill": "skill-creator",
         "coverage": {"requested_cases": len(cases), "total_cases": len(data["cases"]), "full_corpus": len(cases) == len(data["cases"])},
+        "runtime_preflight": preflight,
+        "stage": stage,
         "gates": status_by_gate,
         "routing": routing,
         "paired": paired,
@@ -1000,7 +1042,8 @@ def main() -> int:
     parser.add_argument("--skill-dir", type=Path, default=Path(__file__).parents[1])
     parser.add_argument("--case-id", action="append")
     parser.add_argument("--runtime", default="codex")
-    parser.add_argument("--timeout", type=int, default=30)
+    parser.add_argument("--timeout", type=int, default=60)
+    parser.add_argument("--stage", choices=("smoke", "lifecycle", "full"), default="full")
     parser.add_argument("--results", type=Path)
     parser.add_argument("--compare-before", type=Path)
     parser.add_argument("--compare-after", type=Path)
@@ -1018,7 +1061,7 @@ def main() -> int:
         data = load_cases(args.cases)
         print(f"OK eval cases: {len(data['gates'])} gates, {sum(case['kind'] == 'routing' for case in data['cases'])} routing and {sum(case['kind'] != 'routing' for case in data['cases'])} lifecycle cases")
         return 0
-    report = run(args.cases, args.skill_dir, args.runtime, args.timeout, set(args.case_id) if args.case_id else None)
+    report = run(args.cases, args.skill_dir, args.runtime, args.timeout, set(args.case_id) if args.case_id else None, args.stage)
     if args.results:
         args.results.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, sort_keys=True))

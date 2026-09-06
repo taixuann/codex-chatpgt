@@ -45,6 +45,12 @@ perform the requested operation, and the harness must grade the resulting
 files/resources plus the structured process trace. A disposition alone is not
 behavioral proof.
 
+Runtime qualification starts with one provider/auth preflight. An unavailable
+runtime, missing authentication, or unreachable provider skips model cases
+with a classified `NOT_ASSESSED` result; it must not launch every case against
+an empty per-case `CODEX_HOME`. Use staged execution (`smoke`, `lifecycle`,
+then `full`) so a failed smoke does not spend the full corpus budget.
+
 Use the following status boundary:
 
 - `PASS`: expected outcome, required process trace, and artifact contract are
