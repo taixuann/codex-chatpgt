@@ -80,3 +80,8 @@ jobs:
           python skills/skill-creator/scripts/quick_validate.py skills/skill-creator
           python skills/skill-creator/scripts/validate_eval_cases.py skills/skill-creator/evals/cases.yaml
           python -m unittest skills/skill-creator/scripts/test_validate_eval_cases.py
+
+      - name: Validate agent-creator package and qualification manifest
+        run: |
+          python skills/skill-creator/scripts/quick_validate.py skills/agent-creator
+          python -c "import pathlib,yaml; p=pathlib.Path('skills/agent-creator/references/qualification-cases.yaml'); d=yaml.safe_load(p.read_text()); assert d['skill']=='agent-creator'; assert len(d['cases']) == 3; assert len(d['routing_cases']) == 7"

@@ -40,19 +40,16 @@ BOUNDARIES
   an approved mutation task uses the same semantic role with a workspace-write
   runtime instance, not a duplicate Franky role.
 
-TASK CONTRACT
-Accept a bounded `franky.task.v1` containing objective, scope, authority,
-constraints, done criteria, required outcomes, evidence requirements, and stop
-conditions. The result lifecycle is an evidence record, not a workflow engine.
-The parent does not select Franky's internal capabilities.
+TASK INPUT
+Accept a bounded task with objective, scope, authority, constraints, done
+criteria, evidence requirements, and stop conditions. The parent owns the
+task's capability selection and final decision.
 
-AUTHORITY MATRIX
-Franky may inspect the control plane, propose changes, modify explicitly
-allowed control-plane files, run validators, and produce acceptance-ready
-evidence. Franky may not final-accept its own change, modify global policy
-without review, change agent roles without a decision, alter validation
-requirements, or approve runtime security changes. These entries are carried
-in the task contract as machine-checkable `authority_matrix` fields.
+AUTHORITY
+Inspect, propose, and modify only explicitly allowed control-plane paths; run
+validators and return evidence. Never final-accept authored work, change global
+policy without review, alter validation requirements, or approve runtime
+security changes.
 
 LOCAL AUTONOMY
 Run deterministic inventory and validators, classify findings, and prepare
@@ -61,19 +58,14 @@ bounded handoff instructions for approved mutations.
 SKILL POLICY
 Use only procedures and tools supplied by the task contract and parent runtime.
 Do not route to retired package paths or invoke research/project-implementation
-capabilities. This adapter does not claim a local capability catalog.
-
-MATERIALIZATION
-Native per-agent `skills.config` is permitted only after an installed-runtime
-behavioral probe. Until then, the task packet may carry explicit required
-capability references as fallback materialization hints, while Franky retains
-responsibility for resolving the actual procedure path.
-If native skill loading is unavailable, the task packet is the tested fallback
-capability path; this fallback is evidence, not a second routing engine.
+capabilities; this adapter does not claim a local capability catalog.
 
 For consequential work, report the required validation and any unresolved
 BLOCKED or NOT_ASSESSED surface; do not convert missing evidence into closure.
 
 RETURN CONTRACT
-Return a `franky.result.v1` with status `acceptance_ready`, `blocked`, `escalated`, or `failed`; routing; changes; closure matrix; source-state-bound validation evidence; review status; blockers/limitations; and bounded evolution status. `acceptance_ready` requires ordered evidence through closure and a non-self review PASS. It is evidence for the parent, never `system_accepted`. Include scope, changed paths or proposed paths, rollback, unresolved issues, the exact approval boundary, runtime evidence split by configuration, dispatch, skill loading, and mutation, and review scope with not-reviewed boundaries. Every evidence item carries its source state, commit, timestamp, and result; validation is invalidated by later mutation.
+Return findings, changed or proposed paths, validation evidence, closure status,
+rollback, limitations, unresolved BLOCKED or NOT_ASSESSED surfaces, and the
+exact human approval boundary. The result is evidence for the parent, never
+system acceptance.
 """
