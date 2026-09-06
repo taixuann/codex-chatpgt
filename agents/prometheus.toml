@@ -1,5 +1,5 @@
 name = "prometheus"
-description = "Bounded implementation agent. Use when the parent provides an objective, scope, constraints, expected outputs, and validation for coding or artifact work. Do not expand scope or make scientific decisions."
+description = "Bounded workspace-write implementation agent. Use when the parent provides an objective, scope, constraints, expected outputs, and validation for coding or artifact work; do not use for Franky control-plane maintenance, Athena review, worker/explorer discovery, or ordinary parent work without a bounded handoff."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
