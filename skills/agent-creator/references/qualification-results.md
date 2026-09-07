@@ -14,12 +14,12 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were freshly captured against implementation
-head `a4d286bff32eab77b2990a8c38b4b3a94ccd9f57` after the bounded role-shell
+revision `a861884c78a9b2461d3b8e3f2040d17af0a3602f` after the bounded role-shell
 repair. Each receipt is bound to durable source evidence and the validator
-recomputes its digest and derives the lane counts. The final evidence-only update may advance the PR
-head, but the validator accepts that only when every intervening path is in
-the allowlisted receipt/results set. This runtime evidence is separate from
-the final exact-head Athena review.
+recomputes its digest and derives the lane counts. Evidence-only updates may
+advance the PR head, but the validator accepts that only when every
+intervening path is in the allowlisted evidence set. This runtime evidence is
+separate from the final exact-head Athena review.
 
 ## Runtime
 
@@ -88,10 +88,11 @@ Separate signal fields for the representative lanes were retained as:
 `validation`, and `return/stop`.
 
 The process/artifact fields are `OBSERVED` only where the durable source
-evidence and fixture state support them. Discovery/listing is `OBSERVED` from the
-supported app-server probe. Per-turn skill-load, implicit activation, and
-native role application are `NOT_ASSESSED` where the current interface
-withholds those events.
+evidence and fixture state support them. The supported app-server listing API
+probe is `OBSERVED`, but it returned no matching repository `agent-creator`
+skill, so repository skill discovery is `NOT_ASSESSED`. Per-turn skill-load,
+implicit activation, and native role application are `NOT_ASSESSED` where the
+current interface withholds those events.
 
 The durable case manifest also includes seven routing classifications and
 explicitly marks missing-capability, user-scope, explicit-delegation, and
