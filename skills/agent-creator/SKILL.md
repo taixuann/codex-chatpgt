@@ -119,6 +119,9 @@ Read the focused references only when needed:
   compact per-run evidence; validate it with
   `scripts/validate_qualification_receipts.py` rather than trusting summary
   counts;
+- [qualification-exclusions.jsonl](references/qualification-exclusions.jsonl)
+  for hashed, rejected-attempt provenance; excluded runs never count as
+  behavioral passes;
 - [provenance.md](references/provenance.md) for the pinned clone and file
   disposition record.
 

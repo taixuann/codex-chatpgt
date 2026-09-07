@@ -11,6 +11,7 @@ from pathlib import Path
 
 CASES = ("HR-01", "HR-02", "HR-03")
 PARTITIONS = ("direct", "indirect", "noisy", "context_heavy", "near_sibling")
+EXCLUSION_CATEGORIES = ("NO_PROMPT_PROVIDED", "NONCOMPLIANT_TRACE", "USAGE_LIMIT")
 MODEL = "gpt-5.6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
@@ -144,6 +145,9 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                 ),
             }
             result = "OBSERVED"
+        sandbox_violation = "codex_sandboxing::violation" in stderr_text
+        if sandbox_violation:
+            evidence["sandbox_disposition"] = "DENIED_BY_HOST_SANDBOX"
         records.append(
             {
                 "case": case,
@@ -162,7 +166,7 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                 "trace_events": {
                     "completed_commands": len(completed_commands),
                     "agent_messages": len(agent_messages),
-                    "sandbox_violation": "codex_sandboxing::violation" in stderr_text,
+                    "sandbox_violation": sandbox_violation,
                 },
                 "evidence": evidence,
             }
@@ -175,6 +179,25 @@ def load_records(path: Path) -> list[dict]:
     if len(records) != 30:
         raise ValueError(f"expected 30 receipt records, got {len(records)}")
     return records
+
+
+def validate_exclusions(path: Path) -> int:
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    if not rows:
+        raise ValueError("exclusion ledger is empty")
+    seen = set()
+    for row in rows:
+        key = (row.get("case"), row.get("attempt"))
+        if key in seen or row.get("accepted") is not False:
+            raise ValueError(f"invalid exclusion row: {key}")
+        seen.add(key)
+        if row.get("category") not in EXCLUSION_CATEGORIES:
+            raise ValueError(f"{key}: unsupported exclusion category")
+        if not re.fullmatch(r"[0-9a-f]{64}", row.get("trace_sha256", "")):
+            raise ValueError(f"{key}: missing excluded trace hash")
+        if not row.get("reason") or not row.get("source_path"):
+            raise ValueError(f"{key}: missing exclusion provenance")
+    return len(rows)
 
 
 def validate(records: list[dict]) -> dict[str, int]:
@@ -195,6 +218,8 @@ def validate(records: list[dict]) -> dict[str, int]:
         if record.get("exit_code") != 0 or not re.fullmatch(r"[0-9a-f]{64}", record.get("trace_sha256", "")):
             raise ValueError(f"{key}: failed process or trace receipt")
         evidence = record.get("evidence", {})
+        if record.get("trace_events", {}).get("sandbox_violation") and evidence.get("sandbox_disposition") != "DENIED_BY_HOST_SANDBOX":
+            raise ValueError(f"{key}: sandbox violation is not explicitly classified")
         if case == "HR-01":
             required = ("skill_read", "role_files_read", "collision_observed", "no_mutation", "self_acceptance_absent")
             if record.get("result") != "OBSERVED" or not all(evidence.get(k) for k in required):
@@ -218,6 +243,7 @@ def validate(records: list[dict]) -> dict[str, int]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("receipts", type=Path)
+    parser.add_argument("--exclusions", type=Path)
     parser.add_argument("--source", action="append", metavar="CASE=ROOT")
     parser.add_argument("--artifact", action="append", metavar="CASE=PATH")
     parser.add_argument("--capture-revision", default="12942a186c9111a7c93e930d9cda9f2fe004e9cf")
@@ -242,6 +268,8 @@ def main() -> int:
     print("qualification receipts: 30/30 valid")
     for case in CASES:
         print(f"{case}: {counts[case]}/10 derived from receipts")
+    if args.exclusions:
+        print(f"excluded attempts: {validate_exclusions(args.exclusions)} ledger rows")
     return 0
 
 

@@ -11,6 +11,7 @@ assert SPEC.loader is not None
 SPEC.loader.exec_module(MODULE)
 
 RECEIPTS = SCRIPT.parent.parent / "references" / "qualification-receipts.jsonl"
+EXCLUSIONS = SCRIPT.parent.parent / "references" / "qualification-exclusions.jsonl"
 
 
 class QualificationReceiptTests(unittest.TestCase):
@@ -29,6 +30,16 @@ class QualificationReceiptTests(unittest.TestCase):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
         target = next(record for record in tampered if record["case"] == "HR-03")
         target["marker"] = "present"
+        with self.assertRaises(ValueError):
+            MODULE.validate(tampered)
+
+    def test_exclusion_ledger_is_validated(self):
+        self.assertEqual(MODULE.validate_exclusions(EXCLUSIONS), 8)
+
+    def test_unclassified_sandbox_violation_is_rejected(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["trace_events"]["sandbox_violation"])
+        target["evidence"].pop("sandbox_disposition")
         with self.assertRaises(ValueError):
             MODULE.validate(tampered)
 

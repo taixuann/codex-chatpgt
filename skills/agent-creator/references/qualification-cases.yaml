@@ -3,6 +3,7 @@ skill: agent-creator
 model: gpt-5.6-luna
 reasoning: medium
 receipt_file: references/qualification-receipts.jsonl
+exclusion_file: references/qualification-exclusions.jsonl
 receipt_schema: qualification-receipts.v1
 prompt_partitions: [direct, indirect, noisy, context_heavy, near_sibling]
 prompt_shapes:

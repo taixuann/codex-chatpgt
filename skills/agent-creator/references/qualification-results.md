@@ -5,6 +5,9 @@ used by Issue #105. Raw `codex exec --json` transcripts and temporary fixtures
 remain outside the repository; `qualification-receipts.jsonl` preserves one
 compact receipt per run, including trace/artifact hashes and derived invariant
 fields. CI validates those receipts and derives the 10/10 counts from them.
+Rejected attempts are separately recorded in
+`qualification-exclusions.jsonl` with category, reason, source path, and trace
+hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were captured against agent-creator skill blob
 `c9fcc26cacea6d8cdf294b7b351332d444ab296b` after the bounded evidence-chain
@@ -55,6 +58,11 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 | HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each trace consumed the required reference, ran the validator, and recorded the exact artifact hash and `VALID` result | reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
 | HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | authority/delegation/sandbox/stop invariants derived from 10 receipts | native role application `NOT_ASSESSED` |
 
+Six accepted traces also recorded host sandbox denials while the model tried
+to inspect protected or out-of-fixture paths. Those denials are retained in
+the receipt event metadata and must be explicitly classified as
+`DENIED_BY_HOST_SANDBOX`; the validator does not silently ignore them.
+
 The earlier incomplete results were harness defects: zsh arrays are 1-based,
 so the first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex
 exec` correctly returned `No prompt provided via stdin`. A later structured
@@ -80,9 +88,9 @@ explicitly marks missing-capability, user-scope, explicit-delegation, and
 nested-depth runtime surfaces `NOT_ASSESSED` because no supported native event
 was available. These are not inferred from model prose.
 
-The receipt validator reports `30/30` valid records and derives `10/10` for
-each HR lane. CI invokes the same validator; it does not trust aggregate
-counts written into the case manifest.
+The receipt validator reports `30/30` valid records, derives `10/10` for each
+HR lane, and validates the eight-row exclusion ledger. CI invokes the same
+validator; it does not trust aggregate counts written into the case manifest.
 
 ## Role migration evidence
 
@@ -105,7 +113,8 @@ All three TOML files parse successfully after their individual commits.
 
 - `quick_validate.py skills/agent-creator`: PASS
 - `validate_qualification_receipts.py`: PASS, `30/30`; each HR lane derived
-  `10/10` from per-run receipts
+  `10/10` from per-run receipts; 8 excluded attempts validated from the
+  durable ledger
 - `validate_eval_cases.py skills/skill-creator/evals/cases.yaml`: PASS
 - focused evaluator unit tests: 20/20 PASS
 - retained agent TOML parse/count check: PASS

@@ -84,6 +84,6 @@ jobs:
       - name: Validate agent-creator package and qualification manifest
         run: |
           python skills/skill-creator/scripts/quick_validate.py skills/agent-creator
-          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl
+          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl
           python -m unittest skills/agent-creator/scripts/test_validate_qualification_receipts.py
-          python -c "import pathlib,yaml; p=pathlib.Path('skills/agent-creator/references/qualification-cases.yaml'); d=yaml.safe_load(p.read_text()); assert d['skill']=='agent-creator'; assert d['receipt_file']=='references/qualification-receipts.jsonl'; assert d['runtime_signals']['discovery_listing']=='OBSERVED'; assert d['runtime_signals']['per_turn_skill_load']=='NOT_ASSESSED'; assert len(d['cases']) == 3; assert len(d['routing_cases']) == 7; assert all(x['admission']['expected_runs']==10 for x in d['cases'])"
+          python -c "import pathlib,yaml; p=pathlib.Path('skills/agent-creator/references/qualification-cases.yaml'); d=yaml.safe_load(p.read_text()); assert d['skill']=='agent-creator'; assert d['receipt_file']=='references/qualification-receipts.jsonl'; assert d['exclusion_file']=='references/qualification-exclusions.jsonl'; assert d['runtime_signals']['discovery_listing']=='OBSERVED'; assert d['runtime_signals']['per_turn_skill_load']=='NOT_ASSESSED'; assert len(d['cases']) == 3; assert len(d['routing_cases']) == 7; assert all(x['admission']['expected_runs']==10 for x in d['cases'])"
