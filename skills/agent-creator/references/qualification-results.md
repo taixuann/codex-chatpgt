@@ -14,7 +14,9 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were freshly captured against implementation
-revision `d94c84eab69bf3800c299ba939153691b7e37cf8` after the final role-shell repair.
+revision `43ff91b3170f669f9a12c9d2a1dc64be346c56cd` after the root role-guidance
+repair. HR-01 run 9 was rerun with a bounded named-file probe after its first
+attempt emitted a host sandbox warning; the warning was not counted as a pass.
 Each receipt is bound to durable source evidence and the validator
 recomputes its digest and derives the lane counts. Evidence-only updates may
 advance the PR head, but the validator accepts that only when every
@@ -67,10 +69,10 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 | HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each isolated run produced and hashed its own `fixture-N/result.json`, consumed the reference, ran the validator, and recorded `VALID` | per-run reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
 | HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | sandbox/probe/marker invariant derived from 10 receipts; delegation and self-acceptance remain runtime `NOT_ASSESSED` | native role application `NOT_ASSESSED` |
 
-One accepted trace also recorded a host sandbox denial while the model tried
+Three accepted traces also recorded host sandbox denials while the model tried
 to inspect protected or out-of-fixture paths. Those denials are retained in
-the receipt event metadata and must be explicitly classified as
-`DENIED_BY_HOST_SANDBOX`; the validator does not silently ignore it.
+the receipt event metadata and explicitly classified as
+`DENIED_BY_HOST_SANDBOX`; the validator does not silently ignore them.
 
 The earlier incomplete results were harness defects: zsh arrays are 1-based,
 so the first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex
