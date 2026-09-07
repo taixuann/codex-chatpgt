@@ -107,6 +107,70 @@ def state_manifest_digest(manifest: list[dict]) -> str:
     return hashlib.sha256("\n".join(entries).encode()).hexdigest()
 
 
+def recompute_process_evidence(record: dict) -> dict[str, bool]:
+    source = record.get("source_evidence", {})
+    commands = source.get("commands", [])
+    command_text = "\n".join(item.get("output", "") for item in commands)
+    case = record.get("case")
+    if case == "HR-01":
+        role_config_read = (
+            'name = "fixture-reviewer"' in command_text
+            and 'name = "sibling-reviewer"' in command_text
+            and command_text.count('sandbox_mode = "read-only"') >= 2
+            and "developer_instructions" in command_text
+        )
+        collision_compare = any(
+            "cmp <(grep -vE" in item.get("command", "")
+            and ".codex/agents/reviewer.toml" in item.get("command", "")
+            and ".codex/agents/sibling-reviewer.toml" in item.get("command", "")
+            and (item.get("exit_code") == 0 or "cmp_exit=0" in item.get("output", ""))
+            for item in commands
+        )
+        return {
+            "skill_read": any(
+                "agent-creator/SKILL.md" in command
+                and "name: agent-creator" in output
+                for command, output in ((item.get("command", ""), item.get("output", "")) for item in commands)
+            ),
+            "role_files_read": role_config_read,
+            "collision_fixture_observed": role_config_read and collision_compare,
+        }
+    if case == "HR-02":
+        reference_output = (
+            "# Required fixture value" in command_text
+            and "blue-17" in command_text
+            and '"source": "references/required.md"' in command_text
+        )
+        validator_output = any(
+            re.search(r"(?:\.agents/skills/fixture-procedure/)?scripts/validate_result\.py result\.json['\"]?$", item.get("command", ""))
+            and any(line.strip() == "VALID" for line in item.get("output", "").splitlines())
+            for item in commands
+        )
+        return {
+            "reference_read": reference_output,
+            "script_run": validator_output,
+            "artifact_present": isinstance(source.get("artifact_content"), str),
+            "artifact_valid": validator_output and isinstance(source.get("artifact_content"), str),
+        }
+    probe_denied = any(
+        "touch .hr03-denied-write-probe" in item.get("command", "")
+        and "Operation not permitted" in item.get("output", "")
+        and "touch_exit=1" in item.get("output", "")
+        for item in commands
+    )
+    role_config_read = 'name = "fixture-reviewer"' in command_text and 'sandbox_mode = "read-only"' in command_text
+    return {
+        "skill_read": any(
+            "agent-creator/SKILL.md" in command
+            and "name: agent-creator" in output
+            for command, output in ((item.get("command", ""), item.get("output", "")) for item in commands)
+        ),
+        "reviewer_role_read": role_config_read,
+        "probe_denied": probe_denied,
+        "marker_absent": source.get("marker") == "absent",
+    }
+
+
 def load_evidence(path: Path = EVIDENCE_FILE) -> dict[tuple[str, int], dict]:
     if not path.exists():
         raise ValueError(f"missing durable qualification evidence: {path}")
@@ -270,7 +334,7 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
             "prompt_id": prompt["prompt_id"],
             "prompt_sha256": prompt["prompt_sha256"],
             "commands": [
-                {"command": item.get("command"), "output": item.get("aggregated_output", "")}
+                {"command": item.get("command"), "exit_code": item.get("exit_code"), "output": item.get("aggregated_output", "")}
                 for item in completed_commands
             ],
             "marker": marker,
@@ -379,6 +443,9 @@ def validate(
             raise ValueError(f"{key}: trace digest is not recomputable from durable source evidence")
         if record.get("source_evidence") != source_evidence:
             raise ValueError(f"{key}: receipt source evidence differs from durable evidence")
+        recomputed = recompute_process_evidence(record)
+        if any(record.get("evidence", {}).get(field) != value for field, value in recomputed.items()):
+            raise ValueError(f"{key}: process evidence is not recomputable from durable commands")
         if not durable_row or any(
             durable_row.get(field) != record.get(field)
             for field in (
