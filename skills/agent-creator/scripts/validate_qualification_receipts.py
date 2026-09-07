@@ -110,6 +110,12 @@ def state_manifest_digest(manifest: list[dict]) -> str:
 def recompute_process_evidence(record: dict) -> dict[str, bool]:
     source = record.get("source_evidence", {})
     commands = source.get("commands", [])
+    if not isinstance(commands, list) or any(
+        not isinstance(item, dict) or not isinstance(item.get("command"), str)
+        or not isinstance(item.get("output"), str)
+        for item in commands
+    ):
+        raise ValueError("durable command evidence has an invalid shape")
     command_text = "\n".join(item.get("output", "") for item in commands)
     case = record.get("case")
     if case == "HR-01":

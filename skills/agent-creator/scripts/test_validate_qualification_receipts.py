@@ -87,6 +87,23 @@ class QualificationReceiptTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.validate(tampered)
 
+    def test_durable_command_tampering_is_rejected(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-01")
+        target["source_evidence"]["commands"] = []
+        target["trace_sha256"] = MODULE.source_evidence_digest(target["source_evidence"])
+        target["evidence_binding_sha256"] = MODULE.evidence_binding(target)
+        durable = MODULE.load_evidence()
+        row = durable[("HR-01", target["run"])]
+        row["source_evidence"] = target["source_evidence"]
+        row["trace_sha256"] = target["trace_sha256"]
+        row["evidence_binding_sha256"] = target["evidence_binding_sha256"]
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".jsonl") as handle:
+            handle.write("\n".join(json.dumps(value, sort_keys=True) for value in durable.values()) + "\n")
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate(tampered, evidence_path=Path(handle.name))
+
     def test_forged_hash_shaped_receipt_is_rejected(self):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
         target = next(record for record in tampered if record["case"] == "HR-02")
