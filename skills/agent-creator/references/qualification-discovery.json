@@ -7,6 +7,18 @@
   "repo_skill_name": "agent-creator",
   "repo_skill_match_count": 0,
   "api_probe": "OBSERVED",
-  "repo_skill_discovery": "NOT_ASSESSED",
-  "reason": "The supported listing API completed, but did not return a matching repository skill for the skills/agent-creator path."
+  "repo_skill_discovery": "OBSERVED_WITH_EXPLICIT_EXTRA_ROOT",
+  "default_repo_skill_discovery": "NOT_ASSESSED",
+  "default_probe_reason": "The supported listing API completed without an extra root, but did not return a matching repository skill for the skills/agent-creator path.",
+  "extra_root_probe": {
+    "protocol": "skills/extraRoots/set -> skills/list",
+    "cwd": "/private/tmp/codex-chatpgt-issue105",
+    "extra_root": "/private/tmp/codex-chatpgt-issue105/skills",
+    "repo_skill_match_count": 1,
+    "matching_path": "/private/tmp/codex-chatpgt-issue105/skills/agent-creator/SKILL.md",
+    "status": "OBSERVED",
+    "errors": []
+  },
+  "activation_status": "NOT_ASSESSED",
+  "reason": "The default and explicit-extra-root probes are recorded separately: the default probe did not discover the repository skill, while the supported extra-root probe discovered it. Neither probe exposes a per-turn skill-load or activation event."
 }

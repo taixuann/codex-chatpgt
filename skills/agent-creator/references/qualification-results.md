@@ -36,8 +36,11 @@ separate from the final exact-head Athena review.
   authenticated runtime link and a project-local fixture. The temporary home
   was excluded from artifact snapshots.
 - Supported app-server `skills/list` API discovery was independently observed
-  and recorded in `qualification-discovery.json`; it returned no matching
-  repository `agent-creator` skill, so repository skill discovery remains
+  and recorded in `qualification-discovery.json`. The default probe had no
+  matching repository skill, while the supported explicit
+  `skills/extraRoots/set` probe found the canonical repository skill;
+  per-turn skill-load, implicit activation, native role selection/application,
+  effective spawned configuration, and scope/delegation/depth events remain
   `NOT_ASSESSED`;
   per-turn skill-load, implicit activation, native role selection/application,
   effective spawned configuration, and scope/delegation/depth events remain
@@ -90,11 +93,12 @@ Separate signal fields for the representative lanes were retained as:
 `validation`, and `return/stop`.
 
 The process/artifact fields are `OBSERVED` only where the durable source
-evidence and fixture state support them. The supported app-server listing API
-probe is `OBSERVED`, but it returned no matching repository `agent-creator`
-skill, so repository skill discovery is `NOT_ASSESSED`. Per-turn skill-load,
-implicit activation, and native role application are `NOT_ASSESSED` where the
-current interface withholds those events.
+evidence and fixture state support them. The default app-server listing probe
+returned no repository match, while the supported explicit extra-root probe
+returned `agent-creator`; both outcomes are retained in
+`qualification-discovery.json`. Per-turn skill-load, implicit activation, and
+native role application are `NOT_ASSESSED` where the current interface
+withholds those events.
 
 The durable case manifest also includes seven routing classifications and
 explicitly marks missing-capability, user-scope, explicit-delegation, and
