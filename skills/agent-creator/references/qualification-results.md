@@ -3,18 +3,18 @@
 This is the compact, GitHub-retrievable record for the qualification evidence
 used by Issue #105. Raw `codex exec --json` transcripts and temporary fixtures
 remain outside the repository; `qualification-receipts.jsonl` preserves one
-compact receipt per run, including trace/artifact hashes and derived invariant
-fields. `qualification-evidence.jsonl` binds those fields to a durable
-content digest that the validator recomputes. CI validates both files and
-derives the 10/10 counts from them.
+compact receipt per run, while `qualification-evidence.jsonl` preserves the
+selected command outputs, fixture state, and artifact content needed to
+recompute each receipt digest. CI validates both files and derives the 10/10
+counts from them.
 Rejected attempts are separately recorded in
 `qualification-exclusions.jsonl` with category, reason, source path, and trace
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were freshly captured against implementation
 head `9904537d0a751c02f24962a36b0603c40a2cc707` after the bounded role-shell
-repair. Each receipt records its trace hash and the validator
-derives the lane counts. The final evidence-only update may advance the PR
+repair. Each receipt is bound to durable source evidence and the validator
+recomputes its digest and derives the lane counts. The final evidence-only update may advance the PR
 head, but the validator accepts that only when every intervening path is in
 the allowlisted receipt/results set. This runtime evidence is separate from
 the final exact-head Athena review.
@@ -73,7 +73,8 @@ exec` correctly returned `No prompt provided via stdin`. A later structured
 rerun excluded model runs that failed to emit the required command/event
 evidence and excluded four usage-limit responses; those are not behavioral
 passes. The accepted records use stdin, explicit command outputs, filesystem
-marker state, and trace hashes.
+marker state, and recomputable durable evidence digests; raw transcripts remain
+outside the repository.
 
 Separate signal fields for the representative lanes were retained as:
 
@@ -81,8 +82,8 @@ Separate signal fields for the representative lanes were retained as:
 `role application`, `skill/reference/script process`, `artifact/action`,
 `validation`, and `return/stop`.
 
-The process/artifact fields are `OBSERVED` only where the receipt’s trace hash
-and fixture state support them. Discovery/listing is `OBSERVED` from the
+The process/artifact fields are `OBSERVED` only where the durable source
+evidence and fixture state support them. Discovery/listing is `OBSERVED` from the
 supported app-server probe. Per-turn skill-load, implicit activation, and
 native role application are `NOT_ASSESSED` where the current interface
 withholds those events.

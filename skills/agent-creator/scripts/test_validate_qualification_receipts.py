@@ -1,5 +1,7 @@
 import copy
 import importlib.util
+import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -76,6 +78,23 @@ class QualificationReceiptTests(unittest.TestCase):
         target["trace_sha256"] = "0" * 64
         with self.assertRaises(ValueError):
             MODULE.validate(tampered)
+
+    def test_forged_hash_and_durable_mirror_are_rejected(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-01")
+        target["trace_sha256"] = "0" * 64
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".jsonl") as handle:
+            durable = MODULE.load_evidence()
+            rows = []
+            for key, row in durable.items():
+                row = copy.deepcopy(row)
+                if key == ("HR-01", target["run"]):
+                    row["trace_sha256"] = "0" * 64
+                rows.append(row)
+            handle.write("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n")
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate(tampered, evidence_path=Path(handle.name))
 
 
 if __name__ == "__main__":

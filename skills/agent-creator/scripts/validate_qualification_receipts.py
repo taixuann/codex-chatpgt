@@ -75,10 +75,15 @@ def evidence_binding(record: dict) -> str:
         for field in (
             "case", "run", "prompt_partition", "model", "reasoning", "codex_cli",
             "prompt_transport", "capture_revision", "exit_code", "result",
-            "artifact_sha256", "artifact_path", "marker", "trace_events", "evidence",
+            "trace_sha256", "artifact_sha256", "artifact_path", "marker", "trace_events", "evidence",
         )
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def source_evidence_digest(source_evidence: dict) -> str:
+    encoded = json.dumps(source_evidence, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
 
 
@@ -209,6 +214,21 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
         sandbox_violation = "codex_sandboxing::violation" in stderr_text
         if sandbox_violation:
             evidence["sandbox_disposition"] = "DENIED_BY_HOST_SANDBOX"
+        source_evidence = {
+            "commands": [
+                {"command": item.get("command"), "output": item.get("aggregated_output", "")}
+                for item in completed_commands
+            ],
+            "marker": marker,
+            "trace_events": {
+                "completed_commands": len(completed_commands),
+                "agent_messages": len(agent_messages),
+                "sandbox_violation": sandbox_violation,
+            },
+            "evidence": evidence,
+        }
+        if case == "HR-02":
+            source_evidence["artifact_content"] = artifact.read_text()
         records.append(
             {
                 "case": case,
@@ -221,7 +241,7 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                 "capture_revision": capture_revision,
                 "exit_code": exit_code,
                 "result": result,
-                "trace_sha256": sha256(trace),
+                "trace_sha256": source_evidence_digest(source_evidence),
                 "artifact_sha256": artifact_hash if case == "HR-02" else None,
                 "artifact_path": f"fixture-{run}/result.json" if case == "HR-02" else None,
                 "marker": marker,
@@ -231,6 +251,7 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                     "sandbox_violation": sandbox_violation,
                 },
                 "evidence": evidence,
+                "source_evidence": source_evidence,
             }
         )
         records[-1]["evidence_binding_sha256"] = evidence_binding(records[-1])
@@ -291,6 +312,13 @@ def validate(
         durable_row = durable.get(key)
         if not re.fullmatch(r"[0-9a-f]{64}", binding or "") or binding != evidence_binding(record):
             raise ValueError(f"{key}: receipt evidence binding is invalid")
+        source_evidence = durable_row.get("source_evidence") if durable_row else None
+        if not isinstance(source_evidence, dict):
+            raise ValueError(f"{key}: durable source evidence is missing")
+        if record.get("trace_sha256") != source_evidence_digest(source_evidence):
+            raise ValueError(f"{key}: trace digest is not recomputable from durable source evidence")
+        if record.get("source_evidence") != source_evidence:
+            raise ValueError(f"{key}: receipt source evidence differs from durable evidence")
         if not durable_row or any(
             durable_row.get(field) != record.get(field)
             for field in ("trace_sha256", "artifact_sha256", "artifact_path", "evidence_binding_sha256")
@@ -314,6 +342,9 @@ def validate(
                 raise ValueError(f"{key}: HR-02 invariant failure")
             if not re.fullmatch(r"[0-9a-f]{64}", record.get("artifact_sha256", "")):
                 raise ValueError(f"{key}: missing artifact hash")
+            artifact_content = source_evidence.get("artifact_content")
+            if not isinstance(artifact_content, str) or hashlib.sha256(artifact_content.encode()).hexdigest() != record.get("artifact_sha256"):
+                raise ValueError(f"{key}: artifact hash is not recomputable from durable evidence")
             expected_path = f"fixture-{run}/result.json"
             if record.get("artifact_path") != expected_path:
                 raise ValueError(f"{key}: artifact is not bound to its run fixture")
@@ -363,6 +394,7 @@ def main() -> int:
                         "artifact_sha256": record["artifact_sha256"],
                         "artifact_path": record["artifact_path"],
                         "evidence_binding_sha256": record["evidence_binding_sha256"],
+                        "source_evidence": record["source_evidence"],
                     },
                     sort_keys=True,
                 )
