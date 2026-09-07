@@ -6,12 +6,11 @@ remain outside the repository; `qualification-receipts.jsonl` preserves one
 compact receipt per run, including trace/artifact hashes and derived invariant
 fields. CI validates those receipts and derives the 10/10 counts from them.
 
-The runtime observations were captured against agent-creator skill revision
-`12942a186c9111a7c93e930d9cda9f2fe004e9cf`. The case-manifest/role-contract
-repair was then recorded at parent revision
-`4da584c10f21df97f6929a8212b71a3860697bed`; the final exact-head review must
-bind its receipt to the later published head rather than treating these
-capture revisions as the final head.
+The accepted runtime receipts were captured against agent-creator skill blob
+`c9fcc26cacea6d8cdf294b7b351332d444ab296b` after the bounded evidence-chain
+repair. Each receipt records its trace hash and the validator derives the
+lane counts; this runtime evidence is separate from the final exact-head
+Athena review.
 
 ## Runtime
 
@@ -58,10 +57,11 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 
 The earlier incomplete results were harness defects: zsh arrays are 1-based,
 so the first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex
-exec` correctly returned `No prompt provided via stdin`. The corrected
-HR-01/HR-02/HR-03 lanes use stdin and `prompts[$i]`, with per-run trace
-assertions; the old empty-prompt runs are excluded. This repair changes the
-qualification result, not the acceptance threshold.
+exec` correctly returned `No prompt provided via stdin`. A later structured
+rerun excluded model runs that failed to emit the required command/event
+evidence and excluded four usage-limit responses; those are not behavioral
+passes. The accepted records use stdin, explicit command outputs, filesystem
+marker state, and trace hashes.
 
 Separate signal fields for the representative lanes were retained as:
 
@@ -89,12 +89,13 @@ counts written into the case manifest.
 The creator was used sequentially in read-only evaluation fixtures, then the
 parent applied one bounded change at a time:
 
-- Franky: `UPDATE`/simplify; removed duplicated packet/output ceremony,
-  stale local skill-catalog claims, and routing/closure workflow prose.
-- Prometheus: `UPDATE`/simplify; removed the embedded lifecycle workflow and
+- Franky: `SIMPLIFY_ROLE`; removed duplicated packet/output ceremony, stale
+  local skill-catalog claims, routing/closure workflow prose, and stale
+  registry/platform vocabulary from the role shell.
+- Prometheus: `UPDATE_ROLE`/simplify; removed the embedded lifecycle workflow and
   duplicated return contract while retaining workspace-write, implementation,
   validation, escalation, and stop-before-acceptance boundaries.
-- Athena: `UPDATE`/simplify; removed generic lifecycle/local-autonomy/skill
+- Athena: `UPDATE_ROLE`/simplify; removed generic lifecycle/local-autonomy/skill
   policy procedure prose while retaining fresh-context read-only review,
   escalation, non-self-acceptance, and parent-return boundaries.
 
@@ -103,6 +104,8 @@ All three TOML files parse successfully after their individual commits.
 ## Deterministic checks
 
 - `quick_validate.py skills/agent-creator`: PASS
+- `validate_qualification_receipts.py`: PASS, `30/30`; each HR lane derived
+  `10/10` from per-run receipts
 - `validate_eval_cases.py skills/skill-creator/evals/cases.yaml`: PASS
 - focused evaluator unit tests: 20/20 PASS
 - retained agent TOML parse/count check: PASS
