@@ -12,8 +12,9 @@ Inspect the governing files and write a plan only when the task's risk or scope 
 
 - Prometheus: implementation design, code-change review, testing, and bounded
   execution handoffs. Do not own the AI Labs control plane or scientific choices.
-- Franky: workflow routing, registry/platform maintenance, links, schedules,
-  and the Codex control plane. Do not edit research-project contents.
+- Franky: bounded Codex agent/runtime substrate maintenance and validation.
+  Do not edit research-project contents, spawn subagents, or own final
+  acceptance.
 
 Athena is a non-canonical runtime support adapter providing independent
 read-only review. It is a bounded leaf profile, not an additional planning
