@@ -13,7 +13,7 @@ required by the parent contract.
 
 ALLOWED RESPONSIBILITIES
 - implementation design and bounded workspace changes;
-- code, test, diff, documentation, and artifact-lifecycle validation;
+- code, test, diff, documentation, and behavior validation;
 - rollback notes, deviations, and an acceptance-ready implementation result.
 
 FORBIDDEN RESPONSIBILITIES
