@@ -17,9 +17,11 @@ MODEL = "gpt-5.6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
 EVIDENCE_ONLY_UPDATE_PATHS = {
+    "skills/agent-creator/references/qualification-evidence.jsonl",
     "skills/agent-creator/references/qualification-receipts.jsonl",
     "skills/agent-creator/references/qualification-results.md",
 }
+EVIDENCE_FILE = Path(__file__).parents[1] / "references" / "qualification-evidence.jsonl"
 
 
 def sha256(path: Path) -> str:
@@ -65,6 +67,29 @@ def read_jsonl(path: Path) -> tuple[str, list[dict]]:
     raw = path.read_bytes()
     rows = [json.loads(line) for line in raw.splitlines()]
     return raw.decode(), rows
+
+
+def evidence_binding(record: dict) -> str:
+    payload = {
+        field: record.get(field)
+        for field in (
+            "case", "run", "prompt_partition", "model", "reasoning", "codex_cli",
+            "prompt_transport", "capture_revision", "exit_code", "result",
+            "artifact_sha256", "artifact_path", "marker", "trace_events", "evidence",
+        )
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def load_evidence(path: Path = EVIDENCE_FILE) -> dict[tuple[str, int], dict]:
+    if not path.exists():
+        raise ValueError(f"missing durable qualification evidence: {path}")
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    indexed = {(row.get("case"), row.get("run")): row for row in rows}
+    if len(rows) != 30 or len(indexed) != 30:
+        raise ValueError("durable qualification evidence must contain 30 unique records")
+    return indexed
 
 
 def read_status(root: Path) -> dict[int, tuple[int, str | None]]:
@@ -208,6 +233,7 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                 "evidence": evidence,
             }
         )
+        records[-1]["evidence_binding_sha256"] = evidence_binding(records[-1])
     return records
 
 
@@ -237,9 +263,14 @@ def validate_exclusions(path: Path) -> int:
     return len(rows)
 
 
-def validate(records: list[dict], expected_capture_revision: str | None = None) -> dict[str, int]:
+def validate(
+    records: list[dict],
+    expected_capture_revision: str | None = None,
+    evidence_path: Path = EVIDENCE_FILE,
+) -> dict[str, int]:
     counts = {case: 0 for case in CASES}
     seen = set()
+    durable = load_evidence(evidence_path)
     for record in records:
         case = record.get("case")
         run = record.get("run")
@@ -256,6 +287,15 @@ def validate(records: list[dict], expected_capture_revision: str | None = None) 
             raise ValueError(f"{key}: capture revision is not bound to {expected_capture_revision}")
         if record.get("exit_code") != 0 or not re.fullmatch(r"[0-9a-f]{64}", record.get("trace_sha256", "")):
             raise ValueError(f"{key}: failed process or trace receipt")
+        binding = record.get("evidence_binding_sha256")
+        durable_row = durable.get(key)
+        if not re.fullmatch(r"[0-9a-f]{64}", binding or "") or binding != evidence_binding(record):
+            raise ValueError(f"{key}: receipt evidence binding is invalid")
+        if not durable_row or any(
+            durable_row.get(field) != record.get(field)
+            for field in ("trace_sha256", "artifact_sha256", "artifact_path", "evidence_binding_sha256")
+        ):
+            raise ValueError(f"{key}: receipt is not bound to durable evidence")
         evidence = record.get("evidence", {})
         if record.get("trace_events", {}).get("sandbox_violation") and evidence.get("sandbox_disposition") != "DENIED_BY_HOST_SANDBOX":
             raise ValueError(f"{key}: sandbox violation is not explicitly classified")
@@ -313,6 +353,23 @@ def main() -> int:
                 )
             )
         args.receipts.write_text("\n".join(json.dumps(record, sort_keys=True) for record in records) + "\n")
+        EVIDENCE_FILE.write_text(
+            "\n".join(
+                json.dumps(
+                    {
+                        "case": record["case"],
+                        "run": record["run"],
+                        "trace_sha256": record["trace_sha256"],
+                        "artifact_sha256": record["artifact_sha256"],
+                        "artifact_path": record["artifact_path"],
+                        "evidence_binding_sha256": record["evidence_binding_sha256"],
+                    },
+                    sort_keys=True,
+                )
+                for record in records
+            )
+            + "\n"
+        )
     records = load_records(args.receipts)
     counts = validate(records, resolve_capture_revision(records, repo_root))
     print("qualification receipts: 30/30 valid")

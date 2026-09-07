@@ -4,7 +4,9 @@ This is the compact, GitHub-retrievable record for the qualification evidence
 used by Issue #105. Raw `codex exec --json` transcripts and temporary fixtures
 remain outside the repository; `qualification-receipts.jsonl` preserves one
 compact receipt per run, including trace/artifact hashes and derived invariant
-fields. CI validates those receipts and derives the 10/10 counts from them.
+fields. `qualification-evidence.jsonl` binds those fields to a durable
+content digest that the validator recomputes. CI validates both files and
+derives the 10/10 counts from them.
 Rejected attempts are separately recorded in
 `qualification-exclusions.jsonl` with category, reason, source path, and trace
 hash; they are never counted as behavioral passes.
@@ -92,7 +94,9 @@ was available. These are not inferred from model prose.
 
 The receipt validator reports `30/30` valid records, derives `10/10` for each
 HR lane, and validates the eight-row exclusion ledger. CI invokes the same
-validator; it does not trust aggregate counts written into the case manifest.
+validator; it does not trust aggregate counts written into the case manifest
+or unbound hash-shaped receipt fields. A forged all-zero hash receipt is
+rejected by the focused regression test.
 
 ## Role migration evidence
 

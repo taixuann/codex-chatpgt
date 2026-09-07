@@ -121,6 +121,8 @@ Read the focused references only when needed:
   compact per-run evidence; validate it with
   `scripts/validate_qualification_receipts.py` rather than trusting summary
   counts;
+- [qualification-evidence.jsonl](references/qualification-evidence.jsonl) for
+  the compact durable binding that the validator recomputes for each receipt;
 - [qualification-exclusions.jsonl](references/qualification-exclusions.jsonl)
   for hashed, rejected-attempt provenance; excluded runs never count as
   behavioral passes;
