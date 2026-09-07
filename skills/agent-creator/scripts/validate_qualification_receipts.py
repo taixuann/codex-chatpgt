@@ -91,6 +91,18 @@ def source_evidence_digest(source_evidence: dict) -> str:
 
 
 def state_manifest_digest(manifest: list[dict]) -> str:
+    paths = [row.get("path") for row in manifest]
+    if paths != sorted(paths) or len(paths) != len(set(paths)):
+        raise ValueError("state manifest paths must be sorted and unique")
+    if any(
+        not isinstance(path, str)
+        or not path
+        or path.startswith("/")
+        or ".." in Path(path).parts
+        or not re.fullmatch(r"[0-9a-f]{64}", row.get("sha256", ""))
+        for path, row in zip(paths, manifest)
+    ):
+        raise ValueError("state manifest contains an unsafe path or invalid digest")
     entries = [f"{row['path']}\0{row['sha256']}" for row in manifest]
     return hashlib.sha256("\n".join(entries).encode()).hexdigest()
 
