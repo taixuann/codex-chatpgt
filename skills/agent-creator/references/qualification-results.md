@@ -101,15 +101,25 @@ parent applied one bounded change at a time:
 
 - Franky: `SIMPLIFY_ROLE`; removed duplicated packet/output ceremony, stale
   local skill-catalog claims, routing/closure workflow prose, and stale
-  registry/platform vocabulary from the role shell.
+  registry/platform vocabulary from the role shell; repaired the read-only /
+  mutation contradiction by making the bounded substrate adapter
+  `workspace-write` with explicit task-path authority.
 - Prometheus: `UPDATE_ROLE`/simplify; removed the embedded lifecycle workflow and
-  duplicated return contract while retaining workspace-write, implementation,
-  validation, escalation, and stop-before-acceptance boundaries.
-- Athena: `UPDATE_ROLE`/simplify; removed generic lifecycle/local-autonomy/skill
-  policy procedure prose while retaining fresh-context read-only review,
-  escalation, non-self-acceptance, and parent-return boundaries.
+  duplicated return contract, artifact-lifecycle identity, mandatory-command
+  wording, and broad dependency gate while retaining workspace-write,
+  implementation, validation, escalation, and stop-before-acceptance boundaries.
+- Athena: `UPDATE_ROLE`/simplify; removed review-class taxonomy, packet/result
+  protocol, and reusable review procedure prose while retaining fresh-context
+  read-only judgment, authorized evidence scope, escalation,
+  non-self-acceptance, and parent-return boundaries.
 
-All three TOML files parse successfully after their individual commits.
+All three TOML files parse successfully after the bounded role-contract repair.
+Static description and developer-instruction checks pass: each description
+contains a positive routing trigger and adjacent-role boundary; Franky,
+Prometheus, and Athena have distinct responsibility/authority/sandbox/stop
+contracts; no Athena wire protocol or review-class taxonomy remains in its
+role shell. Native role selection/application and effective permission
+enforcement remain `NOT_ASSESSED`.
 
 ## Deterministic checks
 

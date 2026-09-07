@@ -18,7 +18,7 @@ outside this repository's authority.
 | --- | --- | --- |
 | `prometheus` | bounded implementation and code review handoff | `workspace-write` |
 | `athena` | non-canonical independent review and critique | `read-only` |
-| `franky` | Codex/AI Labs control-plane operation | `read-only`, no subagents |
+| `franky` | bounded Codex agent/runtime substrate work | `workspace-write`, no subagents |
 
 Support adapters may be used only as bounded leaf workers under the selected
 canonical role and workflow. If a task needs a new capability, add or reuse a
@@ -53,7 +53,7 @@ The retained adapters have distinct agent-specific reasons:
 | --- | --- | --- |
 | Athena | independent judgment after execution/validation | severity-ranked critique, no edits |
 | Prometheus | bounded workspace-write execution boundary | changed paths, tests, deviations, rollback |
-| Franky | control-plane permission/workflow boundary | scope, findings, validation, approval boundary |
+| Franky | bounded substrate permission/workflow boundary | scope, findings, validation, approval boundary |
 
 Skill hints are deliberately kept out of the TOML adapters because the active
 Codex runtime rejects unknown profile keys. Route skills through task packets,

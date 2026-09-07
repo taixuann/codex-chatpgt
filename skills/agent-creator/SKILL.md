@@ -62,8 +62,7 @@ generic mode label: `UPDATE_ROLE` is the repair outcome, `SIMPLIFY_ROLE` is
 the bounded deletion/simplification outcome, `MERGE_ROLES` and
 `LOCALIZE_ROLE` preserve the corresponding relationship, `PROMOTE_USER_ROLE`
 handles a demonstrated user-scope move, `RETIRE_ROLE` removes an obsolete
-role, and `REJECT_AGENT` records that a role is not warranted. `DISABLE` and
-`RETIRE` are not action dispositions in this contract.
+role, and `REJECT_AGENT` records that a role is not warranted.
 - `EVALUATE`: report criterion-level evidence and limitations; do not silently
   repair, self-accept, or promote canonical state.
 
@@ -100,8 +99,11 @@ scope, and runtime application independently. Keep these signals separate:
 Use `OBSERVED`, `FAIL`, `NOT_ASSESSED`, or `BLOCKED` for each signal. A valid
 TOML file or plausible answer is not runtime proof. Do not weaken sandbox,
 authority, depth, approval, or validation settings to make a case pass. Use
-the required `gpt-5.6-luna` / medium lane for generative qualification and
-record repeated results and exact limitations.
+the repository-approved qualification lane recorded in
+`references/runtime-qualification.md` and the qualification case manifest;
+record the concrete model, reasoning effort, repetitions, and exact
+limitations. The current lane is policy evidence, not a permanent skill
+invariant.
 
 Read the focused references only when needed:
 
