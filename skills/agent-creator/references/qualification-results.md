@@ -14,7 +14,7 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were freshly captured against implementation
-head `190197ce3b74397eb85a1b33b51f40ec7b85ee95` after the bounded role-shell
+head `a4d286bff32eab77b2990a8c38b4b3a94ccd9f57` after the bounded role-shell
 repair. Each receipt is bound to durable source evidence and the validator
 recomputes its digest and derives the lane counts. The final evidence-only update may advance the PR
 head, but the validator accepts that only when every intervening path is in
