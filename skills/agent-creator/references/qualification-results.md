@@ -153,7 +153,7 @@ the installed interface did not expose those signals. Those surfaces remain
 `NOT_ASSESSED` until a supported runtime event or independent evidence makes
 them observable.
 
-## Fresh Athena exact-head review
+## Prior Athena exact-head review
 
 - Reviewer: Chandrasekhar (`01a07d88-674c-7833-8e47-4e29185a3af4`)
 - Context: fresh, independent, read-only
@@ -170,3 +170,8 @@ them observable.
   skill discovery/load, implicit activation, role selection/application,
   effective configuration, scope, delegation, and nested-depth signals remain
   `NOT_ASSESSED`. No FAIL was reported.
+
+The final exact-head Athena receipt is recorded in the Draft PR discussion,
+because publishing a receipt into this repository necessarily creates a new
+Git revision. The PR discussion receipt is the acceptance record for the final
+head and is not treated as a source-code qualification signal.
