@@ -14,8 +14,8 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were freshly captured against implementation
-revision `a861884c78a9b2461d3b8e3f2040d17af0a3602f` after the bounded role-shell
-repair. Each receipt is bound to durable source evidence and the validator
+revision `104b4221a6901b2040d1ca4a680ca77fd87d5540` after the evidence repair.
+Each receipt is bound to durable source evidence and the validator
 recomputes its digest and derives the lane counts. Evidence-only updates may
 advance the PR head, but the validator accepts that only when every
 intervening path is in the allowlisted evidence set. This runtime evidence is
@@ -63,9 +63,9 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 
 | Lane | Fixture/process result | Authority/artifact result | Runtime signal limit |
 | --- | --- | --- | --- |
-| HR-01 role/sibling collision | Receipt-derived 10/10; each run has matching before/after fixture snapshots and the trace read `agent-creator/SKILL.md` plus both role files | collision/no-mutation invariants derived from 10 receipts; constraint text is not used as mutation proof | role application/implicit activation `NOT_ASSESSED` |
+| HR-01 role/sibling collision | Receipt-derived 10/10; each run has matching, recomputable before/after fixture manifests and the trace read `agent-creator/SKILL.md` plus both role files | deterministic normalized-boundary comparison and recomputable no-mutation manifests derived from 10 receipts; model prose is not used as collision proof | role selection/application/implicit activation `NOT_ASSESSED` |
 | HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each isolated run produced and hashed its own `fixture-N/result.json`, consumed the reference, ran the validator, and recorded `VALID` | per-run reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
-| HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | sandbox/probe/marker invariants derived from 10 receipts; delegation and self-acceptance are not inferred from constraint text and remain runtime `NOT_ASSESSED` | native role application `NOT_ASSESSED` |
+| HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | sandbox/probe/marker invariant derived from 10 receipts; delegation and self-acceptance remain runtime `NOT_ASSESSED` | native role application `NOT_ASSESSED` |
 
 One accepted trace also recorded a host sandbox denial while the model tried
 to inspect protected or out-of-fixture paths. Those denials are retained in

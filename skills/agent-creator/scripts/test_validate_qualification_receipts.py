@@ -45,8 +45,9 @@ class QualificationReceiptTests(unittest.TestCase):
 
     def test_unclassified_sandbox_violation_is_rejected(self):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
-        target = next(record for record in tampered if record["trace_events"]["sandbox_violation"])
-        target["evidence"].pop("sandbox_disposition")
+        target = next(record for record in tampered if record["case"] == "HR-03")
+        target["trace_events"]["sandbox_violation"] = True
+        target["evidence"].pop("sandbox_disposition", None)
         with self.assertRaises(ValueError):
             MODULE.validate(tampered)
 
@@ -69,6 +70,20 @@ class QualificationReceiptTests(unittest.TestCase):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
         target = next(record for record in tampered if record["case"] == "HR-01")
         target["evidence"]["state_after_sha256"] = "0" * 64
+        with self.assertRaises(ValueError):
+            MODULE.validate(tampered)
+
+    def test_hr01_requires_deterministic_collision_proof(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-01")
+        target["evidence"]["collision_fixture_observed"] = False
+        with self.assertRaises(ValueError):
+            MODULE.validate(tampered)
+
+    def test_hr01_requires_recomputable_state_manifests(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-01")
+        target["evidence"].pop("state_before_manifest")
         with self.assertRaises(ValueError):
             MODULE.validate(tampered)
 
