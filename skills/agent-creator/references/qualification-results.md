@@ -9,13 +9,13 @@ Rejected attempts are separately recorded in
 `qualification-exclusions.jsonl` with category, reason, source path, and trace
 hash; they are never counted as behavioral passes.
 
-The accepted runtime receipts were captured against implementation head
-`1b74a845316706ecf58b27ef9f29e24f0de25a4e` after the bounded evidence-chain
-repair. Each receipt records its trace hash and the validator derives the
-lane counts. Subsequent head `216e972bcd0c53de3d314c55dbbd819e4f85ba7d`
-changes only receipt/evaluator semantics and tests, not role runtime
-instructions. This runtime evidence is separate from the final exact-head
-Athena review.
+The accepted runtime receipts were freshly captured against implementation
+head `b0157eb4501286625166c81a557139c498889f47` after the bounded
+evidence-chain repair. Each receipt records its trace hash and the validator
+derives the lane counts. The final evidence-only update may advance the PR
+head, but the validator accepts that only when every intervening path is in
+the allowlisted receipt/results set. This runtime evidence is separate from
+the final exact-head Athena review.
 
 ## Runtime
 
