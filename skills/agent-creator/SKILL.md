@@ -123,6 +123,8 @@ Read the focused references only when needed:
   counts;
 - [qualification-evidence.jsonl](references/qualification-evidence.jsonl) for
   the compact durable binding that the validator recomputes for each receipt;
+- [qualification-prompts.jsonl](references/qualification-prompts.jsonl) for
+  the exact prompt variant IDs and hashes used by each partition;
 - [qualification-exclusions.jsonl](references/qualification-exclusions.jsonl)
   for hashed, rejected-attempt provenance; excluded runs never count as
   behavioral passes;

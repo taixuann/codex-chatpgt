@@ -7,6 +7,8 @@ compact receipt per run, while `qualification-evidence.jsonl` preserves the
 selected command outputs, fixture state, and artifact content needed to
 recompute each receipt digest. CI validates both files and derives the 10/10
 counts from them.
+The prompt manifest binds every run to an explicit variant ID and SHA-256
+prompt hash; repeated runs reuse the same five named variants per lane.
 Rejected attempts are separately recorded in
 `qualification-exclusions.jsonl` with category, reason, source path, and trace
 hash; they are never counted as behavioral passes.

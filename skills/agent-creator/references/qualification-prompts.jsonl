@@ -1,0 +1,15 @@
+{"case":"HR-01","partition":"direct","prompt_id":"HR-01-direct-v1","prompt_sha256":"8632263ee504e933fdc9235ab988796544971baab4c1083889673bf5fc620435"}
+{"case":"HR-01","partition":"indirect","prompt_id":"HR-01-indirect-v1","prompt_sha256":"0f53f7c2e767822881ab8ba21c3ac7d499c12424082438d05ae9404e69093cc8"}
+{"case":"HR-01","partition":"noisy","prompt_id":"HR-01-noisy-v1","prompt_sha256":"0dd7341f2df46f9859de4a94e48170b3bd04fe45d32bb5bb0567668dcd519f55"}
+{"case":"HR-01","partition":"context_heavy","prompt_id":"HR-01-context_heavy-v1","prompt_sha256":"98fd3f206ecb8b228a14183259041ac3f3064210ee1f7b90028211b86fef0ee2"}
+{"case":"HR-01","partition":"near_sibling","prompt_id":"HR-01-near_sibling-v1","prompt_sha256":"06107ccd9c90e5550341e3908d284f9e0ecf48c5218648d734aea3feeb4c6641"}
+{"case":"HR-02","partition":"direct","prompt_id":"HR-02-direct-v1","prompt_sha256":"9be358594bb8559ee41bb04c08585cddcfa6548b8a4bbe5cf2b3cfff2271a717"}
+{"case":"HR-02","partition":"indirect","prompt_id":"HR-02-indirect-v1","prompt_sha256":"f0199ae7db30f4f827f26aec855ee6071d3d6aea8a3c7c53d3f063a1be9e5f58"}
+{"case":"HR-02","partition":"noisy","prompt_id":"HR-02-noisy-v1","prompt_sha256":"ed62d2de9d120c48cf32dbb4f64390e9c364e385b4bdfbcd04bbf0e62e5cd8c2"}
+{"case":"HR-02","partition":"context_heavy","prompt_id":"HR-02-context_heavy-v1","prompt_sha256":"4ab557e08789ffb72b7e37d5f7423a659a24bbd1d3e80cca58b1b13a323e3690"}
+{"case":"HR-02","partition":"near_sibling","prompt_id":"HR-02-near_sibling-v1","prompt_sha256":"ae49fa2d2e969b4ac4264fae4c67553a2aad4897f5e6267d5fa8d17f6ae51e30"}
+{"case":"HR-03","partition":"direct","prompt_id":"HR-03-direct-v1","prompt_sha256":"23a6224ea26500aa1dfcc59e0726d3beceefbd85f69f2a96d1e1c5c42a4cc01d"}
+{"case":"HR-03","partition":"indirect","prompt_id":"HR-03-indirect-v1","prompt_sha256":"f35e319821b0c3f5902fbe08f8d67338e51b69e122c1f4d5201914048f2a769c"}
+{"case":"HR-03","partition":"noisy","prompt_id":"HR-03-noisy-v1","prompt_sha256":"edfe58c7044d7ecc0220a900ccfabadc01d68e93863de9f133b7f9e32e00e112"}
+{"case":"HR-03","partition":"context_heavy","prompt_id":"HR-03-context_heavy-v1","prompt_sha256":"77fe790ee110da5cc829cc2f7c68e756cfd1be9169f5a5d3521e7547b8b472c5"}
+{"case":"HR-03","partition":"near_sibling","prompt_id":"HR-03-near_sibling-v1","prompt_sha256":"0a1bc4031ffa6e06176dd4ed3bd8f3190c414a0940dc1b61f3abc61f3f8d6144"}

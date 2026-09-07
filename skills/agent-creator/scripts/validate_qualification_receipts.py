@@ -18,10 +18,12 @@ REASONING = "medium"
 CLI = "codex-cli 0.149.1"
 EVIDENCE_ONLY_UPDATE_PATHS = {
     "skills/agent-creator/references/qualification-evidence.jsonl",
+    "skills/agent-creator/references/qualification-prompts.jsonl",
     "skills/agent-creator/references/qualification-receipts.jsonl",
     "skills/agent-creator/references/qualification-results.md",
 }
 EVIDENCE_FILE = Path(__file__).parents[1] / "references" / "qualification-evidence.jsonl"
+PROMPT_FILE = Path(__file__).parents[1] / "references" / "qualification-prompts.jsonl"
 
 
 def sha256(path: Path) -> str:
@@ -73,7 +75,7 @@ def evidence_binding(record: dict) -> str:
     payload = {
         field: record.get(field)
         for field in (
-            "case", "run", "prompt_partition", "model", "reasoning", "codex_cli",
+            "case", "run", "prompt_partition", "prompt_id", "prompt_sha256", "model", "reasoning", "codex_cli",
             "prompt_transport", "capture_revision", "exit_code", "result",
             "trace_sha256", "artifact_sha256", "artifact_path", "marker", "trace_events", "evidence",
         )
@@ -97,6 +99,19 @@ def load_evidence(path: Path = EVIDENCE_FILE) -> dict[tuple[str, int], dict]:
     return indexed
 
 
+def load_prompt_manifest(path: Path = PROMPT_FILE) -> dict[tuple[str, str], dict]:
+    if not path.exists():
+        raise ValueError(f"missing qualification prompt manifest: {path}")
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    indexed = {(row.get("case"), row.get("partition")): row for row in rows}
+    if len(rows) != 15 or len(indexed) != 15:
+        raise ValueError("qualification prompt manifest must contain 15 unique variants")
+    for row in rows:
+        if not re.fullmatch(r"[0-9a-f]{64}", row.get("prompt_sha256", "")):
+            raise ValueError("qualification prompt manifest has an invalid prompt hash")
+    return indexed
+
+
 def read_status(root: Path) -> dict[int, tuple[int, str | None]]:
     result = {}
     for line in (root / "status.tsv").read_text().splitlines():
@@ -107,6 +122,7 @@ def read_status(root: Path) -> dict[int, tuple[int, str | None]]:
 
 def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Path | None = None) -> list[dict]:
     statuses = read_status(root)
+    prompts = load_prompt_manifest()
     if sorted(statuses) != list(range(1, 11)):
         raise ValueError(f"{case}: status.tsv must contain runs 1..10")
     records = []
@@ -129,6 +145,8 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
         stderr = trace.with_suffix(".stderr")
         stderr_text = stderr.read_text(errors="replace") if stderr.exists() else ""
         exit_code, marker_state = statuses[run]
+        partition = PARTITIONS[(run - 1) % len(PARTITIONS)]
+        prompt = prompts[(case, partition)]
         evidence = {}
         marker = None
         if case == "HR-01":
@@ -215,6 +233,8 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
         if sandbox_violation:
             evidence["sandbox_disposition"] = "DENIED_BY_HOST_SANDBOX"
         source_evidence = {
+            "prompt_id": prompt["prompt_id"],
+            "prompt_sha256": prompt["prompt_sha256"],
             "commands": [
                 {"command": item.get("command"), "output": item.get("aggregated_output", "")}
                 for item in completed_commands
@@ -234,6 +254,8 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                 "case": case,
                 "run": run,
                 "prompt_partition": PARTITIONS[(run - 1) % len(PARTITIONS)],
+                "prompt_id": prompt["prompt_id"],
+                "prompt_sha256": prompt["prompt_sha256"],
                 "model": MODEL,
                 "reasoning": REASONING,
                 "codex_cli": CLI,
@@ -292,6 +314,7 @@ def validate(
     counts = {case: 0 for case in CASES}
     seen = set()
     durable = load_evidence(evidence_path)
+    prompts = load_prompt_manifest()
     for record in records:
         case = record.get("case")
         run = record.get("run")
@@ -301,6 +324,9 @@ def validate(
         seen.add(key)
         if record.get("prompt_partition") != PARTITIONS[(run - 1) % 5]:
             raise ValueError(f"{key}: unexpected prompt partition")
+        prompt = prompts[(case, record["prompt_partition"])]
+        if record.get("prompt_id") != prompt["prompt_id"] or record.get("prompt_sha256") != prompt["prompt_sha256"]:
+            raise ValueError(f"{key}: prompt is not bound to the durable prompt manifest")
         for field, expected in (("model", MODEL), ("reasoning", REASONING), ("codex_cli", CLI), ("prompt_transport", "stdin")):
             if record.get(field) != expected:
                 raise ValueError(f"{key}: {field} does not match runtime contract")
@@ -321,7 +347,10 @@ def validate(
             raise ValueError(f"{key}: receipt source evidence differs from durable evidence")
         if not durable_row or any(
             durable_row.get(field) != record.get(field)
-            for field in ("trace_sha256", "artifact_sha256", "artifact_path", "evidence_binding_sha256")
+            for field in (
+                "trace_sha256", "artifact_sha256", "artifact_path", "prompt_id",
+                "prompt_sha256", "evidence_binding_sha256"
+            )
         ):
             raise ValueError(f"{key}: receipt is not bound to durable evidence")
         evidence = record.get("evidence", {})
@@ -393,6 +422,8 @@ def main() -> int:
                         "trace_sha256": record["trace_sha256"],
                         "artifact_sha256": record["artifact_sha256"],
                         "artifact_path": record["artifact_path"],
+                        "prompt_id": record["prompt_id"],
+                        "prompt_sha256": record["prompt_sha256"],
                         "evidence_binding_sha256": record["evidence_binding_sha256"],
                         "source_evidence": record["source_evidence"],
                     },

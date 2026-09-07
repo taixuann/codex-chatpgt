@@ -96,6 +96,13 @@ class QualificationReceiptTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate(tampered, evidence_path=Path(handle.name))
 
+    def test_unbound_prompt_hash_is_rejected(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-03")
+        target["prompt_sha256"] = "0" * 64
+        with self.assertRaises(ValueError):
+            MODULE.validate(tampered)
+
 
 if __name__ == "__main__":
     unittest.main()
