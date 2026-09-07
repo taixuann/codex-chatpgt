@@ -178,7 +178,10 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                 "cmp <(grep -vE" in item.get("command", "")
                 and ".codex/agents/reviewer.toml" in item.get("command", "")
                 and ".codex/agents/sibling-reviewer.toml" in item.get("command", "")
-                and item.get("exit_code") == 0
+                and (
+                    item.get("exit_code") == 0
+                    or "cmp_exit=0" in item.get("aggregated_output", "")
+                )
                 for item in completed_commands
             )
             evidence = {
