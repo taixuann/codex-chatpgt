@@ -19,6 +19,11 @@ class QualificationReceiptTests(unittest.TestCase):
         records = MODULE.load_records(RECEIPTS)
         self.assertEqual(MODULE.validate(records), {"HR-01": 10, "HR-02": 10, "HR-03": 10})
 
+    def test_stale_capture_revision_is_rejected(self):
+        records = MODULE.load_records(RECEIPTS)
+        with self.assertRaises(ValueError):
+            MODULE.validate(records, "0" * 40)
+
     def test_invalid_artifact_result_is_rejected(self):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
         target = next(record for record in tampered if record["case"] == "HR-02")

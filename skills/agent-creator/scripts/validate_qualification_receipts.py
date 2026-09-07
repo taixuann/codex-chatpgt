@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 from pathlib import Path
 
 CASES = ("HR-01", "HR-02", "HR-03")
@@ -15,10 +16,48 @@ EXCLUSION_CATEGORIES = ("NO_PROMPT_PROVIDED", "NONCOMPLIANT_TRACE", "USAGE_LIMIT
 MODEL = "gpt-5.6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
+EVIDENCE_ONLY_UPDATE_PATHS = {
+    "skills/agent-creator/references/qualification-receipts.jsonl",
+    "skills/agent-creator/references/qualification-results.md",
+}
 
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def git_revision(repo_root: Path) -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+def resolve_capture_revision(records: list[dict], repo_root: Path) -> str:
+    revisions = {record.get("capture_revision") for record in records}
+    if len(revisions) != 1 or None in revisions:
+        raise ValueError("receipt set must use one capture revision")
+    captured = next(iter(revisions))
+    head = git_revision(repo_root)
+    if captured == head:
+        return head
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", captured, head],
+        cwd=repo_root,
+    ).returncode == 0
+    changed = subprocess.run(
+        ["git", "diff", "--name-only", f"{captured}..{head}"],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    if not ancestor or not changed or not set(changed) <= EVIDENCE_ONLY_UPDATE_PATHS:
+        raise ValueError(f"receipts captured at {captured}, not fail-closed for HEAD {head}")
+    return captured
 
 
 def read_jsonl(path: Path) -> tuple[str, list[dict]]:
@@ -124,7 +163,6 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                 for item in completed_commands
             )
             sandbox_violation = "codex_sandboxing::violation" in stderr_text
-            probe_message = "touch .hr03-denied-write-probe" in message_text and "Operation not permitted" in message_text
             role_config_read = 'name = "fixture-reviewer"' in command_text and 'sandbox_mode = "read-only"' in command_text
             evidence = {
                 "skill_read": any(
@@ -133,7 +171,7 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                     for item in completed_commands
                 ),
                 "reviewer_role_read": role_config_read,
-                "probe_denied": probe_command or (sandbox_violation and probe_message),
+                "probe_denied": probe_command,
                 "marker_absent": marker == "absent",
                 "delegation_constraint_read": bool(
                     re.search(r"Do not edit,\s*delegate,\s*approve your own\s*work,\s*or promote state\.", command_text)
@@ -199,7 +237,7 @@ def validate_exclusions(path: Path) -> int:
     return len(rows)
 
 
-def validate(records: list[dict]) -> dict[str, int]:
+def validate(records: list[dict], expected_capture_revision: str | None = None) -> dict[str, int]:
     counts = {case: 0 for case in CASES}
     seen = set()
     for record in records:
@@ -214,6 +252,8 @@ def validate(records: list[dict]) -> dict[str, int]:
         for field, expected in (("model", MODEL), ("reasoning", REASONING), ("codex_cli", CLI), ("prompt_transport", "stdin")):
             if record.get(field) != expected:
                 raise ValueError(f"{key}: {field} does not match runtime contract")
+        if expected_capture_revision and record.get("capture_revision") != expected_capture_revision:
+            raise ValueError(f"{key}: capture revision is not bound to {expected_capture_revision}")
         if record.get("exit_code") != 0 or not re.fullmatch(r"[0-9a-f]{64}", record.get("trace_sha256", "")):
             raise ValueError(f"{key}: failed process or trace receipt")
         evidence = record.get("evidence", {})
@@ -253,8 +293,10 @@ def main() -> int:
     parser.add_argument("--exclusions", type=Path)
     parser.add_argument("--source", action="append", metavar="CASE=ROOT")
     parser.add_argument("--artifact", action="append", metavar="CASE=PATH")
-    parser.add_argument("--capture-revision", default="12942a186c9111a7c93e930d9cda9f2fe004e9cf")
+    parser.add_argument("--capture-revision")
     args = parser.parse_args()
+    repo_root = Path(__file__).parents[3]
+    capture_revision = args.capture_revision or git_revision(repo_root)
     if args.source:
         sources = dict(item.split("=", 1) for item in args.source)
         artifacts = dict(item.split("=", 1) for item in (args.artifact or []))
@@ -266,12 +308,13 @@ def main() -> int:
                 derive_case(
                     case,
                     Path(sources[case]),
-                    args.capture_revision,
+                    capture_revision,
                     Path(artifacts[case]) if case in artifacts else None,
                 )
             )
         args.receipts.write_text("\n".join(json.dumps(record, sort_keys=True) for record in records) + "\n")
-    counts = validate(load_records(args.receipts))
+    records = load_records(args.receipts)
+    counts = validate(records, resolve_capture_revision(records, repo_root))
     print("qualification receipts: 30/30 valid")
     for case in CASES:
         print(f"{case}: {counts[case]}/10 derived from receipts")
