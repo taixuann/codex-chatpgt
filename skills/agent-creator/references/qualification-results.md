@@ -10,8 +10,8 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were freshly captured against implementation
-head `b0157eb4501286625166c81a557139c498889f47` after the bounded
-evidence-chain repair. Each receipt records its trace hash and the validator
+head `edca11b1af0269b7a029966a2c6c04418820daa8` after the bounded role-shell
+repair. Each receipt records its trace hash and the validator
 derives the lane counts. The final evidence-only update may advance the PR
 head, but the validator accepts that only when every intervening path is in
 the allowlisted receipt/results set. This runtime evidence is separate from
