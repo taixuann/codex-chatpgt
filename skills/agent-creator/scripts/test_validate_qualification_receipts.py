@@ -43,6 +43,28 @@ class QualificationReceiptTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.validate(tampered)
 
+    def test_prompt_constraint_does_not_prove_hr03_behavior(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-03")
+        target["evidence"]["probe_denied"] = False
+        target["evidence"]["delegation_constraint_read"] = True
+        with self.assertRaises(ValueError):
+            MODULE.validate(tampered)
+
+    def test_shared_artifact_path_is_rejected(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-02" and record["run"] == 2)
+        target["artifact_path"] = "fixture-1/result.json"
+        with self.assertRaises(ValueError):
+            MODULE.validate(tampered)
+
+    def test_model_prose_does_not_prove_hr01_no_mutation(self):
+        tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
+        target = next(record for record in tampered if record["case"] == "HR-01")
+        target["evidence"]["state_after_sha256"] = "0" * 64
+        with self.assertRaises(ValueError):
+            MODULE.validate(tampered)
+
 
 if __name__ == "__main__":
     unittest.main()

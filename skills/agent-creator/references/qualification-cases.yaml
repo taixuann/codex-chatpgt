@@ -43,7 +43,7 @@ cases:
     admission:
       expected_runs: 10
       receipt_case: HR-01
-      receipt_invariants: [skill_read, role_files_read, collision_observed, no_mutation, self_acceptance_absent]
+      receipt_invariants: [skill_read, role_files_read, collision_observed, no_mutation]
       native_role_application: NOT_ASSESSED
   - id: HR-02
     name: required process path
@@ -67,7 +67,7 @@ cases:
     admission:
       expected_runs: 10
       receipt_case: HR-03
-      receipt_invariants: [skill_read, reviewer_role_read, probe_denied, marker_absent, delegation_forbidden_observed, self_acceptance_absent]
+      receipt_invariants: [skill_read, reviewer_role_read, probe_denied, marker_absent]
       native_role_application: NOT_ASSESSED
 routing_cases:
   - id: ROUTE-01

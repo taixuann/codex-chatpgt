@@ -10,7 +10,7 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were captured against implementation head
-`4ad3fe108d51518d458fb9b8f2565ad1063adbc2` after the bounded evidence-chain
+`1b74a845316706ecf58b27ef9f29e24f0de25a4e` after the bounded evidence-chain
 repair. Each receipt records its trace hash and the validator derives the
 lane counts; the later evidence-only commit changes no role or skill runtime
 instructions. This runtime evidence is separate from the final exact-head
@@ -55,14 +55,14 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 
 | Lane | Fixture/process result | Authority/artifact result | Runtime signal limit |
 | --- | --- | --- | --- |
-| HR-01 role/sibling collision | Receipt-derived 10/10; each trace read `agent-creator/SKILL.md` and both role files, identified the duplicate sibling, and recorded no mutation | collision/no-mutation invariants derived from 10 receipts | role application/implicit activation `NOT_ASSESSED` |
-| HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each trace consumed the required reference, ran the validator, and recorded the exact artifact hash and `VALID` result | reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
-| HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | authority/delegation/sandbox/stop invariants derived from 10 receipts | native role application `NOT_ASSESSED` |
+| HR-01 role/sibling collision | Receipt-derived 10/10; each run has matching before/after fixture snapshots and the trace read `agent-creator/SKILL.md` plus both role files | collision/no-mutation invariants derived from 10 receipts; constraint text is not used as mutation proof | role application/implicit activation `NOT_ASSESSED` |
+| HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each isolated run produced and hashed its own `fixture-N/result.json`, consumed the reference, ran the validator, and recorded `VALID` | per-run reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
+| HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | sandbox/probe/marker invariants derived from 10 receipts; delegation and self-acceptance are not inferred from constraint text and remain runtime `NOT_ASSESSED` | native role application `NOT_ASSESSED` |
 
 One accepted trace also recorded a host sandbox denial while the model tried
 to inspect protected or out-of-fixture paths. Those denials are retained in
 the receipt event metadata and must be explicitly classified as
-`DENIED_BY_HOST_SANDBOX`; the validator does not silently ignore them.
+`DENIED_BY_HOST_SANDBOX`; the validator does not silently ignore it.
 
 The earlier incomplete results were harness defects: zsh arrays are 1-based,
 so the first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex
