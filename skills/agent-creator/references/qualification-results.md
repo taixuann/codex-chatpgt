@@ -33,7 +33,10 @@ the final exact-head Athena review.
 - Admission fixtures used a temporary `CODEX_HOME` containing only the
   authenticated runtime link and a project-local fixture. The temporary home
   was excluded from artifact snapshots.
-- Supported app-server `skills/list` discovery was independently observed;
+- Supported app-server `skills/list` API discovery was independently observed
+  and recorded in `qualification-discovery.json`; it returned no matching
+  repository `agent-creator` skill, so repository skill discovery remains
+  `NOT_ASSESSED`;
   per-turn skill-load, implicit activation, native role selection/application,
   effective spawned configuration, and scope/delegation/depth events remain
   `NOT_ASSESSED`. Model text was not promoted to an activation signal.

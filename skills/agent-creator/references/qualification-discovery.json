@@ -1,0 +1,12 @@
+{
+  "probe": "codex app-server skills/list",
+  "codex_cli": "codex-cli 0.149.1",
+  "cwd": "/private/tmp/codex-chatpgt-issue105",
+  "force_reload": true,
+  "errors": [],
+  "repo_skill_name": "agent-creator",
+  "repo_skill_match_count": 0,
+  "api_probe": "OBSERVED",
+  "repo_skill_discovery": "NOT_ASSESSED",
+  "reason": "The supported listing API completed, but did not return a matching repository skill for the skills/agent-creator path."
+}
