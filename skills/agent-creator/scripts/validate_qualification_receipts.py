@@ -21,6 +21,7 @@ EVIDENCE_ONLY_UPDATE_PATHS = {
     "skills/agent-creator/references/qualification-prompts.jsonl",
     "skills/agent-creator/references/qualification-receipts.jsonl",
     "skills/agent-creator/references/qualification-results.md",
+    "skills/agent-creator/references/qualification-discovery.json",
 }
 EVIDENCE_FILE = Path(__file__).parents[1] / "references" / "qualification-evidence.jsonl"
 PROMPT_FILE = Path(__file__).parents[1] / "references" / "qualification-prompts.jsonl"
