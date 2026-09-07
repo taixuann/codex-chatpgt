@@ -12,7 +12,8 @@ hash; they are never counted as behavioral passes.
 The accepted runtime receipts were captured against implementation head
 `1b74a845316706ecf58b27ef9f29e24f0de25a4e` after the bounded evidence-chain
 repair. Each receipt records its trace hash and the validator derives the
-lane counts; the later evidence-only commit changes no role or skill runtime
+lane counts. Subsequent head `216e972bcd0c53de3d314c55dbbd819e4f85ba7d`
+changes only receipt/evaluator semantics and tests, not role runtime
 instructions. This runtime evidence is separate from the final exact-head
 Athena review.
 

@@ -21,14 +21,6 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def tree_sha256(root: Path) -> str:
-    entries = []
-    for path in sorted(root.rglob("*")):
-        if path.is_file() and "__pycache__" not in path.parts:
-            entries.append(f"{path.relative_to(root).as_posix()}\0{sha256(path)}")
-    return hashlib.sha256("\n".join(entries).encode()).hexdigest()
-
-
 def read_jsonl(path: Path) -> tuple[str, list[dict]]:
     # Validate JSONL shape while retaining the exact bytes for the trace hash.
     raw = path.read_bytes()
@@ -91,7 +83,6 @@ def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Pat
                     re.search(r"Do not edit,\s*delegate,\s*approve your own\s*work,\s*or promote state\.", command_text)
                 ),
             }
-            fixture = root / f"fixture-{run}"
             before = root / f"state-before-{run}.sha256"
             after = root / f"state-after-{run}.sha256"
             if not before.exists() or not after.exists():
