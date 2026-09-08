@@ -39,12 +39,12 @@ separate from the final exact-head Athena review.
   and recorded in `qualification-discovery.json`. The default probe had no
   matching repository skill, while the supported explicit
   `skills/extraRoots/set` probe found the canonical repository skill;
-  per-turn skill-load, implicit activation, native role selection/application,
-  effective spawned configuration, and scope/delegation/depth events remain
-  `NOT_ASSESSED`;
-  per-turn skill-load, implicit activation, native role selection/application,
-  effective spawned configuration, and scope/delegation/depth events remain
-  `NOT_ASSESSED`. Model text was not promoted to an activation signal.
+  per-turn skill-load, implicit activation, effective spawned configuration,
+  user/project scope, sandbox enforcement, and nested-depth enforcement remain
+  `NOT_ASSESSED`. The separate synthetic App Server role-spawn receipt observes
+  explicit delegation, parent/child linkage, synthetic role identity, and
+  parent completion;
+  model text was not promoted to an activation signal.
 
 ## Donor reproduction
 
@@ -181,3 +181,40 @@ The final exact-head Athena receipt is recorded in the Draft PR discussion,
 because publishing a receipt into this repository necessarily creates a new
 Git revision. The PR discussion receipt is the acceptance record for the final
 head and is not treated as a source-code qualification signal.
+
+## Canonical donor reproduction
+
+The rerunnable `scripts/verify_upstream_baseline.py` helper reproduced the
+unmodified pinned donor before adaptation. Its compact receipt is
+`qualification-baseline.json` and records the exact commit, eight expected
+blob identities, Apache-2.0 license, parse result, structural validation, and
+the current evaluator's expected fail-closed result. The donor's structural
+validator passes; the current evaluator rejects its obsolete corpus contract,
+which is the recorded adaptation gap rather than a false baseline pass.
+
+## Native App Server qualification probe
+
+The synthetic-only `scripts/probe_runtime_agents.py` helper was rerun against
+Codex Desktop/CLI `0.149.1` with requested model `gpt-5.6-luna` and requested
+reasoning `medium`. The durable receipts are
+`qualification-discovery.json` and `qualification-native-runtime.json`.
+
+Observed native signals:
+
+- `skills/list` default scan: no matching repository skill under the
+  canonical `skills/` source path;
+- supported `skills/extraRoots/set` followed by `skills/list`: matching
+  synthetic `agent-creator` skill found;
+- explicit delegation: `collabAgentToolCall`/`spawnAgent` observed;
+- child relationship: `parentThreadId` observed;
+- role application: synthetic child `agentRole=probe-reviewer` observed;
+- child idle status and parent turn completion observed in the final bounded
+  receipt. Effective configuration fields remain `NOT_ASSESSED` where the
+  protocol did not expose them.
+
+The probe intentionally contains no real repository role prose or private
+control-plane content. Effective reasoning/sandbox configuration,
+per-turn skill-load, implicit activation, user/project scope, and nested-depth
+enforcement remain `NOT_ASSESSED` because the supported interface did not
+expose sufficient independent evidence. The probe does not promote model text
+to a runtime signal.

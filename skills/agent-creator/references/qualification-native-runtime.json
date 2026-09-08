@@ -1,0 +1,38 @@
+{
+  "capture_revision": "818ccc131bfc3dad828df76f350ec17b0fc4dd32",
+  "captured_at_utc": "2026-09-08T02:51:26+00:00",
+  "child_metadata_observability": "OBSERVED",
+  "child_parent_relation": "OBSERVED",
+  "child_thread_metadata": [
+    {
+      "agentRole": "probe-reviewer",
+      "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-b34g4kwi",
+      "id": "01a07eed-49a0-7a00-9977-add3e1932bfe",
+      "modelProvider": "openai",
+      "parentThreadId": "01a07eed-1b9c-7e21-b7dd-88f1bede1964",
+      "status": {
+        "type": "idle"
+      }
+    }
+  ],
+  "collab_spawn_event": "OBSERVED",
+  "effective_reasoning_effort": "NOT_EXPOSED",
+  "errors": [],
+  "fixture": "synthetic_only",
+  "implicit_activation": "NOT_ASSESSED",
+  "model": "gpt-5.6-luna",
+  "native_skill_load": "NOT_ASSESSED",
+  "parent_thread_id": "01a07eed-1b9c-7e21-b7dd-88f1bede1964",
+  "parent_turn_completed": true,
+  "receiver_thread_ids": [
+    "01a07eed-49a0-7a00-9977-add3e1932bfe"
+  ],
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning_effort": "medium",
+  "return_completion": "OBSERVED",
+  "role_identity": "OBSERVED",
+  "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (agent-creator-native-probe; 0.1)",
+  "sandbox": "read-only",
+  "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
+  "sender_thread_id": "01a07eed-1b9c-7e21-b7dd-88f1bede1964"
+}

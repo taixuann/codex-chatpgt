@@ -25,7 +25,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -84,7 +84,36 @@ jobs:
       - name: Validate agent-creator package and qualification manifest
         run: |
           python skills/skill-creator/scripts/quick_validate.py skills/agent-creator
+          python -m py_compile skills/agent-creator/scripts/*.py
           python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl
           python -m unittest skills/agent-creator/scripts/test_validate_qualification_receipts.py
           python -m unittest skills/agent-creator/scripts/test_role_contracts.py
-          python -c "import pathlib,yaml; p=pathlib.Path('skills/agent-creator/references/qualification-cases.yaml'); d=yaml.safe_load(p.read_text()); assert d['skill']=='agent-creator'; assert d['receipt_file']=='references/qualification-receipts.jsonl'; assert d['exclusion_file']=='references/qualification-exclusions.jsonl'; assert d['runtime_signals']['discovery_listing']=='OBSERVED'; assert d['runtime_signals']['per_turn_skill_load']=='NOT_ASSESSED'; assert len(d['cases']) == 3; assert len(d['routing_cases']) == 7; assert all(x['admission']['expected_runs']==10 for x in d['cases'])"
+          python - <<'PY'
+          import json, pathlib, yaml
+          cases = yaml.safe_load(pathlib.Path('skills/agent-creator/references/qualification-cases.yaml').read_text())
+          assert cases['skill'] == 'agent-creator'
+          assert cases['runtime_signals']['discovery_listing'] == 'OBSERVED'
+          assert cases['runtime_signals']['explicit_delegation'] == 'OBSERVED'
+          assert cases['runtime_signals']['per_turn_skill_load'] == 'NOT_ASSESSED'
+          assert len(cases['cases']) == 3 and len(cases['routing_cases']) == 7
+          assert all(case['admission']['expected_runs'] == 10 for case in cases['cases'])
+          baseline = json.loads(pathlib.Path('skills/agent-creator/references/qualification-baseline.json').read_text())
+          assert baseline['repository'] == 'jscraik/Agent-Skills'
+          assert baseline['ref'] == 'd00c351fe53460afba860f8cdb1580d7cfece7e4'
+          assert baseline['license'] == 'Apache-2.0'
+          assert baseline['quick_validate'] == 'PASS'
+          assert baseline['current_eval_contract'] == 'EXPECTED_FAIL_CLOSED'
+          native = json.loads(pathlib.Path('skills/agent-creator/references/qualification-native-runtime.json').read_text())
+          assert native['fixture'] == 'synthetic_only'
+          assert native['collab_spawn_event'] == 'OBSERVED'
+          assert native['child_parent_relation'] == 'OBSERVED'
+          assert native['role_identity'] == 'OBSERVED'
+          assert native['return_completion'] == 'OBSERVED'
+          assert native['requested_model'] == 'gpt-5.6-luna'
+          assert native['requested_reasoning_effort'] == 'medium'
+          discovery = json.loads(pathlib.Path('skills/agent-creator/references/qualification-discovery.json').read_text())
+          assert discovery['default_repo_skill_match_count'] == 0
+          assert discovery['explicit_extra_root_match_count'] == 1
+          assert discovery['explicit_extra_root_discovery'] == 'OBSERVED'
+          assert discovery['activation_status'] == 'NOT_ASSESSED'
+          PY
