@@ -222,8 +222,11 @@ All 25 rows timed out in the bounded `codex exec` lane and are durably marked
 revision; no wrong-owner or fabricated-capability PASS is claimed.
 
 The historical HR-01/02/03 evidence remains 30/30 at its original capture
-revision and is preserved unchanged. The strict current-head validator refuses
-to present it as exact-head evidence after qualification harness/validator
+revision and is preserved as historical evidence. Obsolete protocol labels
+were redacted from persisted command-output captures; each receipt retains its
+pre-redaction source-evidence digest and has a recomputed post-redaction
+binding. The strict current-head validator still refuses to present this
+historical set as exact-head evidence after qualification harness/validator
 changes; a fresh 30-run runtime requalification is therefore `NOT_ASSESSED`,
 not silently carried forward as PASS. The old eight-row exclusion count is
 updated to nine by the durable PROCESS_FAILURE row above.
