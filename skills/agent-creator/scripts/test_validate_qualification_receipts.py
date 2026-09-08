@@ -195,6 +195,15 @@ class QualificationReceiptTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate_native_receipt(Path(handle.name), SCRIPT.parents[3])
 
+    def test_native_receipt_rejects_mixed_nested_probe_capture(self):
+        native = json.loads((SCRIPT.parent.parent / "references" / "qualification-native-runtime.json").read_text())
+        native["no_delegation_probes"] = [{"capture_revision": native["capture_revision"]}]
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+            json.dump(native, handle)
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate_native_receipt(Path(handle.name), SCRIPT.parents[3])
+
     def test_native_receipt_rejects_effective_model_mismatch(self):
         native = json.loads((SCRIPT.parent.parent / "references" / "qualification-native-runtime.json").read_text())
         native["qualification_status"] = "PASS"

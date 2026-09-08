@@ -55,11 +55,13 @@ The retained adapters have distinct agent-specific reasons:
 | Prometheus | bounded workspace-write execution boundary | changed paths, tests, deviations, rollback |
 | Franky | bounded substrate permission boundary | scope, findings, validation, approval boundary |
 
-Skill hints are deliberately kept out of the TOML adapters because the active
-Codex runtime rejects unknown profile keys. Route skills through role
-instructions and the normal discovery surface instead. If a requested skill
-is not installed on the active runtime, the parent must report that limitation
-and use the task contract or an available capability instead.
+Skill bindings are omitted from these TOML adapters because none of the
+retained roles currently requires a role-local `skills.config` restriction.
+When such a restriction is needed, use only the installed runtime's supported
+`skills.config` schema; never treat it as permission to grant an unavailable
+capability. If a requested skill is not installed on the active runtime, the
+parent must report that limitation and use the task contract or an available
+capability instead.
 
 Names are personality labels; descriptions and developer instructions are the
 machine-readable routing contract. Model and reasoning are runtime defaults,

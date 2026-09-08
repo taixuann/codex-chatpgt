@@ -83,6 +83,8 @@ def resolve_capture_revision(records: list[dict], repo_root: Path) -> str:
 
 def validate_native_receipt(path: Path, repo_root: Path) -> str:
     data = json.loads(path.read_text())
+    if "no_delegation_probes" in data:
+        raise ValueError("native role-spawn receipt must not mix independently captured probes")
     required = {
         "capture_revision", "captured_at_utc", "fixture", "runtime", "script", "script_sha256",
         "requested_model", "requested_reasoning_effort", "model",
@@ -175,7 +177,16 @@ def validate_scope_receipt(path: Path, repo_root: Path) -> str:
             raise ValueError(f"scope receipt is missing {scope} evidence")
         if not isinstance(result["child_thread_metadata"], list):
             raise ValueError(f"scope receipt has invalid {scope} child metadata")
-    expected = "OBSERVED" if all(result["role_identity"] == "OBSERVED" for result in results.values()) else "NOT_ASSESSED"
+    expected = (
+        "OBSERVED"
+        if all(
+            result["role_identity"] == "OBSERVED"
+            and result["collab_spawn_event"] == "OBSERVED"
+            and result["child_parent_relation"] == "OBSERVED"
+            for result in results.values()
+        )
+        else "NOT_ASSESSED"
+    )
     if data["scope_status"] != expected:
         raise ValueError("scope status is not recomputable from scope results")
     return revision
