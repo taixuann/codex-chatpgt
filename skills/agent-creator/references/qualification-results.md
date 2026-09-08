@@ -13,7 +13,7 @@ Rejected attempts are separately recorded in
 `qualification-exclusions.jsonl` with category, reason, source path, and trace
 hash; they are never counted as behavioral passes.
 
-The accepted runtime receipts were freshly captured against implementation
+The historical accepted runtime receipts were captured against implementation
 revision `aebb862b3d16f3d80a83f95e6ca7dba4a4b3ab6d` after the native-signal
 classification repair. Two host sandbox warnings and one plugin-sync warning were retained in
 the raw capture metadata; none were silently converted into a behavioral pass.
@@ -41,9 +41,10 @@ separate from the final exact-head Athena review.
   `skills/extraRoots/set` probe found the canonical repository skill;
   per-turn skill-load, implicit activation, effective spawned configuration,
   user/project scope, sandbox enforcement, and nested-depth enforcement remain
-  `NOT_ASSESSED`. The separate synthetic App Server role-spawn receipt observes
+  `NOT_ASSESSED`. A prior synthetic App Server role-spawn receipt observed
   explicit delegation, parent/child linkage, synthetic role identity, and
-  parent completion;
+  parent completion, but the fresh exact-head probe did not reproduce those
+  signals;
   model text was not promoted to an activation signal.
 
 ## Donor reproduction
@@ -107,7 +108,7 @@ explicitly marks missing-capability, user-scope, explicit-delegation, and
 nested-depth runtime surfaces `NOT_ASSESSED` because no supported native event
 was available. These are not inferred from model prose.
 
-The receipt validator reports `30/30` valid records, derives `10/10` for each
+The historical receipt validator reports `30/30` valid records, derives `10/10` for each
 HR lane, and validates the eight-row exclusion ledger. CI invokes the same
 validator; it does not trust aggregate counts written into the case manifest
 or unbound hash-shaped receipt fields. A forged all-zero hash receipt is
@@ -153,7 +154,7 @@ enforcement remain `NOT_ASSESSED`.
 ## Deterministic checks
 
 - `quick_validate.py skills/agent-creator`: PASS
-- `validate_qualification_receipts.py`: PASS, `30/30`; each HR lane derived
+- Historical `validate_qualification_receipts.py`: PASS, `30/30`; each HR lane derived
   `10/10` from per-run receipts; 8 excluded attempts validated from the
   durable ledger
 - `validate_eval_cases.py skills/skill-creator/evals/cases.yaml`: PASS

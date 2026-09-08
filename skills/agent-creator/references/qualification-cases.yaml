@@ -40,10 +40,10 @@ runtime_signals:
   forbidden_delegation: NOT_ASSESSED
 synthetic_probe:
   fixture: synthetic_only
-  explicit_delegation: OBSERVED
-  parent_child_relation: OBSERVED
-  role_identity: OBSERVED
-  return_completion: OBSERVED
+  explicit_delegation: NOT_ASSESSED
+  parent_child_relation: NOT_ASSESSED
+  role_identity: NOT_ASSESSED
+  return_completion: NOT_ASSESSED
   ordinary_no_delegation: NOT_ASSESSED
   forbidden_delegation: NOT_ASSESSED
   nested_depth: NOT_ASSESSED
