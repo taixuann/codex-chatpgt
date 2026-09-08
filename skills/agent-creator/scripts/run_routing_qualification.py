@@ -100,7 +100,7 @@ ROUTING_EXPECTED = {
 MISSING_VARIANTS = (
     "Create a role that depends on a reusable capability called `missing-procedure`, but that capability is not installed or available.",
     "A proposed agent would need an unavailable procedure. Decide what to return; do not invent, inline, or claim that procedure exists.",
-    "The task asks for a custom role whose only distinction is a missing reusable skill. The capability catalog has no such skill.",
+    "The task asks only to classify a custom role whose distinction is a missing reusable skill; do not create the skill or the role. The capability catalog has no such skill.",
     "The capability catalog has no such skill; classify the missing capability only, rather than creating a skill or adding workflow prose.",
 )
 
