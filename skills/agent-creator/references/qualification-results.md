@@ -228,10 +228,11 @@ changes; a fresh 30-run runtime requalification is therefore `NOT_ASSESSED`,
 not silently carried forward as PASS. The old eight-row exclusion count is
 updated to nine by the durable PROCESS_FAILURE row above.
 
-These exact-head limitations are deliberate. They do not remove the old
-`franky.task.v1`/`result.v1` residue because no such live strings exist in the
-repository; the remaining `athena.review-result.v1` assertion is a negative
-test proving that stale protocol text is absent from Athena instructions.
+These exact-head limitations are deliberate. No live
+`franky.task.v1`/`result.v1` strings exist in the repository, so no deletion
+was made for those names. The remaining `athena.review-result.v1` assertion is
+a negative test proving that stale protocol text is absent from Athena
+instructions.
 
 ## Canonical donor reproduction
 
@@ -250,22 +251,11 @@ Codex Desktop/CLI `0.149.1` with requested model `gpt-5.6-luna` and requested
 reasoning `medium`. The durable receipts are
 `qualification-discovery.json` and `qualification-native-runtime.json`.
 
-Observed native signals:
-
-- `skills/list` default scan: no matching repository skill under the
-  canonical `skills/` source path;
-- supported `skills/extraRoots/set` followed by `skills/list`: matching
-  synthetic `agent-creator` skill found;
-- explicit delegation: `collabAgentToolCall`/`spawnAgent` observed;
-- child relationship: `parentThreadId` observed;
-- role application: synthetic child `agentRole=probe-reviewer` observed;
-- child idle status and parent turn completion observed in the final bounded
-  receipt. Effective configuration fields remain `NOT_ASSESSED` where the
-  protocol did not expose them.
-
 The probe intentionally contains no real repository role prose or private
-control-plane content. Effective reasoning/sandbox configuration,
-per-turn skill-load, implicit activation, user/project scope, and nested-depth
-enforcement remain `NOT_ASSESSED` because the supported interface did not
-expose sufficient independent evidence. The probe does not promote model text
-to a runtime signal.
+control-plane content. The fresh role-spawn, no-delegation,
+forbidden-delegation, depth, and user/project-scope attempts emitted no
+completed turn or child metadata within the bounded lane. Native spawn-count
+zero is retained for the two no-delegation attempts, but role application,
+effective configuration, completion, user/project scope, nested-depth
+enforcement, per-turn skill-load, and implicit activation remain
+`NOT_ASSESSED`. The probe does not promote model text to a runtime signal.
