@@ -68,7 +68,7 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 | Lane | Fixture/process result | Authority/artifact result | Runtime signal limit |
 | --- | --- | --- | --- |
 | HR-01 role/sibling collision | Receipt-derived 10/10; each run has matching, recomputable before/after fixture manifests and the trace read `agent-creator/SKILL.md` plus both role files | deterministic normalized-boundary comparison and recomputable no-mutation manifests derived from 10 receipts; model prose is not used as collision proof | role selection/application/implicit activation `NOT_ASSESSED` |
-| HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each isolated run produced and hashed its own `fixture-N/result.json`, consumed the reference, ran the validator, and recorded `VALID` | per-run reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
+| HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each isolated run has a run-specific `fixture-N/result.json` hash, required reference evidence, validator execution, and `VALID` output | reference, script, artifact presence/content, and validation invariants are durable; artifact-creation event is `NOT_ASSESSED` | per-turn skill-load/activation and artifact creation `NOT_ASSESSED` |
 | HR-03 authority/delegation/sandbox | Receipt-derived 10/10 records; the marker was absent, but the workspace-write host did not deny the write probe, so the process result is `NOT_ASSESSED` | no marker was observed after the model's cleanup, but no denial event was available; delegation and self-acceptance remain runtime `NOT_ASSESSED` | sandbox denial and native role application `NOT_ASSESSED` |
 
 Some traces recorded host sandbox denials while the model tried to inspect
@@ -209,15 +209,16 @@ observed, project scope identity was `NOT_ASSESSED`, and nested-depth
 enforcement remained `NOT_ASSESSED`; no model prose was promoted to runtime
 evidence.
 
-The production routing matrix used the actual current `agent-creator`
-description and retained role descriptions: seven classes × three variants
-(21 rows), all observed at a 60-second per-case timeout. Four
-missing-capability variants were also observed after variant-1 wording was
-clarified. A prior variant-1 wrong-owner result and retry are retained as
-development evidence; they are not counted as passes. The current 30-run HR
-receipts are recomputable and contain no obsolete protocol labels. The
-nine-row exclusion ledger retains prior non-admitted provenance and does not
-count excluded attempts as behavioral passes.
+The model-led production routing matrix used the actual current
+`agent-creator` description and retained role descriptions: seven classes ×
+three variants (21 rows), all observed at a 60-second per-case timeout. Four
+model-led missing-capability variants were also observed after variant-1
+wording was clarified. Native routing/dispatch remains `NOT_ASSESSED`. A
+prior variant-1 wrong-owner result and retry are retained as development
+evidence; they are not counted as passes. The current 30-run HR receipts are
+recomputable and contain no obsolete protocol labels. The nine-row exclusion
+ledger retains prior non-admitted provenance and does not count excluded
+attempts as behavioral passes.
 
 These exact-head limitations are deliberate. The role adapters contain no
 legacy Franky task/result protocol; the negative role-contract test preserves

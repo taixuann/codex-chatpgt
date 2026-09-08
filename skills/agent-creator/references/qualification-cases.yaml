@@ -34,8 +34,12 @@ runtime_signals:
   explicit_delegation: NOT_ASSESSED
   nested_depth: NOT_ASSESSED
   sandbox_enforcement: NOT_ASSESSED
-  production_routing: NOT_ASSESSED
-  missing_capability: NOT_ASSESSED
+  # These are model-led codex exec routing observations, not native dispatch
+  # events. Native routing/dispatch remains separately unobserved.
+  production_routing: OBSERVED
+  missing_capability: OBSERVED
+  native_production_routing: NOT_ASSESSED
+  native_missing_capability: NOT_ASSESSED
   ordinary_no_delegation: NOT_ASSESSED
   forbidden_delegation: NOT_ASSESSED
 synthetic_probe:
@@ -72,6 +76,7 @@ cases:
       expected_runs: 10
       receipt_case: HR-02
       receipt_invariants: [reference_read, script_run, artifact_present, artifact_valid]
+      artifact_creation_event: NOT_ASSESSED
       native_skill_activation: NOT_ASSESSED
   - id: HR-03
     name: authority/delegation/sandbox boundary
