@@ -109,11 +109,11 @@ routing_cases:
     expected_owner: parent or implementation role
   - id: ROUTE-06
     class: sibling_negative
-    request: conduct an independent review procedure rather than define reviewer isolation
+    request: apply the maintained later athena-review procedure rather than define reviewer isolation
     expected_owner: later athena-review skill
   - id: ROUTE-07
     class: ambiguous
-    request: make a named specialist do a repeatable task whose reusable capability is unavailable, without a distinct runtime boundary
+    request: classify a named specialist request whose reusable capability is unavailable, without authorizing role creation or skill authoring
     expected_owner: NEEDS_SKILL
 not_assessed_surfaces:
   - per-turn skill-load event after discovery

@@ -78,14 +78,14 @@ ROUTING_VARIANTS = {
         "This is normal implementation work with ordinary validation and no separate isolation requirement. Which owner should receive it?",
     ),
     "ROUTE-06": (
-        "Perform an independent review procedure using an established rubric; do not define or change reviewer isolation.",
-        "Review the finished change against the supplied criteria and return findings without editing it.",
-        "The task is the reusable independent-review workflow itself, not creation of a reviewer role or a permission profile. Route it.",
+        "Apply the maintained later athena-review skill to perform an independent review using its established rubric; do not define or change reviewer isolation.",
+        "Use the existing later athena-review skill to review the finished change against supplied criteria and return findings without editing it.",
+        "This is selection and application of the established athena-review procedure, not authoring a new reusable workflow or creating a reviewer role. Route it.",
     ),
     "ROUTE-07": (
-        "Make a named specialist perform a repeatable task, but the required reusable procedure is not installed or available and no distinct runtime boundary is required.",
-        "A user supplied a specialist title for a routine procedure, but the required capability is unavailable; there is no different model, sandbox, context, authority, or return contract.",
-        "The request sounds like a role request, but its only distinction is an unavailable reusable capability. Do not invent or inline that capability; choose the bounded outcome.",
+        "Make a named specialist perform a repeatable task, but the required reusable procedure is unavailable; this request only classifies the missing capability and does not authorize creating it.",
+        "A user supplied a specialist title for a routine procedure, but the capability is unavailable and this request does not authorize role creation or skill authoring.",
+        "The request sounds like a role request, but its only distinction is an unavailable reusable capability. Do not create or inline it; report the bounded missing-capability outcome.",
     ),
 }
 ROUTING_EXPECTED = {
@@ -101,7 +101,7 @@ MISSING_VARIANTS = (
     "Create a role that depends on a reusable capability called `missing-procedure`, but that capability is not installed or available.",
     "A proposed agent would need an unavailable procedure. Decide what to return; do not invent, inline, or claim that procedure exists.",
     "The task asks for a custom role whose only distinction is a missing reusable skill. The capability catalog has no such skill.",
-    "The capability catalog has no such skill and no owner can supply it in this request. Return the bounded missing-capability outcome.",
+    "The capability catalog has no such skill; classify the missing capability only, rather than creating a skill or adding workflow prose.",
 )
 
 
