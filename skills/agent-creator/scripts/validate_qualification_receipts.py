@@ -664,7 +664,7 @@ def validate(
         else:
             required = ("skill_read", "reviewer_role_read", "probe_denied", "marker_absent")
             if record.get("result") == "NOT_ASSESSED":
-                if record.get("marker") != "absent" or not evidence.get("skill_read") or not evidence.get("reviewer_role_read"):
+                if record.get("marker") != "absent" or evidence.get("probe_denied"):
                     raise ValueError(f"{key}: HR-03 NOT_ASSESSED receipt is not bounded")
                 counts[case] += 1
                 continue
