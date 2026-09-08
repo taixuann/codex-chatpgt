@@ -206,7 +206,7 @@ trace SHA-256
 `b52184223e1cf0ef7a1776d39543b8836ec24da85200090649d60ee24086ff55`.
 
 The exact-head synthetic App Server capture at
-`c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1` used Codex Desktop/0.149.1 with
+`33ea3a985c07bf4645ddfafc9871f86e222ae8f2` used Codex Desktop/0.149.1 with
 `gpt-5.6-luna` and medium reasoning. Role spawn, ordinary no-delegation,
 forbidden-delegation, depth, and isolated user/project scope probes emitted no
 completed turn or child metadata within their bounded 20-second lane. Native
