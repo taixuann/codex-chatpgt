@@ -30,6 +30,7 @@ ROUTING_SOURCE_PATHS = (
     "agents/athena.toml",
     "agents/franky.toml",
     "agents/prometheus.toml",
+    "skills/agent-creator/references/qualification-cases.yaml",
     "skills/agent-creator/scripts/run_routing_qualification.py",
 )
 FAILURE_CLASSES = {
@@ -82,9 +83,9 @@ ROUTING_VARIANTS = {
         "The task is the reusable independent-review workflow itself, not creation of a reviewer role or a permission profile. Route it.",
     ),
     "ROUTE-07": (
-        "Make a named specialist perform a repeatable task, but no distinct runtime boundary or role isolation is required.",
-        "A user supplied a specialist title for a routine procedure; there is no different model, sandbox, context, authority, or return contract.",
-        "The request sounds like a role request, but after inspection it is only a repeatable procedure with no role boundary. Choose the correct disposition.",
+        "Make a named specialist perform a repeatable task, but the required reusable procedure is not installed or available and no distinct runtime boundary is required.",
+        "A user supplied a specialist title for a routine procedure, but the required capability is unavailable; there is no different model, sandbox, context, authority, or return contract.",
+        "The request sounds like a role request, but its only distinction is an unavailable reusable capability. Do not invent or inline that capability; choose the bounded outcome.",
     ),
 }
 ROUTING_EXPECTED = {
@@ -100,7 +101,7 @@ MISSING_VARIANTS = (
     "Create a role that depends on a reusable capability called `missing-procedure`, but that capability is not installed or available.",
     "A proposed agent would need an unavailable procedure. Decide what to return; do not invent, inline, or claim that procedure exists.",
     "The task asks for a custom role whose only distinction is a missing reusable skill. The capability catalog has no such skill.",
-    "Do not solve the absent-capability request by adding workflow prose to developer_instructions. Select the bounded outcome.",
+    "The capability catalog has no such skill and no owner can supply it in this request. Return the bounded missing-capability outcome.",
 )
 
 
@@ -258,7 +259,10 @@ def run_case(repo_root: Path, case_id: str, prompt: str, expected: str, variant:
     rationale = result.get("rationale", "")
     verdict = "NOT_ASSESSED" if failure_class else ("OBSERVED" if exit_code == 0 and selected == expected else "FAIL")
     if lane == "missing-capability":
-        forbidden = re.search(r"invent|fabricat|embed.*(procedure|workflow)|skill.*exists", rationale.lower()) is not None
+        forbidden = re.search(
+            r"(?:\b(?:i|we|agent|model|it)\s+(?:will|would|should|can|may)\s+|\b(?:proceed|solve|handle)\b[^.]{0,80}\b)(?:invent|fabricat|embed|inline)",
+            rationale.lower(),
+        ) is not None or re.search(r"\bskill\s+(?:already\s+)?exists\b", rationale.lower()) is not None
         verdict = "NOT_ASSESSED" if failure_class else ("OBSERVED" if exit_code == 0 and selected == "NEEDS_SKILL" and not forbidden else "FAIL")
     return {
         "lane": lane,

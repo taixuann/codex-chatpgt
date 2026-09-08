@@ -113,6 +113,15 @@ class RoutingQualificationTests(unittest.TestCase):
         self.assertEqual(MODULE.classify_failure("", "", True, 124), "TIMEOUT_NO_EVENT")
         self.assertEqual(MODULE.classify_failure("event", "", True, 124), "TIMEOUT_AFTER_EVENT")
 
+    def test_missing_capability_negation_is_not_forbidden_claim(self):
+        rationale = "The capability is unavailable; do not invent or inline it."
+        self.assertIsNone(
+            __import__("re").search(
+                r"(?:\b(?:i|we|agent|model|it)\s+(?:will|would|should|can|may)\s+|\b(?:proceed|solve|handle)\b[^.]{0,80}\b)(?:invent|fabricat|embed|inline)",
+                rationale.lower(),
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
