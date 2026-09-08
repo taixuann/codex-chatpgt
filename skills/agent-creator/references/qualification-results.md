@@ -14,8 +14,8 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The accepted runtime receipts were freshly captured against implementation
-revision `a3709af93b43edcd2141898c52618d9dd31eaacb` after the Franky guidance
-repair. Two host sandbox warnings and one plugin-sync warning were retained in
+revision `aebb862b3d16f3d80a83f95e6ca7dba4a4b3ab6d` after the native-signal
+classification repair. Two host sandbox warnings and one plugin-sync warning were retained in
 the raw capture metadata; none were silently converted into a behavioral pass.
 Each receipt is bound to durable source evidence and the validator
 recomputes its digest and derives the lane counts. Evidence-only updates may
@@ -114,11 +114,13 @@ or unbound hash-shaped receipt fields. A forged all-zero hash receipt is
 rejected by the focused regression test.
 
 After the native qualification-infrastructure repair, the full HR-01/02/03
-admission lane was rerun from exact implementation head `4ed2ab9`. HR-02's
-five prompt variants were revised to name the actual fixture reference path
+admission lane was rerun from exact implementation head
+`aebb862b3d16f3d80a83f95e6ca7dba4a4b3ab6d`. HR-02's five prompt variants were
+revised to name the actual fixture reference path
 (`.agents/skills/fixture-procedure/references/required.md`) after one observed
 run proved that the shorter wording allowed a wrong-path read. The new v2
-prompt hashes and all 30 receipts are bound to `4ed2ab9`; the validator derives
+prompt hashes and all 30 receipts are bound to
+`aebb862b3d16f3d80a83f95e6ca7dba4a4b3ab6d`; the validator derives
 10/10 for every lane.
 
 ## Role migration evidence
