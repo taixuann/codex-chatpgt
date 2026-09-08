@@ -27,15 +27,19 @@ runtime_signals:
   explicit_extra_root_discovery: OBSERVED
   per_turn_skill_load: NOT_ASSESSED
   implicit_activation: NOT_ASSESSED
-  role_selection: OBSERVED
-  role_application: OBSERVED
+  role_selection: NOT_ASSESSED
+  role_application: NOT_ASSESSED
   effective_spawned_configuration: NOT_ASSESSED
   user_project_scope: NOT_ASSESSED
-  explicit_delegation: OBSERVED
+  explicit_delegation: NOT_ASSESSED
   nested_depth: NOT_ASSESSED
-  parent_child_relation: OBSERVED
-  return_completion: OBSERVED
   sandbox_enforcement: NOT_ASSESSED
+synthetic_probe:
+  fixture: synthetic_only
+  explicit_delegation: OBSERVED
+  parent_child_relation: OBSERVED
+  role_identity: OBSERVED
+  return_completion: OBSERVED
 cases:
   - id: HR-01
     name: role/sibling collision
@@ -106,6 +110,7 @@ routing_cases:
 not_assessed_surfaces:
   - per-turn skill-load event after discovery
   - implicit activation event
+  - real native role selection/application and explicit delegation
   - effective spawned role configuration and sandbox enforcement
   - user-scope versus project-scope runtime proof
   - nested depth runtime matrix

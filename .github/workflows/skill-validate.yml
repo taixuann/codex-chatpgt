@@ -93,8 +93,13 @@ jobs:
           cases = yaml.safe_load(pathlib.Path('skills/agent-creator/references/qualification-cases.yaml').read_text())
           assert cases['skill'] == 'agent-creator'
           assert cases['runtime_signals']['discovery_listing'] == 'OBSERVED'
-          assert cases['runtime_signals']['explicit_delegation'] == 'OBSERVED'
+          assert cases['runtime_signals']['explicit_delegation'] == 'NOT_ASSESSED'
+          assert cases['runtime_signals']['role_selection'] == 'NOT_ASSESSED'
+          assert cases['runtime_signals']['role_application'] == 'NOT_ASSESSED'
           assert cases['runtime_signals']['per_turn_skill_load'] == 'NOT_ASSESSED'
+          assert cases['synthetic_probe']['fixture'] == 'synthetic_only'
+          assert cases['synthetic_probe']['explicit_delegation'] == 'OBSERVED'
+          assert cases['synthetic_probe']['role_identity'] == 'OBSERVED'
           assert len(cases['cases']) == 3 and len(cases['routing_cases']) == 7
           assert all(case['admission']['expected_runs'] == 10 for case in cases['cases'])
           baseline = json.loads(pathlib.Path('skills/agent-creator/references/qualification-baseline.json').read_text())
