@@ -108,21 +108,23 @@ explicitly marks missing-capability, user-scope, explicit-delegation, and
 nested-depth runtime surfaces `NOT_ASSESSED` because no supported native event
 was available. These are not inferred from model prose.
 
-The historical receipt validator reports `30/30` valid records, derives `10/10` for each
-HR lane, and validates the eight-row exclusion ledger. CI invokes the same
-validator; it does not trust aggregate counts written into the case manifest
-or unbound hash-shaped receipt fields. A forged all-zero hash receipt is
-rejected by the focused regression test.
+The exact-head receipt validator reports `30/30` valid records, derives
+`10/10` for each HR lane, and validates the nine-row exclusion ledger. CI
+invokes the same validator; it does not trust aggregate counts written into
+the case manifest or unbound hash-shaped receipt fields. A forged all-zero
+hash receipt is rejected by the focused regression test.
 
 After the native qualification-infrastructure repair, the full HR-01/02/03
 admission lane was rerun from exact implementation head
-`aebb862b3d16f3d80a83f95e6ca7dba4a4b3ab6d`. HR-02's five prompt variants were
+`9c008ec4407e7836f40e33c8e5be3b753570f1a5`. HR-02's five prompt variants were
 revised to name the actual fixture reference path
 (`.agents/skills/fixture-procedure/references/required.md`) after one observed
 run proved that the shorter wording allowed a wrong-path read. The new v2
 prompt hashes and all 30 receipts are bound to
-`aebb862b3d16f3d80a83f95e6ca7dba4a4b3ab6d`; the validator derives
-10/10 for every lane.
+`9c008ec4407e7836f40e33c8e5be3b753570f1a5`; the validator derives
+10/10 for every lane. The first sandboxed attempt was separately observed as
+a DNS/network timeout; the successful rerun used the authorized network lane
+without changing the model, reasoning, or sandbox settings.
 
 ## Role migration evidence
 
@@ -221,15 +223,11 @@ All 25 rows timed out in the bounded `codex exec` lane and are durably marked
 `NOT_ASSESSED` with model, reasoning, elapsed/trace hashes, and exact capture
 revision; no wrong-owner or fabricated-capability PASS is claimed.
 
-The historical HR-01/02/03 evidence remains 30/30 at its original capture
-revision and is preserved as historical evidence. Obsolete protocol labels
-were redacted from persisted command-output captures; each receipt retains its
-pre-redaction source-evidence digest and has a recomputed post-redaction
-binding. The strict current-head validator still refuses to present this
-historical set as exact-head evidence after qualification harness/validator
-changes; a fresh 30-run runtime requalification is therefore `NOT_ASSESSED`,
-not silently carried forward as PASS. The old eight-row exclusion count is
-updated to nine by the durable PROCESS_FAILURE row above.
+The previous historical set remains recoverable in Git history; it is not used
+for current qualification. The current 30-run receipts are exact-head,
+recomputable, and contain no obsolete protocol labels. The nine-row exclusion
+ledger retains the prior wrong-root `PROCESS_FAILURE` provenance and does not
+count excluded attempts as behavioral passes.
 
 These exact-head limitations are deliberate. The role adapters contain no
 legacy Franky task/result protocol; the negative role-contract test preserves
