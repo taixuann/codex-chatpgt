@@ -1,12 +1,31 @@
 {
-  "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1",
-  "captured_at_utc": "2026-09-08T08:49:38+00:00",
+  "capture_revision": "ce2a0577ef109f051fe83d091e6109263a607d05",
+  "captured_at_utc": "2026-09-08T16:38:15+00:00",
+  "child_metadata": [
+    {
+      "agentRole": "probe-reviewer",
+      "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-uhb2_vyn",
+      "id": "01a081e2-42e1-7442-8d7e-ef2b25482905",
+      "modelProvider": "openai",
+      "parentThreadId": "01a081e2-0800-7b71-90b8-fd53c7f04c9b",
+      "status": {
+        "type": "idle"
+      }
+    }
+  ],
   "fixture": "synthetic_only",
-  "runtime": "Codex Desktop/0.149.1",
+  "native_events_observed": "OBSERVED",
+  "nested_depth_status": "NOT_ASSESSED",
+  "parent_child_spawn": "OBSERVED",
+  "reason": "No grandchild limit event is inferred from model prose.",
+  "requested_config": {
+    "agents": {
+      "max_depth": 1
+    }
+  },
   "requested_model": "gpt-5.6-luna",
   "requested_reasoning_effort": "medium",
-  "requested_config": {"agents": {"max_depth": 1}, "native_events_observed": "OBSERVED"},
-  "nested_depth_status": "NOT_ASSESSED",
-  "parent_child_spawn": "NOT_ASSESSED",
-  "reason": "The supported config surface was sent, but no native grandchild or depth-limit event was emitted within the bounded probe."
+  "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (agent-creator-native-probe; 0.1)",
+  "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
+  "script_sha256": "caf75da4ef129cf6cd4ce9e5fda7422b9b5044d661248e92618313cd78111b3f"
 }

@@ -1,12 +1,50 @@
 {
-  "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1",
-  "captured_at_utc": "2026-09-08T08:47:22+00:00",
+  "capture_revision": "ce2a0577ef109f051fe83d091e6109263a607d05",
+  "captured_at_utc": "2026-09-08T16:35:30+00:00",
   "fixture": "synthetic_only",
-  "runtime": "Codex App Server/0.149.1",
+  "reason": "Scope status uses native child metadata only.",
   "requested_model": "gpt-5.6-luna",
   "requested_reasoning_effort": "medium",
+  "runtime": "Codex App Server",
+  "scope_results": {
+    "project": {
+      "child_parent_relation": "OBSERVED",
+      "child_thread_metadata": [
+        {
+          "agentRole": null,
+          "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-_a41ogx8",
+          "id": "01a081df-b5eb-74d0-9777-59d14783e979",
+          "modelProvider": "openai",
+          "parentThreadId": "01a081df-853c-7de2-abec-8bf9d162bf35",
+          "status": {
+            "type": "idle"
+          }
+        }
+      ],
+      "collab_spawn_event": "OBSERVED",
+      "role_identity": "NOT_ASSESSED",
+      "role_name": "probe-project-reviewer"
+    },
+    "user": {
+      "child_parent_relation": "OBSERVED",
+      "child_thread_metadata": [
+        {
+          "agentRole": "probe-user-reviewer",
+          "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-exscjbd2",
+          "id": "01a081dd-d8fa-7f63-b70a-64b06288ac3e",
+          "modelProvider": "openai",
+          "parentThreadId": "01a081dd-a60e-7631-8d4b-10792ea087f0",
+          "status": {
+            "type": "idle"
+          }
+        }
+      ],
+      "collab_spawn_event": "OBSERVED",
+      "role_identity": "OBSERVED",
+      "role_name": "probe-user-reviewer"
+    }
+  },
   "scope_status": "NOT_ASSESSED",
-  "user": {"role_name": "probe-user-reviewer", "role_identity": "NOT_ASSESSED", "child_parent_relation": "NOT_ASSESSED"},
-  "project": {"role_name": "probe-project-reviewer", "role_identity": "NOT_ASSESSED", "child_parent_relation": "NOT_ASSESSED"},
-  "reason": "Both isolated user and project custom-agent fixtures were attempted; the runtime emitted no native child metadata within the bounded probe."
+  "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
+  "script_sha256": "caf75da4ef129cf6cd4ce9e5fda7422b9b5044d661248e92618313cd78111b3f"
 }
