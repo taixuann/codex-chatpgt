@@ -1,13 +1,13 @@
 {
-  "capture_revision": "df5aefec7993169222868c876a8763dfc0448da6",
-  "captured_at_utc": "2026-09-08T17:59:11+00:00",
+  "capture_revision": "781b1b7d33fed22698d004c7d248d8e634ef7c9c",
+  "captured_at_utc": "2026-09-08T18:11:40+00:00",
   "child_metadata": [
     {
       "agentRole": "probe-reviewer",
-      "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-iir__36m",
-      "id": "01a0822c-5c24-7b63-be18-090d450fb333",
+      "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-b4cl8hb7",
+      "id": "01a08237-cc7a-7390-ad7b-7d4528c9ffca",
       "modelProvider": "openai",
-      "parentThreadId": "01a0822c-2ca5-73d3-8e2c-6e8290b85306",
+      "parentThreadId": "01a08237-a13b-73c2-a1d0-54454e82ab9e",
       "status": {
         "type": "idle"
       }
