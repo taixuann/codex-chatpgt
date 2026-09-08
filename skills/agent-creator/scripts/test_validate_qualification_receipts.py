@@ -177,6 +177,8 @@ class QualificationReceiptTests(unittest.TestCase):
                 "native_skill_load": "NOT_ASSESSED",
                 "implicit_activation": "NOT_ASSESSED",
                 "child_thread_metadata": [{"agentRole": "probe-reviewer"}],
+                "qualification_status": "PASS",
+                "reason": "synthetic test receipt",
             }
             with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
                 json.dump(native, handle)

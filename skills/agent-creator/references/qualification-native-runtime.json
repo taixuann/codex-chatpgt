@@ -1,38 +1,24 @@
 {
-  "capture_revision": "818ccc131bfc3dad828df76f350ec17b0fc4dd32",
-  "captured_at_utc": "2026-09-08T02:51:26+00:00",
-  "child_metadata_observability": "OBSERVED",
-  "child_parent_relation": "OBSERVED",
-  "child_thread_metadata": [
-    {
-      "agentRole": "probe-reviewer",
-      "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-b34g4kwi",
-      "id": "01a07eed-49a0-7a00-9977-add3e1932bfe",
-      "modelProvider": "openai",
-      "parentThreadId": "01a07eed-1b9c-7e21-b7dd-88f1bede1964",
-      "status": {
-        "type": "idle"
-      }
-    }
-  ],
-  "collab_spawn_event": "OBSERVED",
-  "effective_reasoning_effort": "NOT_EXPOSED",
-  "errors": [],
+  "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1",
+  "captured_at_utc": "2026-09-08T08:48:01+00:00",
   "fixture": "synthetic_only",
-  "implicit_activation": "NOT_ASSESSED",
+  "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (agent-creator-native-probe; 0.1)",
+  "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
+  "script_sha256": "2124095e01fb3c4c0003fe5ee897254c467f0f41510d31de514d503482f35556",
   "model": "gpt-5.6-luna",
-  "native_skill_load": "NOT_ASSESSED",
-  "parent_thread_id": "01a07eed-1b9c-7e21-b7dd-88f1bede1964",
-  "parent_turn_completed": true,
-  "receiver_thread_ids": [
-    "01a07eed-49a0-7a00-9977-add3e1932bfe"
-  ],
   "requested_model": "gpt-5.6-luna",
   "requested_reasoning_effort": "medium",
-  "return_completion": "OBSERVED",
-  "role_identity": "OBSERVED",
-  "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (agent-creator-native-probe; 0.1)",
-  "sandbox": "read-only",
-  "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
-  "sender_thread_id": "01a07eed-1b9c-7e21-b7dd-88f1bede1964"
+  "qualification_status": "NOT_ASSESSED",
+  "reason": "The installed App Server started the synthetic fixtures but did not emit a completed turn or native child metadata within the bounded 20-second probe; no role-application, effective-setting, or depth signal is inferred from model prose.",
+  "collab_spawn_event": "NOT_ASSESSED",
+  "child_parent_relation": "NOT_ASSESSED",
+  "role_identity": "NOT_ASSESSED",
+  "return_completion": "NOT_ASSESSED",
+  "native_skill_load": "NOT_ASSESSED",
+  "implicit_activation": "NOT_ASSESSED",
+  "child_thread_metadata": [],
+  "no_delegation_probes": [
+    {"scenario": "ordinary_no_delegation", "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1", "native_events_observed": "OBSERVED", "native_spawn_event_count": 0, "native_spawn_event_status": "OBSERVED_ZERO", "return_completion": "NOT_ASSESSED"},
+    {"scenario": "forbidden_delegation", "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1", "native_events_observed": "OBSERVED", "native_spawn_event_count": 0, "native_spawn_event_status": "OBSERVED_ZERO", "return_completion": "NOT_ASSESSED"}
+  ]
 }

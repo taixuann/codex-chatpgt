@@ -1,0 +1,12 @@
+{
+  "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1",
+  "captured_at_utc": "2026-09-08T08:49:38+00:00",
+  "fixture": "synthetic_only",
+  "runtime": "Codex Desktop/0.149.1",
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning_effort": "medium",
+  "requested_config": {"agents": {"max_depth": 1}, "native_events_observed": "OBSERVED"},
+  "nested_depth_status": "NOT_ASSESSED",
+  "parent_child_spawn": "NOT_ASSESSED",
+  "reason": "The supported config surface was sent, but no native grandchild or depth-limit event was emitted within the bounded probe."
+}

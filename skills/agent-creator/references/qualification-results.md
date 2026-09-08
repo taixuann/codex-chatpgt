@@ -192,6 +192,46 @@ because publishing a receipt into this repository necessarily creates a new
 Git revision. The PR discussion receipt is the acceptance record for the final
 head and is not treated as a source-code qualification signal.
 
+## Final qualification repair attempt
+
+The continuation repair added a fail-closed native receipt validator. Native
+receipts now bind the full capture SHA, production probe path, and probe-script
+SHA-256; non-ancestor captures and changed probe scripts are rejected by
+focused tests. The exclusion ledger contains nine rows, including the
+`PROCESS_FAILURE` record for the prior HR-02 wrong-root reference attempt;
+its raw trace remains outside Git at
+`/private/tmp/agent-creator-admission-clean/HR-02-stdin-10/run-3.jsonl` with
+trace SHA-256
+`b52184223e1cf0ef7a1776d39543b8836ec24da85200090649d60ee24086ff55`.
+
+The exact-head synthetic App Server capture at
+`c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1` used Codex Desktop/0.149.1 with
+`gpt-5.6-luna` and medium reasoning. Role spawn, ordinary no-delegation,
+forbidden-delegation, depth, and isolated user/project scope probes emitted no
+completed turn or child metadata within their bounded 20-second lane. Native
+spawn-count zero is retained for the two no-delegation probes, but completion,
+role application, effective settings, depth enforcement, and scope application
+remain `NOT_ASSESSED`; no model prose was promoted to runtime evidence.
+
+The production routing matrix was attempted with the actual current
+`agent-creator` description and retained role descriptions: seven classes ×
+three variants (21 rows). The four missing-capability variants were also run.
+All 25 rows timed out in the bounded `codex exec` lane and are durably marked
+`NOT_ASSESSED` with model, reasoning, elapsed/trace hashes, and exact capture
+revision; no wrong-owner or fabricated-capability PASS is claimed.
+
+The historical HR-01/02/03 evidence remains 30/30 at its original capture
+revision and is preserved unchanged. The strict current-head validator refuses
+to present it as exact-head evidence after qualification harness/validator
+changes; a fresh 30-run runtime requalification is therefore `NOT_ASSESSED`,
+not silently carried forward as PASS. The old eight-row exclusion count is
+updated to nine by the durable PROCESS_FAILURE row above.
+
+These exact-head limitations are deliberate. They do not remove the old
+`franky.task.v1`/`result.v1` residue because no such live strings exist in the
+repository; the remaining `athena.review-result.v1` assertion is a negative
+test proving that stale protocol text is absent from Athena instructions.
+
 ## Canonical donor reproduction
 
 The rerunnable `scripts/verify_upstream_baseline.py` helper reproduced the

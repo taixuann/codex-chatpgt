@@ -1,0 +1,12 @@
+{
+  "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1",
+  "captured_at_utc": "2026-09-08T08:47:22+00:00",
+  "fixture": "synthetic_only",
+  "runtime": "Codex App Server/0.149.1",
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning_effort": "medium",
+  "scope_status": "NOT_ASSESSED",
+  "user": {"role_name": "probe-user-reviewer", "role_identity": "NOT_ASSESSED", "child_parent_relation": "NOT_ASSESSED"},
+  "project": {"role_name": "probe-project-reviewer", "role_identity": "NOT_ASSESSED", "child_parent_relation": "NOT_ASSESSED"},
+  "reason": "Both isolated user and project custom-agent fixtures were attempted; the runtime emitted no native child metadata within the bounded probe."
+}
