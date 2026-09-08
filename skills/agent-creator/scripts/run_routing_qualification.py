@@ -271,6 +271,9 @@ def run_case(repo_root: Path, case_id: str, prompt: str, expected: str, variant:
         "model": MODEL,
         "reasoning": REASONING,
         "codex_cli": CLI,
+        "stage": lane,
+        "command": command,
+        "timeout_seconds": timeout_seconds,
         "prompt_sha256": sha256_text(full_prompt),
         "response_sha256": sha256_text(stdout),
         "stderr_sha256": sha256_text(stderr),
@@ -322,6 +325,10 @@ def validate_receipts(path: Path, repo_root: Path) -> dict[str, int]:
         if key[0] != lane or key[1:] in seen or row.get("model") != MODEL or row.get("reasoning") != REASONING:
             raise ValueError(f"invalid routing receipt: {key}")
         seen.add(key[1:])
+        if row.get("stage") != lane or not isinstance(row.get("command"), list) or not row["command"]:
+            raise ValueError(f"routing receipt is missing exact command/stage evidence: {key}")
+        if not isinstance(row.get("timeout_seconds"), int) or row["timeout_seconds"] <= 0:
+            raise ValueError(f"routing receipt is missing an exact positive timeout: {key}")
         if row.get("source_fingerprint") != source_fingerprint(repo_root):
             raise ValueError(f"source fingerprint mismatch: {key}")
         if row.get("qualification_status") == "NOT_ASSESSED":

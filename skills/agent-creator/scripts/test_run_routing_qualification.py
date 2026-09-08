@@ -36,6 +36,9 @@ class RoutingQualificationTests(unittest.TestCase):
                 "qualification_status": "NOT_ASSESSED",
                 "failure_class": "TIMEOUT_NO_EVENT",
                 "expected_owner": "agent-creator" if lane == "routing" else "NEEDS_SKILL",
+                "stage": lane,
+                "command": ["codex", "exec"],
+                "timeout_seconds": 60,
                 "capture_revision": capture,
                 "source_fingerprint": MODULE.source_fingerprint(repo),
             }
