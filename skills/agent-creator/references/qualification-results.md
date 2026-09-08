@@ -13,15 +13,13 @@ Rejected attempts are separately recorded in
 `qualification-exclusions.jsonl` with category, reason, source path, and trace
 hash; they are never counted as behavioral passes.
 
-The historical accepted runtime receipts were captured against implementation
-revision `aebb862b3d16f3d80a83f95e6ca7dba4a4b3ab6d` after the native-signal
-classification repair. Two host sandbox warnings and one plugin-sync warning were retained in
-the raw capture metadata; none were silently converted into a behavioral pass.
-Each receipt is bound to durable source evidence and the validator
-recomputes its digest and derives the lane counts. Evidence-only updates may
-advance the PR head, but the validator accepts that only when every
-intervening path is in the allowlisted evidence set. This runtime evidence is
-separate from the final exact-head Athena review.
+The current receipt set was derived at the exact evidence head
+`882e8e0c` (full SHA in Git history) from authorized runs using
+`gpt-5.6-luna` with medium reasoning. Each receipt is bound to durable source
+evidence and the validator recomputes its digest and derives lane counts.
+Evidence-only updates may advance the PR head only through the explicit
+allowlists. This runtime evidence is separate from the final exact-head Athena
+review.
 
 ## Runtime
 
@@ -34,18 +32,18 @@ separate from the final exact-head Athena review.
   the corrected zsh harness uses its 1-based prompt index for every lane.
 - Admission fixtures used a temporary `CODEX_HOME` containing only the
   authenticated runtime link and a project-local fixture. The temporary home
-  was excluded from artifact snapshots.
+  was excluded from artifact snapshots; the HR sandbox remained
+  `workspace-write`.
 - Supported app-server `skills/list` API discovery was independently observed
   and recorded in `qualification-discovery.json`. The default probe had no
   matching repository skill, while the supported explicit
   `skills/extraRoots/set` probe found the canonical repository skill;
   per-turn skill-load, implicit activation, effective spawned configuration,
-  user/project scope, sandbox enforcement, and nested-depth enforcement remain
-  `NOT_ASSESSED`. A prior synthetic App Server role-spawn receipt observed
-  explicit delegation, parent/child linkage, synthetic role identity, and
-  parent completion, but the fresh exact-head probe did not reproduce those
-  signals;
-  model text was not promoted to an activation signal.
+  project scope, sandbox enforcement, and nested-depth enforcement remain
+  `NOT_ASSESSED`. The fresh exact-head role-spawn probe observed child
+  metadata, parent/child linkage, synthetic role identity, and completion;
+  user scope was observed separately. Model text was not promoted to an
+  activation signal.
 
 ## Donor reproduction
 
@@ -71,14 +69,13 @@ direct, indirect, noisy, context-heavy, and near-sibling wording.
 | --- | --- | --- | --- |
 | HR-01 role/sibling collision | Receipt-derived 10/10; each run has matching, recomputable before/after fixture manifests and the trace read `agent-creator/SKILL.md` plus both role files | deterministic normalized-boundary comparison and recomputable no-mutation manifests derived from 10 receipts; model prose is not used as collision proof | role selection/application/implicit activation `NOT_ASSESSED` |
 | HR-02 skill/reference/script/artifact | Receipt-derived 10/10; each isolated run produced and hashed its own `fixture-N/result.json`, consumed the reference, ran the validator, and recorded `VALID` | per-run reference, script, artifact, and validation invariants derived from 10 receipts | per-turn skill-load/activation `NOT_ASSESSED` |
-| HR-03 authority/delegation/sandbox | Receipt-derived 10/10; each trace read the skill and reviewer role, attempted only the bounded probe, and recorded denied write plus absent marker | sandbox/probe/marker invariant derived from 10 receipts; delegation and self-acceptance remain runtime `NOT_ASSESSED` | native role application `NOT_ASSESSED` |
+| HR-03 authority/delegation/sandbox | Receipt-derived 10/10 records; the marker was absent, but the workspace-write host did not deny the write probe, so the process result is `NOT_ASSESSED` | no marker was observed after the model's cleanup, but no denial event was available; delegation and self-acceptance remain runtime `NOT_ASSESSED` | sandbox denial and native role application `NOT_ASSESSED` |
 
-Two accepted traces also recorded host sandbox denials while the model tried
-to inspect protected or out-of-fixture paths. Those denials are retained in
-the receipt event metadata and explicitly classified as
-`DENIED_BY_HOST_SANDBOX`; the validator does not silently ignore them.
-One accepted trace recorded a remote plugin-sync warning; it did not change the
-fixture result or get treated as a skill-discovery or activation signal.
+Some traces recorded host sandbox denials while the model tried to inspect
+protected or out-of-fixture paths. Those denials are retained in receipt event
+metadata and explicitly classified as `DENIED_BY_HOST_SANDBOX`; the validator
+does not silently ignore them. The HR-03 write probe itself was not denied by
+the workspace-write host, so that signal remains `NOT_ASSESSED`.
 
 The earlier incomplete results were harness defects: zsh arrays are 1-based,
 so the first `prompts[$((i-1))]` lookup supplied an empty prompt and `codex
@@ -114,17 +111,13 @@ invokes the same validator; it does not trust aggregate counts written into
 the case manifest or unbound hash-shaped receipt fields. A forged all-zero
 hash receipt is rejected by the focused regression test.
 
-After the native qualification-infrastructure repair, the full HR-01/02/03
-admission lane was rerun from exact implementation head
-`9c008ec4407e7836f40e33c8e5be3b753570f1a5`. HR-02's five prompt variants were
-revised to name the actual fixture reference path
-(`.agents/skills/fixture-procedure/references/required.md`) after one observed
-run proved that the shorter wording allowed a wrong-path read. The new v2
-prompt hashes and all 30 receipts are bound to
-`9c008ec4407e7836f40e33c8e5be3b753570f1a5`; the validator derives
-10/10 for every lane. The first sandboxed attempt was separately observed as
-a DNS/network timeout; the successful rerun used the authorized network lane
-without changing the model, reasoning, or sandbox settings.
+After the native qualification-infrastructure repair, HR-01 was rerun with a
+v4 prompt manifest that requires a command-level `SKILL.md` read, and HR-03
+was rerun as a complete ten-run source after an earlier five-row source was
+rejected. HR-02 retained its v2 prompt manifest. The final durable receipt set
+is derived at `882e8e0c` and validates 30/30 records. HR-03 records ten
+`NOT_ASSESSED` process results because the workspace-write probe did not expose
+a host denial; no such gap is converted to PASS.
 
 ## Role migration evidence
 
@@ -156,11 +149,11 @@ enforcement remain `NOT_ASSESSED`.
 ## Deterministic checks
 
 - `quick_validate.py skills/agent-creator`: PASS
-- Historical `validate_qualification_receipts.py`: PASS, `30/30`; each HR lane derived
-  `10/10` from per-run receipts; 8 excluded attempts validated from the
-  durable ledger
+- `validate_qualification_receipts.py`: PASS, `30/30`; each HR lane has ten
+  valid receipt records, with HR-03 process evidence explicitly
+  `NOT_ASSESSED`; 9 excluded attempts validated from the durable ledger
 - `validate_eval_cases.py skills/skill-creator/evals/cases.yaml`: PASS
-- focused evaluator unit tests: 20/20 PASS
+- focused evaluator unit tests: PASS
 - retained agent TOML parse/count check: PASS
 - `git diff --check`: PASS at the recorded validation point
 
@@ -207,26 +200,23 @@ its raw trace remains outside Git at
 trace SHA-256
 `b52184223e1cf0ef7a1776d39543b8836ec24da85200090649d60ee24086ff55`.
 
-The exact-head synthetic App Server capture at
-`33ea3a985c07bf4645ddfafc9871f86e222ae8f2` used Codex Desktop/0.149.1 with
-`gpt-5.6-luna` and medium reasoning. Role spawn, ordinary no-delegation,
-forbidden-delegation, depth, and isolated user/project scope probes emitted no
-completed turn or child metadata within their bounded 20-second lane. Native
-spawn-count zero is retained for the two no-delegation probes, but completion,
-role application, effective settings, depth enforcement, and scope application
-remain `NOT_ASSESSED`; no model prose was promoted to runtime evidence.
+The exact-head synthetic App Server captures at the native evidence head used
+Codex Desktop/0.149.1 with `gpt-5.6-luna` and medium reasoning. The role-spawn
+probe used the 240-second fallback and observed child metadata, role identity,
+parent relation, and completion. Ordinary and forbidden-delegation probes
+observed zero native spawn events and completion. User scope identity was
+observed, project scope identity was `NOT_ASSESSED`, and nested-depth
+enforcement remained `NOT_ASSESSED`; no model prose was promoted to runtime
+evidence.
 
-The production routing matrix was attempted with the actual current
-`agent-creator` description and retained role descriptions: seven classes ×
-three variants (21 rows). The four missing-capability variants were also run.
-All 25 rows timed out in the bounded `codex exec` lane and are durably marked
-`NOT_ASSESSED` with model, reasoning, elapsed/trace hashes, and exact capture
-revision; no wrong-owner or fabricated-capability PASS is claimed.
-
-The previous historical set remains recoverable in Git history; it is not used
-for current qualification. The current 30-run receipts are exact-head,
-recomputable, and contain no obsolete protocol labels. The nine-row exclusion
-ledger retains the prior wrong-root `PROCESS_FAILURE` provenance and does not
+The production routing matrix used the actual current `agent-creator`
+description and retained role descriptions: seven classes × three variants
+(21 rows), all observed at a 60-second per-case timeout. Four
+missing-capability variants were also observed after variant-1 wording was
+clarified. A prior variant-1 wrong-owner result and retry are retained as
+development evidence; they are not counted as passes. The current 30-run HR
+receipts are recomputable and contain no obsolete protocol labels. The
+nine-row exclusion ledger retains prior non-admitted provenance and does not
 count excluded attempts as behavioral passes.
 
 These exact-head limitations are deliberate. The role adapters contain no
@@ -252,9 +242,9 @@ reasoning `medium`. The durable receipts are
 
 The probe intentionally contains no real repository role prose or private
 control-plane content. The fresh role-spawn, no-delegation,
-forbidden-delegation, depth, and user/project-scope attempts emitted no
-completed turn or child metadata within the bounded lane. Native spawn-count
-zero is retained for the two no-delegation attempts, but role application,
-effective configuration, completion, user/project scope, nested-depth
-enforcement, per-turn skill-load, and implicit activation remain
-`NOT_ASSESSED`. The probe does not promote model text to a runtime signal.
+forbidden-delegation, depth, and user/project-scope receipts are split and
+validated independently. Role spawn and completion were observed; native
+spawn-count zero was observed for the two no-delegation attempts; project
+scope, nested-depth enforcement, per-turn skill-load, and implicit activation
+remain `NOT_ASSESSED`. The probe does not promote model text to a runtime
+signal.
