@@ -14,7 +14,7 @@ Rejected attempts are separately recorded in
 hash; they are never counted as behavioral passes.
 
 The current receipt set was derived at the exact evidence head
-`882e8e0c` (full SHA in Git history) from authorized runs using
+`7ee44f4` (full SHA in Git history) from authorized runs using
 `gpt-5.6-luna` with medium reasoning. Each receipt is bound to durable source
 evidence and the validator recomputes its digest and derives lane counts.
 Evidence-only updates may advance the PR head only through the explicit
@@ -115,7 +115,7 @@ After the native qualification-infrastructure repair, HR-01 was rerun with a
 v4 prompt manifest that requires a command-level `SKILL.md` read, and HR-03
 was rerun as a complete ten-run source after an earlier five-row source was
 rejected. HR-02 retained its v2 prompt manifest. The final durable receipt set
-is derived at `882e8e0c` and validates 30/30 records. HR-03 records ten
+is derived at `7ee44f4` and validates 30/30 records. HR-03 records ten
 `NOT_ASSESSED` process results because the workspace-write probe did not expose
 a host denial; no such gap is converted to PASS.
 
