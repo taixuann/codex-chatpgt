@@ -1,25 +1,15 @@
 {
   "activation_status": "NOT_ASSESSED",
   "api_probe": "OBSERVED",
-  "capture_revision": "598b1ece3852bc53d75fe23a574470789c4e7059",
-  "captured_at_utc": "2026-09-08T03:33:13+00:00",
+  "capture_revision": "a542f52f501fdf1acc7d2deb1f99b235fc8bdf08",
+  "captured_at_utc": "2026-09-08T09:20:45+00:00",
   "default_repo_skill_discovery": "OBSERVED_EMPTY",
   "default_repo_skill_match_count": 0,
   "errors": [],
-  "explicit_extra_root": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-3r1b92rh/skills",
   "explicit_extra_root_discovery": "OBSERVED",
   "explicit_extra_root_match_count": 1,
-  "extra_root_probe": {
-    "extra_root": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-3r1b92rh/skills",
-    "matching_path": "/private/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-3r1b92rh/skills/agent-creator/SKILL.md",
-    "protocol": "skills/extraRoots/set -> skills/list",
-    "repo_skill_match_count": 1,
-    "status": "OBSERVED"
-  },
   "extra_root_set": "OBSERVED",
-  "matching_paths": [
-    "/private/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-3r1b92rh/skills/agent-creator/SKILL.md"
-  ],
+  "matching_paths": ["/private/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-sfypebqp/skills/agent-creator/SKILL.md"],
   "probe": "codex app-server skills/list",
   "reason": "Native listing exposes discovery, not a per-turn skill-load or activation event.",
   "repo_skill_discovery": "OBSERVED_WITH_EXPLICIT_EXTRA_ROOT",
@@ -28,5 +18,6 @@
   "requested_reasoning_effort": "medium",
   "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (agent-creator-discovery-probe; 0.1)",
   "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
+  "script_sha256": "2124095e01fb3c4c0003fe5ee897254c467f0f41510d31de514d503482f35556",
   "skill_name": "agent-creator"
 }
