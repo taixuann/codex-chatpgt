@@ -1,6 +1,6 @@
 {
-  "capture_revision": "3d35b8b0da5f069c0eb5d1d54c051a291e03bc54",
-  "captured_at_utc": "2026-09-08T08:58:36+00:00",
+  "capture_revision": "707cb8d7ff8e84e74c92f160629e12cf4a6d14a0",
+  "captured_at_utc": "2026-09-08T09:01:16+00:00",
   "fixture": "synthetic_only",
   "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (agent-creator-native-probe; 0.1)",
   "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
@@ -17,7 +17,7 @@
   "native_skill_load": "NOT_ASSESSED",
   "implicit_activation": "NOT_ASSESSED",
   "child_thread_metadata": [],
-  "parent_thread_id": "01a0803d-4c4f-7fa0-962b-f7841d933bac",
+  "parent_thread_id": "01a0803f-baec-7951-b9ec-5624bcc3472a",
   "no_delegation_probes": [
     {"scenario": "ordinary_no_delegation", "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1", "native_events_observed": "OBSERVED", "native_spawn_event_count": 0, "native_spawn_event_status": "OBSERVED_ZERO", "return_completion": "NOT_ASSESSED"},
     {"scenario": "forbidden_delegation", "capture_revision": "c0d3ab70603f6bb30322db3b4cdb2c85cb0835d1", "native_events_observed": "OBSERVED", "native_spawn_event_count": 0, "native_spawn_event_status": "OBSERVED_ZERO", "return_completion": "NOT_ASSESSED"}
