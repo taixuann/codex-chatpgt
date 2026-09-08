@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -41,7 +42,7 @@ class QualificationReceiptTests(unittest.TestCase):
             MODULE.validate(tampered)
 
     def test_exclusion_ledger_is_validated(self):
-        self.assertEqual(MODULE.validate_exclusions(EXCLUSIONS), 8)
+        self.assertEqual(MODULE.validate_exclusions(EXCLUSIONS), 9)
 
     def test_unclassified_sandbox_violation_is_rejected(self):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
@@ -134,6 +135,63 @@ class QualificationReceiptTests(unittest.TestCase):
         target["prompt_sha256"] = "0" * 64
         with self.assertRaises(ValueError):
             MODULE.validate(tampered)
+
+    def test_native_receipt_rejects_non_ancestor_capture(self):
+        native = json.loads((SCRIPT.parent.parent / "references" / "qualification-native-runtime.json").read_text())
+        native["capture_revision"] = "0" * 40
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+            json.dump(native, handle)
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate_native_receipt(Path(handle.name), SCRIPT.parents[3])
+
+    def test_native_receipt_rejects_probe_script_change_after_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            probe = repo / "skills/agent-creator/scripts/probe_runtime_agents.py"
+            probe.parent.mkdir(parents=True)
+            probe.write_text("baseline\n")
+            subprocess.run(["git", "add", "."], cwd=repo, check=True)
+            subprocess.run(
+                ["git", "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-q", "-m", "base"],
+                cwd=repo,
+                check=True,
+            )
+            capture = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+            probe.write_text("changed\n")
+            native = {
+                "capture_revision": capture,
+                "captured_at_utc": "2026-01-01T00:00:00+00:00",
+                "fixture": "synthetic_only",
+                "runtime": "Codex Desktop/0.149.1",
+                "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
+                "script_sha256": "0" * 64,
+                "requested_model": MODULE.MODEL,
+                "requested_reasoning_effort": MODULE.REASONING,
+                "model": MODULE.MODEL,
+                "collab_spawn_event": "OBSERVED",
+                "child_parent_relation": "OBSERVED",
+                "role_identity": "OBSERVED",
+                "return_completion": "OBSERVED",
+                "native_skill_load": "NOT_ASSESSED",
+                "implicit_activation": "NOT_ASSESSED",
+                "child_thread_metadata": [{"agentRole": "probe-reviewer"}],
+            }
+            with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+                json.dump(native, handle)
+                handle.flush()
+                with self.assertRaises(ValueError):
+                    MODULE.validate_native_receipt(Path(handle.name), repo)
+
+    def test_native_receipt_rejects_missing_required_evidence(self):
+        native = json.loads((SCRIPT.parent.parent / "references" / "qualification-native-runtime.json").read_text())
+        native.pop("child_parent_relation")
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+            json.dump(native, handle)
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate_native_receipt(Path(handle.name), SCRIPT.parents[3])
 
 
 if __name__ == "__main__":

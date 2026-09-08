@@ -86,6 +86,9 @@ jobs:
           python skills/skill-creator/scripts/quick_validate.py skills/agent-creator
           python -m py_compile skills/agent-creator/scripts/*.py
           python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl
+          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl --native skills/agent-creator/references/qualification-native-runtime.json
+          python skills/agent-creator/scripts/run_routing_qualification.py --repo-root . --validate skills/agent-creator/references/qualification-routing.jsonl
+          python skills/agent-creator/scripts/run_routing_qualification.py --repo-root . --validate skills/agent-creator/references/qualification-missing-capability.jsonl
           python -m unittest skills/agent-creator/scripts/test_validate_qualification_receipts.py
           python -m unittest skills/agent-creator/scripts/test_role_contracts.py
           python - <<'PY'
@@ -110,10 +113,8 @@ jobs:
           assert baseline['current_eval_contract'] == 'EXPECTED_FAIL_CLOSED'
           native = json.loads(pathlib.Path('skills/agent-creator/references/qualification-native-runtime.json').read_text())
           assert native['fixture'] == 'synthetic_only'
-          assert native['collab_spawn_event'] == 'OBSERVED'
-          assert native['child_parent_relation'] == 'OBSERVED'
-          assert native['role_identity'] == 'OBSERVED'
-          assert native['return_completion'] == 'OBSERVED'
+          assert native['qualification_status'] in ('PASS', 'NOT_ASSESSED')
+          assert native['script_sha256']
           assert native['requested_model'] == 'gpt-5.6-luna'
           assert native['requested_reasoning_effort'] == 'medium'
           discovery = json.loads(pathlib.Path('skills/agent-creator/references/qualification-discovery.json').read_text())

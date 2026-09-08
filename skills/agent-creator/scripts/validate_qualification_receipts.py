@@ -12,7 +12,7 @@ from pathlib import Path
 
 CASES = ("HR-01", "HR-02", "HR-03")
 PARTITIONS = ("direct", "indirect", "noisy", "context_heavy", "near_sibling")
-EXCLUSION_CATEGORIES = ("NO_PROMPT_PROVIDED", "NONCOMPLIANT_TRACE", "USAGE_LIMIT")
+EXCLUSION_CATEGORIES = ("NO_PROMPT_PROVIDED", "NONCOMPLIANT_TRACE", "PROCESS_FAILURE", "USAGE_LIMIT")
 MODEL = "gpt-5.6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
@@ -22,6 +22,13 @@ EVIDENCE_ONLY_UPDATE_PATHS = {
     "skills/agent-creator/references/qualification-receipts.jsonl",
     "skills/agent-creator/references/qualification-results.md",
     "skills/agent-creator/references/qualification-discovery.json",
+}
+NATIVE_EVIDENCE_ONLY_UPDATE_PATHS = EVIDENCE_ONLY_UPDATE_PATHS | {
+    "skills/agent-creator/references/qualification-native-runtime.json",
+    "skills/agent-creator/references/qualification-routing.jsonl",
+    "skills/agent-creator/references/qualification-missing-capability.jsonl",
+    "skills/agent-creator/references/qualification-scope.json",
+    "skills/agent-creator/references/qualification-depth.json",
 }
 EVIDENCE_FILE = Path(__file__).parents[1] / "references" / "qualification-evidence.jsonl"
 PROMPT_FILE = Path(__file__).parents[1] / "references" / "qualification-prompts.jsonl"
@@ -41,11 +48,9 @@ def git_revision(repo_root: Path) -> str:
     ).stdout.strip()
 
 
-def resolve_capture_revision(records: list[dict], repo_root: Path) -> str:
-    revisions = {record.get("capture_revision") for record in records}
-    if len(revisions) != 1 or None in revisions:
-        raise ValueError("receipt set must use one capture revision")
-    captured = next(iter(revisions))
+def resolve_capture_revision_value(captured: str, repo_root: Path, allowlist: set[str]) -> str:
+    if not re.fullmatch(r"[0-9a-f]{40}", captured):
+        raise ValueError("capture revision must be a full git commit SHA")
     head = git_revision(repo_root)
     if captured == head:
         return head
@@ -53,6 +58,8 @@ def resolve_capture_revision(records: list[dict], repo_root: Path) -> str:
         ["git", "merge-base", "--is-ancestor", captured, head],
         cwd=repo_root,
     ).returncode == 0
+    if not ancestor:
+        raise ValueError(f"receipts captured at {captured}, not fail-closed for HEAD {head}")
     changed = subprocess.run(
         ["git", "diff", "--name-only", f"{captured}..{head}"],
         cwd=repo_root,
@@ -60,9 +67,54 @@ def resolve_capture_revision(records: list[dict], repo_root: Path) -> str:
         capture_output=True,
         text=True,
     ).stdout.splitlines()
-    if not ancestor or not changed or not set(changed) <= EVIDENCE_ONLY_UPDATE_PATHS:
+    if not changed or not set(changed) <= allowlist:
         raise ValueError(f"receipts captured at {captured}, not fail-closed for HEAD {head}")
     return captured
+
+
+def resolve_capture_revision(records: list[dict], repo_root: Path) -> str:
+    revisions = {record.get("capture_revision") for record in records}
+    if len(revisions) != 1 or None in revisions:
+        raise ValueError("receipt set must use one capture revision")
+    return resolve_capture_revision_value(next(iter(revisions)), repo_root, EVIDENCE_ONLY_UPDATE_PATHS)
+
+
+def validate_native_receipt(path: Path, repo_root: Path) -> str:
+    data = json.loads(path.read_text())
+    required = {
+        "capture_revision", "captured_at_utc", "fixture", "runtime", "script", "script_sha256",
+        "requested_model", "requested_reasoning_effort", "model",
+        "collab_spawn_event", "child_parent_relation", "role_identity",
+        "return_completion", "native_skill_load", "implicit_activation",
+        "child_thread_metadata", "qualification_status", "reason",
+    }
+    missing = sorted(field for field in required if field not in data)
+    if missing:
+        raise ValueError(f"native receipt missing required fields: {', '.join(missing)}")
+    if data["fixture"] != "synthetic_only":
+        raise ValueError("native receipt must identify its fixture as synthetic_only")
+    if data["script"] != "skills/agent-creator/scripts/probe_runtime_agents.py":
+        raise ValueError("native receipt is not bound to the production probe script")
+    script_path = repo_root / data["script"]
+    if not script_path.is_file() or sha256(script_path) != data["script_sha256"]:
+        raise ValueError("native receipt is stale for the production probe script")
+    if data["requested_model"] != MODEL or data["requested_reasoning_effort"] != REASONING:
+        raise ValueError("native receipt runtime lane does not match the qualification contract")
+    if data["qualification_status"] not in ("PASS", "NOT_ASSESSED"):
+        raise ValueError("native receipt has an invalid qualification status")
+    if data["qualification_status"] == "PASS":
+        for field in ("collab_spawn_event", "child_parent_relation", "role_identity", "return_completion"):
+            if data[field] != "OBSERVED":
+                raise ValueError(f"native receipt does not prove required signal: {field}")
+    if data["native_skill_load"] != "NOT_ASSESSED" or data["implicit_activation"] != "NOT_ASSESSED":
+        raise ValueError("native receipt must preserve unavailable activation signals as NOT_ASSESSED")
+    if not isinstance(data["child_thread_metadata"], list):
+        raise ValueError("native receipt child metadata must be a list")
+    if data["qualification_status"] == "PASS" and not data["child_thread_metadata"]:
+        raise ValueError("native PASS receipt must retain child thread metadata")
+    return resolve_capture_revision_value(
+        data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
+    )
 
 
 def read_jsonl(path: Path) -> tuple[str, list[dict]]:
@@ -507,6 +559,7 @@ def main() -> int:
     parser.add_argument("--source", action="append", metavar="CASE=ROOT")
     parser.add_argument("--artifact", action="append", metavar="CASE=PATH")
     parser.add_argument("--capture-revision")
+    parser.add_argument("--native", action="append", type=Path, metavar="PATH")
     args = parser.parse_args()
     repo_root = Path(__file__).parents[3]
     capture_revision = args.capture_revision or git_revision(repo_root)
@@ -553,6 +606,9 @@ def main() -> int:
         print(f"{case}: {counts[case]}/10 derived from receipts")
     if args.exclusions:
         print(f"excluded attempts: {validate_exclusions(args.exclusions)} ledger rows")
+    for native_path in args.native or []:
+        validate_native_receipt(native_path, repo_root)
+        print(f"native receipt: {native_path} valid")
     return 0
 
 

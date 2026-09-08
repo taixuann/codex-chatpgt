@@ -34,12 +34,20 @@ runtime_signals:
   explicit_delegation: NOT_ASSESSED
   nested_depth: NOT_ASSESSED
   sandbox_enforcement: NOT_ASSESSED
+  production_routing: OBSERVED
+  missing_capability: OBSERVED
+  ordinary_no_delegation: NOT_ASSESSED
+  forbidden_delegation: NOT_ASSESSED
 synthetic_probe:
   fixture: synthetic_only
   explicit_delegation: OBSERVED
   parent_child_relation: OBSERVED
   role_identity: OBSERVED
   return_completion: OBSERVED
+  ordinary_no_delegation: NOT_ASSESSED
+  forbidden_delegation: NOT_ASSESSED
+  nested_depth: NOT_ASSESSED
+  user_project_scope: NOT_ASSESSED
 cases:
   - id: HR-01
     name: role/sibling collision
@@ -114,3 +122,4 @@ not_assessed_surfaces:
   - effective spawned role configuration and sandbox enforcement
   - user-scope versus project-scope runtime proof
   - nested depth runtime matrix
+  - native completion for no-delegation probes after the bounded timeout

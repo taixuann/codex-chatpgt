@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import pathlib
@@ -74,19 +75,20 @@ class AppServer:
         return stderr
 
 
-def make_fixture() -> tuple[pathlib.Path, pathlib.Path]:
+def make_fixture(role_name: str = "probe-reviewer", role_scope: str = "user", allow_nested: bool = False) -> tuple[pathlib.Path, pathlib.Path]:
     fixture = pathlib.Path(tempfile.mkdtemp(prefix="agent-creator-native-fixture-"))
     (fixture / "probe.txt").write_text("probe-marker-issue105\n", encoding="utf-8")
     home = pathlib.Path(tempfile.mkdtemp(prefix="agent-creator-native-home-"))
-    agents = home / "agents"
+    agents = home / "agents" if role_scope == "user" else fixture / ".codex" / "agents"
     agents.mkdir()
-    (agents / "probe-reviewer.toml").write_text(
-        """name = \"probe-reviewer\"
+    nested = "You may spawn one bounded child when the task explicitly asks for it." if allow_nested else "Do not spawn agents."
+    (agents / f"{role_name}.toml").write_text(
+        f"""name = \"{role_name}\"
 description = \"Use only for the isolated read-only probe fixture; not ordinary implementation.\"
 model = \"gpt-5.6-luna\"
 model_reasoning_effort = \"medium\"
 sandbox_mode = \"read-only\"
-developer_instructions = \"Read only probe.txt, report its marker, do not edit files, do not spawn agents.\"
+developer_instructions = \"Read only probe.txt, report its marker, do not edit files. {nested}\"
 """,
         encoding="utf-8",
     )
@@ -177,8 +179,14 @@ def compact_thread(thread: dict[str, Any]) -> dict[str, Any]:
     return {key: thread.get(key) for key in ("id", "parentThreadId", "agentRole", "modelProvider", "cwd", "status")}
 
 
-def run_role_spawn_probe(timeout_seconds: int = 240) -> dict[str, Any]:
-    fixture, home = make_fixture()
+def run_role_spawn_probe(
+    timeout_seconds: int = 240,
+    role_name: str = "probe-reviewer",
+    role_scope: str = "user",
+    agent_config: dict[str, Any] | None = None,
+    allow_nested: bool = False,
+) -> dict[str, Any]:
+    fixture, home = make_fixture(role_name, role_scope, allow_nested)
     server = AppServer(fixture, home)
     child_ids: set[str] = set()
     try:
@@ -197,7 +205,7 @@ def run_role_spawn_probe(timeout_seconds: int = 240) -> dict[str, Any]:
             {
                 "cwd": str(fixture),
                 "model": MODEL,
-                "config": {"model_reasoning_effort": REASONING},
+                "config": {"model_reasoning_effort": REASONING, **(agent_config or {})},
                 "approvalPolicy": "never",
                 "sandbox": "read-only",
                 "ephemeral": True,
@@ -215,8 +223,8 @@ def run_role_spawn_probe(timeout_seconds: int = 240) -> dict[str, Any]:
                         "type": "text",
                         "text": (
                             "Use the collaboration spawn-agent tool to delegate one bounded read-only task "
-                            "to custom agent role probe-reviewer. The child must read only probe.txt, report "
-                            "the exact marker, and not edit or spawn. Wait for the child result. Do not simulate "
+                            f"to custom agent role {role_name}. The child must read only probe.txt, report "
+                            "the exact marker, and not edit. Wait for the child result. Do not simulate "
                             "delegation or claim it happened unless a tool event confirms it."
                         ),
                     }
@@ -289,7 +297,7 @@ def run_role_spawn_probe(timeout_seconds: int = 240) -> dict[str, Any]:
                 if any(item.get("senderThreadId") == parent_id for item in collab_items)
                 else "NOT_ASSESSED"
             ),
-            "role_identity": "OBSERVED" if "probe-reviewer" in observed_roles else "NOT_ASSESSED",
+            "role_identity": "OBSERVED" if role_name in observed_roles else "NOT_ASSESSED",
             "child_thread_metadata": child_metadata,
             "child_metadata_observability": "OBSERVED" if child_metadata else "NOT_ASSESSED",
             "native_skill_load": "NOT_ASSESSED",
@@ -305,6 +313,122 @@ def run_role_spawn_probe(timeout_seconds: int = 240) -> dict[str, Any]:
             pass
 
 
+def run_no_delegation_probe(forbidden: bool = False, timeout_seconds: int = 120) -> dict[str, Any]:
+    fixture, home = make_fixture()
+    server = AppServer(fixture, home)
+    try:
+        initialize = server.send(
+            "initialize",
+            {
+                "clientInfo": {"name": "agent-creator-no-delegation-probe", "version": "0.1"},
+                "capabilities": {"experimentalApi": True},
+            },
+        )
+        assert server.process.stdin is not None
+        server.process.stdin.write('{"method":"initialized","params":{}}\n')
+        server.process.stdin.flush()
+        started = server.send(
+            "thread/start",
+            {
+                "cwd": str(fixture),
+                "model": MODEL,
+                "config": {"model_reasoning_effort": REASONING},
+                "approvalPolicy": "never",
+                "sandbox": "read-only",
+                "ephemeral": True,
+                "multiAgentMode": "explicitRequestOnly",
+            },
+        )
+        parent_id = started["result"]["thread"]["id"]
+        prefix = (
+            "Do not call or request any collaboration spawn tool, even if it seems useful. "
+            if forbidden else "Do not delegate or call any collaboration tool. "
+        )
+        turn = server.send(
+            "turn/start",
+            {
+                "threadId": parent_id,
+                "effort": REASONING,
+                "input": [{"type": "text", "text": prefix + "Read probe.txt and report its exact marker."}],
+            },
+        )
+        turn_id = turn["result"]["turn"]["id"]
+        completed = False
+        deadline = time.monotonic() + timeout_seconds
+        while time.monotonic() < deadline:
+            assert server.process.stdout is not None
+            ready, _, _ = select.select([server.process.stdout], [], [], 2)
+            if not ready:
+                continue
+            line = server.process.stdout.readline()
+            if not line:
+                break
+            event = json.loads(line)
+            server.events.append(event)
+            if event.get("method") == "turn/completed" and event.get("params", {}).get("turn", {}).get("id") == turn_id:
+                completed = True
+                break
+        collab_items = [
+            event.get("params", {}).get("item", {})
+            for event in server.events
+            if event.get("params", {}).get("item", {}).get("type") == "collabAgentToolCall"
+        ]
+        return {
+            "runtime": initialize.get("result", {}).get("userAgent"),
+            "fixture": "synthetic_only",
+            "scenario": "forbidden_delegation" if forbidden else "ordinary_no_delegation",
+            "requested_model": MODEL,
+            "requested_reasoning_effort": REASONING,
+            "parent_turn_completed": completed,
+            "native_spawn_event_count": len(collab_items),
+            "native_spawn_event_status": "OBSERVED_ZERO" if not collab_items else "FAIL",
+            "return_completion": "OBSERVED" if completed else "NOT_ASSESSED",
+            "native_events_observed": "OBSERVED",
+        }
+    finally:
+        server.close()
+        shutil.rmtree(fixture, ignore_errors=True)
+        shutil.rmtree(home, ignore_errors=True)
+
+
+def run_scope_probe(timeout_seconds: int = 240) -> dict[str, Any]:
+    results = {}
+    for scope, role_name in (("user", "probe-user-reviewer"), ("project", "probe-project-reviewer")):
+        result = run_role_spawn_probe(timeout_seconds, role_name=role_name, role_scope=scope)
+        results[scope] = {
+            "role_name": role_name,
+            "role_identity": result.get("role_identity"),
+            "collab_spawn_event": result.get("collab_spawn_event"),
+            "child_parent_relation": result.get("child_parent_relation"),
+            "child_thread_metadata": result.get("child_thread_metadata"),
+        }
+    return {
+        "runtime": "Codex App Server",
+        "fixture": "synthetic_only",
+        "scope_results": results,
+        "scope_status": "OBSERVED" if all(item["role_identity"] == "OBSERVED" for item in results.values()) else "NOT_ASSESSED",
+        "reason": "Scope status uses native child metadata only.",
+    }
+
+
+def run_depth_probe(timeout_seconds: int = 240) -> dict[str, Any]:
+    result = run_role_spawn_probe(
+        timeout_seconds,
+        agent_config={"agents": {"max_depth": 1}},
+        allow_nested=True,
+    )
+    return {
+        "runtime": result.get("runtime"),
+        "fixture": "synthetic_only",
+        "requested_config": {"agents": {"max_depth": 1}},
+        "parent_child_spawn": result.get("collab_spawn_event"),
+        "child_metadata": result.get("child_thread_metadata"),
+        "native_events_observed": "OBSERVED",
+        "nested_depth_status": "NOT_ASSESSED",
+        "reason": "No grandchild limit event is inferred from model prose.",
+    }
+
+
 def add_capture_metadata(result: dict[str, Any], repo_root: pathlib.Path) -> dict[str, Any]:
     revision = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=repo_root, check=False, capture_output=True, text=True
@@ -314,17 +438,33 @@ def add_capture_metadata(result: dict[str, Any], repo_root: pathlib.Path) -> dic
     result["requested_model"] = MODEL
     result["requested_reasoning_effort"] = REASONING
     result["script"] = "skills/agent-creator/scripts/probe_runtime_agents.py"
+    result["script_sha256"] = hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()
     return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("discovery", "role-spawn"), default="role-spawn")
+    parser.add_argument(
+        "--mode",
+        choices=("discovery", "role-spawn", "no-delegation", "forbidden-delegation", "depth", "scope"),
+        default="role-spawn",
+    )
     parser.add_argument("--repo-root", type=pathlib.Path, default=pathlib.Path(__file__).parents[3])
     parser.add_argument("--timeout-seconds", type=int, default=240)
     parser.add_argument("--json-out", type=pathlib.Path)
     args = parser.parse_args()
-    result = run_discovery_probe() if args.mode == "discovery" else run_role_spawn_probe(args.timeout_seconds)
+    if args.mode == "discovery":
+        result = run_discovery_probe()
+    elif args.mode == "role-spawn":
+        result = run_role_spawn_probe(args.timeout_seconds)
+    elif args.mode == "no-delegation":
+        result = run_no_delegation_probe(False, args.timeout_seconds)
+    elif args.mode == "forbidden-delegation":
+        result = run_no_delegation_probe(True, args.timeout_seconds)
+    elif args.mode == "depth":
+        result = run_depth_probe(args.timeout_seconds)
+    else:
+        result = run_scope_probe(args.timeout_seconds)
     result = add_capture_metadata(result, args.repo_root.resolve())
     encoded = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.json_out:
