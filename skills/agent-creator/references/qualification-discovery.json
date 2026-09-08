@@ -1,24 +1,24 @@
 {
   "activation_status": "NOT_ASSESSED",
   "api_probe": "OBSERVED",
-  "capture_revision": "781b1b7d33fed22698d004c7d248d8e634ef7c9c",
-  "captured_at_utc": "2026-09-08T18:13:06+00:00",
+  "capture_revision": "63c7ea992cb580963ab6f3591c3693bd4508aa1d",
+  "captured_at_utc": "2026-09-08T18:34:39+00:00",
   "default_repo_skill_discovery": "OBSERVED_EMPTY",
   "default_repo_skill_match_count": 0,
   "errors": [],
-  "explicit_extra_root": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-xlw93s1m/skills",
+  "explicit_extra_root": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-0pt8dwp0/skills",
   "explicit_extra_root_discovery": "OBSERVED",
   "explicit_extra_root_match_count": 1,
   "extra_root_probe": {
-    "extra_root": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-xlw93s1m/skills",
-    "matching_path": "/private/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-xlw93s1m/skills/agent-creator/SKILL.md",
+    "extra_root": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-0pt8dwp0/skills",
+    "matching_path": "/private/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-0pt8dwp0/skills/agent-creator/SKILL.md",
     "protocol": "skills/extraRoots/set -> skills/list",
     "repo_skill_match_count": 1,
     "status": "OBSERVED"
   },
   "extra_root_set": "OBSERVED",
   "matching_paths": [
-    "/private/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-xlw93s1m/skills/agent-creator/SKILL.md"
+    "/private/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-0pt8dwp0/skills/agent-creator/SKILL.md"
   ],
   "probe": "codex app-server skills/list",
   "reason": "Native listing exposes discovery, not a per-turn skill-load or activation event.",

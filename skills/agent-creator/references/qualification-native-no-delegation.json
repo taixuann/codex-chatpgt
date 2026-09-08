@@ -1,6 +1,6 @@
 {
-  "capture_revision": "781b1b7d33fed22698d004c7d248d8e634ef7c9c",
-  "captured_at_utc": "2026-09-08T18:09:49+00:00",
+  "capture_revision": "63c7ea992cb580963ab6f3591c3693bd4508aa1d",
+  "captured_at_utc": "2026-09-08T18:30:29+00:00",
   "fixture": "synthetic_only",
   "native_events_observed": "OBSERVED",
   "native_spawn_event_count": 0,

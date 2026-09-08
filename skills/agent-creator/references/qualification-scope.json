@@ -1,6 +1,6 @@
 {
-  "capture_revision": "781b1b7d33fed22698d004c7d248d8e634ef7c9c",
-  "captured_at_utc": "2026-09-08T18:11:08+00:00",
+  "capture_revision": "63c7ea992cb580963ab6f3591c3693bd4508aa1d",
+  "captured_at_utc": "2026-09-08T18:33:37+00:00",
   "fixture": "synthetic_only",
   "reason": "Scope status uses native child metadata only.",
   "requested_model": "gpt-5.6-luna",
@@ -12,10 +12,10 @@
       "child_thread_metadata": [
         {
           "agentRole": null,
-          "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-60il2ryj",
-          "id": "01a08237-5313-7f60-8948-e8ce03353943",
+          "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-vk7hyu0d",
+          "id": "01a0824a-5f21-76a1-9f53-eafeb25fd442",
           "modelProvider": "openai",
-          "parentThreadId": "01a08237-2761-7a22-9070-75c0145f2370",
+          "parentThreadId": "01a0824a-38f7-72a1-9d18-2a43bea18c39",
           "status": {
             "type": "idle"
           }
@@ -30,10 +30,10 @@
       "child_thread_metadata": [
         {
           "agentRole": "probe-user-reviewer",
-          "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-_8emytjh",
-          "id": "01a08236-ecd8-7562-aa73-beb9e84d440a",
+          "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-ji05e7ts",
+          "id": "01a0824a-11e2-7073-b009-6ff3cf8d63ca",
           "modelProvider": "openai",
-          "parentThreadId": "01a08236-c20d-7593-8825-ad3c81508c51",
+          "parentThreadId": "01a08249-ec3f-77e1-8155-0f9798c12108",
           "status": {
             "type": "idle"
           }
