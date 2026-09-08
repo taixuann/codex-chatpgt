@@ -189,6 +189,10 @@ def run_case(repo_root: Path, case_id: str, prompt: str, expected: str, variant:
             stderr = error.stderr or ""
             exit_code = 124
             failure_class = "TIMEOUT"
+    if isinstance(stdout, bytes):
+        stdout = stdout.decode(errors="replace")
+    if isinstance(stderr, bytes):
+        stderr = stderr.decode(errors="replace")
     elapsed = round(time.monotonic() - started, 3)
     result = parse_structured_output(stdout) if exit_code == 0 else {}
     selected = result.get("selected_owner")
