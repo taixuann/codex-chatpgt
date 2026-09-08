@@ -18,6 +18,30 @@ from pathlib import Path
 MODEL = "gpt-5.6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
+ROUTING_EVIDENCE_ONLY_UPDATE_PATHS = {
+    "skills/agent-creator/references/qualification-evidence.jsonl",
+    "skills/agent-creator/references/qualification-receipts.jsonl",
+    "skills/agent-creator/references/qualification-routing.jsonl",
+    "skills/agent-creator/references/qualification-missing-capability.jsonl",
+    "skills/agent-creator/references/qualification-results.md",
+}
+ROUTING_SOURCE_PATHS = (
+    "skills/agent-creator/SKILL.md",
+    "agents/athena.toml",
+    "agents/franky.toml",
+    "agents/prometheus.toml",
+    "skills/agent-creator/scripts/run_routing_qualification.py",
+)
+FAILURE_CLASSES = {
+    "TIMEOUT_NO_EVENT",
+    "TIMEOUT_AFTER_EVENT",
+    "NETWORK_DNS",
+    "AUTH",
+    "USAGE_LIMIT",
+    "MODEL_PROVIDER",
+    "STRUCTURED_OUTPUT_MISSING",
+    "PROCESS_EXIT",
+}
 OWNERS = (
     "agent-creator",
     "skill-creator",
@@ -82,6 +106,14 @@ MISSING_VARIANTS = (
 
 def sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def source_fingerprint(repo_root: Path) -> dict[str, str]:
+    return {path: sha256_file(repo_root / path) for path in ROUTING_SOURCE_PATHS}
 
 
 def capture_revision(repo_root: Path) -> str:
@@ -156,6 +188,23 @@ def parse_structured_output(stdout: str) -> dict:
     raise ValueError("codex exec did not emit a structured selected_owner result")
 
 
+def classify_failure(stdout: str, stderr: str, timed_out: bool, exit_code: int) -> str | None:
+    diagnostic = f"{stdout}\n{stderr}".lower()
+    if timed_out:
+        return "TIMEOUT_AFTER_EVENT" if stdout.strip() else "TIMEOUT_NO_EVENT"
+    if exit_code == 0:
+        return None
+    if "failed to lookup address information" in diagnostic or "dns" in diagnostic:
+        return "NETWORK_DNS"
+    if "unauthorized" in diagnostic or "authentication" in diagnostic:
+        return "AUTH"
+    if "usage limit" in diagnostic or "rate limit" in diagnostic:
+        return "USAGE_LIMIT"
+    if "model" in diagnostic and ("provider" in diagnostic or "unavailable" in diagnostic):
+        return "MODEL_PROVIDER"
+    return "PROCESS_EXIT"
+
+
 def run_case(repo_root: Path, case_id: str, prompt: str, expected: str, variant: int, lane: str, timeout_seconds: int) -> dict:
     full_prompt = (
         "You are a routing evaluator. Do not edit files, run commands, delegate, or claim native activation. "
@@ -183,18 +232,28 @@ def run_case(repo_root: Path, case_id: str, prompt: str, expected: str, variant:
                 check=False,
             )
             stdout, stderr, exit_code = completed.stdout, completed.stderr, completed.returncode
-            failure_class = None
+            failure_class = classify_failure(stdout, stderr, False, exit_code)
         except subprocess.TimeoutExpired as error:
             stdout = error.stdout or ""
             stderr = error.stderr or ""
             exit_code = 124
-            failure_class = "TIMEOUT"
+            failure_class = classify_failure(
+                stdout.decode(errors="replace") if isinstance(stdout, bytes) else stdout,
+                stderr.decode(errors="replace") if isinstance(stderr, bytes) else stderr,
+                True,
+                exit_code,
+            )
     if isinstance(stdout, bytes):
         stdout = stdout.decode(errors="replace")
     if isinstance(stderr, bytes):
         stderr = stderr.decode(errors="replace")
     elapsed = round(time.monotonic() - started, 3)
-    result = parse_structured_output(stdout) if exit_code == 0 else {}
+    result = {}
+    if exit_code == 0:
+        try:
+            result = parse_structured_output(stdout)
+        except ValueError:
+            failure_class = "STRUCTURED_OUTPUT_MISSING"
     selected = result.get("selected_owner")
     rationale = result.get("rationale", "")
     verdict = "NOT_ASSESSED" if failure_class else ("OBSERVED" if exit_code == 0 and selected == expected else "FAIL")
@@ -221,6 +280,7 @@ def run_case(repo_root: Path, case_id: str, prompt: str, expected: str, variant:
         "qualification_status": "NOT_ASSESSED" if failure_class else ("PASS" if verdict == "OBSERVED" else "FAIL"),
         "elapsed_seconds": elapsed,
         "capture_revision": capture_revision(repo_root),
+        "source_fingerprint": source_fingerprint(repo_root),
         "captured_at_utc": datetime.datetime.now(datetime.UTC).replace(microsecond=0).isoformat(),
     }
 
@@ -234,11 +294,7 @@ def validate_capture_revision(captured: str, repo_root: Path) -> None:
     if subprocess.run(["git", "merge-base", "--is-ancestor", captured, head], cwd=repo_root).returncode != 0:
         raise ValueError("routing capture revision is not an ancestor of HEAD")
     changed = subprocess.check_output(["git", "diff", "--name-only", f"{captured}..{head}"], cwd=repo_root, text=True).splitlines()
-    allowlist = {
-        "skills/agent-creator/references/qualification-routing.jsonl",
-        "skills/agent-creator/references/qualification-missing-capability.jsonl",
-        "skills/agent-creator/references/qualification-results.md",
-    }
+    allowlist = ROUTING_EVIDENCE_ONLY_UPDATE_PATHS
     if not changed or not set(changed) <= allowlist:
         raise ValueError("routing receipts are not fail-closed for the current HEAD")
 
@@ -251,15 +307,25 @@ def validate_receipts(path: Path, repo_root: Path) -> dict[str, int]:
     if len(captures) != 1:
         raise ValueError("routing receipts must use one capture revision")
     validate_capture_revision(next(iter(captures)), repo_root)
+    lane = rows[0].get("lane")
+    expected_keys = (
+        {(case_id, variant) for case_id, variants in ROUTING_VARIANTS.items() for variant in range(1, len(variants) + 1)}
+        if lane == "routing"
+        else {("MISSING-CAPABILITY", variant) for variant in range(1, len(MISSING_VARIANTS) + 1)}
+    )
+    if lane not in {"routing", "missing-capability"}:
+        raise ValueError("routing receipt has an invalid lane")
     counts: dict[str, int] = {}
     seen = set()
     for row in rows:
         key = (row.get("lane"), row.get("case_id"), row.get("variant"))
-        if key in seen or row.get("model") != MODEL or row.get("reasoning") != REASONING:
+        if key[0] != lane or key[1:] in seen or row.get("model") != MODEL or row.get("reasoning") != REASONING:
             raise ValueError(f"invalid routing receipt: {key}")
-        seen.add(key)
+        seen.add(key[1:])
+        if row.get("source_fingerprint") != source_fingerprint(repo_root):
+            raise ValueError(f"source fingerprint mismatch: {key}")
         if row.get("qualification_status") == "NOT_ASSESSED":
-            if row.get("verdict") != "NOT_ASSESSED" or row.get("failure_class") != "TIMEOUT":
+            if row.get("verdict") != "NOT_ASSESSED" or row.get("failure_class") not in FAILURE_CLASSES:
                 raise ValueError(f"invalid NOT_ASSESSED routing receipt: {key}")
             counts["NOT_ASSESSED"] = counts.get("NOT_ASSESSED", 0) + 1
             continue
@@ -268,6 +334,8 @@ def validate_receipts(path: Path, repo_root: Path) -> dict[str, int]:
         if row.get("selected_owner") != row.get("expected_owner"):
             raise ValueError(f"wrong owner: {key}")
         counts[row["lane"]] = counts.get(row["lane"], 0) + 1
+    if seen != expected_keys:
+        raise ValueError("routing receipt keyset is incomplete or unexpected")
     return counts
 
 
@@ -278,6 +346,8 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--validate", type=Path)
     parser.add_argument("--timeout-seconds", type=int, default=60)
+    parser.add_argument("--case-id")
+    parser.add_argument("--variant", type=int)
     args = parser.parse_args()
     repo_root = args.repo_root.resolve()
     if args.validate:
@@ -287,14 +357,29 @@ def main() -> int:
         parser.error("--lane and --output are required unless --validate is used")
     rows = []
     if args.lane == "routing":
-        for case_id, variants in ROUTING_VARIANTS.items():
+        cases = ROUTING_VARIANTS
+        if args.case_id:
+            if args.case_id not in cases or args.variant not in range(1, len(cases[args.case_id]) + 1):
+                parser.error("--case-id/--variant do not identify a routing case")
+            cases = {args.case_id: (cases[args.case_id][args.variant - 1],)}
+        for case_id, variants in cases.items():
             for index, prompt in enumerate(variants, 1):
-                rows.append(run_case(repo_root, case_id, prompt, ROUTING_EXPECTED[case_id], index, args.lane, args.timeout_seconds))
+                variant = args.variant if args.case_id else index
+                rows.append(run_case(repo_root, case_id, prompt, ROUTING_EXPECTED[case_id], variant, args.lane, args.timeout_seconds))
     else:
-        for index, prompt in enumerate(MISSING_VARIANTS, 1):
-            rows.append(run_case(repo_root, "MISSING-CAPABILITY", prompt, "NEEDS_SKILL", index, args.lane, args.timeout_seconds))
+        variants = MISSING_VARIANTS
+        if args.case_id:
+            if args.case_id != "MISSING-CAPABILITY" or args.variant not in range(1, len(variants) + 1):
+                parser.error("--case-id/--variant do not identify a missing-capability case")
+            variants = (variants[args.variant - 1],)
+        for index, prompt in enumerate(variants, 1):
+            variant = args.variant if args.case_id else index
+            rows.append(run_case(repo_root, "MISSING-CAPABILITY", prompt, "NEEDS_SKILL", variant, args.lane, args.timeout_seconds))
     args.output.write_text("\n".join(json.dumps(row, sort_keys=True) for row in rows) + "\n")
-    print(json.dumps(validate_receipts(args.output, repo_root), sort_keys=True))
+    if args.case_id:
+        print(json.dumps(rows[0], sort_keys=True))
+    else:
+        print(json.dumps(validate_receipts(args.output, repo_root), sort_keys=True))
     return 0
 
 

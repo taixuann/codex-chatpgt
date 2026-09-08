@@ -25,6 +25,8 @@ EVIDENCE_ONLY_UPDATE_PATHS = {
 }
 NATIVE_EVIDENCE_ONLY_UPDATE_PATHS = EVIDENCE_ONLY_UPDATE_PATHS | {
     "skills/agent-creator/references/qualification-native-runtime.json",
+    "skills/agent-creator/references/qualification-native-no-delegation.json",
+    "skills/agent-creator/references/qualification-native-forbidden-delegation.json",
     "skills/agent-creator/references/qualification-routing.jsonl",
     "skills/agent-creator/references/qualification-missing-capability.jsonl",
     "skills/agent-creator/references/qualification-scope.json",
@@ -117,6 +119,87 @@ def validate_native_receipt(path: Path, repo_root: Path) -> str:
     return resolve_capture_revision_value(
         data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
     )
+
+
+def _validate_probe_metadata(data: dict, repo_root: Path, required: set[str]) -> str:
+    missing = sorted(field for field in required if field not in data)
+    if missing:
+        raise ValueError(f"native probe receipt missing required fields: {', '.join(missing)}")
+    if data["fixture"] != "synthetic_only":
+        raise ValueError("native probe receipt must identify its fixture as synthetic_only")
+    if data["script"] != "skills/agent-creator/scripts/probe_runtime_agents.py":
+        raise ValueError("native probe receipt is not bound to the production probe script")
+    script_path = repo_root / data["script"]
+    if not script_path.is_file() or sha256(script_path) != data["script_sha256"]:
+        raise ValueError("native probe receipt is stale for the production probe script")
+    if data["requested_model"] != MODEL or data["requested_reasoning_effort"] != REASONING:
+        raise ValueError("native probe receipt runtime lane does not match the qualification contract")
+    return resolve_capture_revision_value(
+        data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
+    )
+
+
+def validate_no_delegation_receipt(path: Path, repo_root: Path, scenario: str) -> str:
+    data = json.loads(path.read_text())
+    required = {
+        "capture_revision", "captured_at_utc", "fixture", "runtime", "script", "script_sha256",
+        "requested_model", "requested_reasoning_effort", "scenario", "parent_turn_completed",
+        "native_spawn_event_count", "native_spawn_event_status", "return_completion",
+        "native_events_observed",
+    }
+    revision = _validate_probe_metadata(data, repo_root, required)
+    if data["scenario"] != scenario:
+        raise ValueError("native no-delegation receipt has the wrong scenario")
+    if data["native_spawn_event_count"] != 0 or data["native_spawn_event_status"] != "OBSERVED_ZERO":
+        raise ValueError("native no-delegation receipt does not prove zero delegation events")
+    if data["native_events_observed"] != "OBSERVED":
+        raise ValueError("native no-delegation receipt does not expose native events")
+    if data["return_completion"] not in ("OBSERVED", "NOT_ASSESSED"):
+        raise ValueError("native no-delegation receipt has an invalid completion status")
+    return revision
+
+
+def validate_scope_receipt(path: Path, repo_root: Path) -> str:
+    data = json.loads(path.read_text())
+    required = {
+        "capture_revision", "captured_at_utc", "fixture", "runtime", "script", "script_sha256",
+        "requested_model", "requested_reasoning_effort", "scope_results", "scope_status", "reason",
+    }
+    revision = _validate_probe_metadata(data, repo_root, required)
+    results = data["scope_results"]
+    if not isinstance(results, dict) or set(results) != {"user", "project"}:
+        raise ValueError("scope receipt must cover user and project scopes")
+    for scope, result in results.items():
+        required_result = {"role_name", "role_identity", "collab_spawn_event", "child_parent_relation", "child_thread_metadata"}
+        if not isinstance(result, dict) or not required_result <= result.keys():
+            raise ValueError(f"scope receipt is missing {scope} evidence")
+        if not isinstance(result["child_thread_metadata"], list):
+            raise ValueError(f"scope receipt has invalid {scope} child metadata")
+    expected = "OBSERVED" if all(result["role_identity"] == "OBSERVED" for result in results.values()) else "NOT_ASSESSED"
+    if data["scope_status"] != expected:
+        raise ValueError("scope status is not recomputable from scope results")
+    return revision
+
+
+def validate_depth_receipt(path: Path, repo_root: Path) -> str:
+    data = json.loads(path.read_text())
+    required = {
+        "capture_revision", "captured_at_utc", "fixture", "runtime", "script", "script_sha256",
+        "requested_model", "requested_reasoning_effort", "requested_config", "parent_child_spawn",
+        "child_metadata", "native_events_observed", "nested_depth_status", "reason",
+    }
+    revision = _validate_probe_metadata(data, repo_root, required)
+    if data["requested_config"] != {"agents": {"max_depth": 1}}:
+        raise ValueError("depth receipt is not bound to max_depth=1")
+    if not isinstance(data["child_metadata"], list):
+        raise ValueError("depth receipt child metadata must be a list")
+    if data["native_events_observed"] != "OBSERVED":
+        raise ValueError("depth receipt does not expose native events")
+    if data["nested_depth_status"] != "NOT_ASSESSED":
+        raise ValueError("depth receipt must preserve unavailable nested-depth enforcement as NOT_ASSESSED")
+    if data["parent_child_spawn"] not in ("OBSERVED", "NOT_ASSESSED"):
+        raise ValueError("depth receipt has an invalid parent-child status")
+    return revision
 
 
 def validate_discovery_receipt(path: Path, repo_root: Path) -> str:
@@ -580,6 +663,10 @@ def main() -> int:
     parser.add_argument("--artifact", action="append", metavar="CASE=PATH")
     parser.add_argument("--capture-revision")
     parser.add_argument("--native", action="append", type=Path, metavar="PATH")
+    parser.add_argument("--native-no-delegation", action="append", type=Path, metavar="PATH")
+    parser.add_argument("--native-forbidden-delegation", action="append", type=Path, metavar="PATH")
+    parser.add_argument("--scope", action="append", type=Path, metavar="PATH")
+    parser.add_argument("--depth", action="append", type=Path, metavar="PATH")
     parser.add_argument("--discovery", action="append", type=Path, metavar="PATH")
     args = parser.parse_args()
     repo_root = Path(__file__).parents[3]
@@ -630,6 +717,18 @@ def main() -> int:
     for native_path in args.native or []:
         validate_native_receipt(native_path, repo_root)
         print(f"native receipt: {native_path} valid")
+    for path in args.native_no_delegation or []:
+        validate_no_delegation_receipt(path, repo_root, "ordinary_no_delegation")
+        print(f"native no-delegation receipt: {path} valid")
+    for path in args.native_forbidden_delegation or []:
+        validate_no_delegation_receipt(path, repo_root, "forbidden_delegation")
+        print(f"native forbidden-delegation receipt: {path} valid")
+    for path in args.scope or []:
+        validate_scope_receipt(path, repo_root)
+        print(f"scope receipt: {path} valid")
+    for path in args.depth or []:
+        validate_depth_receipt(path, repo_root)
+        print(f"depth receipt: {path} valid")
     for discovery_path in args.discovery or []:
         validate_discovery_receipt(discovery_path, repo_root)
         print(f"discovery receipt: {discovery_path} valid")

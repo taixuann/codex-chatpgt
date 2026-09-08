@@ -214,6 +214,36 @@ class QualificationReceiptTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate_discovery_receipt(Path(handle.name), SCRIPT.parents[3])
 
+    def test_scope_receipt_requires_both_scopes(self):
+        scope = json.loads((SCRIPT.parent.parent / "references" / "qualification-scope.json").read_text())
+        scope["script"] = "skills/agent-creator/scripts/probe_runtime_agents.py"
+        scope["script_sha256"] = MODULE.sha256(SCRIPT.parent / "probe_runtime_agents.py")
+        scope["scope_results"] = {
+            name: {
+                "role_name": value["role_name"],
+                "role_identity": value["role_identity"],
+                "collab_spawn_event": "NOT_ASSESSED",
+                "child_parent_relation": value["child_parent_relation"],
+                "child_thread_metadata": [],
+            }
+            for name, value in (("user", scope.pop("user")), ("project", scope.pop("project")))
+        }
+        scope["scope_results"].pop("project")
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+            json.dump(scope, handle)
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate_scope_receipt(Path(handle.name), SCRIPT.parents[3])
+
+    def test_depth_receipt_preserves_unassessed_nested_limit(self):
+        depth = json.loads((SCRIPT.parent.parent / "references" / "qualification-depth.json").read_text())
+        depth["nested_depth_status"] = "PASS"
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+            json.dump(depth, handle)
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate_depth_receipt(Path(handle.name), SCRIPT.parents[3])
+
 
 if __name__ == "__main__":
     unittest.main()

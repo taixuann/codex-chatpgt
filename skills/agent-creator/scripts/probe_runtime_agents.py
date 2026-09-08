@@ -279,6 +279,19 @@ def run_role_spawn_probe(
                 metadata_errors.append(str(listed["error"]))
         observed_roles = {item.get("agentRole") for item in child_metadata if item.get("agentRole")}
         started_thread = started.get("result", {}).get("thread", {})
+        role_identity = "OBSERVED" if role_name in observed_roles else "NOT_ASSESSED"
+        collab_spawn_event = "OBSERVED" if collab_items else "NOT_ASSESSED"
+        child_parent_relation = (
+            "OBSERVED"
+            if any(item.get("senderThreadId") == parent_id for item in collab_items)
+            else "NOT_ASSESSED"
+        )
+        return_completion = "OBSERVED" if completed else "NOT_ASSESSED"
+        qualification_status = (
+            "PASS"
+            if all(value == "OBSERVED" for value in (collab_spawn_event, child_parent_relation, role_identity, return_completion))
+            else "NOT_ASSESSED"
+        )
         return {
             "runtime": initialize.get("result", {}).get("userAgent"),
             "model": MODEL,
@@ -288,20 +301,22 @@ def run_role_spawn_probe(
             "fixture": "synthetic_only",
             "parent_thread_id": parent_id,
             "parent_turn_completed": completed,
-            "return_completion": "OBSERVED" if completed else "NOT_ASSESSED",
-            "collab_spawn_event": "OBSERVED" if collab_items else "NOT_ASSESSED",
+            "return_completion": return_completion,
+            "collab_spawn_event": collab_spawn_event,
             "sender_thread_id": collab_items[0].get("senderThreadId") if collab_items else None,
             "receiver_thread_ids": sorted(child_ids),
-            "child_parent_relation": (
-                "OBSERVED"
-                if any(item.get("senderThreadId") == parent_id for item in collab_items)
-                else "NOT_ASSESSED"
-            ),
-            "role_identity": "OBSERVED" if role_name in observed_roles else "NOT_ASSESSED",
+            "child_parent_relation": child_parent_relation,
+            "role_identity": role_identity,
             "child_thread_metadata": child_metadata,
             "child_metadata_observability": "OBSERVED" if child_metadata else "NOT_ASSESSED",
             "native_skill_load": "NOT_ASSESSED",
             "implicit_activation": "NOT_ASSESSED",
+            "qualification_status": qualification_status,
+            "reason": (
+                "Native role spawn, parent relation, role identity, and completion were observed."
+                if qualification_status == "PASS"
+                else "One or more native role-spawn signals remained unavailable; no PASS is inferred."
+            ),
             "errors": metadata_errors,
         }
     finally:
