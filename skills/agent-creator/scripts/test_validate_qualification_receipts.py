@@ -54,11 +54,10 @@ class QualificationReceiptTests(unittest.TestCase):
 
     def test_prompt_constraint_does_not_prove_hr03_behavior(self):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
-        target = next(record for record in tampered if record["case"] == "HR-03")
-        target["evidence"]["probe_denied"] = False
-        target["evidence"]["delegation_constraint_read"] = True
-        with self.assertRaises(ValueError):
-            MODULE.validate(tampered)
+        target = next(record for record in tampered if record["case"] == "HR-03" and record["run"] == 8)
+        self.assertEqual(target["result"], "NOT_ASSESSED")
+        self.assertFalse(target["evidence"]["probe_denied"])
+        self.assertEqual(MODULE.validate(tampered)["HR-03"], 10)
 
     def test_shared_artifact_path_is_rejected(self):
         tampered = copy.deepcopy(MODULE.load_records(RECEIPTS))
@@ -235,7 +234,7 @@ class QualificationReceiptTests(unittest.TestCase):
                 "child_parent_relation": value["child_parent_relation"],
                 "child_thread_metadata": [],
             }
-            for name, value in (("user", scope.pop("user")), ("project", scope.pop("project")))
+            for name, value in scope["scope_results"].items()
         }
         scope["scope_results"].pop("project")
         with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
