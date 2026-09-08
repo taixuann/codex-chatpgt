@@ -1,15 +1,15 @@
 {
-  "capture_revision": "ce2a0577ef109f051fe83d091e6109263a607d05",
-  "captured_at_utc": "2026-09-08T16:31:50+00:00",
+  "capture_revision": "df5aefec7993169222868c876a8763dfc0448da6",
+  "captured_at_utc": "2026-09-08T17:55:16+00:00",
   "child_metadata_observability": "OBSERVED",
   "child_parent_relation": "OBSERVED",
   "child_thread_metadata": [
     {
       "agentRole": "probe-reviewer",
-      "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-kevi6o1w",
-      "id": "01a081dc-61df-7e82-b8a7-7d5a563d4abf",
+      "cwd": "/var/folders/vl/9x7zklyj67563407hbcs8lwm0000gq/T/agent-creator-native-fixture-ewqnoz38",
+      "id": "01a08228-cb30-7382-9428-605a41d663e2",
       "modelProvider": "openai",
-      "parentThreadId": "01a081dc-2d43-7a01-8e1e-b336a8c8b14a",
+      "parentThreadId": "01a08228-a8a1-7493-a587-7e215c17e6f0",
       "status": {
         "type": "idle"
       }
@@ -22,12 +22,12 @@
   "implicit_activation": "NOT_ASSESSED",
   "model": "gpt-5.6-luna",
   "native_skill_load": "NOT_ASSESSED",
-  "parent_thread_id": "01a081dc-2d43-7a01-8e1e-b336a8c8b14a",
+  "parent_thread_id": "01a08228-a8a1-7493-a587-7e215c17e6f0",
   "parent_turn_completed": true,
   "qualification_status": "PASS",
   "reason": "Native role spawn, parent relation, role identity, and completion were observed.",
   "receiver_thread_ids": [
-    "01a081dc-61df-7e82-b8a7-7d5a563d4abf"
+    "01a08228-cb30-7382-9428-605a41d663e2"
   ],
   "requested_model": "gpt-5.6-luna",
   "requested_reasoning_effort": "medium",
@@ -37,5 +37,5 @@
   "sandbox": "read-only",
   "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
   "script_sha256": "caf75da4ef129cf6cd4ce9e5fda7422b9b5044d661248e92618313cd78111b3f",
-  "sender_thread_id": "01a081dc-2d43-7a01-8e1e-b336a8c8b14a"
+  "sender_thread_id": "01a08228-a8a1-7493-a587-7e215c17e6f0"
 }
