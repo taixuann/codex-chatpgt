@@ -80,7 +80,7 @@ def make_fixture(role_name: str = "probe-reviewer", role_scope: str = "user", al
     (fixture / "probe.txt").write_text("probe-marker-issue105\n", encoding="utf-8")
     home = pathlib.Path(tempfile.mkdtemp(prefix="agent-creator-native-home-"))
     agents = home / "agents" if role_scope == "user" else fixture / ".codex" / "agents"
-    agents.mkdir()
+    agents.mkdir(parents=True)
     nested = "You may spawn one bounded child when the task explicitly asks for it." if allow_nested else "Do not spawn agents."
     (agents / f"{role_name}.toml").write_text(
         f"""name = \"{role_name}\"
