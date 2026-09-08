@@ -228,11 +228,9 @@ changes; a fresh 30-run runtime requalification is therefore `NOT_ASSESSED`,
 not silently carried forward as PASS. The old eight-row exclusion count is
 updated to nine by the durable PROCESS_FAILURE row above.
 
-These exact-head limitations are deliberate. No live
-`franky.task.v1`/`result.v1` strings exist in the repository, so no deletion
-was made for those names. The remaining `athena.review-result.v1` assertion is
-a negative test proving that stale protocol text is absent from Athena
-instructions.
+These exact-head limitations are deliberate. The role adapters contain no
+legacy Franky task/result protocol; the negative role-contract test preserves
+that boundary.
 
 ## Canonical donor reproduction
 

@@ -34,8 +34,8 @@ runtime_signals:
   explicit_delegation: NOT_ASSESSED
   nested_depth: NOT_ASSESSED
   sandbox_enforcement: NOT_ASSESSED
-  production_routing: OBSERVED
-  missing_capability: OBSERVED
+  production_routing: NOT_ASSESSED
+  missing_capability: NOT_ASSESSED
   ordinary_no_delegation: NOT_ASSESSED
   forbidden_delegation: NOT_ASSESSED
 synthetic_probe:

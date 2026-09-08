@@ -100,6 +100,8 @@ def validate_native_receipt(path: Path, repo_root: Path) -> str:
         raise ValueError("native receipt is stale for the production probe script")
     if data["requested_model"] != MODEL or data["requested_reasoning_effort"] != REASONING:
         raise ValueError("native receipt runtime lane does not match the qualification contract")
+    if data["model"] != MODEL:
+        raise ValueError("native receipt effective model does not match the qualification lane")
     if data["qualification_status"] not in ("PASS", "NOT_ASSESSED"):
         raise ValueError("native receipt has an invalid qualification status")
     if data["qualification_status"] == "PASS":
@@ -112,6 +114,24 @@ def validate_native_receipt(path: Path, repo_root: Path) -> str:
         raise ValueError("native receipt child metadata must be a list")
     if data["qualification_status"] == "PASS" and not data["child_thread_metadata"]:
         raise ValueError("native PASS receipt must retain child thread metadata")
+    return resolve_capture_revision_value(
+        data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
+    )
+
+
+def validate_discovery_receipt(path: Path, repo_root: Path) -> str:
+    data = json.loads(path.read_text())
+    required = {"capture_revision", "script", "script_sha256", "skill_name", "runtime", "activation_status"}
+    missing = sorted(field for field in required if field not in data)
+    if missing:
+        raise ValueError(f"discovery receipt missing required fields: {', '.join(missing)}")
+    if data["script"] != "skills/agent-creator/scripts/probe_runtime_agents.py":
+        raise ValueError("discovery receipt is not bound to the production probe script")
+    script_path = repo_root / data["script"]
+    if not script_path.is_file() or sha256(script_path) != data["script_sha256"]:
+        raise ValueError("discovery receipt is stale for the production probe script")
+    if data["activation_status"] != "NOT_ASSESSED":
+        raise ValueError("discovery receipt must preserve unavailable activation as NOT_ASSESSED")
     return resolve_capture_revision_value(
         data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
     )
@@ -560,6 +580,7 @@ def main() -> int:
     parser.add_argument("--artifact", action="append", metavar="CASE=PATH")
     parser.add_argument("--capture-revision")
     parser.add_argument("--native", action="append", type=Path, metavar="PATH")
+    parser.add_argument("--discovery", action="append", type=Path, metavar="PATH")
     args = parser.parse_args()
     repo_root = Path(__file__).parents[3]
     capture_revision = args.capture_revision or git_revision(repo_root)
@@ -609,6 +630,9 @@ def main() -> int:
     for native_path in args.native or []:
         validate_native_receipt(native_path, repo_root)
         print(f"native receipt: {native_path} valid")
+    for discovery_path in args.discovery or []:
+        validate_discovery_receipt(discovery_path, repo_root)
+        print(f"discovery receipt: {discovery_path} valid")
     return 0
 
 

@@ -195,6 +195,25 @@ class QualificationReceiptTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE.validate_native_receipt(Path(handle.name), SCRIPT.parents[3])
 
+    def test_native_receipt_rejects_effective_model_mismatch(self):
+        native = json.loads((SCRIPT.parent.parent / "references" / "qualification-native-runtime.json").read_text())
+        native["qualification_status"] = "PASS"
+        native["model"] = "wrong-model"
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+            json.dump(native, handle)
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate_native_receipt(Path(handle.name), SCRIPT.parents[3])
+
+    def test_discovery_receipt_rejects_stale_script_hash(self):
+        discovery = json.loads((SCRIPT.parent.parent / "references" / "qualification-discovery.json").read_text())
+        discovery["script_sha256"] = "0" * 64
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as handle:
+            json.dump(discovery, handle)
+            handle.flush()
+            with self.assertRaises(ValueError):
+                MODULE.validate_discovery_receipt(Path(handle.name), SCRIPT.parents[3])
+
 
 if __name__ == "__main__":
     unittest.main()

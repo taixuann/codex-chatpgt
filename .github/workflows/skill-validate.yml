@@ -87,6 +87,7 @@ jobs:
           python -m py_compile skills/agent-creator/scripts/*.py
           python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl
           python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl --native skills/agent-creator/references/qualification-native-runtime.json
+          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl --discovery skills/agent-creator/references/qualification-discovery.json
           python skills/agent-creator/scripts/run_routing_qualification.py --repo-root . --validate skills/agent-creator/references/qualification-routing.jsonl
           python skills/agent-creator/scripts/run_routing_qualification.py --repo-root . --validate skills/agent-creator/references/qualification-missing-capability.jsonl
           python -m unittest skills/agent-creator/scripts/test_validate_qualification_receipts.py
