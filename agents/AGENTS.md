@@ -8,7 +8,7 @@ the root `AGENTS.md`; adapters must not rename, merge, or repurpose roles.
 
 ## Runtime adapters
 
-The retained local control-plane surface is Prometheus, Athena, and Franky.
+The retained local adapter surface is Prometheus, Athena, and Franky.
 Athena is a bounded support adapter and does not own an independent workflow.
 This checkout carries no Argus or Feynman adapter and makes no local contract
 claim for either role; external deployment identity, when available, remains
@@ -53,13 +53,13 @@ The retained adapters have distinct agent-specific reasons:
 | --- | --- | --- |
 | Athena | independent judgment after execution/validation | severity-ranked critique, no edits |
 | Prometheus | bounded workspace-write execution boundary | changed paths, tests, deviations, rollback |
-| Franky | bounded substrate permission/workflow boundary | scope, findings, validation, approval boundary |
+| Franky | bounded substrate permission boundary | scope, findings, validation, approval boundary |
 
 Skill hints are deliberately kept out of the TOML adapters because the active
-Codex runtime rejects unknown profile keys. Route skills through task packets,
-role instructions, and the normal discovery surface instead. If a requested
-skill is not installed on the active runtime, the parent must report that
-limitation and use the task contract or an available capability instead.
+Codex runtime rejects unknown profile keys. Route skills through role
+instructions and the normal discovery surface instead. If a requested skill
+is not installed on the active runtime, the parent must report that limitation
+and use the task contract or an available capability instead.
 
 Names are personality labels; descriptions and developer instructions are the
 machine-readable routing contract. Model and reasoning are runtime defaults,
@@ -81,13 +81,9 @@ validation: deterministic command or review criterion
 stop: completion or escalation condition
 ```
 
-The Franky-specific packet is serialized as `franky.task.v1`; its structured
-return is `franky.result.v1`. The result carries a thin ordered evidence
-envelope (`REQUEST` through `ACCEPTANCE_READY`), not an executable workflow
-engine. Franky may compose one primary capability, only impact-triggered
-supporting capabilities, and the lifecycle closeout capability for consequential
-work. It must not spawn recursively or independently system-accept its own
-consequential changes.
+Franky receives the same bounded packet as other support adapters. It may use
+only the parent-authorized substrate capability and must not spawn recursively
+or independently accept its own consequential changes.
 
 The minimal global Codex baseline is:
 
