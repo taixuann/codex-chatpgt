@@ -86,7 +86,7 @@ ROUTING_VARIANTS = {
     ),
     "ROUTE-07": (
         "Make a named specialist perform a repeatable task, but the required reusable procedure is unavailable; this request only classifies the missing capability and does not authorize creating it.",
-        "A user supplied a specialist title for a routine procedure, but the capability is unavailable and this request does not authorize role creation or skill authoring.",
+        "A user supplied a specialist title for a required routine procedure, but the reusable capability is unavailable. Do not perform the task, route it as ordinary implementation, or change persistent guidance; classify the missing capability only, and this request does not authorize role creation or skill authoring.",
         "The request sounds like a role request, but its only distinction is an unavailable reusable capability. Do not create or inline it; report the bounded missing-capability outcome.",
     ),
 }
