@@ -1,20 +1,21 @@
 # Keep only portable repository guidance, retained skills, adapters, and CI.
 *
 !.gitignore
-!README.md
-!AGENTS.md
+!/README.md
+!/AGENTS.md
 !.github/
 !.github/**
 !agents/
 !agents/*.toml
-!agents/README.md
-!agents/CHANGELOG.md
+!agents/ROLE-CONTRACT.md
 !skills/
-!skills/AGENTS.md
 !skills/skill-creator/
 !skills/skill-creator/**
 !skills/agent-creator/
 !skills/agent-creator/**
+
+# Skill packages do not carry nested AGENTS authority.
+skills/**/AGENTS.md
 
 # Security boundary: never publish credentials, runtime state, or local stores.
 **/__pycache__/

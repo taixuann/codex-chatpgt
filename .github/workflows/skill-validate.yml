@@ -5,14 +5,18 @@ on:
   push:
     paths:
       - 'AGENTS.md'
+      - 'README.md'
       - 'agents/**'
       - 'skills/**'
+      - '.gitignore'
       - '.github/workflows/skill-validate.yml'
   pull_request:
     paths:
       - 'AGENTS.md'
+      - 'README.md'
       - 'agents/**'
       - 'skills/**'
+      - '.gitignore'
       - '.github/workflows/skill-validate.yml'
 
 permissions:
@@ -52,8 +56,16 @@ jobs:
           test ! -d plans
           test ! -d skills/references
           test ! -e skills/ADDYOSMANI-AGENT-SKILLS-LICENSE
+          test ! -e agents/AGENTS.md
           test ! -e agents/README.md
           test ! -e agents/CHANGELOG.md
+          test -f agents/ROLE-CONTRACT.md
+          python - <<'PY'
+          import subprocess
+          nested = [path for path in subprocess.check_output(['git', 'ls-files'], text=True).splitlines() if path.endswith('/AGENTS.md')]
+          assert not nested, nested
+          PY
+          test "$(git ls-files 'skills/**/AGENTS.md' | wc -l | tr -d ' ')" -eq 0
           test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 2
           test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3
 
