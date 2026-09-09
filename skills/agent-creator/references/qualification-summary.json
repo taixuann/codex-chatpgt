@@ -9,11 +9,8 @@
   "evidence": {
     "historical_capture": "Git history at qualification_capture_head; retained as historical evidence, not active runtime authority",
     "pull_request": "https://github.com/taixuann/codex-chatpgt/pull/106",
-    "athena_review": "https://github.com/taixuann/codex-chatpgt/pull/106#issuecomment-5596823561",
-    "hosted_ci": [
-      "https://github.com/taixuann/codex-chatpgt/actions/runs/34311410595",
-      "https://github.com/taixuann/codex-chatpgt/actions/runs/34311406175"
-    ]
+    "review_record": "Final independent reviews are retained in PR #106 discussion",
+    "ci_record": "Hosted validation runs are retained in PR #106 and GitHub Actions history"
   },
   "not_assessed": [
     "native activation",
