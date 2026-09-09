@@ -22,6 +22,8 @@ EVIDENCE_ONLY_UPDATE_PATHS = {
     "skills/agent-creator/references/qualification-receipts.jsonl",
     "skills/agent-creator/references/qualification-results.md",
     "skills/agent-creator/references/qualification-discovery.json",
+    "skills/agent-creator/scripts/validate_qualification_receipts.py",
+    "skills/agent-creator/scripts/test_validate_qualification_receipts.py",
 }
 NATIVE_EVIDENCE_ONLY_UPDATE_PATHS = EVIDENCE_ONLY_UPDATE_PATHS | {
     "skills/agent-creator/references/qualification-native-runtime.json",
@@ -118,9 +120,74 @@ def validate_native_receipt(path: Path, repo_root: Path) -> str:
         raise ValueError("native receipt child metadata must be a list")
     if data["qualification_status"] == "PASS" and not data["child_thread_metadata"]:
         raise ValueError("native PASS receipt must retain child thread metadata")
+    followups = data.get("follow_up_probes")
+    if followups is not None:
+        validate_follow_up_probes(followups, data.get("follow_up_capture_revision", data["capture_revision"]))
     return resolve_capture_revision_value(
         data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
     )
+
+
+def validate_follow_up_probes(probes: dict, capture_revision: str) -> None:
+    """Validate compact native follow-up evidence without accepting model prose."""
+    if not isinstance(probes, dict) or set(probes) != {
+        "sibling_collision", "nested_depth", "project_scope", "readonly_sandbox"
+    }:
+        raise ValueError("native follow-up receipt must contain the four bounded probes")
+    for name, probe in probes.items():
+        if not isinstance(probe, dict):
+            raise ValueError(f"follow-up probe is not an object: {name}")
+        if probe.get("capture_revision") != capture_revision:
+            raise ValueError(f"follow-up probe capture mismatch: {name}")
+        if not isinstance(probe.get("runtime"), str) or not probe["runtime"].startswith("Codex Desktop/0.149.1"):
+            raise ValueError(f"follow-up probe runtime is not exact: {name}")
+        if probe.get("model") != MODEL or probe.get("reasoning") != REASONING:
+            raise ValueError(f"follow-up probe runtime lane mismatch: {name}")
+        if probe.get("timeout_seconds") != 120:
+            raise ValueError(f"follow-up probe timeout is not bounded at 120 seconds: {name}")
+        if not re.fullmatch(r"[0-9a-f]{64}", probe.get("output_sha256", "")):
+            raise ValueError(f"follow-up probe is missing its output hash: {name}")
+    sibling = probes["sibling_collision"]
+    if not (
+        sibling.get("status") == "PASS"
+        and sibling.get("native_spawn_event") == "OBSERVED"
+        and sibling.get("selected_role") == "probe-reviewer"
+        and sibling.get("sibling_role") == "probe-worker"
+        and sibling.get("role_identity") == "OBSERVED"
+        and sibling.get("child_parent_relation") == "OBSERVED"
+        and sibling.get("behavior") == "OBSERVED"
+        and sibling.get("wrong_role_spawn_count") == 0
+    ):
+        raise ValueError("sibling collision follow-up is not independently bounded")
+    depth = probes["nested_depth"]
+    if not (
+        depth.get("status") == "NOT_ASSESSED"
+        and depth.get("requested_config") == {"agents": {"max_depth": 1}}
+        and depth.get("parent_child_spawn") == "OBSERVED"
+        and depth.get("nested_attempt") == "NOT_ASSESSED"
+        and depth.get("grandchild_metadata") == "NOT_ASSESSED"
+        and depth.get("depth_denial_event") == "NOT_ASSESSED"
+    ):
+        raise ValueError("nested-depth follow-up must preserve unavailable enforcement")
+    project = probes["project_scope"]
+    if not (
+        project.get("status") == "NOT_ASSESSED"
+        and project.get("project_config_present") == "OBSERVED"
+        and project.get("native_spawn_event") == "OBSERVED"
+        and project.get("behavior") == "OBSERVED"
+        and project.get("marker") == "PROJECT-SCOPE-MARKER"
+        and project.get("role_identity") == "NOT_ASSESSED"
+    ):
+        raise ValueError("project-scope follow-up must preserve missing role metadata")
+    sandbox = probes["readonly_sandbox"]
+    if not (
+        sandbox.get("status") == "NOT_ASSESSED"
+        and sandbox.get("role_identity") == "OBSERVED"
+        and sandbox.get("marker_absent") == "OBSERVED"
+        and sandbox.get("model_reported_denial") == "OBSERVED"
+        and sandbox.get("native_denial_event") == "NOT_ASSESSED"
+    ):
+        raise ValueError("read-only sandbox follow-up must not promote model prose")
 
 
 def _validate_probe_metadata(data: dict, repo_root: Path, required: set[str]) -> str:

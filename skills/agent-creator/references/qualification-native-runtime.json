@@ -37,5 +37,65 @@
   "sandbox": "read-only",
   "script": "skills/agent-creator/scripts/probe_runtime_agents.py",
   "script_sha256": "caf75da4ef129cf6cd4ce9e5fda7422b9b5044d661248e92618313cd78111b3f",
-  "sender_thread_id": "01a08248-9178-78d2-b929-e60c2f70931d"
+  "sender_thread_id": "01a08248-9178-78d2-b929-e60c2f70931d",
+  "follow_up_capture_revision": "16ba7782dac996cd936908837775cfb71f4b3096",
+  "follow_up_probes": {
+    "sibling_collision": {
+      "status": "PASS",
+      "capture_revision": "16ba7782dac996cd936908837775cfb71f4b3096",
+      "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (issue105-sibling-collision; 0.1)",
+      "model": "gpt-5.6-luna",
+      "reasoning": "medium",
+      "timeout_seconds": 120,
+      "output_sha256": "edc4bdeebf037e1fb0cd3abab5202d7c5692006f4993987a71fe8c16dacca6f8",
+      "native_spawn_event": "OBSERVED",
+      "selected_role": "probe-reviewer",
+      "sibling_role": "probe-worker",
+      "role_identity": "OBSERVED",
+      "child_parent_relation": "OBSERVED",
+      "behavior": "OBSERVED",
+      "wrong_role_spawn_count": 0
+    },
+    "nested_depth": {
+      "status": "NOT_ASSESSED",
+      "capture_revision": "16ba7782dac996cd936908837775cfb71f4b3096",
+      "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (issue105-nested-depth; 0.1)",
+      "model": "gpt-5.6-luna",
+      "reasoning": "medium",
+      "timeout_seconds": 120,
+      "output_sha256": "06ab2b3808929e4c4d607f69b934322e142fa4821812fa66a957536c2a762b13",
+      "requested_config": {"agents": {"max_depth": 1}},
+      "parent_child_spawn": "OBSERVED",
+      "nested_attempt": "NOT_ASSESSED",
+      "grandchild_metadata": "NOT_ASSESSED",
+      "depth_denial_event": "NOT_ASSESSED"
+    },
+    "project_scope": {
+      "status": "NOT_ASSESSED",
+      "capture_revision": "16ba7782dac996cd936908837775cfb71f4b3096",
+      "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (issue105-project-scope; 0.1)",
+      "model": "gpt-5.6-luna",
+      "reasoning": "medium",
+      "timeout_seconds": 120,
+      "output_sha256": "221111a22264b1da39e859b330650b8375816b6a5955c9f26a91eccaa8e7914f",
+      "project_config_present": "OBSERVED",
+      "native_spawn_event": "OBSERVED",
+      "behavior": "OBSERVED",
+      "marker": "PROJECT-SCOPE-MARKER",
+      "role_identity": "NOT_ASSESSED"
+    },
+    "readonly_sandbox": {
+      "status": "NOT_ASSESSED",
+      "capture_revision": "16ba7782dac996cd936908837775cfb71f4b3096",
+      "runtime": "Codex Desktop/0.149.1 (Mac OS 26.3.1; arm64) dumb (issue105-readonly-sandbox; 0.1)",
+      "model": "gpt-5.6-luna",
+      "reasoning": "medium",
+      "timeout_seconds": 120,
+      "output_sha256": "18d5dec0a7f5c35a6ae536ad9e46932c5c1dc2e61f9d3fc6cc9f705ade6a5a62",
+      "role_identity": "OBSERVED",
+      "marker_absent": "OBSERVED",
+      "model_reported_denial": "OBSERVED",
+      "native_denial_event": "NOT_ASSESSED"
+    }
+  }
 }
