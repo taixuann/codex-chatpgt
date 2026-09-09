@@ -92,8 +92,7 @@ class RoutingQualificationTests(unittest.TestCase):
     def test_publication_mirrors_are_not_routing_inputs(self):
         self.assertNotIn("skills/agent-creator/references/qualification-evidence.jsonl", MODULE.ROUTING_SOURCE_PATHS)
         self.assertNotIn("skills/agent-creator/references/qualification-receipts.jsonl", MODULE.ROUTING_SOURCE_PATHS)
-        self.assertIn("skills/agent-creator/references/qualification-evidence.jsonl", MODULE.ROUTING_EVIDENCE_ONLY_UPDATE_PATHS)
-        self.assertIn("skills/agent-creator/references/qualification-receipts.jsonl", MODULE.ROUTING_EVIDENCE_ONLY_UPDATE_PATHS)
+        self.assertEqual(MODULE.ROUTING_EVIDENCE_ONLY_UPDATE_PATHS, set())
 
     def test_invalid_timeout_shape_is_rejected(self):
         repo = Path(__file__).parents[3]

@@ -85,14 +85,9 @@ jobs:
         run: |
           python skills/skill-creator/scripts/quick_validate.py skills/agent-creator
           python -m py_compile skills/agent-creator/scripts/*.py
-          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl
-          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl --native skills/agent-creator/references/qualification-native-runtime.json
-          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl --native-no-delegation skills/agent-creator/references/qualification-native-no-delegation.json --native-forbidden-delegation skills/agent-creator/references/qualification-native-forbidden-delegation.json --scope skills/agent-creator/references/qualification-scope.json --depth skills/agent-creator/references/qualification-depth.json
-          python skills/agent-creator/scripts/validate_qualification_receipts.py skills/agent-creator/references/qualification-receipts.jsonl --exclusions skills/agent-creator/references/qualification-exclusions.jsonl --discovery skills/agent-creator/references/qualification-discovery.json
-          python skills/agent-creator/scripts/run_routing_qualification.py --repo-root . --validate skills/agent-creator/references/qualification-routing.jsonl
-          python skills/agent-creator/scripts/run_routing_qualification.py --repo-root . --validate skills/agent-creator/references/qualification-missing-capability.jsonl
           python -m unittest skills/agent-creator/scripts/test_validate_qualification_receipts.py
           python -m unittest skills/agent-creator/scripts/test_role_contracts.py
+          python -m unittest skills/agent-creator/scripts/test_run_routing_qualification.py
           python - <<'PY'
           import json, pathlib, yaml
           cases = yaml.safe_load(pathlib.Path('skills/agent-creator/references/qualification-cases.yaml').read_text())
@@ -113,15 +108,10 @@ jobs:
           assert baseline['license'] == 'Apache-2.0'
           assert baseline['quick_validate'] == 'PASS'
           assert baseline['current_eval_contract'] == 'EXPECTED_FAIL_CLOSED'
-          native = json.loads(pathlib.Path('skills/agent-creator/references/qualification-native-runtime.json').read_text())
-          assert native['fixture'] == 'synthetic_only'
-          assert native['qualification_status'] in ('PASS', 'NOT_ASSESSED')
-          assert native['script_sha256']
-          assert native['requested_model'] == 'gpt-5.6-luna'
-          assert native['requested_reasoning_effort'] == 'medium'
-          discovery = json.loads(pathlib.Path('skills/agent-creator/references/qualification-discovery.json').read_text())
-          assert discovery['default_repo_skill_match_count'] == 0
-          assert discovery['explicit_extra_root_match_count'] == 1
-          assert discovery['explicit_extra_root_discovery'] == 'OBSERVED'
-          assert discovery['activation_status'] == 'NOT_ASSESSED'
+          summary = json.loads(pathlib.Path('skills/agent-creator/references/qualification-summary.json').read_text())
+          assert summary['issue'] == 105
+          assert summary['model'] == 'gpt-5.6-luna'
+          assert summary['reasoning'] == 'medium'
+          assert summary['qualification_capture_head'] == 'a57a562e80126decb777f797cb81716bc768406d'
+          assert all(isinstance(item, str) for item in summary['not_assessed'])
           PY

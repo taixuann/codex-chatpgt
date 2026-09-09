@@ -119,7 +119,6 @@ Codex adapters can be placed in:
 - Global: `/Users/tai/.codex/agents/*.toml`
 - Project-scoped: `<project>/.codex/agents/*.toml`
 
-The `templates/agent.toml` file is an inert source template and is not an
-active adapter. Validate every instantiated adapter against the active task
-contract and CI checks before use. This checkout no longer carries the retired
+Validate every instantiated adapter against the active task contract and CI
+checks before use. This checkout no longer carries the retired
 `runtime-adapter-management` validator.

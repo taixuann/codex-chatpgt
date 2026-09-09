@@ -18,15 +18,9 @@ from pathlib import Path
 MODEL = "gpt-5.6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
-ROUTING_EVIDENCE_ONLY_UPDATE_PATHS = {
-    # These are derived publication mirrors, not routing inputs. Routing rows
-    # still bind the actual inputs below through source_fingerprint().
-    "skills/agent-creator/references/qualification-evidence.jsonl",
-    "skills/agent-creator/references/qualification-receipts.jsonl",
-    "skills/agent-creator/references/qualification-routing.jsonl",
-    "skills/agent-creator/references/qualification-missing-capability.jsonl",
-    "skills/agent-creator/references/qualification-results.md",
-}
+# Qualification receipts are external evidence. Never allow a stale receipt to
+# survive a source change by treating an in-repo evidence mirror as harmless.
+ROUTING_EVIDENCE_ONLY_UPDATE_PATHS: set[str] = set()
 ROUTING_SOURCE_PATHS = (
     "skills/agent-creator/SKILL.md",
     "agents/athena.toml",

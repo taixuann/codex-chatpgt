@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "issue": 105,
+  "pr": 106,
+  "qualification_capture_head": "a57a562e80126decb777f797cb81716bc768406d",
+  "model": "gpt-5.6-luna",
+  "reasoning": "medium",
+  "runtime": "codex-cli 0.149.1",
+  "evidence": {
+    "historical_capture": "Git history at qualification_capture_head; retained as historical evidence, not active runtime authority",
+    "pull_request": "https://github.com/taixuann/codex-chatpgt/pull/106",
+    "athena_review": "https://github.com/taixuann/codex-chatpgt/pull/106#issuecomment-5596823561",
+    "hosted_ci": [
+      "https://github.com/taixuann/codex-chatpgt/actions/runs/34311410595",
+      "https://github.com/taixuann/codex-chatpgt/actions/runs/34311406175"
+    ]
+  },
+  "not_assessed": [
+    "native activation",
+    "effective spawned configuration",
+    "project role application",
+    "nested depth enforcement",
+    "read-only denial event",
+    "per-turn skill load",
+    "implicit activation",
+    "HR-02 artifact creation event"
+  ],
+  "retired_evidence": [
+    "Raw model transcripts, prompt manifests, temporary fixtures, and per-run receipts are external historical evidence, not active skill content."
+  ]
+}

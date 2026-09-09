@@ -16,24 +16,6 @@ EXCLUSION_CATEGORIES = ("NO_PROMPT_PROVIDED", "NONCOMPLIANT_TRACE", "PROCESS_FAI
 MODEL = "gpt-5.6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
-EVIDENCE_ONLY_UPDATE_PATHS = {
-    "skills/agent-creator/references/qualification-evidence.jsonl",
-    "skills/agent-creator/references/qualification-prompts.jsonl",
-    "skills/agent-creator/references/qualification-receipts.jsonl",
-    "skills/agent-creator/references/qualification-results.md",
-    "skills/agent-creator/references/qualification-discovery.json",
-}
-NATIVE_EVIDENCE_ONLY_UPDATE_PATHS = EVIDENCE_ONLY_UPDATE_PATHS | {
-    "skills/agent-creator/references/qualification-native-runtime.json",
-    "skills/agent-creator/references/qualification-native-no-delegation.json",
-    "skills/agent-creator/references/qualification-native-forbidden-delegation.json",
-    "skills/agent-creator/references/qualification-routing.jsonl",
-    "skills/agent-creator/references/qualification-missing-capability.jsonl",
-    "skills/agent-creator/references/qualification-scope.json",
-    "skills/agent-creator/references/qualification-depth.json",
-}
-EVIDENCE_FILE = Path(__file__).parents[1] / "references" / "qualification-evidence.jsonl"
-PROMPT_FILE = Path(__file__).parents[1] / "references" / "qualification-prompts.jsonl"
 
 
 def sha256(path: Path) -> str:
@@ -78,7 +60,7 @@ def resolve_capture_revision(records: list[dict], repo_root: Path) -> str:
     revisions = {record.get("capture_revision") for record in records}
     if len(revisions) != 1 or None in revisions:
         raise ValueError("receipt set must use one capture revision")
-    return resolve_capture_revision_value(next(iter(revisions)), repo_root, EVIDENCE_ONLY_UPDATE_PATHS)
+    return resolve_capture_revision_value(next(iter(revisions)), repo_root, set())
 
 
 def validate_native_receipt(path: Path, repo_root: Path) -> str:
@@ -119,7 +101,7 @@ def validate_native_receipt(path: Path, repo_root: Path) -> str:
     if data["qualification_status"] == "PASS" and not data["child_thread_metadata"]:
         raise ValueError("native PASS receipt must retain child thread metadata")
     return resolve_capture_revision_value(
-        data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
+        data["capture_revision"], repo_root, set()
     )
 
 
@@ -137,7 +119,7 @@ def _validate_probe_metadata(data: dict, repo_root: Path, required: set[str]) ->
     if data["requested_model"] != MODEL or data["requested_reasoning_effort"] != REASONING:
         raise ValueError("native probe receipt runtime lane does not match the qualification contract")
     return resolve_capture_revision_value(
-        data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
+        data["capture_revision"], repo_root, set()
     )
 
 
@@ -227,7 +209,7 @@ def validate_discovery_receipt(path: Path, repo_root: Path) -> str:
     if data["activation_status"] != "NOT_ASSESSED":
         raise ValueError("discovery receipt must preserve unavailable activation as NOT_ASSESSED")
     return resolve_capture_revision_value(
-        data["capture_revision"], repo_root, NATIVE_EVIDENCE_ONLY_UPDATE_PATHS
+        data["capture_revision"], repo_root, set()
     )
 
 
@@ -343,7 +325,7 @@ def recompute_process_evidence(record: dict) -> dict[str, bool]:
     }
 
 
-def load_evidence(path: Path = EVIDENCE_FILE) -> dict[tuple[str, int], dict]:
+def load_evidence(path: Path) -> dict[tuple[str, int], dict]:
     if not path.exists():
         raise ValueError(f"missing durable qualification evidence: {path}")
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
@@ -353,7 +335,7 @@ def load_evidence(path: Path = EVIDENCE_FILE) -> dict[tuple[str, int], dict]:
     return indexed
 
 
-def load_prompt_manifest(path: Path = PROMPT_FILE) -> dict[tuple[str, str], dict]:
+def load_prompt_manifest(path: Path) -> dict[tuple[str, str], dict]:
     if not path.exists():
         raise ValueError(f"missing qualification prompt manifest: {path}")
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
@@ -374,9 +356,15 @@ def read_status(root: Path) -> dict[int, tuple[int, str | None]]:
     return result
 
 
-def derive_case(case: str, root: Path, capture_revision: str, artifact_path: Path | None = None) -> list[dict]:
+def derive_case(
+    case: str,
+    root: Path,
+    capture_revision: str,
+    prompt_path: Path,
+    artifact_path: Path | None = None,
+) -> list[dict]:
     statuses = read_status(root)
-    prompts = load_prompt_manifest()
+    prompts = load_prompt_manifest(prompt_path)
     if sorted(statuses) != list(range(1, 11)):
         raise ValueError(f"{case}: status.tsv must contain runs 1..10")
     records = []
@@ -584,12 +572,15 @@ def validate_exclusions(path: Path) -> int:
 def validate(
     records: list[dict],
     expected_capture_revision: str | None = None,
-    evidence_path: Path = EVIDENCE_FILE,
+    evidence_path: Path | None = None,
+    prompt_path: Path | None = None,
 ) -> dict[str, int]:
+    if evidence_path is None or prompt_path is None:
+        raise ValueError("qualification evidence and prompt paths must be supplied explicitly")
     counts = {case: 0 for case in CASES}
     seen = set()
     durable = load_evidence(evidence_path)
-    prompts = load_prompt_manifest()
+    prompts = load_prompt_manifest(prompt_path)
     for record in records:
         case = record.get("case")
         run = record.get("run")
@@ -679,6 +670,8 @@ def validate(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("receipts", type=Path)
+    parser.add_argument("--evidence", required=True, type=Path, help="external durable evidence JSONL")
+    parser.add_argument("--prompts", required=True, type=Path, help="external prompt manifest JSONL")
     parser.add_argument("--exclusions", type=Path)
     parser.add_argument("--source", action="append", metavar="CASE=ROOT")
     parser.add_argument("--artifact", action="append", metavar="CASE=PATH")
@@ -704,11 +697,12 @@ def main() -> int:
                     case,
                     Path(sources[case]),
                     capture_revision,
+                    args.prompts,
                     Path(artifacts[case]) if case in artifacts else None,
                 )
             )
         args.receipts.write_text("\n".join(json.dumps(record, sort_keys=True) for record in records) + "\n")
-        EVIDENCE_FILE.write_text(
+        args.evidence.write_text(
             "\n".join(
                 json.dumps(
                     {
@@ -729,7 +723,12 @@ def main() -> int:
             + "\n"
         )
     records = load_records(args.receipts)
-    counts = validate(records, resolve_capture_revision(records, repo_root))
+    counts = validate(
+        records,
+        resolve_capture_revision(records, repo_root),
+        evidence_path=args.evidence,
+        prompt_path=args.prompts,
+    )
     print("qualification receipts: 30/30 valid")
     for case in CASES:
         print(f"{case}: {counts[case]}/10 derived from receipts")

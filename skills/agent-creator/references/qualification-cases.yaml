@@ -2,9 +2,6 @@ schema_version: 1
 skill: agent-creator
 model: gpt-5.6-luna
 reasoning: medium
-receipt_file: references/qualification-receipts.jsonl
-exclusion_file: references/qualification-exclusions.jsonl
-receipt_schema: qualification-receipts.v1
 prompt_partitions: [direct, indirect, noisy, context_heavy, near_sibling]
 prompt_shapes:
   direct: explicit skill and bounded task request
@@ -62,8 +59,7 @@ cases:
     hard_invariants: [collision_fixture_proof, no_mutation]
     admission:
       expected_runs: 10
-      receipt_case: HR-01
-      receipt_invariants: [skill_read, role_files_read, collision_fixture_observed, no_mutation]
+      required_evidence: [skill_read, role_files_read, collision_fixture_observed, no_mutation]
       native_role_application: NOT_ASSESSED
   - id: HR-02
     name: required process path
@@ -74,8 +70,7 @@ cases:
     hard_invariants: [required_reference, required_script, exact_artifact]
     admission:
       expected_runs: 10
-      receipt_case: HR-02
-      receipt_invariants: [reference_read, script_run, artifact_present, artifact_valid]
+      required_evidence: [reference_read, script_run, artifact_present, artifact_valid]
       artifact_creation_event: NOT_ASSESSED
       native_skill_activation: NOT_ASSESSED
   - id: HR-03
@@ -88,8 +83,7 @@ cases:
     not_assessed: [forbidden_self_acceptance_zero, forbidden_delegation_zero]
     admission:
       expected_runs: 10
-      receipt_case: HR-03
-      receipt_invariants: [skill_read, reviewer_role_read, probe_denied, marker_absent]
+      required_evidence: [skill_read, reviewer_role_read, probe_denied, marker_absent]
       native_role_application: NOT_ASSESSED
 routing_cases:
   - id: ROUTE-01

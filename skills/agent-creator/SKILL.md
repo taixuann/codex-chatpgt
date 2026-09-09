@@ -115,19 +115,12 @@ Read the focused references only when needed:
   observable evidence and NOT_ASSESSED boundaries;
 - [qualification-cases.yaml](references/qualification-cases.yaml) for the
   bounded routing and high-risk cases;
-- [qualification-results.md](references/qualification-results.md) for the
-  durable exact-run qualification summary;
-- [qualification-receipts.jsonl](references/qualification-receipts.jsonl) for
-  compact per-run evidence; validate it with
-  `scripts/validate_qualification_receipts.py` rather than trusting summary
-  counts;
-- [qualification-evidence.jsonl](references/qualification-evidence.jsonl) for
-  the compact durable binding that the validator recomputes for each receipt;
-- [qualification-prompts.jsonl](references/qualification-prompts.jsonl) for
-  the exact prompt variant IDs and hashes used by each partition;
-- [qualification-exclusions.jsonl](references/qualification-exclusions.jsonl)
-  for hashed, rejected-attempt provenance; excluded runs never count as
-  behavioral passes;
+- [qualification-baseline.json](references/qualification-baseline.json) for
+  the pinned donor reproduction boundary;
+- [qualification-summary.json](references/qualification-summary.json) for the
+  compact historical closure and explicit NOT_ASSESSED limits. Raw prompts,
+  traces, fixtures, and per-run receipts belong in external CI/PR evidence,
+  not in the active skill package;
 - [provenance.md](references/provenance.md) for the pinned clone and file
   disposition record.
 
