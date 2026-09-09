@@ -3,13 +3,16 @@
 This repository contains Codex runtime adapters for Prometheus, Franky, and
 Athena. The external AI Labs registry supplies deployment identity when
 available; its absolute local path is runtime-only and is not portable
-repository authority. `agents/AGENTS.md` is the companion role contract; do
+repository authority. `agents/ROLE-CONTRACT.md` is the companion role
+reference; do
 not invent or merge roles.
 
-For governed work, select exactly one applicable role and workflow. Inspect
-governing files and plan when risk or scope warrants it. Delegate only bounded steps
-within the active role contract. Do not cross role boundaries or protected
-scopes. Changes to this policy require explicit human approval.
+For governed work, select exactly one canonical parent role and workflow.
+Bounded support adapters may serve as leaf workers under that parent when the
+task contract justifies them. Inspect governing files and plan when risk or
+scope warrants it. Delegate only bounded steps within the active role
+contract. Do not cross role boundaries or protected scopes. Changes to this
+policy require explicit human approval.
 
 - Prometheus: implementation design, code-change review, testing, and bounded
   execution handoffs. Do not own the AI Labs control plane or scientific choices.
@@ -41,10 +44,10 @@ not claim a hard platform hook.
 
 Canonical deployment role identity comes from the external AI Labs registry
 when available. The local registry path is a runtime hint, not portable
-repository state. This file and `agents/AGENTS.md` are the portable semantic
-reference; `agents/*.toml` files are adapters and `skills/` contains reusable
-capabilities. A conflict is a stop-and-escalate condition, not permission to
-choose the most convenient interpretation.
+repository state. This file and `agents/ROLE-CONTRACT.md` are the portable
+semantic reference; `agents/*.toml` files are adapters and `skills/` contains
+reusable capabilities. A conflict is a stop-and-escalate condition, not
+permission to choose the most convenient interpretation.
 User-global AGENTS files (`AGENTS.override.md` takes precedence over
 `AGENTS.md`) are runtime context, not repository-owned state; changes there are
 proposal-only unless the human explicitly authorizes them, and any
