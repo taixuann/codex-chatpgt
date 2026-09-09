@@ -46,7 +46,8 @@ reference; `agents/*.toml` files are adapters and `skills/` contains reusable
 capabilities. A conflict is a stop-and-escalate condition, not permission to
 choose the most convenient interpretation.
 User-global `$CODEX_HOME/AGENTS.md` is runtime context, not repository-owned
-state; do not modify it implicitly.
+state; changes there are proposal-only unless the human explicitly authorizes
+them, and any qualification impact must be bound to separate evidence.
 
 ## Global operating kernel
 

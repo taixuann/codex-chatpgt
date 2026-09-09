@@ -15,6 +15,9 @@
 !skills/agent-creator/
 !skills/agent-creator/**
 
+# Skill packages do not carry nested AGENTS authority.
+skills/**/AGENTS.md
+
 # Security boundary: never publish credentials, runtime state, or local stores.
 **/__pycache__/
 **/*.pyc
