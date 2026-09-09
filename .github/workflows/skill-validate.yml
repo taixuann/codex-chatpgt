@@ -55,6 +55,7 @@ jobs:
           test ! -e agents/AGENTS.md
           test ! -e agents/README.md
           test ! -e agents/CHANGELOG.md
+          test "$(git ls-files 'skills/**/AGENTS.md' | wc -l | tr -d ' ')" -eq 0
           test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 2
           test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3
 
