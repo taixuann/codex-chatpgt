@@ -22,6 +22,7 @@ EVIDENCE_ONLY_UPDATE_PATHS = {
     "skills/agent-creator/references/qualification-receipts.jsonl",
     "skills/agent-creator/references/qualification-results.md",
     "skills/agent-creator/references/qualification-discovery.json",
+    "skills/agent-creator/references/qualification-native-runtime.json",
     "skills/agent-creator/scripts/validate_qualification_receipts.py",
     "skills/agent-creator/scripts/test_validate_qualification_receipts.py",
 }
