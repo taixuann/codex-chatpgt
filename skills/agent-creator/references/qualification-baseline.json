@@ -1,0 +1,24 @@
+{
+  "blob_sha1": {
+    "SKILL.md": "e456a55ec17aae2079cc3f6c196f6afc50546aa6",
+    "agents/openai.yaml": "33eafa9626a86e5a6c149b6ff826689bd7bef458",
+    "references/contract.yaml": "604ade211cef431e5a49f717a4e6366649523bed",
+    "references/discovery-interview.md": "aca4eb2a346a445826d0c5412dfac37413ddba83",
+    "references/evals.yaml": "71e97b4b3639b0799d27fb1c0af6e82ae4b3f81b",
+    "references/role-config-examples.md": "65c986977c07cd8b1afca06b97c3466923c58f1c",
+    "references/role-creation-guide.md": "671988a141b558e4ecca2afba41e2ca582db1128",
+    "references/task-profile.json": "e88bff5ccf6403c6f73b9e404d3b1d97ebd1bb32"
+  },
+  "capture_revision": "818ccc131bfc3dad828df76f350ec17b0fc4dd32",
+  "captured_at_utc": "2026-09-08T02:46:09+00:00",
+  "current_eval_contract": "EXPECTED_FAIL_CLOSED",
+  "current_eval_exit_code": 1,
+  "current_eval_failure_digest": "a29d0aab03d18e44bdc87f56f31ffb8314b0b60b76b860090149c194c92a3b65",
+  "license": "Apache-2.0",
+  "parse": "PASS",
+  "quick_validate": "PASS",
+  "ref": "d00c351fe53460afba860f8cdb1580d7cfece7e4",
+  "repository": "jscraik/Agent-Skills",
+  "script": "skills/agent-creator/scripts/verify_upstream_baseline.py",
+  "source": "Skills/agent-ops/codex-agent-creator/"
+}

@@ -14,6 +14,14 @@ no separate catalog is required. A package may be structurally valid without
 being selected for a task. Runtime, plugin, system, and personal packages are
 not silently promoted into this repository.
 
+`skills/` is the canonical reusable-capability source for this repository;
+native Codex repository discovery scans `.agents/skills/`, not this source
+directory. Runtime use of a package under `skills/` therefore requires an
+explicit supported materialization or capability-root binding. A successful
+`skills/extraRoots/set` followed by `skills/list` proves discovery through
+that binding; source presence alone does not prove native discovery or
+per-turn skill activation.
+
 ## Admission and routing
 
 - Keep a skill only when the trigger recurs, is discriminative, and benefits

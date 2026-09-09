@@ -25,7 +25,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -54,7 +54,7 @@ jobs:
           test ! -e skills/ADDYOSMANI-AGENT-SKILLS-LICENSE
           test ! -e agents/README.md
           test ! -e agents/CHANGELOG.md
-          test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 1
+          test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 2
           test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3
 
       - name: Validate repository references and retained provenance
@@ -80,3 +80,38 @@ jobs:
           python skills/skill-creator/scripts/quick_validate.py skills/skill-creator
           python skills/skill-creator/scripts/validate_eval_cases.py skills/skill-creator/evals/cases.yaml
           python -m unittest skills/skill-creator/scripts/test_validate_eval_cases.py
+
+      - name: Validate agent-creator package and qualification manifest
+        run: |
+          python skills/skill-creator/scripts/quick_validate.py skills/agent-creator
+          python -m py_compile skills/agent-creator/scripts/*.py
+          python -m unittest skills/agent-creator/scripts/test_validate_qualification_receipts.py
+          python -m unittest skills/agent-creator/scripts/test_role_contracts.py
+          python -m unittest skills/agent-creator/scripts/test_run_routing_qualification.py
+          python - <<'PY'
+          import json, pathlib, yaml
+          cases = yaml.safe_load(pathlib.Path('skills/agent-creator/references/qualification-cases.yaml').read_text())
+          assert cases['skill'] == 'agent-creator'
+          assert cases['runtime_signals']['discovery_listing'] == 'OBSERVED'
+          assert cases['runtime_signals']['explicit_delegation'] == 'NOT_ASSESSED'
+          assert cases['runtime_signals']['role_selection'] == 'NOT_ASSESSED'
+          assert cases['runtime_signals']['role_application'] == 'NOT_ASSESSED'
+          assert cases['runtime_signals']['per_turn_skill_load'] == 'NOT_ASSESSED'
+          assert cases['synthetic_probe']['fixture'] == 'synthetic_only'
+          assert cases['synthetic_probe']['explicit_delegation'] == 'NOT_ASSESSED'
+          assert cases['synthetic_probe']['role_identity'] == 'NOT_ASSESSED'
+          assert len(cases['cases']) == 3 and len(cases['routing_cases']) == 7
+          assert all(case['admission']['expected_runs'] == 10 for case in cases['cases'])
+          baseline = json.loads(pathlib.Path('skills/agent-creator/references/qualification-baseline.json').read_text())
+          assert baseline['repository'] == 'jscraik/Agent-Skills'
+          assert baseline['ref'] == 'd00c351fe53460afba860f8cdb1580d7cfece7e4'
+          assert baseline['license'] == 'Apache-2.0'
+          assert baseline['quick_validate'] == 'PASS'
+          assert baseline['current_eval_contract'] == 'EXPECTED_FAIL_CLOSED'
+          summary = json.loads(pathlib.Path('skills/agent-creator/references/qualification-summary.json').read_text())
+          assert summary['issue'] == 105
+          assert summary['model'] == 'gpt-5.6-luna'
+          assert summary['reasoning'] == 'medium'
+          assert summary['qualification_capture_head'] == 'a57a562e80126decb777f797cb81716bc768406d'
+          assert all(isinstance(item, str) for item in summary['not_assessed'])
+          PY
