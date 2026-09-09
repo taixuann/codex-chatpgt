@@ -5,14 +5,18 @@ on:
   push:
     paths:
       - 'AGENTS.md'
+      - 'README.md'
       - 'agents/**'
       - 'skills/**'
+      - '.gitignore'
       - '.github/workflows/skill-validate.yml'
   pull_request:
     paths:
       - 'AGENTS.md'
+      - 'README.md'
       - 'agents/**'
       - 'skills/**'
+      - '.gitignore'
       - '.github/workflows/skill-validate.yml'
 
 permissions:
@@ -55,6 +59,7 @@ jobs:
           test ! -e agents/AGENTS.md
           test ! -e agents/README.md
           test ! -e agents/CHANGELOG.md
+          test -f agents/ROLE-CONTRACT.md
           test "$(git ls-files 'skills/**/AGENTS.md' | wc -l | tr -d ' ')" -eq 0
           test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 2
           test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3

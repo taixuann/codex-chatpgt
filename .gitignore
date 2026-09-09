@@ -1,14 +1,13 @@
 # Keep only portable repository guidance, retained skills, adapters, and CI.
 *
 !.gitignore
-!README.md
+!/README.md
 !/AGENTS.md
 !.github/
 !.github/**
 !agents/
 !agents/*.toml
-!agents/README.md
-!agents/CHANGELOG.md
+!agents/ROLE-CONTRACT.md
 !skills/
 !skills/skill-creator/
 !skills/skill-creator/**
