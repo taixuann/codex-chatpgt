@@ -6,8 +6,8 @@ available; its absolute local path is runtime-only and is not portable
 repository authority. `agents/AGENTS.md` is the companion role contract; do
 not invent or merge roles.
 
-For governed work, select one applicable role and workflow. Inspect governing
-files and plan when risk or scope warrants it. Delegate only bounded steps
+For governed work, select exactly one applicable role and workflow. Inspect
+governing files and plan when risk or scope warrants it. Delegate only bounded steps
 within the active role contract. Do not cross role boundaries or protected
 scopes. Changes to this policy require explicit human approval.
 
@@ -97,4 +97,6 @@ instructions. Never push automatically.
 
 Ordinary repository changes use the Issue/PR/CI surface. Start one work-unit
 branch from fresh `main`, target `main`, and do not create stacked or
-role-specific branches without a recorded dependency.
+role-specific branches without a recorded dependency. When the task contract
+requires a Draft PR, stop there; do not merge, auto-merge, or close the Issue
+without explicit authority.

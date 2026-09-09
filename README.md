@@ -14,5 +14,6 @@ credentials, session state, caches, or linked project contents.
 3. [`skills/skill-creator/SKILL.md`](skills/skill-creator/SKILL.md) — the
    minimal-kernel skill authoring procedure.
 
-The GitHub repository is a coordination bridge. Local Codex state remains the
-runtime source; GitHub provides reviewable, portable artifacts.
+The GitHub repository is a coordination bridge. Local Codex state is runtime
+context, not repository authority; GitHub provides reviewable, portable
+artifacts.
