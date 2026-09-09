@@ -277,12 +277,3 @@ The project output was rerun after correcting the fixture to use the unique
 marker; the raw file is represented by the exact native fields above. These
 probes do not change the existing HR, routing, or missing-capability corpus;
 those lanes were not rerun.
-
-The compact structured representation is also embedded in
-`qualification-native-runtime.json` under `follow_up_probes`. The existing CI
-native-receipt step validates all four probe invariants, including the
-fail-closed `NOT_ASSESSED` states for depth, project role application, and
-sandbox denial. The HR durable evidence was compacted without changing its
-derived process signals: `qualification-evidence.jsonl` is now 214,275 bytes
-for 30 records, and `qualification-receipts.jsonl` mirrors the compact source
-evidence and recomputed bindings. No giant command-output trace is persisted.
