@@ -249,3 +249,31 @@ spawn-count zero was observed for the two no-delegation attempts; project
 scope, nested-depth enforcement, per-turn skill-load, and implicit activation
 remain `NOT_ASSESSED`. The probe does not promote model text to a runtime
 signal.
+
+## Final bounded native follow-up probes
+
+At exact capture revision `16ba7782dac996cd936908837775cfb71f4b3096`, four
+bounded probes were run against Codex Desktop/CLI `0.149.1` with
+`gpt-5.6-luna`, reasoning `medium`, and a 120-second per-probe timeout. The
+temporary harness was outside the repository; its SHA-256 was
+`5b463d28ca7e8c648deb86648e9bfc2e5093a3c15e308bf086606ea562035b53`.
+Raw probe-output hashes are recorded so the exact durable summary cannot be
+mistaken for a native event stream.
+
+| Probe | Native evidence | Result |
+| --- | --- | --- |
+| sibling collision | Two user-scope roles existed; one native `spawnAgent` event selected `probe-reviewer`, child metadata reported `agentRole=probe-reviewer`, parent relation, and the child command returned `probe-marker-issue105`. No `probe-worker` child appeared. | `PASS` for this bounded native collision case |
+| nested depth | Parent spawned `probe-reviewer` under `agents.max_depth=1`; the child made an explicit collaboration attempt, but returned that the collaboration tool was unavailable. No grandchild metadata or native denial event was exposed. | `NOT_ASSESSED`; absence of a descendant is not proof of max-depth enforcement |
+| project scope | Project fixture used a separate `.codex/agents/probe-project-reviewer.toml` and a unique `PROJECT-SCOPE-MARKER`. Native spawn, project behavior, and marker command output were observed, but child metadata exposed `agentRole=null`. | `NOT_ASSESSED` for project role application; behavior was observed |
+| read-only sandbox | Native role metadata reported `probe-readonly-writer`; external fixture check found `.sandbox-probe-marker` absent. The child reported `touch` exit `1` and `Operation not permitted`, but no independent native command event for the denied write was exposed. | `NOT_ASSESSED`; model-reported denial is not promoted to enforcement proof |
+
+The four output hashes are: sibling
+`edc4bdeebf037e1fb0cd3abab5202d7c5692006f4993987a71fe8c16dacca6f8`, depth
+`06ab2b3808929e4c4d607f69b934322e142fa4821812fa66a957536c2a762b13`, project
+`221111a22264b1da39e859b330650b8375816b6a5955c9f26a91eccaa8e7914f`, and
+sandbox
+`18d5dec0a7f5c35a6ae536ad9e46932c5c1dc2e61f9d3fc6cc9f705ade6a5a62`.
+The project output was rerun after correcting the fixture to use the unique
+marker; the raw file is represented by the exact native fields above. These
+probes do not change the existing HR, routing, or missing-capability corpus;
+those lanes were not rerun.
