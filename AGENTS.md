@@ -45,9 +45,10 @@ repository state. This file and `agents/AGENTS.md` are the portable semantic
 reference; `agents/*.toml` files are adapters and `skills/` contains reusable
 capabilities. A conflict is a stop-and-escalate condition, not permission to
 choose the most convenient interpretation.
-User-global `$CODEX_HOME/AGENTS.md` is runtime context, not repository-owned
-state; changes there are proposal-only unless the human explicitly authorizes
-them, and any qualification impact must be bound to separate evidence.
+User-global AGENTS files (`AGENTS.override.md` takes precedence over
+`AGENTS.md`) are runtime context, not repository-owned state; changes there are
+proposal-only unless the human explicitly authorizes them, and any
+qualification impact must be bound to separate evidence.
 
 ## Global operating kernel
 
@@ -89,7 +90,8 @@ CWD changes. Observation does not directly mutate global control-plane policy.
 ## Durable state and memory
 
 Keep operating guidance, accepted state, plans, history, memory, and raw source
-evidence distinct. Memory informs context but never replaces current authority;
+evidence distinct. Memory informs context but never replaces current authority.
+Promote durable policy only through `OBSERVE → PROPOSE → REVIEW → ACCEPT → UPDATE`;
 task contracts own additional lifecycle admission rules.
 
 Keep runtime state, credentials, local stores, and linked-project contents
