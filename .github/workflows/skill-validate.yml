@@ -60,6 +60,11 @@ jobs:
           test ! -e agents/README.md
           test ! -e agents/CHANGELOG.md
           test -f agents/ROLE-CONTRACT.md
+          python - <<'PY'
+          import subprocess
+          nested = [path for path in subprocess.check_output(['git', 'ls-files'], text=True).splitlines() if path.endswith('/AGENTS.md')]
+          assert not nested, nested
+          PY
           test "$(git ls-files 'skills/**/AGENTS.md' | wc -l | tr -d ' ')" -eq 0
           test "$(git ls-files 'skills/**/SKILL.md' | wc -l | tr -d ' ')" -eq 2
           test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3
