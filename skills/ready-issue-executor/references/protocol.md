@@ -42,6 +42,7 @@ ACTIVE -> CHECKPOINT_READY       final validation + checkpoint recorded
 CHECKPOINT_READY -> STALLED_FOR_REVIEW  publication + exact readback complete
 STALLED_FOR_REVIEW -> ACTIVE     exact CHANGES_REQUESTED receipt
 STALLED_FOR_REVIEW -> READY_FOR_PARENT  exact APPROVED receipt
+STALLED_FOR_REVIEW -> HUMAN_ESCALATION  exact REQUIRES_HUMAN_DECISION receipt
 STALLED_FOR_REVIEW -> WAIT       mismatch or unavailable evidence
 READY_FOR_PARENT -> terminal handoff; no code mutation
 ```
@@ -71,12 +72,14 @@ Reconcile in this order and stop at the first unknown result:
 
 1. validate candidate and record `checkpoint_sha`;
 2. verify intended branch and push only if allowed;
-3. read back remote branch SHA;
-4. find or create exactly one Draft PR for the execution key;
-5. read back PR number, base, draft state, and head SHA;
-6. write/replace the one literal marker block and reject duplicates;
-7. read back marker and all four head values;
-8. write `STALLED_FOR_REVIEW`.
+3. re-fetch all owning Issue/group members and base SHA; reject `STALE_SPEC`
+   or `BASE_MOVED` before publication;
+4. read back remote branch SHA;
+5. find or create exactly one Draft PR for the execution key;
+6. read back PR number, base, draft state, and head SHA;
+7. write/replace the one literal marker block and reject duplicates;
+8. read back marker and all four head values;
+9. write `STALLED_FOR_REVIEW`.
 
 If an operation may have succeeded but its result is unknown, query the remote
 surface before retrying; never evade dedupe with a new identifier.
@@ -92,8 +95,12 @@ The only consumable receipt binds the same observed revision to:
 When using GitHub review APIs, anchor the review to
 `commit_id=checkpoint_sha`. Verify the configured independent reviewer
 identity, event, author, body tuple, reviewed SHA, and current PR HEAD before
-consuming it. A producer-authored receipt is not independent. Missing/stale
-receipts remain `NOT_ASSESSED`.
+consuming it. A producer-authored receipt is not independent. For
+`CHANGES_REQUESTED`, first deactivate the marker and verify readback; for
+`APPROVED`, deactivate it with `state=READY_FOR_PARENT`; for
+`REQUIRES_HUMAN_DECISION`, deactivate it and create the allowed human-action
+projection without resuming code. Missing/stale receipts remain
+`NOT_ASSESSED`.
 
 ## Receipt
 
@@ -116,9 +123,26 @@ validation: PASS | FAIL | NOT_ASSESSED
 review:
   request_id: <id-or-null>
   reviewed_sha: <sha-or-null>
-  status: APPROVED | CHANGES_REQUESTED | NOT_ASSESSED
+  status: APPROVED | CHANGES_REQUESTED | REQUIRES_HUMAN_DECISION | NOT_ASSESSED
 todoist:
   status: NOT_APPLICABLE | CREATED | UPDATED | UNCHANGED | FAILED
 changed_paths: []
 limitations: []
 ```
+
+## Acceptance matrix
+
+These are small deterministic protocol cases, not evidence of native runtime
+execution. A future sandbox run must record observed traces and may not mark a
+case `PASS` from prose alone.
+
+| case | setup | expected disposition |
+| --- | --- | --- |
+| A1 | no exact `ready` Issue | `NO_OP` |
+| A2 | first eligible Issue, empty binding | one thread, then one goal |
+| A3 | crash at `CHECKPOINT_READY` | resume publication; no duplicate |
+| A4 | marker write/readback failure | remain `CHECKPOINT_READY` |
+| A5 | stalled checkpoint, no receipt | no mutation; `WAIT` |
+| A6 | exact `CHANGES_REQUESTED` receipt | deactivate marker; same goal; `ACTIVE` |
+| A7 | stale or mismatched SHA receipt | `NOT_ASSESSED`; no mutation |
+| A8 | exact `APPROVED` receipt | deactivate marker; `READY_FOR_PARENT`; one Todoist task |
