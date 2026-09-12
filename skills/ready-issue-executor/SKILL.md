@@ -3,7 +3,7 @@ name: ready-issue-executor
 description: Run one exact-ready GitHub Issue or pr-N group from a scheduled automation through bounded execution, checkpointed review, and human handoff; do not use for general project management.
 metadata:
   short-description: Scheduled readiness gate with exact-head review handoff
-  last_reviewed: 2026-09-12
+  last_reviewed: 2026-09-13
   review_interval_days: 90
 ---
 
@@ -37,13 +37,15 @@ Bind one `execution_key` to one Issue or exact `pr-N` group, one implementation
 thread, and at most one Draft PR. Read the machine-local ledger before making
 GitHub discovery calls:
 
-1. `STALLED_FOR_REVIEW`: inspect only the bound PR, literal marker, exact
+1. `REVIEW_RECEIPT_APPLYING`: finish the persisted review-receipt transition;
+   do not accept another receipt or create a new request.
+2. `STALLED_FOR_REVIEW`: inspect only the bound PR, literal marker, exact
    HEADs, and review receipts. Do not rescan Issues or edit code.
-2. `CHECKPOINT_READY`: reconcile the missing publication step idempotently;
+3. `CHECKPOINT_READY`: reconcile the missing publication step idempotently;
    never create a second PR or review request.
-3. `ACTIVE`: resume the bound unit and exact thread/goal after rechecking its
+4. `ACTIVE`: resume the bound unit and exact thread/goal after rechecking its
    live Issue and repository snapshot.
-4. No active unit: enumerate open Issues and select at most one eligible unit.
+5. No active unit: enumerate open Issues and select at most one eligible unit.
 
 Persist the binding before code mutation. Unknown thread/goal or publication
 outcomes fail closed as `THREAD_STATE_UNKNOWN`, `GOAL_STATE_MISMATCH`, or
@@ -73,8 +75,18 @@ ambiguous native state is not success. Do not simulate goals in prose.
 `STALLED_FOR_REVIEW` is ledger state, not native Goal completion or failure.
 Do not use native Goal state as the review-request source of truth, and do not
 issue implementation continuation while the ledger is `STALLED_FOR_REVIEW`.
+Before publishing a review marker, record `native_goal_gate` as one of
+`PAUSED`, `IDLE_BY_TURN_BOUNDARY`, or `UNVERIFIED`. `PAUSED` requires an
+explicit host pause result. `IDLE_BY_TURN_BOUNDARY` requires host evidence
+that the Goal stops after this checkpoint and cannot auto-continue. Native
+`BLOCKED` or `COMPLETED` is not a substitute. Publish `STALLED_FOR_REVIEW`
+only for the first two values; otherwise remain `CHECKPOINT_READY` and return
+`WAIT` with reason `GOAL_CONTINUATION_UNVERIFIED`. If a marker was already
+written, deactivate and verify it before remaining `CHECKPOINT_READY`. On
+`CHANGES_REQUESTED`, resume the same Goal/thread; on `APPROVED`, leave the
+Goal paused/idle until the parent decision. Paused is not blocked.
 Formal review, when configured, uses a fresh read-only context and an
-  independent reviewer identity supplied by the automation, never the
+independent reviewer identity supplied by the automation, never the
 implementation context or a producer-authored receipt.
 
 ## Execution and checkpoint
@@ -96,6 +108,10 @@ its base/head/draft state, write the marker, and read everything back. Enter
 local_head_sha == remote_head_sha == pr_head_sha == checkpoint_sha
 ```
 
+If an open PR already exists for the intended base/head without this
+execution's owned binding, return `LEGACY_PR_CONFLICT`, do not retrofit it,
+and do not create a second PR. Route the conflict to human escalation.
+
 The Draft PR body must contain exactly one current literal marker block; any
 duplicate or malformed marker fails closed:
 
@@ -114,20 +130,25 @@ the marker and ledger tuple match, PR HEAD equals `checkpoint_sha`, and the
 tuple has not already been consumed. Consume only a fresh exact-head
 `APPROVED`, `CHANGES_REQUESTED`, or `REQUIRES_HUMAN_DECISION` receipt.
 
-Before resuming after `CHANGES_REQUESTED`, deactivate the active marker by
-writing `requires_review: false` and `state: ACTIVE`, then verify readback.
-On `APPROVED`, deactivate it the same way with `state: READY_FOR_PARENT`
-before advancing. `REQUIRES_HUMAN_DECISION` deactivates the marker and routes
-to human escalation without resuming implementation. An inactive or consumed
-marker is never review-eligible. The former advances to `READY_FOR_PARENT`; it
-never authorizes merge, Issue closure, or scientific acceptance. Any mismatch
-is `NOT_ASSESSED`/wait, never approval. An existing PR without an active
-ledger checkpoint/request marker is legacy/unmanaged; do not retrofit it.
+Apply a consumable receipt as one recoverable transaction: verify the exact
+receipt and readbacks, persist `pending_review_transition` with the exact
+tuple, verdict, and target state, set ledger state `REVIEW_RECEIPT_APPLYING`,
+deactivate the marker, verify marker readback, then atomically record
+`consumed_review_tuple`, set the target state, and clear the pending field. On
+restart, resume this pending transition at its first missing operation; never
+review again, wait because the marker is inactive, or create a new request.
+For `CHANGES_REQUESTED` the target is `ACTIVE`; for `APPROVED` it is
+`READY_FOR_PARENT`; `REQUIRES_HUMAN_DECISION` deactivates the marker and
+targets `HUMAN_ESCALATION` without resuming implementation. An inactive or
+consumed marker is never review-eligible. `READY_FOR_PARENT` never authorizes
+merge, Issue closure, or scientific acceptance. Any mismatch is
+`NOT_ASSESSED`/wait, never approval. An existing PR without an active ledger
+checkpoint/request marker is legacy/unmanaged; do not retrofit it.
 
-Crash recovery resumes the first missing publication operation after readback;
-it must not duplicate commits, threads, goals, PRs, review requests, or
-Todoist tasks. Issue changes are `STALE_SPEC`; base movement is `BASE_MOVED`.
-Do not silently rebase, force-push, or discard work.
+Crash recovery resumes the first missing publication or pending receipt
+operation after readback; it must not duplicate commits, threads, goals, PRs,
+review requests, or Todoist tasks. Issue changes are `STALE_SPEC`; base
+movement is `BASE_MOVED`. Do not silently rebase, force-push, or discard work.
 
 ## Todoist and receipt
 
