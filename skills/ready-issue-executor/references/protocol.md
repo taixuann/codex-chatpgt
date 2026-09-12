@@ -70,10 +70,10 @@ any mutation. Missing machine, project, network, or connector capability is
 
 Reconcile in this order and stop at the first unknown result:
 
-1. validate candidate and record `checkpoint_sha`;
-2. verify intended branch and push only if allowed;
-3. re-fetch all owning Issue/group members and base SHA; reject `STALE_SPEC`
-   or `BASE_MOVED` before publication;
+1. re-fetch all owning Issue/group members and base SHA; reject `STALE_SPEC`
+   or `BASE_MOVED` before final validation or publication;
+2. validate candidate and record `checkpoint_sha`;
+3. verify intended branch and push only if allowed;
 4. read back remote branch SHA;
 5. find or create exactly one Draft PR for the execution key;
 6. read back PR number, base, draft state, and head SHA;
