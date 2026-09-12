@@ -1,0 +1,93 @@
+# Qualification fixture only. Athena core does not import or hard-code this set.
+authority:
+  repository: taixuann/codex-chatpgt
+  issues: [107, 113, 114]
+  source: live GitHub Issues #107/#113/#114
+criteria_revision: live-2026-09-12-final-closure-review-identity
+authority_amendments:
+  107: {issue_comments: [5643065667, 5644918976, 5644932433, 5645884083, 5646227299, 5646899175], purpose: agy-primary-prometheus-availability-fallback-harness-boundary-global-hygiene-and-delegation-compiler}
+  113: {issue_comments: [5643066821, 5644919948, 5645883244, 5646228486], purpose: native-active-matrix-harness-worker-boundary-agy-substrate-and-lean-live-testing}
+  114: {issue_comments: [5643068051, 5646417870, 5646898163], purpose: luna-max-default-astra-premium-override-human-readable-review-identity-and-collision-safe-attempts}
+qualification_boundary:
+  local_terminal_state: awaiting_parent_decision
+  local_goal_scope:
+    external_by_design:
+      - external_reviewer_trust
+      - parent_acceptance
+      - draft_pr_publication
+      - stop_verification
+  external_parent_actions:
+    - parent_acceptance
+    - draft_pr_publication
+    - stop_verification
+criteria_manifest_fingerprint: ce4d6c6b6ea88797c49c192ab0f860568375725b22cb639ebc91bf9fb979fc0f
+criteria_manifest:
+  - {id: 107-AC-01}
+  - {id: 107-AC-02}
+  - {id: 107-AC-03, current_requirement: AGY is the primary worker; availability failure keeps the stage-1 receipt on AGY and requests parent-owned Prometheus fallback.}
+  - {id: 107-AC-04, current_requirement: Quality or correctness failure stays on the compatible current worker for repair; it is not an availability fallback.}
+  - {id: 107-AC-05}
+  - {id: 107-AC-06}
+  - {id: 107-AC-07}
+  - {id: 107-AC-08}
+  - {id: 107-AC-09}
+  - {id: 107-AC-10, current_requirement: Terminal eligibility requires clean Git and actual scratch/runtime surfaces, with producers using OS temp or isolated runtime roots; broad ignore rules are not evidence.}
+  - {id: 107-AC-11}
+  - {id: 107-AC-12}
+  - {id: 107-AC-13}
+  - {id: 107-AC-14}
+  - {id: 107-AC-15, current_requirement: Local technical eligibility is an exact-head, fresh-review boundary; accepted_head is superseded and cannot be used as local authority., superseded: accepted_head-based local acceptance}
+  - {id: 107-AC-16}
+  - {id: 107-AC-17}
+  - {id: 107-AC-18}
+  - {id: 107-AC-19}
+  - {id: 107-AC-20, current_requirement: Parent acceptance remains outside the local kernel and is not manufactured by a receipt or repository event., superseded: repository-controlled parent approval}
+  - {id: 107-AC-21, current_requirement: Draft PR publication and STOP verification remain external parent actions; this workflow stops at awaiting_parent_decision., superseded: local Draft PR/STOP execution}
+  - {id: 107-AC-22}
+  - {id: 107-AC-23}
+  - {id: 107-AC-24}
+  - {id: 107-AC-25, current_requirement: Bounded implementation delegation uses a deterministic semantics-preserving transformation after parent-owned executor selection; the canonical task contract remains the only semantic authority and the result cannot introduce authority, scope, or requirements.}
+  - {id: 113-AC-01}
+  - {id: 113-AC-02}
+  - {id: 113-AC-03}
+  - {id: 113-AC-04, current_requirement: The active v1 matrix is AGY primary plus native Prometheus availability fallback; equal parallel provider lanes are superseded., superseded: equal AGY/Prometheus lanes}
+  - {id: 113-AC-05, current_requirement: Qualify AGY fresh, resume, and bounded-write behavior once within the active matrix, with exact session and scope evidence.}
+  - {id: 113-AC-06, current_requirement: Qualify one native Prometheus availability fallback and its bounded return contract once when availability permits; otherwise record NOT_ASSESSED.}
+  - {id: 113-AC-07}
+  - {id: 113-AC-08}
+  - {id: 113-AC-09}
+  - {id: 113-AC-10}
+  - {id: 113-AC-11}
+  - {id: 113-AC-12}
+  - {id: 113-AC-13}
+  - {id: 113-AC-14}
+  - {id: 113-AC-15}
+  - {id: 113-AC-16}
+  - {id: 113-AC-17}
+  - {id: 113-AC-18}
+  - {id: 113-AC-19}
+  - {id: 113-AC-20}
+  - {id: 113-AC-21}
+  - {id: 113-AC-22, current_requirement: Preserve genuinely exposed AGY usage fields in normalized receipts; unavailable telemetry remains null or NOT_ASSESSED.}
+  - {id: 113-AC-23, current_requirement: OMP is deferred and non-blocking for active v1; its pinned free selector is documented without live execution., superseded: OMP as an active qualification lane}
+  - {id: 113-AC-24}
+  - {id: 113-AC-25, current_requirement: Use one active lane at a time through validation, review, repair, and fresh re-review, then converge to awaiting_parent_decision only when both axes and acceptance-critical criteria pass.}
+  - {id: 113-AC-26}
+  - {id: 113-AC-27}
+  - {id: 113-AC-28, current_requirement: harness-worker is the single reusable backend-mechanics boundary; issue-execution remains the lifecycle owner and Prometheus remains the native parent fallback.}
+  - {id: 114-AC-01, current_requirement: Athena default review uses a fresh read-only gpt-5.6-luna session at max effort.}
+  - {id: 114-AC-02, current_requirement: gpt-6-astra astra-light low is an explicit premium override only; no automatic Astra escalation., superseded: Astra-mandatory default}
+  - {id: 114-AC-03, current_requirement: Luna provider identity is not acceptance-critical when model, effort, fresh context, and read-only boundaries are observed.}
+  - {id: 114-AC-04}
+  - {id: 114-AC-05}
+  - {id: 114-AC-06}
+  - {id: 114-AC-07}
+  - {id: 114-AC-08}
+  - {id: 114-AC-09}
+  - {id: 114-AC-10, current_requirement: Freeze a tiny calibration set of real historical Issue/PR cases with adjudicated WORK and GOAL outcomes, plus deterministic planted-finding fixtures.}
+  - {id: 114-AC-11, current_requirement: Convergence must be exercised by a bounded deterministic no-progress or oscillation fixture and must not silently loop.}
+  - {id: 114-AC-12}
+  - {id: 114-AC-13}
+  - {id: 114-AC-14}
+  - {id: 114-AC-15, current_requirement: Athena review is non-binding; external reviewer trust, parent acceptance, Draft PR publication, and STOP remain outside this local qualification boundary.}
+  - {id: 114-AC-16, current_requirement: Every formal Athena review binds a fresh native reviewer identity plus deterministic human-readable target/head/axis/round metadata; separate attempts never overwrite, and labels are navigation-only.}
