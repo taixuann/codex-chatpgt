@@ -175,13 +175,22 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
             instruction_paths.append(standard)
     skills = list(required_skills or [])
     skill_paths: list[Path] = []
+    missing_skills: list[str] = []
     for name in skills:
         if not isinstance(name, str) or not name.strip():
             continue
+        if Path(name).is_absolute() or ".." in Path(name).parts:
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: required skill path is unsafe")
+        found = False
         for base in (root / "skills", root / ".agents" / "skills"):
             candidate = base / name / "SKILL.md"
             if candidate.is_file():
                 skill_paths.append(candidate)
+                found = True
+        if not found:
+            missing_skills.append(name)
+    if missing_skills:
+        raise ValueError(f"CONTEXT_CONTRACT_UNVERIFIED: required skills unavailable: {sorted(set(missing_skills))}")
     records: list[dict[str, str]] = []
     for path in [*instruction_paths, *skill_paths]:
         records.append({"path": str(path.relative_to(root)), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})

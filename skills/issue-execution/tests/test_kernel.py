@@ -276,6 +276,8 @@ class KernelTests(unittest.TestCase):
         root_context = issue_execution.effective_context(str(self.repo), str(self.repo), ["issue-execution"])
         nested_context = issue_execution.effective_context(str(self.repo), str(nested), ["issue-execution"])
         self.assertNotEqual(root_context["fingerprint"], nested_context["fingerprint"])
+        with self.assertRaisesRegex(ValueError, "required skills unavailable"):
+            issue_execution.effective_context(str(self.repo), str(self.repo), ["missing-skill"])
         request = self.request("context-root")
         registry = Path(self.tmp.name) / "context-sessions.json"
         request["outputs"]["registry"] = str(registry)
