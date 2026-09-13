@@ -27,8 +27,8 @@ def _sha256(path: Path) -> str:
 
 
 def _read_limited(path: Path, limit: int) -> str:
-    with path.open("r", encoding="utf-8") as stream:
-        return stream.read(limit + 1)
+    with path.open("rb") as stream:
+        return stream.read(limit + 1).decode("utf-8", errors="replace")
 
 
 def _inside(path: Path, root: Path) -> bool:
@@ -110,9 +110,15 @@ def _skill_roots(ancestors: list[Path], directory_name: str) -> list[Path]:
 def _skill_packages(roots: list[Path], root: Path, max_bytes: int, errors: list[str], warnings: list[str], scope: str) -> list[dict]:
     packages = []
     for skill_root in roots:
+        if skill_root.is_symlink():
+            errors.append(f"symlinked Skill root is not allowed: {skill_root}")
+            continue
         for package in sorted(skill_root.iterdir()):
             skill_md = package / "SKILL.md"
-            if package.is_symlink() or not package.is_dir():
+            if package.is_symlink():
+                errors.append(f"symlinked Skill package is not allowed: {package}")
+                continue
+            if not package.is_dir():
                 continue
             if _git_ignored(package, root):
                 continue
@@ -373,10 +379,25 @@ def self_test() -> None:
         (linked / "SKILL.md").symlink_to(Path("/etc/hosts"))
         linked_report = audit(root, nested)
         assert any("symlinked Skill source" in error for error in linked_report["errors"])
+        linked_package = nested / ".agents" / "skills" / "linked-package"
+        linked_package.symlink_to(linked.parent)
+        linked_package_report = audit(root, nested)
+        assert any("symlinked Skill package" in error for error in linked_package_report["errors"])
+        linked_root = root / "linked-root"
+        (linked_root / ".agents").mkdir(parents=True)
+        (linked_root / ".agents" / "skills").symlink_to(native.parent)
+        linked_root_report = audit(linked_root, linked_root)
+        assert any("symlinked Skill root" in error for error in linked_root_report["errors"])
         (root / "AGENTS.override.md").unlink()
         (root / "AGENTS.override.md").symlink_to(Path("/etc/hosts"))
         agents_report = audit(root, root)
         assert any("symlinked instruction source" in error for error in agents_report["errors"])
+        unicode_agents = root / "unicode-agents"
+        unicode_agents.mkdir()
+        (unicode_agents / "AGENTS.md").write_text("ééé\n", encoding="utf-8")
+        unicode_report = audit(unicode_agents, unicode_agents, max_bytes=4)
+        assert unicode_report["context_budget"]["state"] == "PASS"
+        assert any("oversized instruction" in warning for warning in unicode_report["warnings"])
         root_candidates = report["instruction_sources"][0]["candidates"]
         assert {item["name"]: item["state"] for item in root_candidates} == {
             "AGENTS.override.md": "SELECTED",
