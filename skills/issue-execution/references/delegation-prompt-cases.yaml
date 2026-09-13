@@ -1,0 +1,23 @@
+capability: deterministic-delegation-prompt-renderer
+renderer_version: 1
+criteria:
+  - id: DP-01
+    requirement: canonical task contract is the only semantic authority
+  - id: DP-02
+    requirement: parent supplies the executor profile; renderer never chooses it
+  - id: DP-03
+    requirement: objective, scope, constraints, acceptance, validation, return, and stop semantics survive
+  - id: DP-04
+    requirement: renderer adds no authority or scope
+  - id: DP-05
+    requirement: memory and conversation history are not reconstructed
+  - id: DP-06
+    requirement: AGY and Prometheus presentations are distinct but semantically equivalent
+  - id: DP-07
+    requirement: unknown executor profiles fail closed
+  - id: DP-08
+    requirement: output binds source-contract and rendered-prompt fingerprints
+  - id: DP-09
+    requirement: same contract, profile, and renderer version render deterministically
+  - id: DP-10
+    requirement: explicit identity baseline remains available for qualification and regression

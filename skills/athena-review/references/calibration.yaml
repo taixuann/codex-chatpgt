@@ -1,0 +1,19 @@
+# Small frozen calibration set. It is an oracle for the generic two-axis
+# review boundary, not a source of acceptance authority.
+cases:
+  - id: pr-115-requirements-audit
+    kind: historical
+    source: PR-115 review 5185950658 at bb369f0c8a9fb338fff045725049f8685fdd712c
+    adjudicated_outcome: {work: concerns, goal: incomplete}
+  - id: pr-115-hygiene-audit
+    kind: historical
+    source: PR-115 review 5185958196 at bb369f0c8a9fb338fff045725049f8685fdd712c
+    adjudicated_outcome: {work: concerns, goal: incomplete}
+  - id: planted-verified-work-defect
+    kind: deterministic
+    source: skills/issue-execution/tests/test_kernel.py::test_golden_repair_changes_head_and_requires_fresh_review
+    adjudicated_outcome: {work: fail, goal: partial}
+  - id: clean-silence
+    kind: deterministic
+    source: skills/athena-review/tests/test_review.py::test_default_luna_review_allows_missing_provider_and_astra_is_explicit
+    adjudicated_outcome: {work: pass, goal: complete}
