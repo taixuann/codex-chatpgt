@@ -1,6 +1,6 @@
 ---
 name: issue-execution
-description: Drive one stable GitHub Issue through bounded execution, Git reconciliation, validation, exact-head review, repair, and the external Draft PR STOP boundary; do not use as a general workflow engine.
+description: Drive one stable GitHub Issue through bounded execution, Git reconciliation, validation, exact-head review, repair, and the external parent decision boundary; do not use as a general workflow engine.
 metadata:
   issue: 107
   status: candidate
