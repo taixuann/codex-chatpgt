@@ -6,6 +6,11 @@ directory, `AGENTS.override.md` first and `AGENTS.md` otherwise. Record both
 the selected source and absent/ignored candidates; do not infer that a file
 outside the chain is active.
 
+Fallback filenames are project-chain candidates only. Global guidance uses
+only `AGENTS.override.md` / `AGENTS.md`; when fallback names are supplied, the
+report records them as `NOT_APPLIED` candidates rather than allowing them to
+become global guidance.
+
 For native Codex Skill reachability, walk the same ancestor chain and record
 only `.agents/skills/` roots. A package is a native candidate only when its
 directory contains `SKILL.md`. The repository's top-level `skills/` tree is a

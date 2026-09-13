@@ -170,6 +170,12 @@ def audit(
             errors.append(f"global guidance root is not a directory: {global_path}")
         else:
             selected, ignored, selection, candidates = _source(global_path, ())
+            candidates.extend({
+                "name": name,
+                "path": str(global_path / name),
+                "state": "NOT_APPLIED",
+                "present": (global_path / name).is_file(),
+            } for name in fallback_names)
             global_instruction_sources.append({
                 "directory": str(global_path),
                 "selected": str(selected) if selected else None,
@@ -334,6 +340,7 @@ def self_test() -> None:
         assert {item["name"]: item["state"] for item in global_report["global_instruction_sources"][0]["candidates"]} == {
             "AGENTS.override.md": "ABSENT",
             "AGENTS.md": "SELECTED",
+            "GUIDANCE.md": "NOT_APPLIED",
         }
         assert global_report["context_budget"]["global_bytes"] > 0
         assert global_report["context_budget"]["bytes"] == global_report["context_budget"]["project_bytes"]
@@ -347,6 +354,7 @@ def self_test() -> None:
         assert {item["name"]: item["state"] for item in global_fallback_report["global_instruction_sources"][0]["candidates"]} == {
             "AGENTS.override.md": "ABSENT",
             "AGENTS.md": "ABSENT",
+            "GUIDANCE.md": "NOT_APPLIED",
         }
 
         setup = root / "setup"
