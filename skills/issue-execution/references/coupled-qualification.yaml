@@ -1,0 +1,95 @@
+# Qualification fixture only. Athena core does not import or hard-code this set.
+authority:
+  repository: taixuann/codex-chatpgt
+  issues: [107, 113, 114]
+  source: live GitHub Issues #107/#113/#114
+criteria_revision: live-authority-b7f6a291a47b15f8531fd591c1df485dfa5454a93288ac8250ed279e8458e5cf
+require_semantic_requirements: true
+authority_snapshot_fingerprint: b7f6a291a47b15f8531fd591c1df485dfa5454a93288ac8250ed279e8458e5cf
+authority_amendments:
+  107: {issue_comments: [5643065667, 5644918976, 5644932433, 5645884083, 5646227299, 5646899175], purpose: agy-primary-prometheus-availability-fallback-harness-boundary-global-hygiene-and-delegation-compiler}
+  113: {issue_comments: [5643066821, 5644919948, 5645883244, 5646228486], purpose: native-active-matrix-harness-worker-boundary-agy-substrate-and-lean-live-testing}
+  114: {issue_comments: [5643068051, 5646417870, 5646898163], purpose: luna-max-default-astra-premium-override-human-readable-review-identity-and-collision-safe-attempts}
+qualification_boundary:
+  local_terminal_state: awaiting_parent_decision
+  local_goal_scope:
+    external_by_design:
+      - external_reviewer_trust
+      - parent_acceptance
+      - draft_pr_publication
+      - stop_verification
+  external_parent_actions:
+    - parent_acceptance
+    - draft_pr_publication
+    - stop_verification
+criteria_manifest_fingerprint: 78b6fc1a6e0d47f8d6e812deb4e72b849d6513a7711a9dfc8a6ce0a322c2b32c
+criteria_manifest:
+  - {id: 107-AC-01, current_requirement: A real stable GitHub Issue remains the source of intent, scope, and acceptance; a short launch prompt does not become a second authority.}
+  - {id: 107-AC-02, current_requirement: Upstream-first G0 records candidate provenance, license, reproduction, and one explicit disposition before local adaptation.}
+  - {id: 107-AC-03, current_requirement: AGY is the primary worker; availability failure keeps the stage-1 receipt on AGY and requests parent-owned Prometheus fallback.}
+  - {id: 107-AC-04, current_requirement: Quality or correctness failure stays on the compatible current worker for repair; it is not an availability fallback.}
+  - {id: 107-AC-05, current_requirement: Preflight resolves repository, Issue, base, branch, Draft PR, AGENTS chain, roles, protected paths, validation, blockers, and resumable session before mutation.}
+  - {id: 107-AC-06, current_requirement: A deterministic tracked, staged, untracked, HEAD, and relevant ignored-state baseline separates pre-existing work from Issue-owned changes.}
+  - {id: 107-AC-07, current_requirement: Native AGENTS and Skill discovery evidence distinguishes presence, discovery, selection, consumption, reference use, and observed behavior.}
+  - {id: 107-AC-08, current_requirement: Parent owns orchestration and acceptance bookkeeping; Franky owns runtime substrate, Prometheus owns bounded implementation, and Athena is fresh read-only review.}
+  - {id: 107-AC-09, current_requirement: Session state stores only workflow identity and meaningful lifecycle checkpoints, without copied Issue bodies, prompts, transcripts, or a per-task registry.}
+  - {id: 107-AC-10, current_requirement: Terminal eligibility requires clean Git and actual scratch/runtime surfaces, with producers using OS temp or isolated runtime roots; broad ignore rules are not evidence.}
+  - {id: 107-AC-11, current_requirement: Every Issue-owned changed file maps to a task, applicable criterion, disposition, and validation evidence in the existing ledger.}
+  - {id: 107-AC-12, current_requirement: Supporting-document impact is assessed in the existing ledger and is updated, verified unchanged, not applicable, or blocked with a reason.}
+  - {id: 107-AC-13, current_requirement: Task validation verifies actual outputs, deterministic checks, and hygiene; integrated validation reconciles Git, artifacts, criteria, and documentation.}
+  - {id: 107-AC-14, current_requirement: Terminal local qualification is a bounded lifecycle from authority and preflight through candidate, review, repair, and awaiting_parent_decision.}
+  - {id: 107-AC-15, current_requirement: Local technical eligibility is an exact-head, fresh-review boundary; accepted_head is superseded and cannot be used as local authority., superseded: accepted_head-based local acceptance}
+  - {id: 107-AC-16, current_requirement: A candidate is eligible only when exact-head validation, evidence, hygiene, and fresh independent review are current; local receipts never mint acceptance.}
+  - {id: 107-AC-17, current_requirement: Review findings are verified and mapped to an existing task, criterion, file, and documentation impact before bounded repair.}
+  - {id: 107-AC-18, current_requirement: Resume reconciles live Issue, Git, session, task, and review state; safe drift is repaired and ambiguous ownership drift blocks.}
+  - {id: 107-AC-19, current_requirement: Agent turns, task completion, headless calls, and state refreshes do not independently trigger commits.}
+  - {id: 107-AC-20, current_requirement: Parent acceptance remains outside the local kernel and is not manufactured by a receipt or repository event., superseded: repository-controlled parent approval}
+  - {id: 107-AC-21, current_requirement: Draft PR publication and STOP verification remain external parent actions; this workflow stops at awaiting_parent_decision., superseded: local Draft PR/STOP execution}
+  - {id: 107-AC-22, current_requirement: Parent stops at the external boundary when required authority, reviewer evidence, publication, or acceptance is unavailable; missing evidence stays NOT_ASSESSED.}
+  - {id: 107-AC-23, current_requirement: The workflow does not create a provider router, scheduler, daemon, workflow database, autonomous merge loop, or hidden prompt registry.}
+  - {id: 107-AC-24, current_requirement: Task concurrency is admitted only for independent dependencies, non-overlapping mutation scopes, and deterministic reconciliation under parent control.}
+  - {id: 107-AC-25, current_requirement: Bounded implementation delegation uses a deterministic semantics-preserving transformation after parent-owned executor selection; the canonical task contract remains the only semantic authority and the result cannot introduce authority, scope, or requirements.}
+  - {id: 113-AC-01, current_requirement: One reusable harness boundary accepts a bounded request and returns a normalized runtime receipt without owning lifecycle or acceptance.}
+  - {id: 113-AC-02, current_requirement: Every invocation binds the exact repository root, worktree, CWD, Issue/work unit, lane, permissions, scope, route, and session policy.}
+  - {id: 113-AC-03, current_requirement: The request contract carries only the authority, context, command, mutation boundary, session policy, route requirements, and declared outputs needed by the worker.}
+  - {id: 113-AC-04, current_requirement: The active v1 matrix is AGY primary plus native Prometheus availability fallback; equal parallel provider lanes are superseded., superseded: equal AGY/Prometheus lanes}
+  - {id: 113-AC-05, current_requirement: Qualify AGY fresh, resume, and bounded-write behavior once within the active matrix, with exact session and scope evidence.}
+  - {id: 113-AC-06, current_requirement: Qualify one native Prometheus availability fallback and its bounded return contract once when availability permits; otherwise record NOT_ASSESSED.}
+  - {id: 113-AC-07, current_requirement: Resume uses the exact saved native session only after authority, lane, repository, worktree, CWD, harness, and compatible context checks pass.}
+  - {id: 113-AC-08, current_requirement: Native session identity is observed from the runtime and is never selected by recency, label similarity, or a caller-authored substitute.}
+  - {id: 113-AC-09, current_requirement: Runtime failures are normalized with honest status and error codes; availability fallback is distinct from quality or correctness repair.}
+  - {id: 113-AC-10, current_requirement: AGY native execution uses a PTY and bounded timeout/reap behavior so non-TTY or hanging transports cannot escape the boundary.}
+  - {id: 113-AC-11, current_requirement: Timeout, interruption, nonzero exit, malformed output, and process cleanup produce bounded receipts without losing repository-state checks.}
+  - {id: 113-AC-12, current_requirement: Runtime read and write surfaces are explicit, outside the repository where required, and limited to caller-declared disposable/configuration roots.}
+  - {id: 113-AC-13, current_requirement: Network access is opt-in through the explicit AGY launch contract and is not inferred from provider availability.}
+  - {id: 113-AC-14, current_requirement: Credentials remain in the native runtime and are never copied into requests, prompts, receipts, logs, or repository state.}
+  - {id: 113-AC-15, current_requirement: Repository mutation is read-only or bounded-write, preserves HEAD and Git metadata, and rejects scope escape, symlink traversal, and unauthorized writes.}
+  - {id: 113-AC-16, current_requirement: Changed paths are derived from before/after snapshots and compared with the declared mutation policy rather than trusted from model output.}
+  - {id: 113-AC-17, current_requirement: Normalized receipts distinguish requested route from actual route and expose actual harness, model, effort, provider, and native identity only when observed.}
+  - {id: 113-AC-18, current_requirement: Receipts bind request identity, repository/CWD/worktree, context, execution, usage, capacity, limitations, and fallback without workflow claims.}
+  - {id: 113-AC-19, current_requirement: The worker never silently substitutes a provider or upgrades permissions; parent-owned fallback is explicit and availability-driven.}
+  - {id: 113-AC-20, current_requirement: No provider router, quota manager, scheduler, transcript archive, or standalone headless workflow is introduced inside the harness boundary.}
+  - {id: 113-AC-21, current_requirement: Prometheus fallback receives the original bounded task contract and returns through the same normalized parent-consumed boundary without claiming acceptance.}
+  - {id: 113-AC-22, current_requirement: Preserve genuinely exposed AGY usage fields in normalized receipts; unavailable telemetry remains null or NOT_ASSESSED.}
+  - {id: 113-AC-23, current_requirement: OMP is deferred and non-blocking for active v1; its pinned free selector is documented without live execution., superseded: OMP as an active qualification lane}
+  - {id: 113-AC-24, current_requirement: Native execution is disposable by default and cleans only runtime roots it created, never unrelated user state.}
+  - {id: 113-AC-25, current_requirement: Use one active lane at a time through validation, review, repair, and fresh re-review, then converge to awaiting_parent_decision only when both axes and acceptance-critical criteria pass.}
+  - {id: 113-AC-26, current_requirement: Deterministic tests cover fresh, resume, interruption, failure, fallback, scope, context, and hygiene behavior without requiring a live provider.}
+  - {id: 113-AC-27, current_requirement: The harness returns runtime truth only and cannot own Issue acceptance, Athena verdicts, Draft PR publication, merge, or closure.}
+  - {id: 113-AC-28, current_requirement: harness-worker is the single reusable backend-mechanics boundary; issue-execution remains the lifecycle owner and Prometheus remains the native parent fallback.}
+  - {id: 114-AC-01, current_requirement: Athena default review uses a fresh read-only gpt-5.6-luna session at max effort.}
+  - {id: 114-AC-02, current_requirement: gpt-6-astra astra-light low is an explicit premium override only; no automatic Astra escalation., superseded: Astra-mandatory default}
+  - {id: 114-AC-03, current_requirement: Luna provider identity is not acceptance-critical when model, effort, fresh context, and read-only boundaries are observed.}
+  - {id: 114-AC-04, current_requirement: Formal review creates a fresh disposable read-only native reviewer session and does not reuse executor or producer context.}
+  - {id: 114-AC-05, current_requirement: Reviewability requires exact base/candidate, complete changed-file scope, locked criteria, validation, and evidence; missing material inputs remain NOT_REVIEWABLE.}
+  - {id: 114-AC-06, current_requirement: Review snapshots bind candidate, base, criteria revision, rubric, route, reviewer identity, repository binding, and evidence context.}
+  - {id: 114-AC-07, current_requirement: WORK judges implementation quality and GOAL independently maps every locked criterion to delivered state and evidence.}
+  - {id: 114-AC-08, current_requirement: Findings have stable deterministic fingerprints, evidence states, severity, provenance, and deduplication without double-counting corroboration.}
+  - {id: 114-AC-09, current_requirement: Any material candidate, criteria, rubric, evidence, or context mutation makes the affected review stale and requires fresh review.}
+  - {id: 114-AC-10, current_requirement: Freeze a tiny calibration set of real historical Issue/PR cases with adjudicated WORK and GOAL outcomes, plus deterministic planted-finding fixtures.}
+  - {id: 114-AC-11, current_requirement: Convergence must be exercised by a bounded deterministic no-progress or oscillation fixture and must not silently loop.}
+  - {id: 114-AC-12, current_requirement: A review receipt records exact snapshot identity, separate WORK/GOAL verdicts, findings, criteria evidence, limitations, and reviewer provenance.}
+  - {id: 114-AC-13, current_requirement: Athena cannot mint trust, acceptance, parent approval, or publication authority from its own result or label.}
+  - {id: 114-AC-14, current_requirement: Supporting-document impact and missing external evidence are reported explicitly rather than silently treated as complete.}
+  - {id: 114-AC-15, current_requirement: Athena review is non-binding; external reviewer trust, parent acceptance, Draft PR publication, and STOP remain outside this local qualification boundary.}
+  - {id: 114-AC-16, current_requirement: Every formal Athena review binds a fresh native reviewer identity plus deterministic human-readable target/head/axis/round metadata; separate attempts never overwrite, and labels are navigation-only.}

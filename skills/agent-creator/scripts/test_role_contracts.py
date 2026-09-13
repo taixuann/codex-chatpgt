@@ -20,6 +20,10 @@ class RoleContractTests(unittest.TestCase):
         self.assertEqual(roles["franky"]["sandbox_mode"], "workspace-write")
         self.assertEqual(roles["prometheus"]["sandbox_mode"], "workspace-write")
         self.assertEqual(roles["athena"]["sandbox_mode"], "read-only")
+        self.assertEqual(roles["athena"]["model"], "gpt-5.6-luna")
+        self.assertEqual(roles["athena"]["model_reasoning_effort"], "max")
+        self.assertIn("Luna Max", roles["athena"]["developer_instructions"])
+        self.assertEqual(roles["athena"]["mcp_servers"]["exa"]["url"], "https://mcp.exa.ai/mcp")
         for name, role in roles.items():
             self.assertEqual(role["name"], name)
             self.assertTrue(role["description"].strip())

@@ -1,0 +1,60 @@
+---
+name: harness-worker
+description: "Run and qualify a bounded worker harness request when a governed workflow needs a supported backend invoked with an exact repository/CWD/context, fresh or resumable native session evidence, bounded results, and disposable runtime cleanup."
+---
+
+# Harness Worker
+
+Use this skill for bounded worker-harness work: bind the request to its exact
+repository, worktree, CWD, context, permission policy, and allowed paths;
+invoke the selected supported backend; preserve fresh/resume semantics and
+native session/usage fields; normalize availability and execution errors; and
+return one bounded receipt.
+
+The current v1 backend is native AGY. The skill name is future-neutral, but it
+does not provide a generic router, model manager, plugin registry, or provider
+fallback. Availability failures are reported to the parent, which alone may
+invoke its native Prometheus fallback. Quality failures stay on the current
+worker for repair. Deferred providers are outside the active v1 lane.
+
+The harness owns disposable runtime roots and removes only roots it created.
+It never owns Issue lifecycle, acceptance, Athena review, commits, PR state,
+or parent decisions. For AGY implementation dispatch, it consumes the
+parent-rendered request and never reads or reinterprets the GitHub Issue.
+Role mentions such as `subagent://prometheus` are labels, not executable
+transport commands; the parent/native dispatcher resolves the role and binds
+the selected executor before this worker is called.
+
+For the implementation contract, read `references/contracts.md`. Run the bounded
+adapter with:
+
+```text
+python3 skills/harness-worker/scripts/harness_worker.py run --request REQUEST --registry REGISTRY --receipt RECEIPT
+```
+
+Production AGY launches fail closed unless the caller explicitly supplies
+`HEADLESS_CLI_ALLOW_NETWORK=1` and one or more existing, non-repository
+directories in `HEADLESS_CLI_RUNTIME_WRITE_ROOTS`. Read access beyond the
+repository/worktree/CWD must be explicitly declared in
+`HEADLESS_CLI_RUNTIME_READ_ROOTS`; those roots are read-only sandbox inputs.
+The harness passes only these allowlisted paths into the sandbox; it never
+reads or copies credentials and never grants arbitrary `HOME` access.
+Before a production AGY process is created, Q0 records a capability
+fingerprint. Repository qualification additionally requires the explicit
+`HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED=1` host gate; otherwise the receipt is
+`NOT_ASSESSED` with `HOST_REPOSITORY_EGRESS_BLOCKED` and a retry condition,
+without invoking AGY.
+Q0 also starts the resolved AGY executable with `--version` inside the same
+declared sandbox. The macOS loader read exception is deny-listed for user
+data, temporary directories, and credential paths; only the resolved binary,
+repository, and declared runtime roots are reopened. A startup abort is reported as
+`HOST_AGY_SANDBOX_INCOMPATIBLE` before any provider prompt is sent.
+Production AGY invocations also bind AGY's native `--sandbox` flag so its tool
+permission and workspace-write policy is active inside the outer host boundary.
+On POSIX, AGY is attached to a fresh PTY so non-TTY `--print` output remains
+capturable; terminal control bytes are removed before parsing, which still
+accepts only AGY's documented JSON envelope.
+If AGY emits its documented interactive-auth prompt in headless mode, the
+worker terminates that attempt early and records `AUTH_REQUIRED`; it does not
+wait for the outer timeout or relabel the same blocker as an unexplained
+`NOT_ASSESSED` retry.

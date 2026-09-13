@@ -13,6 +13,14 @@
 !skills/skill-creator/**
 !skills/agent-creator/
 !skills/agent-creator/**
+!skills/issue-execution/
+!skills/issue-execution/**
+!skills/ready-issue-executor/
+!skills/ready-issue-executor/**
+!skills/harness-worker/
+!skills/harness-worker/**
+!skills/athena-review/
+!skills/athena-review/**
 
 # Skill packages do not carry nested AGENTS authority.
 skills/**/AGENTS.md
