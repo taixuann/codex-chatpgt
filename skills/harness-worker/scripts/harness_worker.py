@@ -1058,9 +1058,10 @@ def _availability_error_code(error: BaseException) -> str | None:
     return None
 
 
-def _prelaunch_availability_receipt(request: dict, *, reason: str, error: BaseException) -> dict:
+def _prelaunch_availability_receipt(request: dict, registry_path: Path, *, reason: str, error: BaseException) -> dict:
     policy = request["session"]["policy"]
-    session_state = {"fresh": "fresh", "resume_or_start": "fresh", "resume": "resumed", "rebind": "rebound"}[policy]
+    saved = read_registry(registry_path).get(request_session_alias(request))
+    session_state = "resumed" if saved else ("rebound" if policy == "rebind" else "fresh")
     raw = {
         "runtime": {"harness": "agy", "requested_route": requested_semantic_route(request), "actual_route": "NOT_ASSESSED", "requested_profile": request["route_requirements"].get("requested_profile") or request["route_requirements"].get("profile") or "NOT_ASSESSED", "resolved_profile": "NOT_ASSESSED", "provider": "NOT_ASSESSED", "actual_model": "NOT_ASSESSED", "actual_effort": "NOT_ASSESSED", "native_session_id": "NOT_ASSESSED"},
         "execution": {"status": "FAILED", "error_code": reason},
@@ -1080,7 +1081,7 @@ def run(request: dict, registry_path: Path, timeout: int) -> dict:
         reason = _availability_error_code(error)
         if request.get("harness") != "agy" or reason is None:
             raise
-        return _prelaunch_availability_receipt(request, reason=reason, error=error)
+        return _prelaunch_availability_receipt(request, registry_path, reason=reason, error=error)
     reason = (receipt.get("execution") or {}).get("error_code")
     if request.get("harness") == "agy" and reason in WORKER_AVAILABILITY_FAILURES:
         receipt["worker_route"] = select_worker(reason)

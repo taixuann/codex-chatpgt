@@ -158,6 +158,17 @@ class HarnessWorkerTests(unittest.TestCase):
             self.assertEqual(receipt["execution"]["error_code"], "RUNTIME_UNAVAILABLE")
             self.assertEqual(receipt["fallback_required"], "prometheus")
 
+    def test_prelaunch_resume_does_not_forge_a_saved_session(self) -> None:
+        request = self.request("agy-preflight-resume", "resume")
+        request["harness"] = "agy"
+        request["command"] = ["agy", "--print"]
+        request["_delegation_prompt"] = "Run the bounded AGY fixture."
+        request["_delegation_contract"] = {"task_id": "fixture"}
+        request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
+        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1"}, clear=False):
+            with self.assertRaisesRegex(ValueError, "session_state contradicts"):
+                harness_worker.run(request, Path(request["outputs"]["registry"]), 10)
+
     def test_delegation_prompt_fingerprint_is_verified(self) -> None:
         request = self.request("delegation-fingerprint")
         request["_delegation_prompt"] = "actual prompt"
