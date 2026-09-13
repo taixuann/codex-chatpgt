@@ -39,6 +39,11 @@ repository/worktree/CWD must be explicitly declared in
 `HEADLESS_CLI_RUNTIME_READ_ROOTS`; those roots are read-only sandbox inputs.
 The harness passes only these allowlisted paths into the sandbox; it never
 reads or copies credentials and never grants arbitrary `HOME` access.
+Before a production AGY process is created, Q0 records a capability
+fingerprint. Repository qualification additionally requires the explicit
+`HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED=1` host gate; otherwise the receipt is
+`NOT_ASSESSED` with `HOST_REPOSITORY_EGRESS_BLOCKED` and a retry condition,
+without invoking AGY.
 On POSIX, AGY is attached to a fresh PTY so non-TTY `--print` output remains
 capturable; terminal control bytes are removed before parsing, which still
 accepts only AGY's documented JSON envelope.

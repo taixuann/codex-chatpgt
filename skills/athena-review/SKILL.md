@@ -73,8 +73,11 @@ strongest two or three sources, preferring official documentation and upstream
 issues/releases. Compare the source with observed behavior, classify the
 diagnosis as `verified`, `strongly_supported`, `plausible`, or `unresolved`,
 and return the smallest supported repair plus its minimal verification. If
-Exa is unavailable, record `external_research: NOT_ASSESSED` and preserve the
-uncertainty. Research is evidence only; it cannot change Issue authority,
+Exa is available, record the bounded result in the optional
+`external_research` field with query count, source URLs, diagnosis, proposed
+repair, and verification. If Exa is unavailable, record
+`external_research: NOT_ASSESSED` with a reason and no invented source.
+Research is evidence only; it cannot change Issue authority,
 criteria, scope, acceptance, or repair state, and it never justifies spawning
 another research agent.
 

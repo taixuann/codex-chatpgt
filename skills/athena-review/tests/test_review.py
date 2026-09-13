@@ -62,6 +62,14 @@ class ReviewTests(unittest.TestCase):
         packet = self.packet()
         review.validate_criteria_manifest(packet)
 
+    def test_external_research_is_bounded_and_preserved(self) -> None:
+        supplied = {"fresh_context": True, "read_only": True, "findings": [], "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "external_research": {"status": "used", "query_count": 1, "sources": [{"url": "https://example.invalid/source"}], "diagnosis": "runtime behavior is version-sensitive", "proposed_repair": "use the documented flag", "verification": "rerun the focused smoke test"}}
+        result = review.normalize(self.packet(), supplied, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+        self.assertEqual(result["external_research"]["query_count"], 1)
+        invalid = {**supplied, "external_research": {**supplied["external_research"], "query_count": 3}}
+        with self.assertRaisesRegex(ValueError, "external_research"):
+            review.normalize(self.packet(), invalid, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+
     def attestation(self, reviewer_id: str = REVIEWER_ID) -> dict:
         return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-5.6-luna", "reasoning_effort": "max", "provider": "openai"}}
 

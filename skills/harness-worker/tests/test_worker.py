@@ -158,6 +158,28 @@ class HarnessWorkerTests(unittest.TestCase):
             self.assertEqual(receipt["execution"]["error_code"], "RUNTIME_UNAVAILABLE")
             self.assertEqual(receipt["fallback_required"], "prometheus")
 
+    def test_q0_blocks_repository_egress_before_native_launch(self) -> None:
+        request = self.request("q0-egress")
+        request["harness"] = "agy"
+        request["command"] = ["agy", "--print"]
+        request["_delegation_prompt"] = "Return one harmless smoke token."
+        request["_delegation_contract"] = {"task_id": "q0"}
+        request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
+        runtime = Path(self.tmp.name) / "q0-runtime"
+        runtime.mkdir()
+        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)):
+            receipt = harness_worker.run(request, Path(self.tmp.name) / "q0-sessions.json", 10)
+        self.assertEqual(receipt["execution"]["error_code"], "RUNTIME_UNAVAILABLE")
+        self.assertEqual(receipt["live_qualification"]["status"], "NOT_ASSESSED")
+        self.assertEqual(receipt["live_qualification"]["reason"], "HOST_REPOSITORY_EGRESS_BLOCKED")
+        self.assertFalse(receipt["live_qualification"]["provider_launched"])
+        self.assertTrue(receipt["live_qualification"]["capability_fingerprint"])
+
+        request["qualification_stage"] = "fixture"
+        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)):
+            observation = harness_worker.agy_capability_preflight(request)
+        self.assertEqual(observation["status"], "READY")
+
     def test_prelaunch_resume_does_not_forge_a_saved_session(self) -> None:
         request = self.request("agy-preflight-resume", "resume")
         request["harness"] = "agy"

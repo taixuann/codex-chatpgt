@@ -39,6 +39,7 @@ ERROR_CODES = {
 }
 NATIVE_TERMINAL_LANES = {"agy"}
 NATIVE_SYSTEM_READ_ROOTS = ("/System", "/usr", "/etc", "/opt/homebrew")
+QUALIFICATION_STAGES = {"transport", "fixture", "repository"}
 AGY_DELEGATION_FLAGS = {"--print", "-p"}
 AGY_DELEGATION_OPTIONS = {"--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
 USAGE_FIELDS = ("input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "latency_ms")
@@ -265,6 +266,9 @@ def validate_harness_request(request: dict[str, Any]) -> None:
     if not isinstance(request.get("session"), dict) or request["session"].get("policy") not in {"fresh", "resume", "resume_or_start", "rebind"}:
         raise ValueError("unsupported session policy")
     if request["harness"] == "agy" and Path(request["command"][0]).name != "agy": raise ValueError("RUNTIME_UNAVAILABLE: native terminal command does not match the requested lane")
+    stage = request.get("qualification_stage", "repository")
+    if stage not in QUALIFICATION_STAGES:
+        raise ValueError("unsupported AGY qualification stage")
 
 
 def validate_capacity(capacity: Any) -> None:
@@ -335,6 +339,13 @@ def validate_harness_receipt(request: dict[str, Any], receipt: dict[str, Any]) -
         if not isinstance(worker_route, dict) or worker_route != select_worker(error_code):
             raise ValueError("AGY receipt worker_route is not bound to the observed execution error")
     if worker_route is not None: validate_worker_route(worker_route)
+    qualification = receipt.get("live_qualification")
+    if qualification is not None:
+        if not isinstance(qualification, dict) or qualification.get("status") not in {"READY", "NOT_ASSESSED", "SKIPPED"} or not isinstance(qualification.get("reason"), str) or not isinstance(qualification.get("provider_launched"), bool) or not isinstance(qualification.get("retry_condition"), list) or not qualification["retry_condition"]:
+            raise ValueError("live qualification observation is invalid")
+        fingerprint = qualification.get("capability_fingerprint")
+        if qualification["status"] != "SKIPPED" and (not isinstance(fingerprint, str) or not re.fullmatch(r"[0-9a-f]{64}", fingerprint)):
+            raise ValueError("live qualification capability fingerprint is invalid")
 
 
 def dump_document(path: str | Path, value: Any) -> None:
@@ -573,11 +584,43 @@ def validate_agy_launch_environment(request: dict) -> None:
     if request.get("harness") != "agy" or os.environ.get("HEADLESS_CLI_TEST_ONLY") == "1":
         return
     if os.environ.get("HEADLESS_CLI_ALLOW_NETWORK") != "1":
-        raise RuntimeError("RUNTIME_UNAVAILABLE: AGY launch requires HEADLESS_CLI_ALLOW_NETWORK=1")
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_NETWORK_NOT_ALLOWED")
     if not runtime_write_roots(request):
-        raise RuntimeError("RUNTIME_UNAVAILABLE: AGY launch requires HEADLESS_CLI_RUNTIME_WRITE_ROOTS")
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_RUNTIME_WRITE_ROOTS_UNAVAILABLE")
     if not os.environ.get("HEADLESS_CLI_RUNTIME_READ_ROOTS"):
-        raise RuntimeError("RUNTIME_UNAVAILABLE: AGY launch requires HEADLESS_CLI_RUNTIME_READ_ROOTS")
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_RUNTIME_READ_ROOTS_UNAVAILABLE")
+
+
+def qualification_stage(request: dict[str, Any]) -> str:
+    stage = request.get("qualification_stage", "repository")
+    if stage not in QUALIFICATION_STAGES:
+        raise ValueError("unsupported AGY qualification stage")
+    return stage
+
+
+def agy_capability_fingerprint(request: dict[str, Any]) -> str:
+    """Fingerprint only capability facts; never include credentials or payload."""
+    return _digest({
+        "platform": sys.platform,
+        "stage": qualification_stage(request),
+        "agy_available": bool(shutil.which(request["command"][0])),
+        "network_allowed": os.environ.get("HEADLESS_CLI_ALLOW_NETWORK") == "1",
+        "repository_egress_allowed": os.environ.get("HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED") == "1",
+        "runtime_write_roots": [str(path) for path in runtime_write_roots(request)],
+        "runtime_read_roots": [str(path) for path in runtime_read_roots(request)],
+    })
+
+
+def agy_capability_preflight(request: dict[str, Any]) -> dict[str, Any]:
+    """Run Q0 before AGY; repository payload egress is an explicit host gate."""
+    if request.get("harness") != "agy" or os.environ.get("HEADLESS_CLI_TEST_ONLY") == "1":
+        return {"status": "SKIPPED", "reason": "TEST_ONLY", "provider_launched": False}
+    validate_agy_launch_environment(request)
+    if not shutil.which(request["command"][0]):
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_EXECUTABLE_UNAVAILABLE")
+    if qualification_stage(request) == "repository" and os.environ.get("HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED") != "1":
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_REPOSITORY_EGRESS_BLOCKED")
+    return {"status": "READY", "reason": "HOST_CAPABILITY_AVAILABLE", "provider_launched": False, "capability_fingerprint": agy_capability_fingerprint(request), "retry_condition": ["capability fingerprint changes"]}
 
 
 def native_lane(request: dict) -> str | None:
@@ -1007,6 +1050,7 @@ def normalize(raw: dict, request: dict, *, session_state: str, exit_code: int, s
         "usage": usage,
         "capacity": raw.get("capacity", {"state": "UNKNOWN", "source": "none"}),
         "limitations": list(raw.get("limitations", [])) + (["stderr was emitted"] if stderr else []),
+        **({"live_qualification": raw["live_qualification"]} if isinstance(raw.get("live_qualification"), dict) else {}),
         **({"delegation": request["_delegation_binding"]} if request.get("_delegation_binding") else {}),
     }
 
@@ -1016,7 +1060,7 @@ def resolve_session(request: dict, registry_path: Path) -> tuple[str, dict, dict
     registry = read_registry(registry_path)
     old = registry.get(alias)
     repo = request["repo"]
-    binding = {"alias": alias, "repository": request["authority"]["repository"], "issue": request["authority"]["issue"], "task": request["authority"].get("task"), "lane": request["lane"], "repo_path": canonical(repo["root"]), "worktree": canonical(repo["worktree"]), "cwd": canonical(repo["cwd"]), "git_identity": {"repository": git_worktree_identity(repo["root"]), "worktree": git_worktree_identity(repo["worktree"])}, "context_binding": effective_context(repo["root"], repo["cwd"], request["expected_context"].get("required_skills", [])), "harness": request["harness"], "permission_policy": request["permission_policy"], "scope": request["scope"], "route_requirements": request["route_requirements"], "expected_context": request["expected_context"], **({"delegation": request["_delegation_binding"]} if request.get("_delegation_binding") else {})}
+    binding = {"alias": alias, "repository": request["authority"]["repository"], "issue": request["authority"]["issue"], "task": request["authority"].get("task"), "lane": request["lane"], "repo_path": canonical(repo["root"]), "worktree": canonical(repo["worktree"]), "cwd": canonical(repo["cwd"]), "git_identity": {"repository": git_worktree_identity(repo["root"]), "worktree": git_worktree_identity(repo["worktree"])}, "context_binding": effective_context(repo["root"], repo["cwd"], request["expected_context"].get("required_skills", [])), "harness": request["harness"], "qualification_stage": qualification_stage(request), "permission_policy": request["permission_policy"], "scope": request["scope"], "route_requirements": request["route_requirements"], "expected_context": request["expected_context"], **({"delegation": request["_delegation_binding"]} if request.get("_delegation_binding") else {})}
     policy = request["session"]["policy"]
     if old:
         if old.get("resumable") is False:
@@ -1024,7 +1068,7 @@ def resolve_session(request: dict, registry_path: Path) -> tuple[str, dict, dict
                 raise ValueError("SESSION_INVALID: failed session has no exact native session; rebind is required")
             old = None
         if old:
-            for key in ("repository", "issue", "task", "lane", "repo_path", "worktree", "cwd", "git_identity", "context_binding", "harness", "permission_policy", "scope", "route_requirements", "expected_context", "delegation"):
+            for key in ("repository", "issue", "task", "lane", "repo_path", "worktree", "cwd", "git_identity", "context_binding", "harness", "qualification_stage", "permission_policy", "scope", "route_requirements", "expected_context", "delegation"):
                 if old.get(key) != binding.get(key):
                     if policy != "rebind":
                         raise ValueError(f"SESSION_CONTEXT_MISMATCH: {key}")
@@ -1042,7 +1086,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     request = bind_delegation(request)
     validate_harness_request(request)
     alias, registry, old, binding, session_state = resolve_session(request, registry_path)
-    validate_agy_launch_environment(request)
+    agy_capability_preflight(request)
     repo = request["repo"]
     validate_output_targets(request, str(registry_path))
     command = request.get("command")
@@ -1118,12 +1162,22 @@ def _availability_error_code(error: BaseException) -> str | None:
     return None
 
 
+def _qualification_reason(error: BaseException) -> str:
+    message = str(error).strip()
+    if ":" in message:
+        candidate = message.split(":", 1)[1].strip()
+        if candidate.startswith("HOST_"):
+            return candidate
+    return "HOST_CAPABILITY_UNAVAILABLE"
+
+
 def _prelaunch_availability_receipt(request: dict, registry_path: Path, *, reason: str, error: BaseException) -> dict:
     _, _, _, _, session_state = resolve_session(request, registry_path)
     raw = {
         "runtime": {"harness": "agy", "requested_route": requested_semantic_route(request), "actual_route": "NOT_ASSESSED", "requested_profile": request["route_requirements"].get("requested_profile") or request["route_requirements"].get("profile") or "NOT_ASSESSED", "resolved_profile": "NOT_ASSESSED", "provider": "NOT_ASSESSED", "actual_model": "NOT_ASSESSED", "actual_effort": "NOT_ASSESSED", "native_session_id": "NOT_ASSESSED"},
         "execution": {"status": "FAILED", "error_code": reason},
         "context": {"instruction_fingerprint": None, "skill_observation": "NOT_ASSESSED"},
+        "live_qualification": {"status": "NOT_ASSESSED", "reason": _qualification_reason(error), "provider_launched": False, "capability_fingerprint": agy_capability_fingerprint(request), "retry_condition": ["capability fingerprint changes"]},
         "limitations": [f"AGY pre-launch availability failure: {str(error)[:1000]}"],
     }
     receipt = normalize(raw, request, session_state=session_state, exit_code=1, stdout="", stderr="", duration_ms=0, provenance={"kind": "native-terminal", "lane": "agy", "executable": Path(request["command"][0]).name, "resolved_executable": "NOT_ASSESSED", "executable_sha256": "NOT_ASSESSED"})

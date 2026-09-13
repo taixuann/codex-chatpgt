@@ -37,6 +37,15 @@ are never inferred from `HOME`. This prevents an incomplete macOS sandbox from
 being misreported as an unexplained hang; the resulting `RUNTIME_UNAVAILABLE`
 receipt remains eligible for the parent-owned Prometheus fallback.
 
+Q0 runs before the native process launch. It records a capability fingerprint
+without repository payload and requires
+`HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED=1` for the default repository stage.
+When that host gate is absent, the receipt records
+`live_qualification.status: NOT_ASSESSED`,
+`live_qualification.reason: HOST_REPOSITORY_EGRESS_BLOCKED`,
+`provider_launched: false`, and a retry condition of `capability fingerprint
+changes`; the provider is not invoked.
+
 On POSIX hosts, AGY runs attached to a fresh PTY because upstream print mode
 has reported empty or hanging output when stdout is a pipe. PTY capture is a
 transport workaround only; it does not change the prompt, permissions, trust

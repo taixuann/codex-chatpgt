@@ -20,6 +20,7 @@ FINDING_EVIDENCE_STATES = {"verified", "plausible_unverified", "refuted", "not_a
 FINDING_EVIDENCE_PRIORITY = {"refuted": 0, "not_assessed": 1, "plausible_unverified": 2, "verified": 3}
 FINDING_SEVERITY_PRIORITY = {"minor": 0, "material": 1, "major": 2, "blocker": 3, "critical": 4}
 REVIEW_AXES = {"work", "goal", "joint"}
+EXTERNAL_RESEARCH_STATES = {"used", "NOT_ASSESSED"}
 
 
 def observed_reviewer_id(value: Any) -> bool:
@@ -205,6 +206,18 @@ def valid_supporting_documents(value: Any) -> bool:
     )
 
 
+def valid_external_research(value: Any) -> bool:
+    if value is None:
+        return True
+    if not isinstance(value, dict) or value.get("status") not in EXTERNAL_RESEARCH_STATES or isinstance(value.get("query_count"), bool) or not isinstance(value.get("query_count"), int) or not 0 <= value["query_count"] <= 2 or not isinstance(value.get("sources"), list):
+        return False
+    if any(not isinstance(source, dict) or not isinstance(source.get("url"), str) or not source["url"].startswith("https://") for source in value["sources"]):
+        return False
+    if value["status"] == "NOT_ASSESSED":
+        return value["query_count"] == 0 and not value["sources"] and bool(str(value.get("reason", "")).strip())
+    return value["query_count"] > 0 and bool(value["sources"]) and all(bool(str(value.get(key, "")).strip()) for key in ("diagnosis", "proposed_repair", "verification"))
+
+
 def supporting_documents_clear(value: Any) -> bool:
     return valid_supporting_documents(value) and all(item["disposition"] != "BLOCKED" for item in value)
 
@@ -343,11 +356,14 @@ def normalize(packet: dict[str, Any], supplied: dict[str, Any], *, reviewer_sess
             goal_status = "partial"
         else:
             goal_status = "incomplete"
-    snapshot = {"candidate_head": packet["candidate"]["head"], "base_ref": packet["base"]["ref"], "base_head": packet["base"]["head"], "criteria_fingerprint": fp(packet["criteria"]), "rubric_ref": packet.get("rubric_ref", "athena-review:v1"), "authority_fingerprint": fp(packet["authority"]), "workspace_fingerprint": packet["workspace_fingerprint"], "evidence_fingerprint": fp(packet["evidence"]), "validation_fingerprint": fp(packet["validation"]), "supporting_documents_fingerprint": fp(packet["supporting_documents"]), "changed_files_fingerprint": fp(sorted(packet["changed_files"])), "repo_binding_fingerprint": fp(packet["repo_binding"]), "review_route": review_route, "review_attempt": attempt, "reviewer_session_id": reviewer_session_id, "reviewer_identity_source": "host_observed_not_assessed", "reviewer_attestation": reviewer_attestation, "fresh_context": True, "read_only": True}
+    external_research = supplied.get("external_research")
+    if not valid_external_research(external_research):
+        raise ValueError("external_research must be bounded, source-backed, and include a proposed repair")
+    snapshot = {"candidate_head": packet["candidate"]["head"], "base_ref": packet["base"]["ref"], "base_head": packet["base"]["head"], "criteria_fingerprint": fp(packet["criteria"]), "rubric_ref": packet.get("rubric_ref", "athena-review:v1"), "authority_fingerprint": fp(packet["authority"]), "workspace_fingerprint": packet["workspace_fingerprint"], "evidence_fingerprint": fp(packet["evidence"]), "validation_fingerprint": fp(packet["validation"]), "supporting_documents_fingerprint": fp(packet["supporting_documents"]), "changed_files_fingerprint": fp(sorted(packet["changed_files"])), "repo_binding_fingerprint": fp(packet["repo_binding"]), "review_route": review_route, "review_attempt": attempt, "reviewer_session_id": reviewer_session_id, "reviewer_identity_source": "host_observed_not_assessed", "reviewer_attestation": reviewer_attestation, "fresh_context": True, "read_only": True, **({"external_research_fingerprint": fp(external_research)} if external_research is not None else {})}
     if "criteria_manifest" in packet:
         snapshot["criteria_revision"] = packet["criteria_revision"]
         snapshot["criteria_manifest_fingerprint"] = packet["criteria_manifest_fingerprint"]
-    result = {"version": 1, "snapshot": snapshot, "review_attempt": attempt, "stale": False, "reviewability": "reviewable", "supporting_documents": packet["supporting_documents"], "limitations": [*supplied.get("limitations", []), "reviewer host trust is not assessed"] if snapshot["reviewer_identity_source"] == "host_observed_not_assessed" else supplied.get("limitations", []), "recommendation": "not_assessed"}
+    result = {"version": 1, "snapshot": snapshot, "review_attempt": attempt, "stale": False, "reviewability": "reviewable", "supporting_documents": packet["supporting_documents"], "limitations": [*supplied.get("limitations", []), "reviewer host trust is not assessed"] if snapshot["reviewer_identity_source"] == "host_observed_not_assessed" else supplied.get("limitations", []), "recommendation": "not_assessed", **({"external_research": external_research} if external_research is not None else {})}
     if axis in {"work", "joint"}:
         result.update({"work_review": {"status": work_status, "coverage": supplied.get("work_coverage", "bounded")}, "findings": findings, "verified_material_findings": [item["fingerprint"] for item in verified]})
     if axis in {"goal", "joint"}:
