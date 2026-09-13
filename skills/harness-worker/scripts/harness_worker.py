@@ -961,16 +961,11 @@ def normalize(raw: dict, request: dict, *, session_state: str, exit_code: int, s
     }
 
 
-def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
-    request = bind_delegation(request)
-    validate_harness_request(request)
-    validate_agy_launch_environment(request)
+def resolve_session(request: dict, registry_path: Path) -> tuple[str, dict, dict | None, dict, str]:
     alias = request_session_alias(request)
     registry = read_registry(registry_path)
     old = registry.get(alias)
     repo = request["repo"]
-    validate_output_targets(request, str(registry_path))
-    command = request.get("command")
     binding = {"alias": alias, "repository": request["authority"]["repository"], "issue": request["authority"]["issue"], "task": request["authority"].get("task"), "lane": request["lane"], "repo_path": canonical(repo["root"]), "worktree": canonical(repo["worktree"]), "cwd": canonical(repo["cwd"]), "git_identity": {"repository": git_worktree_identity(repo["root"]), "worktree": git_worktree_identity(repo["worktree"])}, "context_binding": effective_context(repo["root"], repo["cwd"], request["expected_context"].get("required_skills", [])), "harness": request["harness"], "permission_policy": request["permission_policy"], "scope": request["scope"], "route_requirements": request["route_requirements"], "expected_context": request["expected_context"], **({"delegation": request["_delegation_binding"]} if request.get("_delegation_binding") else {})}
     policy = request["session"]["policy"]
     if old:
@@ -990,6 +985,17 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     elif policy == "resume":
         raise ValueError("SESSION_INVALID: exact saved session is absent")
     session_state = "resumed" if old else ("rebound" if policy == "rebind" else "fresh")
+    return alias, registry, old, binding, session_state
+
+
+def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
+    request = bind_delegation(request)
+    validate_harness_request(request)
+    alias, registry, old, binding, session_state = resolve_session(request, registry_path)
+    validate_agy_launch_environment(request)
+    repo = request["repo"]
+    validate_output_targets(request, str(registry_path))
+    command = request.get("command")
     provenance = executor_provenance(request)
     if Path(command[0]).name in {"sh", "bash", "zsh", "fish", "cmd", "powershell", "pwsh"}:
         raise ValueError("shell command execution is not an accepted boundary")
@@ -1059,9 +1065,7 @@ def _availability_error_code(error: BaseException) -> str | None:
 
 
 def _prelaunch_availability_receipt(request: dict, registry_path: Path, *, reason: str, error: BaseException) -> dict:
-    policy = request["session"]["policy"]
-    saved = read_registry(registry_path).get(request_session_alias(request))
-    session_state = "resumed" if saved else ("rebound" if policy == "rebind" else "fresh")
+    _, _, _, _, session_state = resolve_session(request, registry_path)
     raw = {
         "runtime": {"harness": "agy", "requested_route": requested_semantic_route(request), "actual_route": "NOT_ASSESSED", "requested_profile": request["route_requirements"].get("requested_profile") or request["route_requirements"].get("profile") or "NOT_ASSESSED", "resolved_profile": "NOT_ASSESSED", "provider": "NOT_ASSESSED", "actual_model": "NOT_ASSESSED", "actual_effort": "NOT_ASSESSED", "native_session_id": "NOT_ASSESSED"},
         "execution": {"status": "FAILED", "error_code": reason},

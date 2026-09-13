@@ -166,7 +166,7 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_contract"] = {"task_id": "fixture"}
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
         with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1"}, clear=False):
-            with self.assertRaisesRegex(ValueError, "session_state contradicts"):
+            with self.assertRaisesRegex(ValueError, "exact saved session is absent"):
                 harness_worker.run(request, Path(request["outputs"]["registry"]), 10)
 
     def test_delegation_prompt_fingerprint_is_verified(self) -> None:
