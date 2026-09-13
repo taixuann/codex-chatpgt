@@ -44,6 +44,9 @@ fingerprint. Repository qualification additionally requires the explicit
 `HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED=1` host gate; otherwise the receipt is
 `NOT_ASSESSED` with `HOST_REPOSITORY_EGRESS_BLOCKED` and a retry condition,
 without invoking AGY.
+Q0 also starts the resolved AGY executable with `--version` inside the same
+declared sandbox. A startup abort is reported as
+`HOST_AGY_SANDBOX_INCOMPATIBLE` before any provider prompt is sent.
 On POSIX, AGY is attached to a fresh PTY so non-TTY `--print` output remains
 capturable; terminal control bytes are removed before parsing, which still
 accepts only AGY's documented JSON envelope.

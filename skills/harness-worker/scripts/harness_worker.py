@@ -611,6 +611,21 @@ def agy_capability_fingerprint(request: dict[str, Any]) -> str:
     })
 
 
+def agy_sandbox_probe(request: dict[str, Any]) -> None:
+    """Verify the resolved AGY binary can start inside the declared sandbox."""
+    executable = shutil.which(request["command"][0])
+    if not executable:
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_EXECUTABLE_UNAVAILABLE")
+    probe_request = {**request, "permission_policy": "read-only", "scope": {**request["scope"], "allowed_paths": []}}
+    command = sandbox_command([canonical(executable), "--version"], probe_request)
+    try:
+        result = subprocess.run(command, cwd=canonical(request["repo"]["cwd"]), env=runtime_environment(request, None), capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_SANDBOX_INCOMPATIBLE") from error
+    if result.returncode != 0:
+        raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_SANDBOX_INCOMPATIBLE")
+
+
 def agy_capability_preflight(request: dict[str, Any]) -> dict[str, Any]:
     """Run Q0 before AGY; repository payload egress is an explicit host gate."""
     if request.get("harness") != "agy" or os.environ.get("HEADLESS_CLI_TEST_ONLY") == "1":
@@ -620,6 +635,7 @@ def agy_capability_preflight(request: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_EXECUTABLE_UNAVAILABLE")
     if qualification_stage(request) == "repository" and os.environ.get("HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED") != "1":
         raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_REPOSITORY_EGRESS_BLOCKED")
+    agy_sandbox_probe(request)
     return {"status": "READY", "reason": "HOST_CAPABILITY_AVAILABLE", "provider_launched": False, "capability_fingerprint": agy_capability_fingerprint(request), "retry_condition": ["capability fingerprint changes"]}
 
 
@@ -949,6 +965,11 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
     if sys.platform != "darwin":
         raise RuntimeError("EXECUTION_BOUNDARY_UNAVAILABLE: bounded execution requires a native OS sandbox")
     sandbox = ["(version 1)", "(deny default)", "(allow process-exec)", "(allow process-fork)", "(allow signal (target self))", "(allow sysctl-read)", "(allow mach-lookup)"]
+    if request["harness"] in NATIVE_TERMINAL_LANES:
+        executable = canonical(command[0])
+        if any(char in executable for char in ('"', "\\", "\n", "\r", "\x00")):
+            raise ValueError("native executable path contains unsafe sandbox syntax")
+        sandbox.append(f'(allow file-read* (literal "{executable}"))')
     for value in NATIVE_SYSTEM_READ_ROOTS:
         root = Path(value)
         if root.exists():

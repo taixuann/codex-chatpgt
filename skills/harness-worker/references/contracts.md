@@ -45,6 +45,9 @@ When that host gate is absent, the receipt records
 `live_qualification.reason: HOST_REPOSITORY_EGRESS_BLOCKED`,
 `provider_launched: false`, and a retry condition of `capability fingerprint
 changes`; the provider is not invoked.
+Q0 also runs the resolved AGY executable with `--version` inside the declared
+sandbox. If that startup probe aborts, the receipt uses
+`HOST_AGY_SANDBOX_INCOMPATIBLE` and keeps `provider_launched: false`.
 
 On POSIX hosts, AGY runs attached to a fresh PTY because upstream print mode
 has reported empty or hanging output when stdout is a pipe. PTY capture is a
