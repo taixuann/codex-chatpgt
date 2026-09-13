@@ -47,3 +47,6 @@ effective-context fingerprint; both must match the normalized receipt.
 Production AGY requests must carry the parent-rendered prompt, renderer
 version, source-contract fingerprint, rendered-prompt fingerprint, and the
 canonical source contract so the worker can verify both hashes before launch.
+Registry state is derived from the normalized receipt: only a valid native
+session without an authentication or session-binding failure is resumable;
+non-resumable results remain explicitly failed even when the process exits 0.

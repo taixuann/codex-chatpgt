@@ -216,6 +216,48 @@ class HarnessWorkerTests(unittest.TestCase):
         self.assertEqual(receipt["usage"]["output_tokens"], 5)
 
 
+    def test_success_without_native_session_is_nonresumable(self) -> None:
+        bin_dir = Path(self.tmp.name) / "no-session-bin"
+        bin_dir.mkdir()
+        executable = bin_dir / "agy"
+        executable.write_text(f"#!{sys.executable}\nprint('" + '{"conversation_id":"NOT_ASSESSED","status":"SUCCESS","duration_seconds":0.1,"num_turns":1,"usage":{}}' + "')\n")
+        executable.chmod(0o755)
+        request = self.request("agy-no-session")
+        request["harness"] = "agy"
+        request["command"] = ["agy", "--print"]
+        registry = Path(self.tmp.name) / "agy-no-session.json"
+        request["outputs"]["registry"] = str(registry)
+        with patch.dict(os.environ, {"PATH": f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}", "HEADLESS_CLI_TEST_ONLY": "1"}), patch.object(harness_worker, "sandbox_command", side_effect=lambda command, _: command):
+            receipt = harness_worker.run(request, registry, 10)
+        self.assertEqual(receipt["execution"]["status"], "SUCCESS")
+        saved = json.loads(registry.read_text())[request["session_alias"]]
+        self.assertEqual(saved["status"], "failed")
+        self.assertFalse(saved["resumable"])
+
+
+    def test_auth_failure_invalidates_native_session_even_with_zero_exit(self) -> None:
+        bin_dir = Path(self.tmp.name) / "auth-failure-bin"
+        bin_dir.mkdir()
+        executable = bin_dir / "agy"
+        executable.write_text(f"#!{sys.executable}\nprint('" + '{"conversation_id":"agy-auth","status":"AUTH_REQUIRED","duration_seconds":0.1,"num_turns":0,"usage":{}}' + "')\n")
+        executable.chmod(0o755)
+        request = self.request("agy-auth-failure")
+        request["harness"] = "agy"
+        request["command"] = ["agy", "--print"]
+        registry = Path(self.tmp.name) / "agy-auth-failure.json"
+        request["outputs"]["registry"] = str(registry)
+        with patch.dict(os.environ, {"PATH": f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}", "HEADLESS_CLI_TEST_ONLY": "1"}), patch.object(harness_worker, "sandbox_command", side_effect=lambda command, _: command):
+            receipt = harness_worker.run(request, registry, 10)
+        self.assertEqual(receipt["execution"]["error_code"], "AUTH_REQUIRED")
+        saved = json.loads(registry.read_text())[request["session_alias"]]
+        self.assertEqual(saved["status"], "failed")
+        self.assertFalse(saved["resumable"])
+        request["session"]["policy"] = "resume"
+        with patch.dict(os.environ, {"PATH": f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}", "HEADLESS_CLI_TEST_ONLY": "1"}), patch.object(harness_worker, "sandbox_command", side_effect=lambda command, _: command):
+            with self.assertRaisesRegex(ValueError, "rebind is required"):
+                harness_worker.run(request, registry, 10)
+
+
     def test_native_bounded_write_reconciles_allowed_and_unrelated_paths(self) -> None:
         bin_dir = Path(self.tmp.name) / "bounded-native-bin"
         bin_dir.mkdir()

@@ -126,6 +126,7 @@ class KernelTests(unittest.TestCase):
         script = self.repo / f"fault-{name}.py"
         script.write_text(prelude + "print(" + repr(envelope) + ")\nimport sys\nsys.exit(" + str(exit_code) + ")\n")
         request = self.request(name)
+        request["session_alias"] = f"fixture:107:T1:{name}"
         request["command"] = [sys.executable, str(script)]
         request_path = Path(self.tmp.name) / f"request-{name}.yaml"
         receipt_path = Path(self.tmp.name) / f"receipt-{name}.yaml"

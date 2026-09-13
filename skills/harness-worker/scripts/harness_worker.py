@@ -25,6 +25,7 @@ MAX_OUTPUT_BYTES = 1024 * 1024
 INVALID_NATIVE_SESSION_IDS = {"NOT_ASSESSED", "UNKNOWN", "NONE", "NULL", "UNAVAILABLE"}
 FORBIDDEN_RECEIPT_KEYS = {"ac_satisfied", "issue_complete", "review_passed", "accepted_head", "final_success"}
 WORKER_AVAILABILITY_FAILURES = {"QUOTA_EXHAUSTED", "RATE_LIMITED", "RUNTIME_UNAVAILABLE", "PROVIDER_UNAVAILABLE"}
+SESSION_INVALIDATING_ERRORS = {"AUTH_REQUIRED", "SESSION_INVALID", "SESSION_CONTEXT_MISMATCH"}
 SEMANTIC_ROUTES = {"economy", "balanced", "strong", "strongest"}
 ROUTE_EFFORT_MAP = {"economy": "low", "balanced": "medium", "strong": "high", "strongest": "xhigh"}
 LEGACY_ROUTE_MAP = {"low": "economy", "bounded": "balanced", "medium": "balanced", "high": "strong", "critical": "strongest"}
@@ -1051,8 +1052,12 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     if old and receipt["runtime"]["native_session_id"] != old["native_session_id"]:
         raise ValueError("SESSION_INVALID: resumed runtime returned a different native_session_id")
     binding["native_session_id"] = receipt["runtime"]["native_session_id"]
-    binding["status"] = "resumable" if process_exit_code == 0 else "failed"
-    binding["resumable"] = valid_native_session_id(receipt["runtime"]["native_session_id"])
+    error_code = receipt["execution"].get("error_code")
+    binding["resumable"] = (
+        valid_native_session_id(receipt["runtime"]["native_session_id"])
+        and error_code not in SESSION_INVALIDATING_ERRORS
+    )
+    binding["status"] = "resumable" if binding["resumable"] else "failed"
     binding["last_used_at"] = time.time()
     registry[alias] = binding
     write_registry(registry_path, registry)

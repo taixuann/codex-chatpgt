@@ -21,7 +21,7 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(sum(item.startswith("107-") for item in ids), 25)
         self.assertEqual(sum(item.startswith("113-") for item in ids), 28)
         self.assertEqual(sum(item.startswith("114-") for item in ids), 16)
-        self.assertEqual(fixture["criteria_revision"], "live-2026-09-12-final-closure-review-identity")
+        self.assertEqual(fixture["criteria_revision"], "live-2026-09-13-exact-issue-readback")
         self.assertEqual(set(fixture["authority_amendments"]), {107, 113, 114})
         self.assertEqual(fixture["criteria_manifest_fingerprint"], review.fp(fixture["criteria_manifest"]))
         requirements = {item["id"]: item["current_requirement"] for item in fixture["criteria_manifest"] if "current_requirement" in item}

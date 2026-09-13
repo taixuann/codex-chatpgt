@@ -3,7 +3,7 @@ authority:
   repository: taixuann/codex-chatpgt
   issues: [107, 113, 114]
   source: live GitHub Issues #107/#113/#114
-criteria_revision: live-2026-09-12-final-closure-review-identity
+criteria_revision: live-2026-09-13-exact-issue-readback
 authority_amendments:
   107: {issue_comments: [5643065667, 5644918976, 5644932433, 5645884083, 5646227299, 5646899175], purpose: agy-primary-prometheus-availability-fallback-harness-boundary-global-hygiene-and-delegation-compiler}
   113: {issue_comments: [5643066821, 5644919948, 5645883244, 5646228486], purpose: native-active-matrix-harness-worker-boundary-agy-substrate-and-lean-live-testing}
