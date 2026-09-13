@@ -28,14 +28,25 @@ def _ancestors(root: Path, cwd: Path) -> list[Path]:
     return [root.joinpath(*relative.parts[:index]) for index in range(len(relative.parts) + 1)]
 
 
-def _source(directory: Path) -> tuple[Path | None, list[str]]:
+def _source(directory: Path, fallback_names: tuple[str, ...]) -> tuple[Path | None, list[str], str]:
     override = directory / "AGENTS.override.md"
     standard = directory / "AGENTS.md"
-    selected = override if override.is_file() else standard if standard.is_file() else None
+    selected = None
+    selection = "NONE"
+    if override.is_file() and override.read_text(encoding="utf-8").strip():
+        selected, selection = override, "SELECTED"
+    elif standard.is_file() and standard.read_text(encoding="utf-8").strip():
+        selected, selection = standard, "SELECTED"
+    else:
+        for fallback_name in fallback_names:
+            candidate = directory / fallback_name
+            if candidate.is_file() and candidate.read_text(encoding="utf-8").strip():
+                selected, selection = candidate, "SELECTED_FALLBACK"
+                break
     ignored = []
     if selected == override and standard.is_file():
         ignored.append(str(standard))
-    return selected, ignored
+    return selected, ignored, selection
 
 
 def _skill_roots(ancestors: list[Path]) -> list[Path]:
@@ -58,7 +69,31 @@ def _relative_links(path: Path) -> list[str]:
     return links
 
 
-def audit(repo_root: Path, execution_cwd: Path, max_bytes: int = 32768) -> dict:
+def _inspect_file(path: Path, max_bytes: int, errors: list[str], warnings: list[str]) -> dict:
+    size = path.stat().st_size
+    if size > max_bytes:
+        warnings.append(f"oversized instruction/Skill source: {path}")
+    text = path.read_text(encoding="utf-8")
+    for marker in STALE_MARKERS:
+        if marker in text:
+            errors.append(f"stale authority marker {marker}: {path}")
+    for link in _relative_links(path):
+        target = (path.parent / link).resolve()
+        if not target.exists():
+            errors.append(f"broken relative reference {link}: {path}")
+    return {"path": str(path), "bytes": size, "sha256": _sha256(path)}
+
+
+def audit(
+    repo_root: Path,
+    execution_cwd: Path,
+    max_bytes: int = 32768,
+    *,
+    max_context_bytes: int | None = 65536,
+    fallback_names: tuple[str, ...] = (),
+    global_root: Path | None = None,
+    expected_fingerprint: str | None = None,
+) -> dict:
     root = repo_root.resolve()
     cwd = execution_cwd.resolve()
     errors: list[str] = []
@@ -74,28 +109,27 @@ def audit(repo_root: Path, execution_cwd: Path, max_bytes: int = 32768) -> dict:
 
     chain = []
     for directory in ancestors:
-        selected, ignored = _source(directory)
+        selected, ignored, selection = _source(directory, fallback_names)
         if selected:
-            item = {
-                "path": str(selected),
-                "relative_path": str(selected.relative_to(root)),
-                "state": "SELECTED",
-                "bytes": selected.stat().st_size,
-                "sha256": _sha256(selected),
-            }
+            item = {"relative_path": str(selected.relative_to(root)), "state": selection}
+            item.update(_inspect_file(selected, max_bytes, errors, warnings))
             chain.append(item)
-            if selected.stat().st_size > max_bytes:
-                warnings.append(f"oversized instruction source: {selected}")
-            text = selected.read_text(encoding="utf-8")
-            for marker in STALE_MARKERS:
-                if marker in text:
-                    errors.append(f"stale authority marker {marker}: {selected}")
-            for link in _relative_links(selected):
-                target = (selected.parent / link).resolve()
-                if not target.exists():
-                    errors.append(f"broken relative reference {link}: {selected}")
             if ignored:
                 warnings.extend(f"override selected; ignored sibling: {path}" for path in ignored)
+
+    global_chain = []
+    if global_root is not None:
+        global_path = global_root.resolve()
+        if not global_path.is_dir():
+            errors.append(f"global guidance root is not a directory: {global_path}")
+        else:
+            selected, ignored, selection = _source(global_path, fallback_names)
+            if selected:
+                item = {"relative_path": str(selected), "state": selection}
+                item.update(_inspect_file(selected, max_bytes, errors, warnings))
+                global_chain.append(item)
+                if ignored:
+                    warnings.extend(f"global override selected; ignored sibling: {path}" for path in ignored)
 
     roots = _skill_roots(ancestors)
     packages = []
@@ -112,6 +146,7 @@ def audit(repo_root: Path, execution_cwd: Path, max_bytes: int = 32768) -> dict:
                 "bytes": skill_md.stat().st_size,
                 "sha256": _sha256(skill_md),
             })
+            _inspect_file(skill_md, max_bytes, errors, warnings)
 
     by_name: dict[str, list[str]] = {}
     for package in packages:
@@ -123,21 +158,40 @@ def audit(repo_root: Path, execution_cwd: Path, max_bytes: int = 32768) -> dict:
     fingerprint_input = {
         "repo_root": str(root),
         "execution_cwd": str(cwd),
+        "global_root": str(global_root.resolve()) if global_root is not None else None,
+        "fallback_names": list(fallback_names),
         "agents": chain,
+        "global_agents": global_chain,
         "skill_roots": [str(path) for path in roots],
         "skills": packages,
     }
     fingerprint = hashlib.sha256(
         json.dumps(fingerprint_input, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
+    context_bytes = sum(item["bytes"] for item in chain + global_chain)
+    if max_context_bytes is None:
+        context_state = "NOT_ASSESSED"
+    elif context_bytes > max_context_bytes:
+        errors.append(f"instruction chain exceeds context budget: {context_bytes} > {max_context_bytes}")
+        context_state = "OVER_BUDGET"
+    else:
+        context_state = "PASS"
+    drift_state = "NOT_ASSESSED"
+    if expected_fingerprint is not None:
+        drift_state = "MATCH" if expected_fingerprint == fingerprint else "CHANGED"
+        if drift_state == "CHANGED":
+            errors.append("instruction/Skill discovery fingerprint differs from expected baseline")
     return {
         "status": "FAIL" if errors else "PASS",
         "repo_root": str(root),
         "execution_cwd": str(cwd),
         "instruction_chain": chain,
+        "global_instruction_chain": global_chain,
         "skill_roots": [str(path) for path in roots],
         "skills": packages,
         "fingerprint": fingerprint,
+        "context_budget": {"bytes": context_bytes, "limit": max_context_bytes, "state": context_state},
+        "drift": {"expected_fingerprint": expected_fingerprint, "state": drift_state},
         "evidence_states": {
             "expected": "OBSERVED",
             "selected": "OBSERVED",
@@ -162,7 +216,7 @@ def self_test() -> None:
         (skill / "SKILL.md").write_text(
             "---\nname: sample\ndescription: sample\n---\n", encoding="utf-8"
         )
-        report = audit(root, nested)
+        report = audit(root, nested, fallback_names=("GUIDANCE.md",))
         assert report["status"] == "PASS", report
         assert [item["relative_path"] for item in report["instruction_chain"]] == [
             "AGENTS.md", "service/AGENTS.override.md"
@@ -181,6 +235,12 @@ def self_test() -> None:
         assert any("broken relative reference" in error for error in report["errors"])
         assert any("same-name Skill collision" in error for error in report["errors"])
         assert audit(root, root.parent)["status"] == "FAIL"
+        fallback = root / "fallback"
+        fallback.mkdir()
+        (fallback / "GUIDANCE.md").write_text("# fallback\n", encoding="utf-8")
+        fallback_report = audit(root, fallback, fallback_names=("GUIDANCE.md",))
+        assert fallback_report["instruction_chain"][1]["state"] == "SELECTED_FALLBACK"
+        assert audit(root, nested, max_context_bytes=1)["context_budget"]["state"] == "OVER_BUDGET"
     print("agents-md self-test: PASS")
 
 
@@ -189,6 +249,10 @@ def main() -> int:
     parser.add_argument("repo_root", nargs="?", type=Path)
     parser.add_argument("--cwd", dest="execution_cwd", type=Path)
     parser.add_argument("--max-bytes", type=int, default=32768)
+    parser.add_argument("--max-context-bytes", type=int, default=65536)
+    parser.add_argument("--fallback-name", action="append", default=[])
+    parser.add_argument("--global-root", type=Path)
+    parser.add_argument("--expected-fingerprint")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -198,7 +262,15 @@ def main() -> int:
         parser.error("repo_root is required unless --self-test is used")
     root = args.repo_root.resolve()
     cwd = (args.execution_cwd or root).resolve()
-    print(json.dumps(audit(root, cwd, args.max_bytes), indent=2, sort_keys=True))
+    print(json.dumps(audit(
+        root,
+        cwd,
+        args.max_bytes,
+        max_context_bytes=args.max_context_bytes,
+        fallback_names=tuple(args.fallback_name),
+        global_root=args.global_root,
+        expected_fingerprint=args.expected_fingerprint,
+    ), indent=2, sort_keys=True))
     return 0
 
 
