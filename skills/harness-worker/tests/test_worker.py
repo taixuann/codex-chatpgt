@@ -302,6 +302,12 @@ class HarnessWorkerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "registry entry"):
             harness_worker.run(self.request("malformed-empty"), registry, 10)
 
+    def test_stale_local_session_status_fails_closed(self) -> None:
+        registry = Path(self.tmp.name) / "stale-sessions.json"
+        registry.write_text(json.dumps({"fixture": {"native_session_id": "native-1", "resumable": True, "status": "stale"}}))
+        with self.assertRaisesRegex(ValueError, "status is invalid"):
+            harness_worker.read_registry(registry)
+
 
     def test_executor_output_is_bounded_before_parsing(self) -> None:
         request = self.request("oversized")

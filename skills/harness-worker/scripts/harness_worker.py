@@ -374,6 +374,10 @@ def read_registry(path: Path) -> dict:
     for alias, binding in registry.items():
         if not isinstance(alias, str) or not alias.strip() or not isinstance(binding, dict) or not isinstance(binding.get("native_session_id"), str) or not binding["native_session_id"].strip():
             raise ValueError("SESSION_INVALID: local session registry entry is malformed")
+        if binding.get("status") is not None and binding["status"] not in {"resumable", "failed"}:
+            raise ValueError("SESSION_INVALID: local session registry status is invalid")
+        if binding.get("status") == "resumable" and binding.get("resumable") is False:
+            raise ValueError("SESSION_INVALID: resumable session registry entry is not resumable")
         if binding.get("resumable") is not False and not valid_native_session_id(binding["native_session_id"]):
             raise ValueError("SESSION_INVALID: local session registry marks a sentinel session as resumable")
     return registry
