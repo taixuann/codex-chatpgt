@@ -40,7 +40,7 @@ ERROR_CODES = {
 NATIVE_TERMINAL_LANES = {"agy"}
 NATIVE_SYSTEM_READ_ROOTS = ("/System", "/usr", "/etc", "/opt/homebrew")
 QUALIFICATION_STAGES = {"transport", "fixture", "repository"}
-AGY_DELEGATION_FLAGS = {"--print", "-p"}
+AGY_DELEGATION_FLAGS = {"--print", "-p", "--sandbox"}
 AGY_DELEGATION_OPTIONS = {"--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
 USAGE_FIELDS = ("input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "latency_ms")
 ANSI_ESCAPE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
@@ -694,6 +694,8 @@ def bind_native_command(command: list[str], request: dict, old: dict | None = No
         raise ValueError("RUNTIME_UNAVAILABLE: native terminal command does not match the requested lane")
     route = request["route_requirements"]
     if lane == "agy":
+        if "--sandbox" not in command:
+            command.append("--sandbox")
         if "--print" not in command and "-p" not in command:
             command = [*command, "--print"]
         command = _bind_option(command, "--output-format", "json")
@@ -715,6 +717,11 @@ def bind_native_command(command: list[str], request: dict, old: dict | None = No
         if not valid_native_session_id(native_id):
             raise ValueError("SESSION_INVALID: native lane has no exact resumable session")
         command = _bind_option(command, "--conversation" if lane == "agy" else "--resume", native_id)
+    if lane == "agy":
+        print_flags = [item for item in command if item in {"--print", "-p"}]
+        if print_flags:
+            command = [item for item in command if item not in {"--print", "-p"}]
+            command.append(print_flags[0])
     return command
 
 
@@ -816,6 +823,9 @@ def run_bounded(command: list[str], *, cwd: str, timeout: int, env: dict[str, st
                     selector.unregister(key.fileobj)
                     continue
                 buffers[key.data].extend(chunk)
+                if key.data == "stderr" and any(marker in chunk.decode(errors="replace").lower() for marker in ("authentication required", "waiting for authentication", "paste the authorization code")):
+                    terminate_group()
+                    break
                 if len(buffers["stdout"]) + len(buffers["stderr"]) > MAX_OUTPUT_BYTES:
                     terminate_group()
                     reap_after_kill()
@@ -966,6 +976,9 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
         raise RuntimeError("EXECUTION_BOUNDARY_UNAVAILABLE: bounded execution requires a native OS sandbox")
     sandbox = ["(version 1)", "(deny default)", "(allow process-exec)", "(allow process-fork)", "(allow signal (target self))", "(allow sysctl-read)", "(allow mach-lookup)"]
     if request["harness"] in NATIVE_TERMINAL_LANES:
+        # ponytail: macOS dyld needs root-scoped read permission for this
+        # signed binary; keep user data denied and re-open only exact inputs.
+        sandbox.extend(["(allow file-read*)", '(deny file-read* (subpath "/Users"))', '(deny file-read* (subpath "/private/tmp"))', '(deny file-read* (subpath "/private/var/folders"))'])
         executable = canonical(command[0])
         if any(char in executable for char in ('"', "\\", "\n", "\r", "\x00")):
             raise ValueError("native executable path contains unsafe sandbox syntax")
@@ -1017,6 +1030,10 @@ def runtime_environment(request: dict, old: dict | None) -> dict[str, str]:
     elif request["harness"] == "fake":
         names |= {"MODE", "NATIVE_ID", "HEADLESS_CLI_TEST_ONLY"}
     environment = {name: os.environ[name] for name in names if name in os.environ}
+    if request["harness"] == "agy":
+        write_roots = runtime_write_roots(request)
+        if write_roots:
+            environment["TMPDIR"] = str(write_roots[0])
     environment["HEADLESS_SESSION_ID"] = old["native_session_id"] if old else ""
     return environment
 

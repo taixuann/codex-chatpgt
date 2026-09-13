@@ -138,6 +138,10 @@ def _prompt(contract: dict[str, Any], profile: str) -> str:
         if field in contract:
             sections += _section(label, contract[field], bullets=isinstance(contract[field], list))
     sections += _section("Execution boundary", _boundary(profile))
+    if profile == "agy" and isinstance(contract.get("context"), dict) and isinstance(contract["context"].get("cwd"), str) and contract["context"]["cwd"].startswith("/"):
+        cwd = contract["context"]["cwd"].rstrip("/")
+        exact_paths = [f"{cwd}/{str(path).lstrip('/')}" for path in contract["allowed_scope"]]
+        sections += _section("AGY path discipline", [f"Use exact paths under {cwd}; do not search from filesystem root.", *exact_paths], bullets=True)
     sections += _section("Return contract", contract["return_contract"])
     sections += _section("Stop conditions", contract["stop_conditions"], bullets=isinstance(contract["stop_conditions"], list))
     return "\n\n".join(sections) + "\n"

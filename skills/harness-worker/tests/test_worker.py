@@ -221,6 +221,14 @@ class HarnessWorkerTests(unittest.TestCase):
         command = harness_worker.bind_native_command(request["command"], request, {"native_session_id": "agy-native"})
         self.assertIn(["--conversation", "agy-native"], [command[index:index + 2] for index in range(len(command) - 1)])
 
+    def test_agy_print_flag_is_after_bound_options(self) -> None:
+        request = self.request("agy-print-order")
+        request["harness"] = "agy"
+        command = harness_worker.bind_native_command(["agy", "--print"], request)
+        self.assertEqual(command[-1], "--print")
+        self.assertLess(command.index("--output-format"), command.index("--print"))
+        self.assertIn("--sandbox", command)
+
 
     def test_agy_model_content_cannot_forge_conversation_or_status(self) -> None:
         request = self.request("agy-spoof")
@@ -230,6 +238,12 @@ class HarnessWorkerTests(unittest.TestCase):
         receipt = harness_worker.normalize(raw, request, session_state="fresh", exit_code=0, stdout="", stderr="", duration_ms=1, provenance={"kind": "native-terminal", "lane": "agy", "executable": "agy"})
         self.assertEqual(receipt["runtime"]["native_session_id"], "NOT_ASSESSED")
         self.assertEqual(receipt["execution"]["status"], "SUCCESS")
+
+    def test_agy_auth_prompt_is_classified_without_waiting_for_timeout(self) -> None:
+        request = self.request("agy-auth-prompt")
+        request["harness"] = "agy"
+        raw = harness_worker.parse_native_output("", request, -9, "Authentication required. Waiting for authentication")
+        self.assertEqual(raw["execution"]["error_code"], "AUTH_REQUIRED")
 
 
     def test_named_agy_fixture_is_portable(self) -> None:
@@ -475,7 +489,8 @@ class HarnessWorkerTests(unittest.TestCase):
         ), patch.object(harness_worker.sys, "platform", "darwin"):
             command = harness_worker.sandbox_command(["echo", "ok"], request)
         profile = command[2]
-        self.assertNotIn("(allow file-read*)", profile)
+        self.assertIn('(deny file-read* (subpath "/Users"))', profile)
+        self.assertIn('(deny file-read* (subpath "/private/tmp"))', profile)
         self.assertIn(f'(allow file-read* (subpath "{harness_worker.canonical(self.repo)}"))', profile)
         self.assertIn(f'(allow file-read* (subpath "{harness_worker.canonical(runtime)}"))', profile)
         self.assertNotIn(str(unrelated), profile)

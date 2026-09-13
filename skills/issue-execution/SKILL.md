@@ -121,8 +121,10 @@ Every AGY implementation request must carry the parent-selected canonical task
 contract and pass through `scripts/delegation_prompt.py` before the worker is
 invoked. The same renderer supplies the parent-native Prometheus request; the
 qualification-only `identity` profile is the raw baseline. The renderer
-preserves contract semantics and fingerprints both source and output; it never
-selects the executor. See `references/delegation-prompt-provenance.md` for the
+preserves contract semantics and fingerprints both source and output; AGY
+prompts also bind the exact absolute CWD and allowed paths so the provider does
+not discover a repository by scanning from filesystem root. It never selects
+the executor. See `references/delegation-prompt-provenance.md` for the
 selective donor adaptation and rejected concepts, and
 `references/delegation-prompt-cases.yaml` for DP-01 through DP-10.
 

@@ -36,6 +36,8 @@ class DelegationPromptTests(unittest.TestCase):
         self.assertEqual([item["id"] for item in first["semantic_manifest"]["acceptance"]["expected"]], ["DP-01", "DP-02"])
         for value in ("delegation_prompt.py", "harness-worker/", "status", "stop on scope conflict"):
             self.assertIn(value, first["prompt"])
+        self.assertIn("Use exact paths under /repo; do not search from filesystem root.", first["prompt"])
+        self.assertIn("/repo/skills/issue-execution/scripts/delegation_prompt.py", first["prompt"])
         self.assertNotIn("memory", first["prompt"].lower())
 
     def test_profiles_differ_only_at_executor_presentation(self):

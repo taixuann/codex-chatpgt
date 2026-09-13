@@ -46,14 +46,22 @@ When that host gate is absent, the receipt records
 `provider_launched: false`, and a retry condition of `capability fingerprint
 changes`; the provider is not invoked.
 Q0 also runs the resolved AGY executable with `--version` inside the declared
-sandbox. If that startup probe aborts, the receipt uses
+sandbox. The macOS loader exception is deny-listed for `/Users`, temporary
+directories, and credential paths, then exact runtime inputs are reopened. If
+that startup probe aborts, the receipt uses
 `HOST_AGY_SANDBOX_INCOMPATIBLE` and keeps `provider_launched: false`.
+The worker always binds AGY's native `--sandbox` flag for provider turns;
+without it, AGY can wait on its own permission boundary even when the outer
+host sandbox is correctly configured.
 
 On POSIX hosts, AGY runs attached to a fresh PTY because upstream print mode
 has reported empty or hanging output when stdout is a pipe. PTY capture is a
 transport workaround only; it does not change the prompt, permissions, trust
 boundary, or receipt authority. Unsupported hosts fail closed as
 `RUNTIME_UNAVAILABLE`.
+The capture loop stops early on AGY's interactive-auth markers and classifies
+the attempt as `AUTH_REQUIRED`, preventing a repeated auth prompt from being
+reported only as `TIMED_OUT` or `NOT_ASSESSED`.
 
 Required skills in `expected_context` must be present in the resolved project
 skill roots; missing skills fail closed as `CONTEXT_CONTRACT_UNVERIFIED`.

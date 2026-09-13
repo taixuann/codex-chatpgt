@@ -45,8 +45,16 @@ fingerprint. Repository qualification additionally requires the explicit
 `NOT_ASSESSED` with `HOST_REPOSITORY_EGRESS_BLOCKED` and a retry condition,
 without invoking AGY.
 Q0 also starts the resolved AGY executable with `--version` inside the same
-declared sandbox. A startup abort is reported as
+declared sandbox. The macOS loader read exception is deny-listed for user
+data, temporary directories, and credential paths; only the resolved binary,
+repository, and declared runtime roots are reopened. A startup abort is reported as
 `HOST_AGY_SANDBOX_INCOMPATIBLE` before any provider prompt is sent.
+Production AGY invocations also bind AGY's native `--sandbox` flag so its tool
+permission and workspace-write policy is active inside the outer host boundary.
 On POSIX, AGY is attached to a fresh PTY so non-TTY `--print` output remains
 capturable; terminal control bytes are removed before parsing, which still
 accepts only AGY's documented JSON envelope.
+If AGY emits its documented interactive-auth prompt in headless mode, the
+worker terminates that attempt early and records `AUTH_REQUIRED`; it does not
+wait for the outer timeout or relabel the same blocker as an unexplained
+`NOT_ASSESSED` retry.
