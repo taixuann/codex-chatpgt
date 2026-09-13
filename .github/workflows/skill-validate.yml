@@ -83,7 +83,7 @@ jobs:
           python - <<'PY'
           import pathlib
           names = sorted(pathlib.Path(path).parent.name for path in pathlib.Path('skills').glob('*/SKILL.md'))
-          assert names == ['agent-creator', 'athena-review', 'harness-worker', 'issue-execution', 'ready-issue-executor', 'skill-creator'], names
+          assert names == ['agent-creator', 'agents-md', 'athena-review', 'harness-worker', 'issue-execution', 'ready-issue-executor', 'skill-creator'], names
           PY
           test "$(git ls-files 'agents/*.toml' | wc -l | tr -d ' ')" -eq 3
 
@@ -154,11 +154,13 @@ jobs:
 
       - name: Validate retained skill packages
         run: |
+          python skills/skill-creator/scripts/quick_validate.py skills/agents-md
           python skills/skill-creator/scripts/quick_validate.py skills/harness-worker
           python skills/skill-creator/scripts/quick_validate.py skills/issue-execution
           python skills/skill-creator/scripts/quick_validate.py skills/ready-issue-executor
           python skills/skill-creator/scripts/quick_validate.py skills/athena-review
-          python -m py_compile skills/harness-worker/scripts/*.py skills/issue-execution/scripts/*.py skills/athena-review/scripts/*.py
+          python -m py_compile skills/agents-md/scripts/audit.py skills/harness-worker/scripts/*.py skills/issue-execution/scripts/*.py skills/athena-review/scripts/*.py
+          python skills/agents-md/scripts/audit.py --self-test
           python -m unittest discover -s skills/harness-worker/tests -p 'test_*.py'
           python -m unittest discover -s skills/issue-execution/tests -p 'test_*.py'
           python -m unittest discover -s skills/athena-review/tests -p 'test_*.py'

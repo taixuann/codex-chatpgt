@@ -14,6 +14,7 @@ import tempfile
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 STALE_MARKERS = ("skills/AGENTS.md", ".agents/skills/AGENTS.md")
+DEFAULT_PROJECT_CONTEXT_BYTES = 32 * 1024
 
 
 def _sha256(path: Path) -> str:
@@ -49,14 +50,33 @@ def _source(directory: Path, fallback_names: tuple[str, ...]) -> tuple[Path | No
     return selected, ignored, selection
 
 
-def _skill_roots(ancestors: list[Path]) -> list[Path]:
+def _skill_roots(ancestors: list[Path], directory_name: str) -> list[Path]:
     roots = []
     for directory in reversed(ancestors):
-        for name in (".agents/skills", "skills"):
-            candidate = directory / name
-            if candidate.is_dir():
-                roots.append(candidate)
+        candidate = directory / directory_name
+        if candidate.is_dir():
+            roots.append(candidate)
     return roots
+
+
+def _skill_packages(roots: list[Path], root: Path, max_bytes: int, errors: list[str], warnings: list[str], scope: str) -> list[dict]:
+    packages = []
+    for skill_root in roots:
+        for package in sorted(skill_root.iterdir()):
+            skill_md = package / "SKILL.md"
+            if not package.is_dir() or not skill_md.is_file():
+                continue
+            packages.append({
+                "name": package.name,
+                "root": str(skill_root),
+                "path": str(skill_md),
+                "relative_path": str(skill_md.relative_to(root)),
+                "bytes": skill_md.stat().st_size,
+                "sha256": _sha256(skill_md),
+                "scope": scope,
+            })
+            _inspect_file(skill_md, max_bytes, errors, warnings)
+    return packages
 
 
 def _relative_links(path: Path) -> list[str]:
@@ -89,10 +109,11 @@ def audit(
     execution_cwd: Path,
     max_bytes: int = 32768,
     *,
-    max_context_bytes: int | None = 65536,
+    max_context_bytes: int | None = DEFAULT_PROJECT_CONTEXT_BYTES,
     fallback_names: tuple[str, ...] = (),
     global_root: Path | None = None,
     expected_fingerprint: str | None = None,
+    configured_context_limit: int | None = None,
 ) -> dict:
     root = repo_root.resolve()
     cwd = execution_cwd.resolve()
@@ -123,7 +144,7 @@ def audit(
         if not global_path.is_dir():
             errors.append(f"global guidance root is not a directory: {global_path}")
         else:
-            selected, ignored, selection = _source(global_path, fallback_names)
+            selected, ignored, selection = _source(global_path, ())
             if selected:
                 item = {"relative_path": str(selected), "state": selection}
                 item.update(_inspect_file(selected, max_bytes, errors, warnings))
@@ -131,29 +152,18 @@ def audit(
                 if ignored:
                     warnings.extend(f"global override selected; ignored sibling: {path}" for path in ignored)
 
-    roots = _skill_roots(ancestors)
-    packages = []
-    for skill_root in roots:
-        for package in sorted(skill_root.iterdir()):
-            skill_md = package / "SKILL.md"
-            if not package.is_dir() or not skill_md.is_file():
-                continue
-            packages.append({
-                "name": package.name,
-                "root": str(skill_root),
-                "path": str(skill_md),
-                "relative_path": str(skill_md.relative_to(root)),
-                "bytes": skill_md.stat().st_size,
-                "sha256": _sha256(skill_md),
-            })
-            _inspect_file(skill_md, max_bytes, errors, warnings)
+    native_roots = _skill_roots(ancestors, ".agents/skills")
+    package_roots = _skill_roots(ancestors, "skills")
+    native_packages = _skill_packages(native_roots, root, max_bytes, errors, warnings, "native")
+    repository_packages = _skill_packages(package_roots, root, max_bytes, errors, warnings, "repository-package")
 
-    by_name: dict[str, list[str]] = {}
-    for package in packages:
-        by_name.setdefault(package["name"], []).append(package["path"])
-    for name, paths in sorted(by_name.items()):
-        if len(paths) > 1:
-            errors.append(f"same-name Skill collision {name}: {', '.join(paths)}")
+    for packages, label in ((native_packages, "native"), (repository_packages, "repository package")):
+        by_name: dict[str, list[str]] = {}
+        for package in packages:
+            by_name.setdefault(package["name"], []).append(package["path"])
+        for name, paths in sorted(by_name.items()):
+            if len(paths) > 1:
+                errors.append(f"same-name {label} Skill collision {name}: {', '.join(paths)}")
 
     fingerprint_input = {
         "repo_root": str(root),
@@ -162,17 +172,20 @@ def audit(
         "fallback_names": list(fallback_names),
         "agents": chain,
         "global_agents": global_chain,
-        "skill_roots": [str(path) for path in roots],
-        "skills": packages,
+        "native_skill_roots": [str(path) for path in native_roots],
+        "repository_package_roots": [str(path) for path in package_roots],
+        "native_skills": native_packages,
+        "repository_skill_packages": repository_packages,
     }
     fingerprint = hashlib.sha256(
         json.dumps(fingerprint_input, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
-    context_bytes = sum(item["bytes"] for item in chain + global_chain)
+    project_context_bytes = sum(item["bytes"] for item in chain)
+    global_context_bytes = sum(item["bytes"] for item in global_chain)
     if max_context_bytes is None:
         context_state = "NOT_ASSESSED"
-    elif context_bytes > max_context_bytes:
-        errors.append(f"instruction chain exceeds context budget: {context_bytes} > {max_context_bytes}")
+    elif project_context_bytes > max_context_bytes:
+        errors.append(f"project instruction chain exceeds context budget: {project_context_bytes} > {max_context_bytes}")
         context_state = "OVER_BUDGET"
     else:
         context_state = "PASS"
@@ -187,10 +200,21 @@ def audit(
         "execution_cwd": str(cwd),
         "instruction_chain": chain,
         "global_instruction_chain": global_chain,
-        "skill_roots": [str(path) for path in roots],
-        "skills": packages,
+        "skill_roots": [str(path) for path in native_roots],
+        "native_skill_roots": [str(path) for path in native_roots],
+        "repository_package_roots": [str(path) for path in package_roots],
+        "skills": native_packages,
+        "repository_skill_packages": repository_packages,
         "fingerprint": fingerprint,
-        "context_budget": {"bytes": context_bytes, "limit": max_context_bytes, "state": context_state},
+        "context_budget": {
+            "bytes": project_context_bytes,
+            "project_bytes": project_context_bytes,
+            "global_bytes": global_context_bytes,
+            "limit": max_context_bytes,
+            "configured_limit": configured_context_limit if configured_context_limit is not None else "NOT_ASSESSED",
+            "assumed_default": DEFAULT_PROJECT_CONTEXT_BYTES if configured_context_limit is None and max_context_bytes == DEFAULT_PROJECT_CONTEXT_BYTES else None,
+            "state": context_state,
+        },
         "drift": {"expected_fingerprint": expected_fingerprint, "state": drift_state},
         "evidence_states": {
             "expected": "OBSERVED",
@@ -211,10 +235,15 @@ def self_test() -> None:
         nested = root / "service"
         nested.mkdir()
         (nested / "AGENTS.override.md").write_text("# delta\n", encoding="utf-8")
-        skill = root / "skills" / "sample"
-        skill.mkdir(parents=True)
-        (skill / "SKILL.md").write_text(
+        package = root / "skills" / "source-sample"
+        package.mkdir(parents=True)
+        (package / "SKILL.md").write_text(
             "---\nname: sample\ndescription: sample\n---\n", encoding="utf-8"
+        )
+        native = root / ".agents" / "skills" / "sample"
+        native.mkdir(parents=True)
+        (native / "SKILL.md").write_text(
+            "---\nname: sample\ndescription: native\n---\n", encoding="utf-8"
         )
         report = audit(root, nested, fallback_names=("GUIDANCE.md",))
         assert report["status"] == "PASS", report
@@ -222,6 +251,8 @@ def self_test() -> None:
         assert [item["relative_path"] for item in report["instruction_chain"]] == [
             "AGENTS.md", "service/AGENTS.override.md"
         ]
+        assert [item["scope"] for item in report["skills"]] == ["native"]
+        assert [item["scope"] for item in report["repository_skill_packages"]] == ["repository-package"]
         assert report["evidence_states"]["loaded"] == "NOT_ASSESSED"
         (root / "AGENTS.md").write_text("[stale](skills/AGENTS.md)\n", encoding="utf-8")
         (nested / "AGENTS.override.md").write_text("[missing](missing.md)\n", encoding="utf-8")
@@ -234,7 +265,7 @@ def self_test() -> None:
         assert report["status"] == "FAIL", report
         assert any("stale authority marker" in error for error in report["errors"])
         assert any("broken relative reference" in error for error in report["errors"])
-        assert any("same-name Skill collision" in error for error in report["errors"])
+        assert any("same-name native Skill collision" in error for error in report["errors"])
         assert audit(root, nested, expected_fingerprint=baseline_fingerprint)["drift"]["state"] == "CHANGED"
         assert audit(root, root.parent)["status"] == "FAIL"
         fallback = root / "fallback"
@@ -246,8 +277,17 @@ def self_test() -> None:
         global_root = root / "global"
         global_root.mkdir()
         (global_root / "AGENTS.md").write_text("# global\n", encoding="utf-8")
+        (global_root / "GUIDANCE.md").write_text("# fallback must not apply globally\n", encoding="utf-8")
         global_report = audit(root, nested, global_root=global_root, fallback_names=("GUIDANCE.md",))
         assert global_report["global_instruction_chain"][0]["state"] == "SELECTED"
+        assert global_report["context_budget"]["global_bytes"] > 0
+        assert global_report["context_budget"]["bytes"] == global_report["context_budget"]["project_bytes"]
+        assert global_report["context_budget"]["configured_limit"] == "NOT_ASSESSED"
+        assert global_report["context_budget"]["assumed_default"] == DEFAULT_PROJECT_CONTEXT_BYTES
+        global_fallback = root / "global-fallback"
+        global_fallback.mkdir()
+        (global_fallback / "GUIDANCE.md").write_text("# global fallback\n", encoding="utf-8")
+        assert audit(root, nested, global_root=global_fallback, fallback_names=("GUIDANCE.md",))["global_instruction_chain"] == []
     print("agents-md self-test: PASS")
 
 
@@ -256,7 +296,7 @@ def main() -> int:
     parser.add_argument("repo_root", nargs="?", type=Path)
     parser.add_argument("--cwd", dest="execution_cwd", type=Path)
     parser.add_argument("--max-bytes", type=int, default=32768)
-    parser.add_argument("--max-context-bytes", type=int, default=65536)
+    parser.add_argument("--max-context-bytes", type=int, default=None)
     parser.add_argument("--fallback-name", action="append", default=[])
     parser.add_argument("--global-root", type=Path)
     parser.add_argument("--expected-fingerprint")
@@ -269,14 +309,17 @@ def main() -> int:
         parser.error("repo_root is required unless --self-test is used")
     root = args.repo_root.resolve()
     cwd = (args.execution_cwd or root).resolve()
+    configured_limit = args.max_context_bytes
+    effective_limit = DEFAULT_PROJECT_CONTEXT_BYTES if configured_limit is None else configured_limit
     print(json.dumps(audit(
         root,
         cwd,
         args.max_bytes,
-        max_context_bytes=args.max_context_bytes,
+        max_context_bytes=effective_limit,
         fallback_names=tuple(args.fallback_name),
         global_root=args.global_root,
         expected_fingerprint=args.expected_fingerprint,
+        configured_context_limit=configured_limit,
     ), indent=2, sort_keys=True))
     return 0
 

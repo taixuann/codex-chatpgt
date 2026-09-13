@@ -19,7 +19,8 @@ ordinary implementation, role identity, or global policy mutation.
 - `MAINTAIN`: classify each proposed rule before changing it. Prefer
   `NO_CHANGE`, `REMOVE`, `MOVE_TO_SKILL`, `MOVE_TO_CI`, `MOVE_TO_README`,
   `RELOCATE`, or `UPDATE_MINIMALLY`.
-- `AUDIT`: reconstruct selected AGENTS sources, reachable Skill roots, broken
+- `AUDIT`: reconstruct selected AGENTS sources, native `.agents/skills`
+  reachability, repository `skills/` package/source roots separately, broken
   references, duplicate Skill names, stale authority, and size/drift signals.
 - `UPDATE_FROM_FEEDBACK`: preserve the sequence
   `OBSERVE → EVIDENCE → PROPOSE → VALIDATE → REVIEW → HUMAN_ACCEPT → UPDATE`.
