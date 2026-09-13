@@ -144,6 +144,21 @@ def _walk_keys(value: Any) -> set[str]:
     return set()
 
 
+def _context_source(path: Path, root: Path) -> Path:
+    current = path
+    while True:
+        if current.is_symlink():
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source traverses a symlink")
+        if current == root:
+            break
+        if root not in current.parents:
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source escapes repository root")
+        current = current.parent
+    if Path(canonical(path)) != path:
+        raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source resolves outside repository root")
+    return path
+
+
 def effective_context(repo_root: str, cwd: str, required_skills: list[str] | None = None) -> dict[str, Any]:
     root = Path(canonical(repo_root)); current = Path(canonical(cwd))
     if current != root and root not in current.parents:
@@ -153,8 +168,8 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
     instruction_paths = []
     for directory in ancestors:
         override, standard = directory / "AGENTS.override.md", directory / "AGENTS.md"
-        if override.is_file(): instruction_paths.append(override)
-        elif standard.is_file(): instruction_paths.append(standard)
+        if override.is_symlink() or override.is_file(): instruction_paths.append(_context_source(override, root))
+        elif standard.is_symlink() or standard.is_file(): instruction_paths.append(_context_source(standard, root))
     skill_paths = []
     missing_skills = []
     for name in required_skills or []:
@@ -164,8 +179,8 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
         found = False
         for base in (root / "skills", root / ".agents" / "skills"):
             candidate = base / name / "SKILL.md"
-            if candidate.is_file():
-                skill_paths.append(candidate)
+            if candidate.is_symlink() or candidate.is_file():
+                skill_paths.append(_context_source(candidate, root))
                 found = True
         if not found:
             missing_skills.append(name)

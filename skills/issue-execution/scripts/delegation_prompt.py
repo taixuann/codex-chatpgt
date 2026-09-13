@@ -51,6 +51,12 @@ def _items(value: Any, field: str) -> list[Any]:
     return value
 
 
+def _safe_scope_paths(value: list[Any], field: str) -> None:
+    for item in value:
+        if not isinstance(item, str) or Path(item).is_absolute() or ".." in Path(item).parts:
+            raise ValueError(f"{field} paths must remain relative to the repository")
+
+
 def _acceptance(value: Any) -> list[dict[str, Any]]:
     items = _items(value, "acceptance")
     seen: set[str] = set()
@@ -90,9 +96,11 @@ def _validate_contract(contract: Any) -> dict[str, Any]:
     for field in ("constraints", "validation", "stop_conditions"):
         if not _nonempty(contract[field]):
             raise ValueError(f"{field} must not be empty")
-    _items(contract["allowed_scope"], "allowed_scope")
+    allowed_scope = _items(contract["allowed_scope"], "allowed_scope")
+    _safe_scope_paths(allowed_scope, "allowed_scope")
     if "forbidden_scope" in contract:
-        _items(contract["forbidden_scope"], "forbidden_scope")
+        forbidden_scope = _items(contract["forbidden_scope"], "forbidden_scope")
+        _safe_scope_paths(forbidden_scope, "forbidden_scope")
     _acceptance(contract["acceptance"])
     _return_fields(contract["return_contract"])
     return contract

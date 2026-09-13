@@ -284,6 +284,15 @@ class KernelTests(unittest.TestCase):
         self.assertNotEqual(root_context["fingerprint"], nested_context["fingerprint"])
         with self.assertRaisesRegex(ValueError, "required skills unavailable"):
             issue_execution.effective_context(str(self.repo), str(self.repo), ["missing-skill"])
+        outside = Path(self.tmp.name) / "outside"
+        outside.mkdir()
+        (outside / "AGENTS.md").write_text("outside instructions\n")
+        (self.repo / "AGENTS.md").unlink()
+        (self.repo / "AGENTS.md").symlink_to(outside / "AGENTS.md")
+        with self.assertRaisesRegex(ValueError, "CONTEXT_CONTRACT_UNVERIFIED"):
+            issue_execution.effective_context(str(self.repo), str(self.repo))
+        (self.repo / "AGENTS.md").unlink()
+        (self.repo / "AGENTS.md").write_text("root instructions\n")
         request = self.request("context-root")
         registry = Path(self.tmp.name) / "context-sessions.json"
         request["outputs"]["registry"] = str(registry)
@@ -703,7 +712,7 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(eligible["status"], "awaiting_parent_decision")
         self.assertEqual(eligible["review_cycle"]["work"]["status"], "pass")
         self.assertEqual(eligible["review_cycle"]["goal"]["status"], "complete")
-        self.assertEqual(eligible["review_cycle"]["work"]["receipt"], f"review/athena-{candidate[:7]}-work-r1.yaml")
+        self.assertEqual(eligible["review_cycle"]["work"]["receipt"], f"review/athena-{candidate[:7]}-work-r1-{work['review_attempt']['review_id'].removeprefix('athena-')}.yaml")
         self.assertIn("athena:repo:issue-107:", eligible["review_cycle"]["goal"]["display_label"])
         self.assertEqual(eligible["candidate"], {"head": candidate, "checkpoint_reason": "integrated_candidate"})
         self.assertNotIn("latest_review", eligible)

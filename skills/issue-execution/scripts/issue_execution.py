@@ -157,6 +157,21 @@ def repository_binding(repo_root: str, worktree: str | None = None) -> dict[str,
     }
 
 
+def _context_source(path: Path, root: Path) -> Path:
+    current = path
+    while True:
+        if current.is_symlink():
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source traverses a symlink")
+        if current == root:
+            break
+        if root not in current.parents:
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source escapes repository root")
+        current = current.parent
+    if Path(canonical(path)) != path:
+        raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source resolves outside repository root")
+    return path
+
+
 def effective_context(repo_root: str, cwd: str, required_skills: list[str] | None = None) -> dict[str, Any]:
     """Bind the applicable instruction chain and local skill roots to CWD."""
     root = Path(canonical(repo_root))
@@ -169,10 +184,10 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
     for directory in ancestors:
         override = directory / "AGENTS.override.md"
         standard = directory / "AGENTS.md"
-        if override.is_file():
-            instruction_paths.append(override)
-        elif standard.is_file():
-            instruction_paths.append(standard)
+        if override.is_symlink() or override.is_file():
+            instruction_paths.append(_context_source(override, root))
+        elif standard.is_symlink() or standard.is_file():
+            instruction_paths.append(_context_source(standard, root))
     skills = list(required_skills or [])
     skill_paths: list[Path] = []
     missing_skills: list[str] = []
@@ -184,8 +199,8 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
         found = False
         for base in (root / "skills", root / ".agents" / "skills"):
             candidate = base / name / "SKILL.md"
-            if candidate.is_file():
-                skill_paths.append(candidate)
+            if candidate.is_symlink() or candidate.is_file():
+                skill_paths.append(_context_source(candidate, root))
                 found = True
         if not found:
             missing_skills.append(name)
@@ -945,7 +960,9 @@ def accept_candidate(session: dict[str, Any], work_review: dict[str, Any], packe
     # This helper proves technical eligibility only. Parent acceptance and
     # Draft PR publication are outside this repository process.
     session["status"] = "awaiting_parent_decision"
-    session["review_cycle"] = {"round": work_review["review_attempt"]["round"], "candidate_head": candidate, "work": {"receipt": f"review/athena-{candidate[:7]}-work-r{work_review['review_attempt']['round']}.yaml", "display_label": work_review["review_attempt"]["display_label"], "review_id": work_review["review_attempt"]["review_id"], "reviewer_session_id": work_snapshot["reviewer_session_id"], "status": work_review["work_review"]["status"], "stale": False}, "goal": {"receipt": f"review/athena-{candidate[:7]}-goal-r{goal_review['review_attempt']['round']}.yaml", "display_label": goal_review["review_attempt"]["display_label"], "review_id": goal_review["review_attempt"]["review_id"], "reviewer_session_id": goal_snapshot["reviewer_session_id"], "status": goal_review["goal_review"]["status"], "stale": False}}
+    def receipt_pointer(attempt: dict[str, Any]) -> str:
+        return f"review/athena-{candidate[:7]}-{attempt['axis']}-r{attempt['round']}-{attempt['review_id'].removeprefix('athena-')}.yaml"
+    session["review_cycle"] = {"round": work_review["review_attempt"]["round"], "candidate_head": candidate, "work": {"receipt": receipt_pointer(work_review["review_attempt"]), "display_label": work_review["review_attempt"]["display_label"], "review_id": work_review["review_attempt"]["review_id"], "reviewer_session_id": work_snapshot["reviewer_session_id"], "status": work_review["work_review"]["status"], "stale": False}, "goal": {"receipt": receipt_pointer(goal_review["review_attempt"]), "display_label": goal_review["review_attempt"]["display_label"], "review_id": goal_review["review_attempt"]["review_id"], "reviewer_session_id": goal_snapshot["reviewer_session_id"], "status": goal_review["goal_review"]["status"], "stale": False}}
     return session
 
 
