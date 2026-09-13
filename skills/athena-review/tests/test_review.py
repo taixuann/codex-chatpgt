@@ -206,6 +206,22 @@ class ReviewTests(unittest.TestCase):
             review.write(str(result_path), result)
             self.assertNotEqual(subprocess.run(command, text=True, capture_output=True).returncode, 0)
 
+    def test_normalize_cli_writes_a_new_output_receipt(self) -> None:
+        packet = self.packet()
+        supplied = {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}
+        with tempfile.TemporaryDirectory() as directory:
+            packet_path = Path(directory) / "packet.yaml"
+            raw_path = Path(directory) / "raw.yaml"
+            output_path = Path(directory) / "normalized.yaml"
+            attestation_path = Path(directory) / "attestation.yaml"
+            review.write(str(packet_path), packet)
+            review.write(str(raw_path), supplied)
+            review.write(str(attestation_path), self.attestation())
+            command = [sys.executable, str(ROOT / "skills" / "athena-review" / "scripts" / "review.py"), "normalize", "--packet", str(packet_path), "--result", str(raw_path), "--output", str(output_path), "--reviewer-session-id", REVIEWER_ID, "--reviewer-attestation", str(attestation_path)]
+            self.assertEqual(subprocess.run(command, text=True, capture_output=True).returncode, 0)
+            normalized = review.load(output_path)
+            review.validate_result(normalized, packet, packet["candidate"]["head"])
+
     def test_result_validation_requires_nonempty_validation_and_evidence(self) -> None:
         packet = self.packet()
         result = review.normalize(packet, {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())

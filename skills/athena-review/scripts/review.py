@@ -345,12 +345,12 @@ def normalize(packet: dict[str, Any], supplied: dict[str, Any], *, reviewer_sess
 
 def main() -> int:
     parser = argparse.ArgumentParser(); sub = parser.add_subparsers(dest="command", required=True)
-    norm = sub.add_parser("normalize"); norm.add_argument("--packet", required=True); norm.add_argument("--result", required=True); norm.add_argument("--reviewer-session-id", required=True); norm.add_argument("--reviewer-attestation", required=True)
+    norm = sub.add_parser("normalize"); norm.add_argument("--packet", required=True); norm.add_argument("--result", required=True); norm.add_argument("--output", required=True); norm.add_argument("--reviewer-session-id", required=True); norm.add_argument("--reviewer-attestation", required=True)
     val = sub.add_parser("validate"); val.add_argument("--result", required=True); val.add_argument("--packet", required=True); val.add_argument("--candidate", required=True)
     args = parser.parse_args()
     try:
         if args.command == "normalize":
-            write_new(args.result, normalize(load(args.packet), load(args.result), reviewer_session_id=args.reviewer_session_id, reviewer_attestation=load(args.reviewer_attestation))); print("PASS")
+            write_new(args.output, normalize(load(args.packet), load(args.result), reviewer_session_id=args.reviewer_session_id, reviewer_attestation=load(args.reviewer_attestation))); print("PASS")
         else:
             result = load(args.result)
             validate_result(result, load(args.packet), args.candidate)

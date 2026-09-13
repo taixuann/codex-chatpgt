@@ -90,7 +90,7 @@ locked contract says otherwise. Stop repeated no-progress repair as
 Use the validator for packet/result/snapshot checks:
 
 ```bash
-python3 skills/athena-review/scripts/review.py normalize --packet packet.yaml --result result.yaml --reviewer-session-id <trusted-native-session-id> --reviewer-attestation reviewer-attestation.yaml
+python3 skills/athena-review/scripts/review.py normalize --packet packet.yaml --result raw-result.yaml --output normalized-result.yaml --reviewer-session-id <trusted-native-session-id> --reviewer-attestation reviewer-attestation.yaml
 python3 skills/athena-review/scripts/review.py validate --packet packet.yaml --result result.yaml --candidate <sha>
 ```
 
