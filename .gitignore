@@ -21,6 +21,8 @@
 !skills/harness-worker/**
 !skills/athena-review/
 !skills/athena-review/**
+!skills/agents-md/
+!skills/agents-md/**
 
 # Skill packages do not carry nested AGENTS authority.
 skills/**/AGENTS.md

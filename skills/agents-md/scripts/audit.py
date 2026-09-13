@@ -66,23 +66,25 @@ def _source(directory: Path, fallback_names: tuple[str, ...]) -> tuple[Path | No
     candidates.extend((directory / name, name) for name in fallback_names)
     candidate_evidence = []
     for path, name in candidates:
-        if not path.is_file():
+        if path.is_symlink():
+            state = "SYMLINK"
+        elif not path.is_file():
             state = "ABSENT"
-        elif path.read_text(encoding="utf-8").strip():
+        elif _read_limited(path, 1).strip():
             state = "AVAILABLE"
         else:
             state = "EMPTY"
         candidate_evidence.append({"name": name, "path": str(path), "state": state})
     selected = None
     selection = "NONE"
-    if override.is_file() and override.read_text(encoding="utf-8").strip():
+    if not override.is_symlink() and override.is_file() and _read_limited(override, 1).strip():
         selected, selection = override, "SELECTED"
-    elif standard.is_file() and standard.read_text(encoding="utf-8").strip():
+    elif not standard.is_symlink() and standard.is_file() and _read_limited(standard, 1).strip():
         selected, selection = standard, "SELECTED"
     else:
         for fallback_name in fallback_names:
             candidate = directory / fallback_name
-            if candidate.is_file() and candidate.read_text(encoding="utf-8").strip():
+            if not candidate.is_symlink() and candidate.is_file() and _read_limited(candidate, 1).strip():
                 selected, selection = candidate, "SELECTED_FALLBACK"
                 break
     ignored = []
@@ -199,6 +201,10 @@ def audit(
             "selection": selection,
             "candidates": candidates,
         })
+        errors.extend(
+            f"symlinked instruction source is not allowed: {item['path']}"
+            for item in candidates if item["state"] == "SYMLINK"
+        )
         if selected:
             item = {"relative_path": str(selected.relative_to(root)), "state": selection}
             item.update(_inspect_file(selected, max_bytes, errors, warnings))
@@ -226,6 +232,10 @@ def audit(
                 "selection": selection,
                 "candidates": candidates,
             })
+            errors.extend(
+                f"symlinked instruction source is not allowed: {item['path']}"
+                for item in candidates if item["state"] == "SYMLINK"
+            )
             if selected:
                 item = {"relative_path": str(selected), "state": selection}
                 item.update(_inspect_file(selected, max_bytes, errors, warnings))
@@ -363,6 +373,10 @@ def self_test() -> None:
         (linked / "SKILL.md").symlink_to(Path("/etc/hosts"))
         linked_report = audit(root, nested)
         assert any("symlinked Skill source" in error for error in linked_report["errors"])
+        (root / "AGENTS.override.md").unlink()
+        (root / "AGENTS.override.md").symlink_to(Path("/etc/hosts"))
+        agents_report = audit(root, root)
+        assert any("symlinked instruction source" in error for error in agents_report["errors"])
         root_candidates = report["instruction_sources"][0]["candidates"]
         assert {item["name"]: item["state"] for item in root_candidates} == {
             "AGENTS.override.md": "SELECTED",
