@@ -46,13 +46,13 @@ def review_attempt(packet: dict[str, Any], reviewer_session_id: str) -> dict[str
     label = f"athena:{repo_slug}:{target}:{candidate[:7]}:{spec['axis']}:r{spec['round']}"
     criteria_fingerprint = fp(packet.get("criteria"))
     evidence_fingerprint = fp(packet.get("evidence"))
-    review_id = "athena-" + fp({"label": label, "criteria": criteria_fingerprint, "evidence": evidence_fingerprint})[:16]
+    if not observed_reviewer_id(reviewer_session_id):
+        raise ValueError("review_attempt requires a native reviewer session ID")
+    review_id = "athena-" + fp({"label": label, "criteria": criteria_fingerprint, "evidence": evidence_fingerprint, "reviewer_session_id": reviewer_session_id})[:16]
     if "display_label" in spec and spec["display_label"] != label:
         raise ValueError("review_attempt display_label is not deterministic")
     if "review_id" in spec and spec["review_id"] != review_id:
         raise ValueError("review_attempt review_id is not deterministic")
-    if not observed_reviewer_id(reviewer_session_id):
-        raise ValueError("review_attempt requires a native reviewer session ID")
     return {"review_id": review_id, "candidate_head": candidate, "axis": spec["axis"], "round": spec["round"], "reviewer_session_id": reviewer_session_id, "display_label": label}
 
 
@@ -60,7 +60,11 @@ def review_receipt_filename(attempt: dict[str, Any]) -> str:
     """Use readable dimensions in filenames; exact identity stays in the receipt."""
     if not isinstance(attempt, dict) or not re.fullmatch(r"[0-9a-f]{40}", str(attempt.get("candidate_head", ""))) or attempt.get("axis") not in REVIEW_AXES or isinstance(attempt.get("round"), bool) or not isinstance(attempt.get("round"), int) or attempt["round"] < 1:
         raise ValueError("review attempt is invalid")
-    return f"athena-{attempt['candidate_head'][:7]}-{attempt['axis']}-r{attempt['round']}.yaml"
+    review_id = str(attempt.get("review_id", ""))
+    match = re.fullmatch(r"athena-([0-9a-f]{16})", review_id)
+    if not match:
+        raise ValueError("review attempt is missing a collision-safe review_id")
+    return f"athena-{attempt['candidate_head'][:7]}-{attempt['axis']}-r{attempt['round']}-{match.group(1)}.yaml"
 
 
 def review_receipt_path(directory: str | Path, attempt: dict[str, Any]) -> Path:
@@ -209,7 +213,7 @@ def valid_supporting_documents(value: Any) -> bool:
 def valid_external_research(value: Any) -> bool:
     if value is None:
         return True
-    if not isinstance(value, dict) or value.get("status") not in EXTERNAL_RESEARCH_STATES or isinstance(value.get("query_count"), bool) or not isinstance(value.get("query_count"), int) or not 0 <= value["query_count"] <= 2 or not isinstance(value.get("sources"), list):
+    if not isinstance(value, dict) or value.get("status") not in EXTERNAL_RESEARCH_STATES or isinstance(value.get("query_count"), bool) or not isinstance(value.get("query_count"), int) or not 0 <= value["query_count"] <= 2 or not isinstance(value.get("sources"), list) or len(value["sources"]) > 3:
         return False
     if any(not isinstance(source, dict) or not isinstance(source.get("url"), str) or not source["url"].startswith("https://") for source in value["sources"]):
         return False

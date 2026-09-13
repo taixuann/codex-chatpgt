@@ -75,6 +75,10 @@ class DelegationPromptTests(unittest.TestCase):
         malformed["acceptance"] = [{"id": "DP-01", "requirement": "x"}, {"id": "DP-01", "requirement": "y"}]
         with self.assertRaises(ValueError):
             MODULE.render(malformed, "agy")
+        malformed = copy.deepcopy(CONTRACT)
+        malformed["allowed_scope"] = ["../outside"]
+        with self.assertRaisesRegex(ValueError, "relative"):
+            MODULE.render(malformed, "agy")
 
     def test_optional_content_is_not_invented(self):
         contract = copy.deepcopy(CONTRACT)

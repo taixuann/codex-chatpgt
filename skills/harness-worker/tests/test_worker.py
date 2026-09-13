@@ -118,6 +118,21 @@ class HarnessWorkerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "required skills unavailable"):
             harness_worker.effective_context(str(self.repo), str(self.repo), ["missing-skill"])
 
+    def test_context_rejects_symlinked_instruction_and_skill_sources(self) -> None:
+        outside = Path(self.tmp.name) / "outside"
+        outside.mkdir()
+        (outside / "AGENTS.md").write_text("outside instructions\n")
+        (self.repo / "AGENTS.md").symlink_to(outside / "AGENTS.md")
+        with self.assertRaisesRegex(ValueError, "CONTEXT_CONTRACT_UNVERIFIED"):
+            harness_worker.effective_context(str(self.repo), str(self.repo))
+        (self.repo / "AGENTS.md").unlink()
+        skill = self.repo / "skills" / "issue-execution" / "SKILL.md"
+        skill.unlink()
+        (outside / "SKILL.md").write_text("outside skill\n")
+        skill.symlink_to(outside / "SKILL.md")
+        with self.assertRaisesRegex(ValueError, "CONTEXT_CONTRACT_UNVERIFIED"):
+            harness_worker.effective_context(str(self.repo), str(self.repo), ["issue-execution"])
+
     def test_receipt_context_is_bound_to_request(self) -> None:
         request = self.request("context-bound")
         receipt = self.run_request(request, "context-bound")

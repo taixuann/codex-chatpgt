@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "skills" / "athena-review" / "scripts"))
 import review  # noqa: E402
 
 REVIEWER_ID = "11111111-1111-1111-1111-111111111111"
+OTHER_REVIEWER_ID = "22222222-2222-2222-2222-222222222222"
 class ReviewTests(unittest.TestCase):
     def test_coupled_campaign_fixture_is_external_to_generic_core(self) -> None:
         import yaml
@@ -69,6 +70,9 @@ class ReviewTests(unittest.TestCase):
         invalid = {**supplied, "external_research": {**supplied["external_research"], "query_count": 3}}
         with self.assertRaisesRegex(ValueError, "external_research"):
             review.normalize(self.packet(), invalid, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+        invalid = {**supplied, "external_research": {**supplied["external_research"], "sources": [{"url": f"https://example.invalid/{i}"} for i in range(4)]}}
+        with self.assertRaisesRegex(ValueError, "external_research"):
+            review.normalize(self.packet(), invalid, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
 
     def attestation(self, reviewer_id: str = REVIEWER_ID) -> dict:
         return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-5.6-luna", "reasoning_effort": "max", "provider": "openai"}}
@@ -98,7 +102,10 @@ class ReviewTests(unittest.TestCase):
         result = review.normalize(self.packet(), {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
         attempt = result["review_attempt"]
         self.assertEqual(attempt["display_label"], "athena:repo:issue-107:aaaaaaa:joint:r1")
-        self.assertEqual(review.review_receipt_filename(attempt), "athena-aaaaaaa-joint-r1.yaml")
+        self.assertEqual(review.review_receipt_filename(attempt), f"athena-aaaaaaa-joint-r1-{attempt['review_id'].removeprefix('athena-')}.yaml")
+        other_attempt = review.review_attempt(self.packet(), OTHER_REVIEWER_ID)
+        self.assertNotEqual(other_attempt["review_id"], attempt["review_id"])
+        self.assertNotEqual(review.review_receipt_filename(other_attempt), review.review_receipt_filename(attempt))
         with tempfile.TemporaryDirectory() as directory:
             path = review.review_receipt_path(directory, attempt)
             path.touch()

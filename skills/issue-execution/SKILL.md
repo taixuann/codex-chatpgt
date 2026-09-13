@@ -60,7 +60,7 @@ directory:
 ```text
 <repo>/.agents/sessions/issue-<N>/session.yaml
 <repo>/.agents/sessions/issue-<N>/tasks.yaml
-<repo>/.agents/sessions/issue-<N>/review/athena-<head7>-<axis>-r<round>.yaml
+<repo>/.agents/sessions/issue-<N>/review/athena-<head7>-<axis>-r<round>-<attempt-id>.yaml
 ```
 
 `session.yaml` owns lifecycle identity and the compact review cycle. A cycle
