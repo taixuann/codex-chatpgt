@@ -1157,7 +1157,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     request = bind_delegation(request)
     validate_harness_request(request)
     alias, registry, old, binding, session_state = resolve_session(request, registry_path)
-    agy_capability_preflight(request)
+    capability_observation = agy_capability_preflight(request)
     repo = request["repo"]
     validate_output_targets(request, str(registry_path))
     command = request.get("command")
@@ -1209,6 +1209,8 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     else:
         raw = parse_structured_output(process_stdout, request, process_exit_code) if request["harness"] == "fake" else parse_native_output(process_stdout, request, process_exit_code, process_stderr)
     receipt = normalize(raw, request, session_state=session_state, exit_code=process_exit_code, stdout=process_stdout, stderr=process_stderr, duration_ms=duration_ms)
+    if capability_observation.get("status") != "SKIPPED":
+        receipt["live_qualification"] = capability_observation
     validate_harness_receipt(request, receipt)
     if old and receipt["runtime"]["native_session_id"] != old["native_session_id"]:
         raise ValueError("SESSION_INVALID: resumed runtime returned a different native_session_id")
