@@ -218,6 +218,7 @@ def self_test() -> None:
         )
         report = audit(root, nested, fallback_names=("GUIDANCE.md",))
         assert report["status"] == "PASS", report
+        baseline_fingerprint = report["fingerprint"]
         assert [item["relative_path"] for item in report["instruction_chain"]] == [
             "AGENTS.md", "service/AGENTS.override.md"
         ]
@@ -234,6 +235,7 @@ def self_test() -> None:
         assert any("stale authority marker" in error for error in report["errors"])
         assert any("broken relative reference" in error for error in report["errors"])
         assert any("same-name Skill collision" in error for error in report["errors"])
+        assert audit(root, nested, expected_fingerprint=baseline_fingerprint)["drift"]["state"] == "CHANGED"
         assert audit(root, root.parent)["status"] == "FAIL"
         fallback = root / "fallback"
         fallback.mkdir()
@@ -241,6 +243,11 @@ def self_test() -> None:
         fallback_report = audit(root, fallback, fallback_names=("GUIDANCE.md",))
         assert fallback_report["instruction_chain"][1]["state"] == "SELECTED_FALLBACK"
         assert audit(root, nested, max_context_bytes=1)["context_budget"]["state"] == "OVER_BUDGET"
+        global_root = root / "global"
+        global_root.mkdir()
+        (global_root / "AGENTS.md").write_text("# global\n", encoding="utf-8")
+        global_report = audit(root, nested, global_root=global_root, fallback_names=("GUIDANCE.md",))
+        assert global_report["global_instruction_chain"][0]["state"] == "SELECTED"
     print("agents-md self-test: PASS")
 
 
