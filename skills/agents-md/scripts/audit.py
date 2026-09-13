@@ -31,6 +31,14 @@ def _read_limited(path: Path, limit: int) -> str:
         return stream.read(limit + 1).decode("utf-8", errors="replace")
 
 
+def _has_text(path: Path) -> bool:
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(4096), b""):
+            if chunk.strip():
+                return True
+    return False
+
+
 def _inside(path: Path, root: Path) -> bool:
     try:
         path.resolve().relative_to(root.resolve())
@@ -70,21 +78,21 @@ def _source(directory: Path, fallback_names: tuple[str, ...]) -> tuple[Path | No
             state = "SYMLINK"
         elif not path.is_file():
             state = "ABSENT"
-        elif _read_limited(path, 1).strip():
+        elif _has_text(path):
             state = "AVAILABLE"
         else:
             state = "EMPTY"
         candidate_evidence.append({"name": name, "path": str(path), "state": state})
     selected = None
     selection = "NONE"
-    if not override.is_symlink() and override.is_file() and _read_limited(override, 1).strip():
+    if not override.is_symlink() and override.is_file() and _has_text(override):
         selected, selection = override, "SELECTED"
-    elif not standard.is_symlink() and standard.is_file() and _read_limited(standard, 1).strip():
+    elif not standard.is_symlink() and standard.is_file() and _has_text(standard):
         selected, selection = standard, "SELECTED"
     else:
         for fallback_name in fallback_names:
             candidate = directory / fallback_name
-            if not candidate.is_symlink() and candidate.is_file() and _read_limited(candidate, 1).strip():
+            if not candidate.is_symlink() and candidate.is_file() and _has_text(candidate):
                 selected, selection = candidate, "SELECTED_FALLBACK"
                 break
     ignored = []
@@ -102,7 +110,7 @@ def _skill_roots(ancestors: list[Path], directory_name: str) -> list[Path]:
     roots = []
     for directory in reversed(ancestors):
         candidate = directory / directory_name
-        if candidate.is_dir():
+        if candidate.is_symlink() or candidate.is_dir():
             roots.append(candidate)
     return roots
 
@@ -403,6 +411,24 @@ def self_test() -> None:
         assert unicode_report["context_budget"]["state"] == "PASS"
         assert any("oversized instruction" in warning for warning in unicode_report["warnings"])
         assert audit(root, nested, max_bytes=-2)["status"] == "FAIL"
+
+        whitespace = root / "whitespace"
+        whitespace.mkdir()
+        (whitespace / "AGENTS.md").write_text(" \n# guidance\n", encoding="utf-8")
+        assert audit(whitespace, whitespace)["instruction_chain"]
+
+        git_root = root / "git-fixture"
+        git_root.mkdir()
+        subprocess.run(["git", "init", "-q", str(git_root)], check=True)
+        (git_root / ".gitignore").write_text(".agents/skills/ignored/\n", encoding="utf-8")
+        tracked = git_root / ".agents" / "skills" / "tracked"
+        tracked.mkdir(parents=True)
+        (tracked / "SKILL.md").write_text("---\nname: tracked\n---\n", encoding="utf-8")
+        ignored = git_root / ".agents" / "skills" / "ignored"
+        ignored.mkdir(parents=True)
+        (ignored / "SKILL.md").write_text("---\nname: ignored\n---\n", encoding="utf-8")
+        git_report = audit(git_root, git_root)
+        assert [item["name"] for item in git_report["skills"]] == ["tracked"]
         root_candidates = report["instruction_sources"][0]["candidates"]
         assert {item["name"]: item["state"] for item in root_candidates} == {
             "AGENTS.override.md": "SELECTED",
