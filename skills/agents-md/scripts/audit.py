@@ -13,13 +13,42 @@ import subprocess
 import tempfile
 
 
-LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+LINK_RE = re.compile(r"\[[^\]]*\]\(\s*(<[^>\n]+>|[^\s)\n]+)(?:\s+[^)\n]*)?\)")
 STALE_MARKERS = ("skills/AGENTS.md", ".agents/skills/AGENTS.md")
 DEFAULT_PROJECT_CONTEXT_BYTES = 32 * 1024
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _read_limited(path: Path, limit: int) -> str:
+    with path.open("r", encoding="utf-8") as stream:
+        return stream.read(limit + 1)
+
+
+def _inside(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _git_ignored(path: Path, root: Path) -> bool:
+    try:
+        relative = path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    result = subprocess.run(
+        ["git", "-C", str(root), "check-ignore", "-q", "--", str(relative)],
+        capture_output=True,
+    )
+    return result.returncode == 0
 
 
 def _ancestors(root: Path, cwd: Path) -> list[Path]:
@@ -81,10 +110,20 @@ def _skill_packages(roots: list[Path], root: Path, max_bytes: int, errors: list[
     for skill_root in roots:
         for package in sorted(skill_root.iterdir()):
             skill_md = package / "SKILL.md"
-            if not package.is_dir() or not skill_md.is_file():
+            if package.is_symlink() or not package.is_dir():
                 continue
+            if _git_ignored(package, root):
+                continue
+            if skill_md.is_symlink():
+                errors.append(f"symlinked Skill source is not allowed: {skill_md}")
+                continue
+            if _git_ignored(skill_md, root):
+                continue
+            if not skill_md.is_file() or not _inside(skill_md, root):
+                continue
+            skill_name = _skill_name(skill_md, package.name, max_bytes)
             packages.append({
-                "name": package.name,
+                "name": skill_name,
                 "root": str(skill_root),
                 "path": str(skill_md),
                 "relative_path": str(skill_md.relative_to(root)),
@@ -96,25 +135,30 @@ def _skill_packages(roots: list[Path], root: Path, max_bytes: int, errors: list[
     return packages
 
 
-def _relative_links(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    links = []
-    for target in LINK_RE.findall(text):
-        target = target.split("#", 1)[0].strip()
-        if target and not re.match(r"^[a-z]+://", target) and not target.startswith("#"):
-            links.append(target)
-    return links
+def _skill_name(path: Path, fallback: str, max_bytes: int) -> str:
+    text = _read_limited(path, max_bytes)
+    if text.startswith("---"):
+        frontmatter = text.split("---", 2)
+        if len(frontmatter) == 3:
+            match = re.search(r"(?m)^name:\s*([^#\n]+?)\s*$", frontmatter[1])
+            if match:
+                return match.group(1).strip().strip("'\"") or fallback
+    return fallback
 
 
 def _inspect_file(path: Path, max_bytes: int, errors: list[str], warnings: list[str]) -> dict:
     size = path.stat().st_size
     if size > max_bytes:
         warnings.append(f"oversized instruction/Skill source: {path}")
-    text = path.read_text(encoding="utf-8")
+    text = _read_limited(path, max_bytes)
     for marker in STALE_MARKERS:
         if marker in text:
             errors.append(f"stale authority marker {marker}: {path}")
-    for link in _relative_links(path):
+    for target in LINK_RE.findall(text):
+        link = target.strip().removeprefix("<").removesuffix(">")
+        link = link.split("#", 1)[0].strip()
+        if not link or re.match(r"^[a-z][a-z0-9+.-]*:", link, re.IGNORECASE) or link.startswith("#"):
+            continue
         target = (path.parent / link).resolve()
         if not target.exists():
             errors.append(f"broken relative reference {link}: {path}")
@@ -279,9 +323,10 @@ def self_test() -> None:
         package = root / "skills" / "source-sample"
         package.mkdir(parents=True)
         (package / "SKILL.md").write_text(
-            "---\nname: sample\ndescription: sample\n---\n", encoding="utf-8"
+            "---\nname: sample\ndescription: sample\n---\n[mail](mailto:test@example.invalid) [readme](README.md \"title\")\n", encoding="utf-8"
         )
-        native = root / ".agents" / "skills" / "sample"
+        (package / "README.md").write_text("fixture\n", encoding="utf-8")
+        native = root / ".agents" / "skills" / "native-one"
         native.mkdir(parents=True)
         (native / "SKILL.md").write_text(
             "---\nname: sample\ndescription: native\n---\n", encoding="utf-8"
@@ -303,7 +348,7 @@ def self_test() -> None:
         (root / "AGENTS.md").write_text("[stale](skills/AGENTS.md)\n", encoding="utf-8")
         (nested / "AGENTS.override.md").write_text("[missing](missing.md)\n", encoding="utf-8")
         (root / "AGENTS.override.md").write_text("[stale](skills/AGENTS.md)\n", encoding="utf-8")
-        duplicate = nested / ".agents" / "skills" / "sample"
+        duplicate = nested / ".agents" / "skills" / "native-two"
         duplicate.mkdir(parents=True)
         (duplicate / "SKILL.md").write_text(
             "---\nname: sample\ndescription: duplicate\n---\n", encoding="utf-8"
@@ -313,6 +358,11 @@ def self_test() -> None:
         assert any("stale authority marker" in error for error in report["errors"])
         assert any("broken relative reference" in error for error in report["errors"])
         assert any("same-name native Skill collision" in error for error in report["errors"])
+        linked = nested / ".agents" / "skills" / "linked"
+        linked.mkdir(parents=True)
+        (linked / "SKILL.md").symlink_to(Path("/etc/hosts"))
+        linked_report = audit(root, nested)
+        assert any("symlinked Skill source" in error for error in linked_report["errors"])
         root_candidates = report["instruction_sources"][0]["candidates"]
         assert {item["name"]: item["state"] for item in root_candidates} == {
             "AGENTS.override.md": "SELECTED",
