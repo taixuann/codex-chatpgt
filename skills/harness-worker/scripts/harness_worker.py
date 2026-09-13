@@ -68,6 +68,53 @@ def filesystem_payload(target: Path) -> bytes:
     return b"special\0" + str(stat.S_IFMT(mode)).encode()
 
 
+def git_metadata_state(repo: str) -> str:
+    """Digest Git control metadata without walking the object database."""
+    identity = git_worktree_identity(repo)
+    worktree = Path(canonical(repo))
+    pointer = worktree / ".git"
+    roots: list[tuple[str, Path]] = [("git-pointer", pointer)]
+    for label, key in (("git-dir", "git_dir"), ("git-common-dir", "git_common_dir")):
+        roots.append((label, Path(identity[key])))
+
+    entries: list[bytes] = []
+    seen: set[str] = set()
+    for label, root in roots:
+        resolved = canonical(root)
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        if root.is_symlink() or root.is_file():
+            entries.append(label.encode() + b"\0" + filesystem_payload(root))
+            continue
+        if not root.is_dir():
+            entries.append(label.encode() + b"\0MISSING")
+            continue
+        for current, directories, files in os.walk(root, followlinks=False):
+            current_path = Path(current)
+            directories[:] = sorted(
+                name for name in directories
+                if name != "objects" or current_path != root
+            )
+            for name in sorted([*directories, *files]):
+                target = current_path / name
+                relative = target.relative_to(root).as_posix()
+                metadata = target.lstat()
+                payload = filesystem_payload(target)
+                entries.append(
+                    label.encode()
+                    + b"\0"
+                    + relative.encode()
+                    + b"\0"
+                    + str(metadata.st_mode).encode()
+                    + b"\0"
+                    + str(metadata.st_mtime_ns).encode()
+                    + b"\0"
+                    + payload
+                )
+    return hashlib.sha256(b"\0".join(entries)).hexdigest()
+
+
 def git_worktree_identity(repo: str) -> dict[str, str]:
     root = canonical(repo)
     if not Path(root).is_dir():
@@ -445,6 +492,7 @@ def git_state(repo: str) -> str:
         subprocess.check_output(["git", "-C", repo, "diff", "--cached", "--binary"]),
         head_ref.encode(),
         repository_head(repo).encode(),
+        git_metadata_state(repo).encode(),
         *metadata,
     ]
     return hashlib.sha256(b"\0".join(outputs)).hexdigest()

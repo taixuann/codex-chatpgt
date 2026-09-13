@@ -255,6 +255,21 @@ class HarnessWorkerTests(unittest.TestCase):
             harness_worker.run(request, Path(self.tmp.name) / "dirty-sessions.json", 10)
 
 
+    def test_git_metadata_mutations_fail_closed(self) -> None:
+        script = Path(self.tmp.name) / "mutate-git.py"
+        script.write_text(
+            "from pathlib import Path\n"
+            "Path('.git/description').write_text('mutated by runtime\\n')\n"
+            "print('{\"protocolVersion\":1,\"type\":\"result\",\"command\":\"invoke\",\"exitCode\":0,\"data\":{\"runtime\":{\"harness\":\"fake\",\"native_session_id\":\"native-git\"},\"execution\":{\"status\":\"SUCCESS\"}}}')\n"
+        )
+        request = self.request("git-metadata-mutation")
+        request["permission_policy"] = "read-only"
+        request["command"] = [sys.executable, str(script)]
+        with patch.dict(os.environ, {"HEADLESS_CLI_TEST_ONLY": "1", "HEADLESS_CLI_SANDBOX_EXECUTABLE": str(self.sandbox)}, clear=False):
+            with self.assertRaisesRegex(ValueError, "MUTATION_SCOPE_VIOLATION"):
+                harness_worker.run(request, Path(request["outputs"]["registry"]), 10)
+
+
     def test_output_targets_reject_special_files(self) -> None:
         fifo = Path(self.tmp.name) / "receipt.fifo"
         os.mkfifo(fifo)

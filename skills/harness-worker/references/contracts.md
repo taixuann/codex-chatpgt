@@ -13,7 +13,8 @@ The harness owns backend mechanics only:
 3. preserve native session and genuinely exposed usage fields;
 4. normalize success, bounded output, availability, protocol, and execution
    errors into one receipt;
-5. snapshot Git/runtime state and reject unexpected mutation; and
+5. snapshot Git/runtime state, including Git control metadata outside the
+   worktree, and reject unexpected mutation; and
 6. clean disposable runtime roots created by the harness.
 
 AGY is the active v1 backend. Availability codes are limited to
