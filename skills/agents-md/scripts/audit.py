@@ -145,12 +145,14 @@ def _skill_packages(roots: list[Path], root: Path, max_bytes: int, errors: list[
 
 def _skill_name(path: Path, fallback: str, max_bytes: int) -> str:
     text = _read_limited(path, max_bytes)
-    if text.startswith("---"):
-        frontmatter = text.split("---", 2)
-        if len(frontmatter) == 3:
-            match = re.search(r"(?m)^name:\s*([^#\n]+?)\s*$", frontmatter[1])
-            if match:
-                return match.group(1).strip().strip("'\"") or fallback
+    lines = text.splitlines()
+    if lines and lines[0].strip() == "---":
+        end = next((index for index, line in enumerate(lines[1:], 1) if line.strip() in {"---", "..."}), None)
+        if end is not None:
+            for line in lines[1:end]:
+                match = re.fullmatch(r"name:\s*([^#\n]+?)\s*", line)
+                if match:
+                    return match.group(1).strip().strip("'\"") or fallback
     return fallback
 
 
@@ -188,6 +190,8 @@ def audit(
     cwd = execution_cwd.resolve()
     errors: list[str] = []
     warnings: list[str] = []
+    if max_bytes < 0:
+        return {"status": "FAIL", "errors": ["max_bytes must be non-negative"]}
     if not root.is_dir():
         return {"status": "FAIL", "errors": [f"repository root is not a directory: {root}"]}
     if not cwd.is_dir():
@@ -367,7 +371,7 @@ def self_test() -> None:
         duplicate = nested / ".agents" / "skills" / "native-two"
         duplicate.mkdir(parents=True)
         (duplicate / "SKILL.md").write_text(
-            "---\nname: sample\ndescription: duplicate\n---\n", encoding="utf-8"
+            "---\ndescription: value --- still valid\nname: sample\ndescription: duplicate\n---\n", encoding="utf-8"
         )
         report = audit(root, nested)
         assert report["status"] == "FAIL", report
@@ -398,6 +402,7 @@ def self_test() -> None:
         unicode_report = audit(unicode_agents, unicode_agents, max_bytes=4)
         assert unicode_report["context_budget"]["state"] == "PASS"
         assert any("oversized instruction" in warning for warning in unicode_report["warnings"])
+        assert audit(root, nested, max_bytes=-2)["status"] == "FAIL"
         root_candidates = report["instruction_sources"][0]["candidates"]
         assert {item["name"]: item["state"] for item in root_candidates} == {
             "AGENTS.override.md": "SELECTED",
