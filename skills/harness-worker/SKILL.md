@@ -49,8 +49,11 @@ declared sandbox. The macOS loader read exception is deny-listed for user
 data, temporary directories, and credential paths; only the resolved binary,
 repository, and declared runtime roots are reopened. A startup abort is reported as
 `HOST_AGY_SANDBOX_INCOMPATIBLE` before any provider prompt is sent.
-Production AGY invocations also bind AGY's native `--sandbox` flag so its tool
-permission and workspace-write policy is active inside the outer host boundary.
+Production AGY invocations bind AGY's native `--sandbox` flag and one exact
+`--add-dir` equal to the request CWD so its tool permission and workspace-write
+policy targets the declared local project inside the outer host boundary. A
+`bounded-write` request also binds `--mode accept-edits`; read-only requests
+cannot opt into an execution mode that would approve writes.
 On POSIX, AGY is attached to a fresh PTY so non-TTY `--print` output remains
 capturable; terminal control bytes are removed before parsing, which still
 accepts only AGY's documented JSON envelope.

@@ -230,6 +230,39 @@ class HarnessWorkerTests(unittest.TestCase):
         self.assertIn("--sandbox", command)
 
 
+    def test_agy_workspace_is_bound_to_request_cwd(self) -> None:
+        request = self.request("agy-add-dir")
+        request["harness"] = "agy"
+        command = harness_worker.bind_native_command(["agy", "--print"], request)
+        index = command.index("--add-dir")
+        self.assertEqual(command[index + 1], str(self.repo.resolve()))
+        mode_index = command.index("--mode")
+        self.assertEqual(command[mode_index + 1], "accept-edits")
+
+    def test_agy_workspace_rejects_relative_cwd_binding(self) -> None:
+        nested = self.repo / "nested"
+        nested.mkdir()
+        request = self.request("agy-relative-add-dir")
+        request["harness"] = "agy"
+        request["repo"]["cwd"] = str(nested)
+        with patch.object(harness_worker.os, "getcwd", return_value=str(self.repo)):
+            with self.assertRaisesRegex(ValueError, "bind --add-dir"):
+                harness_worker.bind_native_command(["agy", "--print", "--add-dir", "nested"], request)
+
+    def test_agy_rejects_caller_workspace_override(self) -> None:
+        request = self.request("agy-add-dir-invalid")
+        request["harness"] = "agy"
+        with self.assertRaisesRegex(ValueError, "bind --add-dir"):
+            harness_worker.bind_native_command(["agy", "--add-dir", str(self.repo.parent), "--print"], request)
+
+    def test_agy_read_only_rejects_execution_mode(self) -> None:
+        request = self.request("agy-read-only-mode")
+        request["harness"] = "agy"
+        request["permission_policy"] = "read-only"
+        with self.assertRaisesRegex(ValueError, "read-only AGY"):
+            harness_worker.bind_native_command(["agy", "--mode", "accept-edits", "--print"], request)
+
+
     def test_agy_model_content_cannot_forge_conversation_or_status(self) -> None:
         request = self.request("agy-spoof")
         request["harness"] = "agy"

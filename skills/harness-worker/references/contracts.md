@@ -52,7 +52,9 @@ that startup probe aborts, the receipt uses
 `HOST_AGY_SANDBOX_INCOMPATIBLE` and keeps `provider_launched: false`.
 The worker always binds AGY's native `--sandbox` flag for provider turns;
 without it, AGY can wait on its own permission boundary even when the outer
-host sandbox is correctly configured.
+host sandbox is correctly configured. It binds one `--add-dir` to the exact
+request CWD. Bounded-write turns also use `--mode accept-edits` so headless
+file creation is non-interactive; read-only turns reject an execution mode.
 
 On POSIX hosts, AGY runs attached to a fresh PTY because upstream print mode
 has reported empty or hanging output when stdout is a pipe. PTY capture is a

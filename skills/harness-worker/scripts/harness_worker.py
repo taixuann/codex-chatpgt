@@ -41,7 +41,7 @@ NATIVE_TERMINAL_LANES = {"agy"}
 NATIVE_SYSTEM_READ_ROOTS = ("/System", "/usr", "/etc", "/opt/homebrew")
 QUALIFICATION_STAGES = {"transport", "fixture", "repository"}
 AGY_DELEGATION_FLAGS = {"--print", "-p", "--sandbox"}
-AGY_DELEGATION_OPTIONS = {"--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
+AGY_DELEGATION_OPTIONS = {"--add-dir", "--mode", "--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
 USAGE_FIELDS = ("input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "latency_ms")
 ANSI_ESCAPE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
 
@@ -696,6 +696,8 @@ def bind_native_command(command: list[str], request: dict, old: dict | None = No
     if lane == "agy":
         if "--sandbox" not in command:
             command.append("--sandbox")
+        command = _bind_add_dir(command, canonical(request["repo"]["cwd"]))
+        command = _bind_mode(command, request["permission_policy"])
         if "--print" not in command and "-p" not in command:
             command = [*command, "--print"]
         command = _bind_option(command, "--output-format", "json")
@@ -722,6 +724,37 @@ def bind_native_command(command: list[str], request: dict, old: dict | None = No
         if print_flags:
             command = [item for item in command if item not in {"--print", "-p"}]
             command.append(print_flags[0])
+    return command
+
+
+def _bind_add_dir(command: list[str], path: str) -> list[str]:
+    """Bind AGY's workspace explicitly to the request CWD."""
+    positions = [index for index, item in enumerate(command) if item == "--add-dir"]
+    if any(item.startswith("--add-dir=") for item in command) or len(positions) > 1:
+        raise ValueError("native AGY workspace must use one bound --add-dir")
+    if not positions:
+        return [*command, "--add-dir", path]
+    index = positions[0]
+    supplied = command[index + 1] if index + 1 < len(command) else ""
+    if not Path(supplied).is_absolute() or canonical(supplied) != path:
+        raise ValueError("native AGY workspace must bind --add-dir to the request CWD")
+    return command
+
+
+def _bind_mode(command: list[str], permission_policy: str) -> list[str]:
+    """Make bounded writes non-interactive while keeping read-only explicit."""
+    positions = [index for index, item in enumerate(command) if item == "--mode"]
+    if any(item.startswith("--mode=") for item in command) or len(positions) > 1:
+        raise ValueError("native AGY mode must use one bound --mode")
+    if permission_policy == "bounded-write":
+        if not positions:
+            return [*command, "--mode", "accept-edits"]
+        index = positions[0]
+        if index + 1 >= len(command) or command[index + 1] != "accept-edits":
+            raise ValueError("bounded-write AGY must use --mode accept-edits")
+        return command
+    if positions:
+        raise ValueError("read-only AGY must not request an execution mode")
     return command
 
 
@@ -1124,7 +1157,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     request = bind_delegation(request)
     validate_harness_request(request)
     alias, registry, old, binding, session_state = resolve_session(request, registry_path)
-    agy_capability_preflight(request)
+    capability_observation = agy_capability_preflight(request)
     repo = request["repo"]
     validate_output_targets(request, str(registry_path))
     command = request.get("command")
@@ -1176,6 +1209,8 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     else:
         raw = parse_structured_output(process_stdout, request, process_exit_code) if request["harness"] == "fake" else parse_native_output(process_stdout, request, process_exit_code, process_stderr)
     receipt = normalize(raw, request, session_state=session_state, exit_code=process_exit_code, stdout=process_stdout, stderr=process_stderr, duration_ms=duration_ms)
+    if capability_observation.get("status") != "SKIPPED":
+        receipt["live_qualification"] = capability_observation
     validate_harness_receipt(request, receipt)
     if old and receipt["runtime"]["native_session_id"] != old["native_session_id"]:
         raise ValueError("SESSION_INVALID: resumed runtime returned a different native_session_id")
