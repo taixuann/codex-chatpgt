@@ -416,6 +416,37 @@ class HarnessWorkerTests(unittest.TestCase):
             with patch.object(harness_worker.sys, "platform", "darwin"):
                 with self.assertRaises(ValueError):
                     harness_worker.sandbox_command(["echo", "ok"], request)
+        with patch.dict(os.environ, {"HEADLESS_CLI_RUNTIME_WRITE_ROOTS": os.environ["HOME"]}):
+            with self.assertRaisesRegex(ValueError, "HOME"):
+                harness_worker.runtime_write_roots(request)
+
+
+    def test_native_read_profile_is_explicit_and_does_not_grant_home(self) -> None:
+        request = self.request("read-roots")
+        request["harness"] = "agy"
+        request["command"] = ["agy", "--print"]
+        runtime = Path(self.tmp.name) / "runtime-read"
+        unrelated = Path(self.tmp.name) / "unrelated"
+        runtime.mkdir()
+        unrelated.mkdir()
+        with patch.dict(
+            os.environ,
+            {
+                "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime),
+                "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime),
+                "HEADLESS_CLI_ALLOW_NETWORK": "1",
+            },
+        ), patch.object(harness_worker.sys, "platform", "darwin"):
+            command = harness_worker.sandbox_command(["echo", "ok"], request)
+        profile = command[2]
+        self.assertNotIn("(allow file-read*)", profile)
+        self.assertIn(f'(allow file-read* (subpath "{harness_worker.canonical(self.repo)}"))', profile)
+        self.assertIn(f'(allow file-read* (subpath "{harness_worker.canonical(runtime)}"))', profile)
+        self.assertNotIn(str(unrelated), profile)
+        self.assertIn(f'(deny file-write* (subpath "{harness_worker.canonical(self.repo)}/.git"))', profile)
+        with patch.dict(os.environ, {"HEADLESS_CLI_RUNTIME_READ_ROOTS": os.environ["HOME"]}), patch.object(harness_worker.sys, "platform", "darwin"):
+            with self.assertRaisesRegex(ValueError, "HOME"):
+                harness_worker.sandbox_command(["echo", "ok"], request)
 
 
     def test_detached_head_git_state_is_observable(self) -> None:

@@ -30,8 +30,11 @@ decisions. No receipt can manufacture those states.
 Production AGY launch is fail-closed before process creation when
 `HEADLESS_CLI_ALLOW_NETWORK=1` is absent or
 `HEADLESS_CLI_RUNTIME_WRITE_ROOTS` does not name an existing directory outside
-the repository. This prevents an incomplete macOS sandbox from being
-misreported as an unexplained hang; the resulting `RUNTIME_UNAVAILABLE`
+the repository. `HEADLESS_CLI_RUNTIME_READ_ROOTS` must also explicitly name
+existing, non-repository directories needed for configuration, authentication,
+cache, or temporary runtime state; these roots are read-allowlisted only and
+are never inferred from `HOME`. This prevents an incomplete macOS sandbox from
+being misreported as an unexplained hang; the resulting `RUNTIME_UNAVAILABLE`
 receipt remains eligible for the parent-owned Prometheus fallback.
 
 On POSIX hosts, AGY runs attached to a fresh PTY because upstream print mode

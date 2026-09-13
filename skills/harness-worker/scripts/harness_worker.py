@@ -38,6 +38,7 @@ ERROR_CODES = {
     "EXECUTION_FAILED", "MUTATION_SCOPE_VIOLATION",
 }
 NATIVE_TERMINAL_LANES = {"agy"}
+NATIVE_SYSTEM_READ_ROOTS = ("/System", "/usr", "/etc", "/opt/homebrew")
 AGY_DELEGATION_FLAGS = {"--print", "-p"}
 AGY_DELEGATION_OPTIONS = {"--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
 USAGE_FIELDS = ("input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "latency_ms")
@@ -519,6 +520,10 @@ def runtime_write_roots(request: dict) -> list[Path]:
     if not raw:
         return []
     repo_roots = {Path(canonical(request["repo"][key])) for key in ("root", "worktree")}
+    forbidden = {Path("/")}
+    home = os.environ.get("HOME")
+    if home:
+        forbidden.add(Path(canonical(home)))
     roots: list[Path] = []
     for value in raw.split(os.pathsep):
         target = Path(value)
@@ -527,8 +532,40 @@ def runtime_write_roots(request: dict) -> list[Path]:
         resolved = Path(canonical(target))
         if any(resolved == root or root in resolved.parents or resolved in root.parents for root in repo_roots):
             raise ValueError("runtime write roots must not overlap the repository worktree")
+        if resolved in forbidden:
+            raise ValueError("runtime write roots must not grant arbitrary HOME or host access")
         roots.append(resolved)
     return roots
+
+
+def runtime_read_roots(request: dict) -> list[Path]:
+    """Return only repository and explicitly declared native-runtime read roots."""
+    if request["harness"] not in NATIVE_TERMINAL_LANES:
+        return []
+    repo_roots = [Path(canonical(request["repo"][key])) for key in ("root", "worktree", "cwd")]
+    roots = repo_roots + runtime_write_roots(request)
+    raw = os.environ.get("HEADLESS_CLI_RUNTIME_READ_ROOTS", "")
+    if raw:
+        repo_boundaries = set(repo_roots)
+        forbidden = {Path("/")}
+        home = os.environ.get("HOME")
+        if home:
+            forbidden.add(Path(canonical(home)))
+        for value in raw.split(os.pathsep):
+            target = Path(value)
+            if not target.is_absolute() or contains_symlink(target, Path("/")) or not target.is_dir() or any(char in value for char in ('"', "\\", "\n", "\r", "\x00")):
+                raise ValueError("runtime read roots must be absolute, existing, non-symlink directories")
+            resolved = Path(canonical(target))
+            if resolved in forbidden:
+                raise ValueError("runtime read roots must not grant arbitrary HOME or host access")
+            if any(resolved == root or root in resolved.parents or resolved in root.parents for root in repo_boundaries):
+                raise ValueError("runtime read roots must not overlap the repository worktree")
+            roots.append(resolved)
+    unique: list[Path] = []
+    for root in roots:
+        if root not in unique:
+            unique.append(root)
+    return unique
 
 
 def validate_agy_launch_environment(request: dict) -> None:
@@ -539,6 +576,8 @@ def validate_agy_launch_environment(request: dict) -> None:
         raise RuntimeError("RUNTIME_UNAVAILABLE: AGY launch requires HEADLESS_CLI_ALLOW_NETWORK=1")
     if not runtime_write_roots(request):
         raise RuntimeError("RUNTIME_UNAVAILABLE: AGY launch requires HEADLESS_CLI_RUNTIME_WRITE_ROOTS")
+    if not os.environ.get("HEADLESS_CLI_RUNTIME_READ_ROOTS"):
+        raise RuntimeError("RUNTIME_UNAVAILABLE: AGY launch requires HEADLESS_CLI_RUNTIME_READ_ROOTS")
 
 
 def native_lane(request: dict) -> str | None:
@@ -866,12 +905,19 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
         return [test_executable, "-p", "(test)", *command]
     if sys.platform != "darwin":
         raise RuntimeError("EXECUTION_BOUNDARY_UNAVAILABLE: bounded execution requires a native OS sandbox")
-    sandbox = ["(version 1)", "(deny default)", "(allow process-exec)", "(allow process-fork)", "(allow signal (target self))", "(allow sysctl-read)", "(allow mach-lookup)", "(allow file-read*)"]
+    sandbox = ["(version 1)", "(deny default)", "(allow process-exec)", "(allow process-fork)", "(allow signal (target self))", "(allow sysctl-read)", "(allow mach-lookup)"]
+    for value in NATIVE_SYSTEM_READ_ROOTS:
+        root = Path(value)
+        if root.exists():
+            sandbox.append(f'(allow file-read* (subpath "{canonical(root)}"))')
+    for root in runtime_read_roots(request):
+        sandbox.append(f'(allow file-read* (subpath "{root}"))')
     if request["permission_policy"] == "bounded-write":
         raw_root = Path(request["repo"]["worktree"]).absolute()
         root = canonical(raw_root)
         if any(char in root for char in ('"', "\\", "\n", "\r", "\x00")):
             raise ValueError("repo root contains unsafe sandbox syntax")
+        sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
         for relative in request["scope"]["allowed_paths"]:
             relative_path = Path(relative)
             if not relative or relative_path == Path(".") or relative_path.is_absolute() or ".." in relative_path.parts or any(char in relative for char in ('"', "\\", "\n", "\r", "\x00")):
@@ -903,7 +949,7 @@ def runtime_environment(request: dict, old: dict | None) -> dict[str, str]:
     """Pass only runtime inputs, never the caller's complete environment."""
     names = {"PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "TERM"}
     if request["harness"] == "agy":
-        names |= {"XDG_CONFIG_HOME", "XDG_CACHE_HOME", "AGY_HOME", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS", "HEADLESS_CLI_ALLOW_NETWORK"}
+        names |= {"XDG_CONFIG_HOME", "XDG_CACHE_HOME", "AGY_HOME", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS", "HEADLESS_CLI_RUNTIME_READ_ROOTS", "HEADLESS_CLI_ALLOW_NETWORK"}
     elif request["harness"] == "fake":
         names |= {"MODE", "NATIVE_ID", "HEADLESS_CLI_TEST_ONLY"}
     environment = {name: os.environ[name] for name in names if name in os.environ}

@@ -123,6 +123,18 @@ def validate_criteria_manifest(packet: dict[str, Any]) -> None:
         raise ValueError("criteria_manifest requires criteria_revision")
     if packet.get("criteria_manifest_fingerprint") != fp(manifest):
         raise ValueError("criteria_manifest_fingerprint does not match the supplied manifest")
+    if packet.get("require_semantic_requirements") is True:
+        if not isinstance(packet.get("authority"), dict) or not isinstance(packet.get("authority_amendments"), dict):
+            raise ValueError("semantic criteria require an authority snapshot")
+        for item in manifest:
+            requirement = item.get("current_requirement")
+            if not isinstance(requirement, str) or not requirement.strip():
+                raise ValueError("semantic criteria require a non-empty current_requirement for every criterion")
+            if "superseded" in item and (not isinstance(item["superseded"], str) or not item["superseded"].strip()):
+                raise ValueError("superseded criterion text must be non-empty")
+        snapshot = fp({"authority": packet["authority"], "authority_amendments": packet["authority_amendments"]})
+        if packet.get("authority_snapshot_fingerprint") != snapshot or packet.get("criteria_revision") != f"live-authority-{snapshot}":
+            raise ValueError("semantic criteria are not bound to the authority snapshot")
 
 
 def load(path: str) -> dict[str, Any]:

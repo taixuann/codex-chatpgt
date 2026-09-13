@@ -34,8 +34,11 @@ python3 skills/harness-worker/scripts/harness_worker.py run --request REQUEST --
 
 Production AGY launches fail closed unless the caller explicitly supplies
 `HEADLESS_CLI_ALLOW_NETWORK=1` and one or more existing, non-repository
-directories in `HEADLESS_CLI_RUNTIME_WRITE_ROOTS`. The harness passes these
-allowlisted values into the sandbox; it never reads or copies credentials.
+directories in `HEADLESS_CLI_RUNTIME_WRITE_ROOTS`. Read access beyond the
+repository/worktree/CWD must be explicitly declared in
+`HEADLESS_CLI_RUNTIME_READ_ROOTS`; those roots are read-only sandbox inputs.
+The harness passes only these allowlisted paths into the sandbox; it never
+reads or copies credentials and never grants arbitrary `HOME` access.
 On POSIX, AGY is attached to a fresh PTY so non-TTY `--print` output remains
 capturable; terminal control bytes are removed before parsing, which still
 accepts only AGY's documented JSON envelope.

@@ -21,12 +21,15 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(sum(item.startswith("107-") for item in ids), 25)
         self.assertEqual(sum(item.startswith("113-") for item in ids), 28)
         self.assertEqual(sum(item.startswith("114-") for item in ids), 16)
-        self.assertEqual(fixture["criteria_revision"], "live-2026-09-13-exact-issue-readback")
+        self.assertTrue(fixture["criteria_revision"].startswith("live-authority-"))
+        self.assertTrue(fixture["require_semantic_requirements"])
         self.assertEqual(set(fixture["authority_amendments"]), {107, 113, 114})
+        self.assertEqual(
+            fixture["authority_snapshot_fingerprint"],
+            review.fp({"authority": fixture["authority"], "authority_amendments": fixture["authority_amendments"]}),
+        )
         self.assertEqual(fixture["criteria_manifest_fingerprint"], review.fp(fixture["criteria_manifest"]))
-        requirements = {item["id"]: item["current_requirement"] for item in fixture["criteria_manifest"] if "current_requirement" in item}
-        for criterion in ("107-AC-03", "107-AC-10", "107-AC-15", "107-AC-20", "107-AC-21", "107-AC-25", "113-AC-04", "113-AC-22", "113-AC-23", "113-AC-25", "113-AC-28", "114-AC-01", "114-AC-02", "114-AC-10", "114-AC-11", "114-AC-15", "114-AC-16"):
-            self.assertTrue(requirements[criterion])
+        self.assertTrue(all(item["current_requirement"].strip() for item in fixture["criteria_manifest"]))
         self.assertIn("superseded", fixture["criteria_manifest"][14])
         self.assertEqual(fixture["qualification_boundary"]["local_terminal_state"], "awaiting_parent_decision")
         self.assertEqual(
@@ -37,6 +40,27 @@ class ReviewTests(unittest.TestCase):
             fixture["qualification_boundary"]["external_parent_actions"],
             ["parent_acceptance", "draft_pr_publication", "stop_verification"],
         )
+
+    def test_semantic_manifest_rejects_missing_or_altered_requirement(self) -> None:
+        import copy
+        import yaml
+        fixture = yaml.safe_load((ROOT / "skills" / "issue-execution" / "references" / "coupled-qualification.yaml").read_text())
+        fixture["criteria"] = copy.deepcopy(fixture["criteria_manifest"])
+        review.validate_criteria_manifest(fixture)
+        missing = copy.deepcopy(fixture)
+        del missing["criteria_manifest"][0]["current_requirement"]
+        missing["criteria"] = copy.deepcopy(missing["criteria_manifest"])
+        missing["criteria_manifest_fingerprint"] = review.fp(missing["criteria_manifest"])
+        with self.assertRaisesRegex(ValueError, "current_requirement"):
+            review.validate_criteria_manifest(missing)
+        altered = copy.deepcopy(fixture)
+        altered["criteria"][0]["current_requirement"] += " altered"
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            review.validate_criteria_manifest(altered)
+
+    def test_unrelated_generic_manifest_remains_id_only(self) -> None:
+        packet = self.packet()
+        review.validate_criteria_manifest(packet)
 
     def attestation(self, reviewer_id: str = REVIEWER_ID) -> dict:
         return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-5.6-luna", "reasoning_effort": "max", "provider": "openai"}}
