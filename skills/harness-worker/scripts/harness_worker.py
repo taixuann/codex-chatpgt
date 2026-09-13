@@ -41,7 +41,7 @@ NATIVE_TERMINAL_LANES = {"agy"}
 NATIVE_SYSTEM_READ_ROOTS = ("/System", "/usr", "/etc", "/opt/homebrew")
 QUALIFICATION_STAGES = {"transport", "fixture", "repository"}
 AGY_DELEGATION_FLAGS = {"--print", "-p", "--sandbox"}
-AGY_DELEGATION_OPTIONS = {"--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
+AGY_DELEGATION_OPTIONS = {"--add-dir", "--mode", "--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
 USAGE_FIELDS = ("input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "latency_ms")
 ANSI_ESCAPE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
 
@@ -696,6 +696,8 @@ def bind_native_command(command: list[str], request: dict, old: dict | None = No
     if lane == "agy":
         if "--sandbox" not in command:
             command.append("--sandbox")
+        command = _bind_add_dir(command, canonical(request["repo"]["cwd"]))
+        command = _bind_mode(command, request["permission_policy"])
         if "--print" not in command and "-p" not in command:
             command = [*command, "--print"]
         command = _bind_option(command, "--output-format", "json")
@@ -722,6 +724,36 @@ def bind_native_command(command: list[str], request: dict, old: dict | None = No
         if print_flags:
             command = [item for item in command if item not in {"--print", "-p"}]
             command.append(print_flags[0])
+    return command
+
+
+def _bind_add_dir(command: list[str], path: str) -> list[str]:
+    """Bind AGY's workspace explicitly to the request CWD."""
+    positions = [index for index, item in enumerate(command) if item == "--add-dir"]
+    if any(item.startswith("--add-dir=") for item in command) or len(positions) > 1:
+        raise ValueError("native AGY workspace must use one bound --add-dir")
+    if not positions:
+        return [*command, "--add-dir", path]
+    index = positions[0]
+    if index + 1 >= len(command) or canonical(command[index + 1]) != path:
+        raise ValueError("native AGY workspace must bind --add-dir to the request CWD")
+    return command
+
+
+def _bind_mode(command: list[str], permission_policy: str) -> list[str]:
+    """Make bounded writes non-interactive while keeping read-only explicit."""
+    positions = [index for index, item in enumerate(command) if item == "--mode"]
+    if any(item.startswith("--mode=") for item in command) or len(positions) > 1:
+        raise ValueError("native AGY mode must use one bound --mode")
+    if permission_policy == "bounded-write":
+        if not positions:
+            return [*command, "--mode", "accept-edits"]
+        index = positions[0]
+        if index + 1 >= len(command) or command[index + 1] != "accept-edits":
+            raise ValueError("bounded-write AGY must use --mode accept-edits")
+        return command
+    if positions:
+        raise ValueError("read-only AGY must not request an execution mode")
     return command
 
 
