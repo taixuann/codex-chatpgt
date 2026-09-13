@@ -239,6 +239,16 @@ class HarnessWorkerTests(unittest.TestCase):
         mode_index = command.index("--mode")
         self.assertEqual(command[mode_index + 1], "accept-edits")
 
+    def test_agy_workspace_rejects_relative_cwd_binding(self) -> None:
+        nested = self.repo / "nested"
+        nested.mkdir()
+        request = self.request("agy-relative-add-dir")
+        request["harness"] = "agy"
+        request["repo"]["cwd"] = str(nested)
+        with patch.object(harness_worker.os, "getcwd", return_value=str(self.repo)):
+            with self.assertRaisesRegex(ValueError, "bind --add-dir"):
+                harness_worker.bind_native_command(["agy", "--print", "--add-dir", "nested"], request)
+
     def test_agy_rejects_caller_workspace_override(self) -> None:
         request = self.request("agy-add-dir-invalid")
         request["harness"] = "agy"

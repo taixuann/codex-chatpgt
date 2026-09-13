@@ -735,7 +735,8 @@ def _bind_add_dir(command: list[str], path: str) -> list[str]:
     if not positions:
         return [*command, "--add-dir", path]
     index = positions[0]
-    if index + 1 >= len(command) or canonical(command[index + 1]) != path:
+    supplied = command[index + 1] if index + 1 < len(command) else ""
+    if not Path(supplied).is_absolute() or canonical(supplied) != path:
         raise ValueError("native AGY workspace must bind --add-dir to the request CWD")
     return command
 
