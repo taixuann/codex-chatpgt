@@ -41,6 +41,8 @@ boundary, or receipt authority. Unsupported hosts fail closed as
 
 Required skills in `expected_context` must be present in the resolved project
 skill roots; missing skills fail closed as `CONTEXT_CONTRACT_UNVERIFIED`.
+The request also supplies the expected instruction fingerprint and the
+effective-context fingerprint; both must match the normalized receipt.
 Production AGY requests must carry the parent-rendered prompt, renderer
 version, source-contract fingerprint, rendered-prompt fingerprint, and the
 canonical source contract so the worker can verify both hashes before launch.

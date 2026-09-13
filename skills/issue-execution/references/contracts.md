@@ -20,7 +20,7 @@ delegation:
   executor_profile: agy | prometheus | identity
   task_contract: {canonical bounded task contract}
 permission_policy: read-only | bounded-write
-expected_context: {required_skills: [...]}
+expected_context: {required_skills: [...], instruction_fingerprint_expectation: ..., effective_context_fingerprint_expectation: <sha256>}
 outputs: {registry: /absolute/session-registry.json, receipt: /absolute/receipt.yaml}
 return_contract: normalized-runtime-receipt-v1
 ```
@@ -70,8 +70,9 @@ attempt: an availability failure records `actual_worker: agy`,
 Only the parent/native host may return stage 2 with `actual_worker:
 prometheus`, native-terminal provenance, and `native_prometheus_result` bound
 to the parent request ID, Issue/repository/CWD/worktree, availability reason,
-attempt, result status, changed paths, and observed validation. Any non-AGY
-worker fallback shape is invalid.
+attempt, result status, changed paths, observed validation, and an `agy_failure`
+record carrying the same request ID, AGY worker, availability error code, and
+failed/timed-out status. Any non-AGY worker fallback shape is invalid.
 
 For a provider run, the child receives a small runtime-specific environment
 allowlist rather than the caller's complete environment. Existing runtime

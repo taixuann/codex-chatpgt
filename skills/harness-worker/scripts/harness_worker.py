@@ -183,7 +183,7 @@ def validate_harness_request(request: dict[str, Any]) -> None:
     if requested_profile is not None and (not isinstance(requested_profile, str) or not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_-]{0,255}", requested_profile)):
         raise ValueError("MODEL_ROUTE_UNAVAILABLE: profile must be a valid AGY profile name")
     expected_context = request["expected_context"]
-    if not isinstance(expected_context, dict) or not isinstance(expected_context.get("required_skills"), list) or not expected_context.get("instruction_fingerprint_expectation"):
+    if not isinstance(expected_context, dict) or not isinstance(expected_context.get("required_skills"), list) or not expected_context.get("instruction_fingerprint_expectation") or not re.fullmatch(r"[0-9a-f]{64}", str(expected_context.get("effective_context_fingerprint_expectation", ""))):
         raise ValueError("expected_context is incomplete")
     if "athena-review" in expected_context["required_skills"]:
         raise ValueError("MODEL_ROUTE_UNAVAILABLE: Athena review runs as a native parent sidecar, not through harness-worker")
@@ -251,6 +251,11 @@ def validate_harness_receipt(request: dict[str, Any], receipt: dict[str, Any]) -
         raise ValueError("receipt is missing required runtime observations")
     if not isinstance(context["effective_context"], dict) or not context["effective_context"].get("fingerprint"):
         raise ValueError("receipt must bind effective context")
+    expected_context = request["expected_context"]
+    if context["instruction_fingerprint"] not in {None, "NOT_ASSESSED"} and context["instruction_fingerprint"] != expected_context["instruction_fingerprint_expectation"]:
+        raise ValueError("receipt instruction context does not match the request")
+    if context["effective_context"]["fingerprint"] != expected_context["effective_context_fingerprint_expectation"]:
+        raise ValueError("receipt effective context does not match the request")
     if any(runtime.get(key) is None or (isinstance(runtime.get(key), str) and not runtime[key].strip()) for key in required_runtime):
         raise ValueError("receipt runtime observations cannot be null or empty")
     session_states = {"fresh": {"fresh"}, "resume": {"resumed"}, "resume_or_start": {"fresh", "resumed"}, "rebind": {"fresh", "resumed", "rebound"}}

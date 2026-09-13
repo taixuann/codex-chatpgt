@@ -58,7 +58,7 @@ class HarnessWorkerTests(unittest.TestCase):
 
 
     def request(self, mode: str, policy: str = "resume_or_start") -> dict:
-        return {
+        request = {
             "version": 1,
             "request_id": f"issue-107:T1:{mode}",
             "authority": {"repository": "fixture/repo", "issue": 107, "task": "T1"},
@@ -76,6 +76,8 @@ class HarnessWorkerTests(unittest.TestCase):
             "outputs": {"registry": str(Path(self.tmp.name) / "sessions.json"), "receipt": str(Path(self.tmp.name) / f"receipt-{mode}.yaml")},
             "mode": mode,
         }
+        request["expected_context"]["effective_context_fingerprint_expectation"] = harness_worker.effective_context(str(self.repo), str(self.repo), ["issue-execution"])["fingerprint"]
+        return request
 
 
     def run_request(self, request: dict, mode: str) -> dict:
@@ -115,6 +117,13 @@ class HarnessWorkerTests(unittest.TestCase):
     def test_required_skill_context_fails_closed_when_missing(self) -> None:
         with self.assertRaisesRegex(ValueError, "required skills unavailable"):
             harness_worker.effective_context(str(self.repo), str(self.repo), ["missing-skill"])
+
+    def test_receipt_context_is_bound_to_request(self) -> None:
+        request = self.request("context-bound")
+        receipt = self.run_request(request, "context-bound")
+        receipt["context"]["instruction_fingerprint"] = "wrong"
+        with self.assertRaisesRegex(ValueError, "instruction context does not match"):
+            harness_worker.validate_harness_receipt(request, receipt)
 
 
     def test_timeout_is_reported_at_real_subprocess_boundary(self) -> None:

@@ -453,13 +453,16 @@ def validate_native_prometheus_result(request: dict[str, Any], receipt: dict[str
     route = receipt.get("worker_route")
     if not isinstance(result, dict) or not isinstance(route, dict) or route.get("actual_worker") != "prometheus":
         raise ValueError("native Prometheus fallback result is missing")
-    required = {"parent_request_id", "attempt", "fallback_reason", "result_status", "changed_paths", "validation", "authority", "repo"}
+    required = {"parent_request_id", "attempt", "fallback_reason", "result_status", "changed_paths", "validation", "authority", "repo", "agy_failure"}
     if not required <= result.keys():
         raise ValueError("native Prometheus fallback result is incomplete")
     if result["parent_request_id"] != request["request_id"] or not isinstance(result["attempt"], int) or result["attempt"] < 1:
         raise ValueError("native Prometheus fallback result is not bound to the parent request")
     if result["fallback_reason"] != route.get("fallback_reason") or result["fallback_reason"] not in WORKER_AVAILABILITY_FAILURES:
         raise ValueError("native Prometheus fallback reason is not bound to the AGY failure")
+    agy_failure = result["agy_failure"]
+    if not isinstance(agy_failure, dict) or agy_failure.get("request_id") != request["request_id"] or agy_failure.get("actual_worker") != "agy" or agy_failure.get("error_code") != result["fallback_reason"] or agy_failure.get("status") not in {"FAILED", "TIMED_OUT"}:
+        raise ValueError("native Prometheus fallback lacks the observed AGY availability failure")
     if result["result_status"] != (receipt.get("execution") or {}).get("status") or result["result_status"] not in {"SUCCESS", "FAILED", "TIMED_OUT"}:
         raise ValueError("native Prometheus fallback result status is not bound to the receipt")
     authority = result["authority"]
@@ -505,7 +508,7 @@ def validate_request(request: dict[str, Any]) -> None:
     if requested_profile is not None and (not isinstance(requested_profile, str) or not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_-]{0,255}", requested_profile)):
         raise ValueError("MODEL_ROUTE_UNAVAILABLE: profile must be a valid AGY profile name")
     expected_context = request["expected_context"]
-    if not isinstance(expected_context, dict) or not isinstance(expected_context.get("required_skills"), list) or not expected_context.get("instruction_fingerprint_expectation"):
+    if not isinstance(expected_context, dict) or not isinstance(expected_context.get("required_skills"), list) or not expected_context.get("instruction_fingerprint_expectation") or not re.fullmatch(r"[0-9a-f]{64}", str(expected_context.get("effective_context_fingerprint_expectation", ""))):
         raise ValueError("expected_context is incomplete")
     if "athena-review" in expected_context["required_skills"]:
         raise ValueError("MODEL_ROUTE_UNAVAILABLE: Athena review runs as a native parent sidecar, not through harness-worker")
@@ -579,6 +582,11 @@ def validate_receipt(request: dict[str, Any], receipt: dict[str, Any]) -> None:
         raise ValueError("receipt is missing required runtime observations")
     if not isinstance(context.get("effective_context"), dict) or not context["effective_context"].get("fingerprint"):
         raise ValueError("receipt must bind the effective instruction and skill context")
+    expected_context = request["expected_context"]
+    if context["instruction_fingerprint"] not in {None, "NOT_ASSESSED"} and context["instruction_fingerprint"] != expected_context["instruction_fingerprint_expectation"]:
+        raise ValueError("receipt instruction context does not match the request")
+    if context["effective_context"]["fingerprint"] != expected_context["effective_context_fingerprint_expectation"]:
+        raise ValueError("receipt effective context does not match the request")
     if any(runtime.get(key) is None or (isinstance(runtime.get(key), str) and not runtime[key].strip()) for key in required_runtime):
         raise ValueError("receipt runtime observations cannot be null or empty")
     session_states = {"fresh": {"fresh"}, "resume": {"resumed"}, "resume_or_start": {"fresh", "resumed"}, "rebind": {"fresh", "resumed", "rebound"}}

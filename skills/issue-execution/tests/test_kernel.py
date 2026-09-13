@@ -92,7 +92,7 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(noisy["violations"][0]["type"], "repeated_history_noise")
 
     def request(self, mode: str, policy: str = "resume_or_start") -> dict:
-        return {
+        request = {
             "version": 1,
             "request_id": f"issue-107:T1:{mode}",
             "authority": {"repository": "fixture/repo", "issue": 107, "task": "T1"},
@@ -110,6 +110,8 @@ class KernelTests(unittest.TestCase):
             "outputs": {"registry": str(Path(self.tmp.name) / "sessions.json"), "receipt": str(Path(self.tmp.name) / f"receipt-{mode}.yaml")},
             "mode": mode,
         }
+        request["expected_context"]["effective_context_fingerprint_expectation"] = issue_execution.effective_context(str(self.repo), str(self.repo), ["issue-execution"])["fingerprint"]
+        return request
 
     def run_request(self, request: dict, mode: str) -> dict:
         path = Path(self.tmp.name) / f"request-{mode}.yaml"
@@ -224,8 +226,11 @@ class KernelTests(unittest.TestCase):
         }
         receipt = harness_worker.normalize(raw, request, session_state="fresh", exit_code=0, stdout="", stderr="", duration_ms=1, provenance={"kind": "native-terminal", "lane": "prometheus", "executable": "codex"})
         receipt["worker_route"] = {"requested_worker": "agy", "actual_worker": "prometheus", "fallback_triggered": True, "fallback_reason": "RUNTIME_UNAVAILABLE"}
-        receipt["native_prometheus_result"] = {"parent_request_id": request["request_id"], "attempt": 1, "fallback_reason": "RUNTIME_UNAVAILABLE", "result_status": "SUCCESS", "changed_paths": [], "validation": {"status": "PASS"}, "authority": request["authority"], "repo": request["repo"]}
+        receipt["native_prometheus_result"] = {"parent_request_id": request["request_id"], "attempt": 1, "fallback_reason": "RUNTIME_UNAVAILABLE", "result_status": "SUCCESS", "changed_paths": [], "validation": {"status": "PASS"}, "authority": request["authority"], "repo": request["repo"], "agy_failure": {"request_id": request["request_id"], "actual_worker": "agy", "error_code": "RUNTIME_UNAVAILABLE", "status": "FAILED"}}
         issue_execution.validate_receipt(request, receipt)
+        bad = {**receipt, "native_prometheus_result": {key: value for key, value in receipt["native_prometheus_result"].items() if key != "agy_failure"}}
+        with self.assertRaisesRegex(ValueError, "fallback result is incomplete"):
+            issue_execution.validate_receipt(request, bad)
         bad = {**receipt, "native_prometheus_result": {**receipt["native_prometheus_result"], "validation": {}}}
         with self.assertRaisesRegex(ValueError, "observed validation"):
             issue_execution.validate_receipt(request, bad)
