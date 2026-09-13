@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import subprocess
 import tempfile
 
 
@@ -29,9 +30,20 @@ def _ancestors(root: Path, cwd: Path) -> list[Path]:
     return [root.joinpath(*relative.parts[:index]) for index in range(len(relative.parts) + 1)]
 
 
-def _source(directory: Path, fallback_names: tuple[str, ...]) -> tuple[Path | None, list[str], str]:
+def _source(directory: Path, fallback_names: tuple[str, ...]) -> tuple[Path | None, list[str], str, list[dict]]:
     override = directory / "AGENTS.override.md"
     standard = directory / "AGENTS.md"
+    candidates = [(override, "AGENTS.override.md"), (standard, "AGENTS.md")]
+    candidates.extend((directory / name, name) for name in fallback_names)
+    candidate_evidence = []
+    for path, name in candidates:
+        if not path.is_file():
+            state = "ABSENT"
+        elif path.read_text(encoding="utf-8").strip():
+            state = "AVAILABLE"
+        else:
+            state = "EMPTY"
+        candidate_evidence.append({"name": name, "path": str(path), "state": state})
     selected = None
     selection = "NONE"
     if override.is_file() and override.read_text(encoding="utf-8").strip():
@@ -47,7 +59,12 @@ def _source(directory: Path, fallback_names: tuple[str, ...]) -> tuple[Path | No
     ignored = []
     if selected == override and standard.is_file():
         ignored.append(str(standard))
-    return selected, ignored, selection
+    for candidate in candidate_evidence:
+        if candidate["path"] == str(selected):
+            candidate["state"] = "SELECTED"
+        elif candidate["state"] == "AVAILABLE":
+            candidate["state"] = "IGNORED"
+    return selected, ignored, selection, candidate_evidence
 
 
 def _skill_roots(ancestors: list[Path], directory_name: str) -> list[Path]:
@@ -129,8 +146,15 @@ def audit(
         return {"status": "FAIL", "errors": [f"execution CWD is outside repository root: {cwd}"]}
 
     chain = []
+    instruction_sources = []
     for directory in ancestors:
-        selected, ignored, selection = _source(directory, fallback_names)
+        selected, ignored, selection, candidates = _source(directory, fallback_names)
+        instruction_sources.append({
+            "directory": str(directory),
+            "selected": str(selected) if selected else None,
+            "selection": selection,
+            "candidates": candidates,
+        })
         if selected:
             item = {"relative_path": str(selected.relative_to(root)), "state": selection}
             item.update(_inspect_file(selected, max_bytes, errors, warnings))
@@ -139,12 +163,19 @@ def audit(
                 warnings.extend(f"override selected; ignored sibling: {path}" for path in ignored)
 
     global_chain = []
+    global_instruction_sources = []
     if global_root is not None:
         global_path = global_root.resolve()
         if not global_path.is_dir():
             errors.append(f"global guidance root is not a directory: {global_path}")
         else:
-            selected, ignored, selection = _source(global_path, ())
+            selected, ignored, selection, candidates = _source(global_path, ())
+            global_instruction_sources.append({
+                "directory": str(global_path),
+                "selected": str(selected) if selected else None,
+                "selection": selection,
+                "candidates": candidates,
+            })
             if selected:
                 item = {"relative_path": str(selected), "state": selection}
                 item.update(_inspect_file(selected, max_bytes, errors, warnings))
@@ -172,6 +203,8 @@ def audit(
         "fallback_names": list(fallback_names),
         "agents": chain,
         "global_agents": global_chain,
+        "instruction_sources": instruction_sources,
+        "global_instruction_sources": global_instruction_sources,
         "native_skill_roots": [str(path) for path in native_roots],
         "repository_package_roots": [str(path) for path in package_roots],
         "native_skills": native_packages,
@@ -200,6 +233,8 @@ def audit(
         "execution_cwd": str(cwd),
         "instruction_chain": chain,
         "global_instruction_chain": global_chain,
+        "instruction_sources": instruction_sources,
+        "global_instruction_sources": global_instruction_sources,
         "skill_roots": [str(path) for path in native_roots],
         "native_skill_roots": [str(path) for path in native_roots],
         "repository_package_roots": [str(path) for path in package_roots],
@@ -251,11 +286,17 @@ def self_test() -> None:
         assert [item["relative_path"] for item in report["instruction_chain"]] == [
             "AGENTS.md", "service/AGENTS.override.md"
         ]
+        assert report["instruction_sources"][0]["candidates"] == [
+            {"name": "AGENTS.override.md", "path": str(root.resolve() / "AGENTS.override.md"), "state": "ABSENT"},
+            {"name": "AGENTS.md", "path": str(root.resolve() / "AGENTS.md"), "state": "SELECTED"},
+            {"name": "GUIDANCE.md", "path": str(root.resolve() / "GUIDANCE.md"), "state": "ABSENT"},
+        ]
         assert [item["scope"] for item in report["skills"]] == ["native"]
         assert [item["scope"] for item in report["repository_skill_packages"]] == ["repository-package"]
         assert report["evidence_states"]["loaded"] == "NOT_ASSESSED"
         (root / "AGENTS.md").write_text("[stale](skills/AGENTS.md)\n", encoding="utf-8")
         (nested / "AGENTS.override.md").write_text("[missing](missing.md)\n", encoding="utf-8")
+        (root / "AGENTS.override.md").write_text("[stale](skills/AGENTS.md)\n", encoding="utf-8")
         duplicate = nested / ".agents" / "skills" / "sample"
         duplicate.mkdir(parents=True)
         (duplicate / "SKILL.md").write_text(
@@ -266,6 +307,11 @@ def self_test() -> None:
         assert any("stale authority marker" in error for error in report["errors"])
         assert any("broken relative reference" in error for error in report["errors"])
         assert any("same-name native Skill collision" in error for error in report["errors"])
+        root_candidates = report["instruction_sources"][0]["candidates"]
+        assert {item["name"]: item["state"] for item in root_candidates} == {
+            "AGENTS.override.md": "SELECTED",
+            "AGENTS.md": "IGNORED",
+        }
         assert audit(root, nested, expected_fingerprint=baseline_fingerprint)["drift"]["state"] == "CHANGED"
         assert audit(root, root.parent)["status"] == "FAIL"
         fallback = root / "fallback"
@@ -273,6 +319,11 @@ def self_test() -> None:
         (fallback / "GUIDANCE.md").write_text("# fallback\n", encoding="utf-8")
         fallback_report = audit(root, fallback, fallback_names=("GUIDANCE.md",))
         assert fallback_report["instruction_chain"][1]["state"] == "SELECTED_FALLBACK"
+        assert {item["name"]: item["state"] for item in fallback_report["instruction_sources"][1]["candidates"]} == {
+            "AGENTS.override.md": "ABSENT",
+            "AGENTS.md": "ABSENT",
+            "GUIDANCE.md": "SELECTED",
+        }
         assert audit(root, nested, max_context_bytes=1)["context_budget"]["state"] == "OVER_BUDGET"
         global_root = root / "global"
         global_root.mkdir()
@@ -280,6 +331,10 @@ def self_test() -> None:
         (global_root / "GUIDANCE.md").write_text("# fallback must not apply globally\n", encoding="utf-8")
         global_report = audit(root, nested, global_root=global_root, fallback_names=("GUIDANCE.md",))
         assert global_report["global_instruction_chain"][0]["state"] == "SELECTED"
+        assert {item["name"]: item["state"] for item in global_report["global_instruction_sources"][0]["candidates"]} == {
+            "AGENTS.override.md": "ABSENT",
+            "AGENTS.md": "SELECTED",
+        }
         assert global_report["context_budget"]["global_bytes"] > 0
         assert global_report["context_budget"]["bytes"] == global_report["context_budget"]["project_bytes"]
         assert global_report["context_budget"]["configured_limit"] == "NOT_ASSESSED"
@@ -287,7 +342,35 @@ def self_test() -> None:
         global_fallback = root / "global-fallback"
         global_fallback.mkdir()
         (global_fallback / "GUIDANCE.md").write_text("# global fallback\n", encoding="utf-8")
-        assert audit(root, nested, global_root=global_fallback, fallback_names=("GUIDANCE.md",))["global_instruction_chain"] == []
+        global_fallback_report = audit(root, nested, global_root=global_fallback, fallback_names=("GUIDANCE.md",))
+        assert global_fallback_report["global_instruction_chain"] == []
+        assert {item["name"]: item["state"] for item in global_fallback_report["global_instruction_sources"][0]["candidates"]} == {
+            "AGENTS.override.md": "ABSENT",
+            "AGENTS.md": "ABSENT",
+        }
+
+        setup = root / "setup"
+        setup.mkdir()
+        before = sorted(path.relative_to(setup).as_posix() for path in setup.rglob("*"))
+        setup_report = audit(setup, setup)
+        after = sorted(path.relative_to(setup).as_posix() for path in setup.rglob("*"))
+        assert setup_report["instruction_chain"] == []
+        assert setup_report["instruction_sources"][0]["selection"] == "NONE"
+        assert before == after
+
+        qualification = root / "qualification"
+        qualification.mkdir()
+        (qualification / "AGENTS.md").write_text("[missing](missing.md)\n", encoding="utf-8")
+        before = sorted(path.relative_to(qualification).as_posix() for path in qualification.rglob("*"))
+        maintain_report = audit(qualification, qualification)
+        after = sorted(path.relative_to(qualification).as_posix() for path in qualification.rglob("*"))
+        assert maintain_report["status"] == "FAIL"
+        assert before == after
+
+        command = [sys.executable, str(Path(__file__)), str(qualification), "--cwd", str(qualification)]
+        failed_run = subprocess.run(command + ["--max-context-bytes", "1"], capture_output=True, text=True)
+        assert failed_run.returncode == 1, failed_run.stdout
+        assert json.loads(failed_run.stdout)["status"] == "FAIL", failed_run.stdout
     print("agents-md self-test: PASS")
 
 
@@ -311,7 +394,7 @@ def main() -> int:
     cwd = (args.execution_cwd or root).resolve()
     configured_limit = args.max_context_bytes
     effective_limit = DEFAULT_PROJECT_CONTEXT_BYTES if configured_limit is None else configured_limit
-    print(json.dumps(audit(
+    report = audit(
         root,
         cwd,
         args.max_bytes,
@@ -320,8 +403,9 @@ def main() -> int:
         global_root=args.global_root,
         expected_fingerprint=args.expected_fingerprint,
         configured_context_limit=configured_limit,
-    ), indent=2, sort_keys=True))
-    return 0
+    )
+    print(json.dumps(report, indent=2, sort_keys=True))
+    return 0 if report["status"] == "PASS" else 1
 
 
 if __name__ == "__main__":
