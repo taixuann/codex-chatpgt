@@ -96,7 +96,8 @@ def git_metadata_state(repo: str) -> str:
                 name for name in directories
                 if name != "objects" or current_path != root
             )
-            for name in sorted([*directories, *files]):
+            symlink_directories = [name for name in directories if (current_path / name).is_symlink()]
+            for name in sorted([*symlink_directories, *files]):
                 target = current_path / name
                 relative = target.relative_to(root).as_posix()
                 metadata = target.lstat()
@@ -107,8 +108,6 @@ def git_metadata_state(repo: str) -> str:
                     + relative.encode()
                     + b"\0"
                     + str(metadata.st_mode).encode()
-                    + b"\0"
-                    + str(metadata.st_mtime_ns).encode()
                     + b"\0"
                     + payload
                 )
