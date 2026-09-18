@@ -1217,6 +1217,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     command = sandbox_command(command, request)
     before_snapshot = execution_snapshot(repo["worktree"])
     before_snapshot["@git-state"] = git_state(repo["worktree"])
+    before_snapshot["@git-metadata"] = git_metadata_state(repo["worktree"])
     before_head = repository_head(repo["worktree"])
     start = time.monotonic()
     proc = None
@@ -1228,6 +1229,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     duration_ms = int((time.monotonic() - start) * 1000)
     after_snapshot = execution_snapshot(repo["worktree"])
     after_snapshot["@git-state"] = git_state(repo["worktree"])
+    after_snapshot["@git-metadata"] = git_metadata_state(repo["worktree"])
     if repository_head(repo["worktree"]) != before_head:
         raise ValueError("EXECUTION_BOUNDARY_VIOLATION: executor changed repository HEAD")
     changed = {path for path in before_snapshot.keys() | after_snapshot.keys() if before_snapshot.get(path) != after_snapshot.get(path)}
@@ -1235,7 +1237,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
         raise ValueError(f"MUTATION_SCOPE_VIOLATION: read-only execution changed {sorted(changed)}")
     if request["permission_policy"] == "bounded-write":
         allowed = request["scope"]["allowed_paths"]
-        if "@git-state" in changed:
+        if "@git-metadata" in changed:
             raise ValueError(f"MUTATION_SCOPE_VIOLATION: Git metadata changed {sorted(changed)}")
         changed_paths = {path.removeprefix("@git-path:") for path in changed if path.startswith("@git-path:")}
         if any(not path_matches_allowance(path, allowed, repo["worktree"]) for path in changed_paths):
