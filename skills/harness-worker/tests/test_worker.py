@@ -595,6 +595,45 @@ class HarnessWorkerTests(unittest.TestCase):
         subprocess.run(["git", "-C", str(self.repo), "switch", "--detach", "-q", self.base], check=True)
         self.assertIsInstance(harness_worker.git_state(str(self.repo)), str)
 
+    def test_git_observation_env_disables_optional_locks(self) -> None:
+        dangerous = {
+            "PATH": "/test-path",
+            "GIT_OPTIONAL_LOCKS": "1",
+            "GIT_DIR": "/tmp/other-repo",
+            "GIT_EXTERNAL_DIFF": "/tmp/other-diff",
+            "GIT_CONFIG_GLOBAL": "/tmp/other-config",
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.fsmonitor",
+            "GIT_CONFIG_VALUE_0": "true",
+        }
+        with patch.dict(os.environ, dangerous, clear=False):
+            env = harness_worker.git_observation_env()
+        self.assertEqual(env["GIT_OPTIONAL_LOCKS"], "0")
+        self.assertEqual(env["PATH"], "/test-path")
+        for key in ("GIT_DIR", "GIT_EXTERNAL_DIFF", "GIT_CONFIG_GLOBAL"):
+            self.assertNotIn(key, env)
+        self.assertEqual(env["GIT_CONFIG_COUNT"], "2")
+        self.assertEqual(env["GIT_CONFIG_KEY_0"], "core.fsmonitor")
+        self.assertEqual(env["GIT_CONFIG_VALUE_0"], "false")
+        self.assertEqual(env["GIT_CONFIG_KEY_1"], "core.pager")
+
+        original_run = harness_worker.subprocess.run
+        calls = []
+
+        def observe_run(*args, **kwargs):
+            command = args[0] if args else kwargs.get("args", [])
+            if command and command[0] == "git":
+                calls.append(kwargs.get("env"))
+            return original_run(*args, **kwargs)
+
+        call_environment = {**dangerous, "PATH": os.environ["PATH"]}
+        with patch.dict(os.environ, call_environment, clear=False), patch.object(harness_worker.subprocess, "run", side_effect=observe_run):
+            harness_worker.git_state(str(self.repo))
+        self.assertTrue(calls)
+        for observed_env in calls:
+            self.assertEqual(observed_env["GIT_OPTIONAL_LOCKS"], "0")
+            self.assertNotIn("GIT_DIR", observed_env)
+
 
     def test_runtime_requires_structured_test_result_envelope(self) -> None:
         request = self.request("defect")

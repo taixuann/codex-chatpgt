@@ -141,13 +141,56 @@ def git_metadata_state(repo: str) -> str:
     return hashlib.sha256(b"\0".join(entries)).hexdigest()
 
 
+GIT_OBSERVATION_ENV_BLOCKLIST = frozenset(
+    {
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_CEILING_DIRECTORIES",
+        "GIT_COMMON_DIR",
+        "GIT_NAMESPACE",
+        "GIT_EXTERNAL_DIFF",
+        "GIT_DIFF_OPTS",
+        "GIT_CONFIG_SYSTEM",
+        "GIT_CONFIG_GLOBAL",
+        "GIT_CONFIG_NOSYSTEM",
+    }
+)
+
+
+def git_observation_env() -> dict[str, str]:
+    """Keep harness-issued Git reads pinned and free of optional writeback.
+
+    This suppresses writeback from these reads only; unrelated concurrent writers
+    still remain observable as metadata mutation.
+    """
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key not in GIT_OBSERVATION_ENV_BLOCKLIST and not key.startswith("GIT_CONFIG_")
+    }
+    env.update(
+        {
+            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": "core.fsmonitor",
+            "GIT_CONFIG_VALUE_0": "false",
+            "GIT_CONFIG_KEY_1": "core.pager",
+            "GIT_CONFIG_VALUE_1": "cat",
+        }
+    )
+    return env
+
+
 def git_worktree_identity(repo: str) -> dict[str, str]:
     root = canonical(repo)
     if not Path(root).is_dir():
         raise ValueError("repository root is not a directory")
     values: dict[str, str] = {}
     for key, args in {"top_level": ("--show-toplevel",), "git_dir": ("--git-dir",), "git_common_dir": ("--git-common-dir",), "inside_worktree": ("--is-inside-work-tree",)}.items():
-        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True)
+        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True, env=git_observation_env())
         if result.returncode:
             raise ValueError("repository root is not a Git worktree")
         value = result.stdout.strip()
@@ -499,7 +542,7 @@ def execution_snapshot(repo: str) -> dict[str, str]:
     root = Path(canonical(repo))
 
     def git_bytes(*args: str) -> bytes:
-        result = subprocess.run(["git", "-C", repo, *args], capture_output=True, check=False)
+        result = subprocess.run(["git", "-C", repo, *args], capture_output=True, check=False, env=git_observation_env())
         if result.returncode:
             raise RuntimeError(result.stderr.decode(errors="replace").strip() or "cannot inspect Git state")
         return result.stdout
@@ -509,8 +552,8 @@ def execution_snapshot(repo: str) -> dict[str, str]:
     snapshot = {
         "@git-status": hashlib.sha256(status).hexdigest(),
         "@git-ignored": hashlib.sha256(ignored).hexdigest(),
-        "@git-diff": hashlib.sha256(git_bytes("diff", "--binary")).hexdigest(),
-        "@git-index": hashlib.sha256(git_bytes("diff", "--cached", "--binary")).hexdigest(),
+        "@git-diff": hashlib.sha256(git_bytes("diff", "--no-ext-diff", "--binary")).hexdigest(),
+        "@git-index": hashlib.sha256(git_bytes("diff", "--cached", "--no-ext-diff", "--binary")).hexdigest(),
     }
     for relative in _status_paths(status) | _status_paths(ignored):
         target = root / relative
@@ -521,21 +564,21 @@ def execution_snapshot(repo: str) -> dict[str, str]:
                 payload += b"\0" + os.readlink(target).encode()
         else:
             payload = b"MISSING"
-        diff = git_bytes("diff", "--binary", "--", relative) + git_bytes("diff", "--cached", "--binary", "--", relative)
+        diff = git_bytes("diff", "--no-ext-diff", "--binary", "--", relative) + git_bytes("diff", "--cached", "--no-ext-diff", "--binary", "--", relative)
         snapshot[f"@git-path:{relative}"] = hashlib.sha256(payload + b"\0" + diff).hexdigest()
     return snapshot
 
 
 def repository_head(repo: str) -> str:
-    return subprocess.check_output(["git", "-C", repo, "rev-parse", "HEAD"], text=True).strip()
+    return subprocess.check_output(["git", "-C", repo, "rev-parse", "HEAD"], text=True, env=git_observation_env()).strip()
 
 
 def git_state(repo: str) -> str:
-    head_ref = subprocess.run(["git", "-C", repo, "symbolic-ref", "-q", "HEAD"], capture_output=True, text=True, check=False).stdout.strip() or "DETACHED_HEAD"
+    head_ref = subprocess.run(["git", "-C", repo, "symbolic-ref", "-q", "HEAD"], capture_output=True, text=True, check=False, env=git_observation_env()).stdout.strip() or "DETACHED_HEAD"
     root = Path(canonical(repo))
     git_pointer = root / ".git"
-    git_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-dir"], text=True).strip())
-    common_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-common-dir"], text=True).strip())
+    git_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-dir"], text=True, env=git_observation_env()).strip())
+    common_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-common-dir"], text=True, env=git_observation_env()).strip())
     if not git_dir.is_absolute():
         git_dir = root / git_dir
     if not common_dir.is_absolute():
@@ -544,7 +587,7 @@ def git_state(repo: str) -> str:
     for label, path in (("git-pointer", git_pointer), ("git-head", git_dir / "HEAD"), ("git-index", git_dir / "index"), ("git-commondir", git_dir / "commondir"), ("git-config", common_dir / "config"), ("git-common-head", common_dir / "HEAD")):
         metadata.append(label.encode() + b"\0" + (filesystem_payload(path) if path.exists() or path.is_symlink() else b"MISSING"))
     outputs = [
-        subprocess.check_output(["git", "-C", repo, "diff", "--cached", "--binary"]),
+        subprocess.check_output(["git", "-C", repo, "diff", "--cached", "--no-ext-diff", "--binary"], env=git_observation_env()),
         head_ref.encode(),
         repository_head(repo).encode(),
         git_metadata_state(repo).encode(),
