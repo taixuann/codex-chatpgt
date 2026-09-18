@@ -504,9 +504,18 @@ class KernelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             issue_execution.validate_request(request)
 
-    def test_bounded_write_rejects_repository_root_allowance(self) -> None:
+    def test_bounded_write_accepts_explicit_repository_root_allowance(self) -> None:
         request = self.request("defect")
-        for root_allowance in (".", "./", ".//"):
+        request["scope"]["allowed_paths"] = ["."]
+        issue_execution.validate_request(request)
+        with patch.object(harness_worker.sys, "platform", "darwin"):
+            command = harness_worker.sandbox_command(["echo", "ok"], request)
+        self.assertIn("allow file-write*", command[2])
+        self.assertTrue(issue_execution.path_matches_allowance("any/file", ["."], str(self.repo)))
+
+    def test_bounded_write_rejects_repository_root_aliases(self) -> None:
+        request = self.request("defect")
+        for root_allowance in ("./", ".//"):
             request["scope"]["allowed_paths"] = [root_allowance]
             with self.assertRaises(ValueError):
                 issue_execution.validate_request(request)

@@ -47,9 +47,10 @@ second Issue body or acceptance ledger.
 The task ledger carries trusted `repository` and numeric `issue` authority;
 reconciliation consumes the matching preflight session and rejects a ledger
 from another Issue. Ignored lifecycle state and `.git` metadata are runtime
-state, not Issue-owned changed files. Bounded-write scopes must name concrete
-relative files or subdirectories; `.` and `./` are rejected as whole-repository
-allowances. Review evidence must bind to a result whose `stale` flag is
+state, not Issue-owned changed files. Bounded-write scopes must use portable
+relative files or subdirectories; an exact `.` is an explicit whole-repository
+allowance, while `./` aliases are rejected. The sandbox still excludes `.git`
+metadata. Review evidence must bind to a result whose `stale` flag is
 explicitly `false` before technical eligibility can be recorded. The local
 kernel ends at `awaiting_parent_decision`; the host owns reviewer trust, parent
 acceptance, and Draft PR publication. Detached Git worktrees are

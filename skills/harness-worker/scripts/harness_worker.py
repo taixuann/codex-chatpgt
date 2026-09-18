@@ -194,7 +194,7 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
 
 def path_matches_allowance(path: str, allowed: list[str], repo_root: str | None = None) -> bool:
     for item in allowed:
-        if Path(item) == Path("."): continue
+        if item == ".": return True
         normalized = Path(item).as_posix().rstrip("/")
         if path == normalized: return True
         explicit_directory = item.endswith("/") or (repo_root is not None and (Path(repo_root) / normalized).is_dir())
@@ -274,7 +274,7 @@ def validate_harness_request(request: dict[str, Any]) -> None:
     if not isinstance(allowed, list): raise ValueError("scope allowed_paths must be a list")
     if request["permission_policy"] == "bounded-write" and not allowed: raise ValueError("bounded-write request must declare allowed_paths")
     for path in allowed:
-        if not isinstance(path, str) or os.path.isabs(path) or Path(path) == Path(".") or ".." in Path(path).parts or is_git_metadata_path(path) or any(char in path for char in ('"', "\\", "\n", "\r", "\x00")):
+        if not isinstance(path, str) or os.path.isabs(path) or (path != "." and Path(path) == Path(".")) or ".." in Path(path).parts or is_git_metadata_path(path) or any(char in path for char in ('"', "\\", "\n", "\r", "\x00")):
             raise ValueError("scope allowed_paths must stay relative to repo root")
     outputs = request["outputs"]
     if not isinstance(outputs, dict) or not isinstance(outputs.get("registry"), str) or not isinstance(outputs.get("receipt"), str): raise ValueError("request outputs must declare registry and receipt paths")
@@ -1045,7 +1045,7 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
         sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
         for relative in request["scope"]["allowed_paths"]:
             relative_path = Path(relative)
-            if not relative or relative_path == Path(".") or relative_path.is_absolute() or ".." in relative_path.parts or any(char in relative for char in ('"', "\\", "\n", "\r", "\x00")):
+            if not relative or (relative != "." and relative_path == Path(".")) or relative_path.is_absolute() or ".." in relative_path.parts or any(char in relative for char in ('"', "\\", "\n", "\r", "\x00")):
                 raise ValueError(f"invalid bounded-write path: {relative!r}")
             if is_git_metadata_path(relative_path):
                 raise ValueError(f"bounded-write path cannot target .git metadata: {relative!r}")

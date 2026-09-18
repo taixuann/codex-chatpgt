@@ -270,14 +270,12 @@ def validate_baseline_record(value: dict[str, Any]) -> None:
 
 def path_matches_allowance(path: str, allowed: list[str], repo_root: str | None = None) -> bool:
     for item in allowed:
-        if Path(item) == Path("."):
-            continue
+        if item == ".":
+            return True
         normalized = Path(item).as_posix().rstrip("/")
         if path == normalized:
             return True
         explicit_directory = item.endswith("/") or (repo_root is not None and (Path(repo_root) / normalized).is_dir())
-        if explicit_directory and normalized in {"", "."}:
-            return True
         if explicit_directory and path.startswith(normalized + "/"):
             return True
     return False
@@ -569,7 +567,7 @@ def validate_request(request: dict[str, Any]) -> None:
     if not isinstance(request.get("session"), dict) or request["session"].get("policy") not in {"fresh", "resume", "resume_or_start", "rebind"}:
         raise ValueError("unsupported session policy")
     for path in allowed:
-        if not isinstance(path, str) or os.path.isabs(path) or Path(path) == Path(".") or ".." in Path(path).parts:
+        if not isinstance(path, str) or os.path.isabs(path) or (path != "." and Path(path) == Path(".")) or ".." in Path(path).parts:
             raise ValueError("scope allowed_paths must stay relative to repo root")
         if is_git_metadata_path(path):
             raise ValueError("scope allowed_paths cannot include .git metadata")
