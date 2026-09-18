@@ -227,6 +227,28 @@ class HarnessWorkerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "fingerprints"):
             harness_worker.bind_delegation(request)
 
+    def test_delegation_scope_mismatch_fails_closed(self) -> None:
+        request = self.request("delegation-scope-mismatch")
+        request["scope"]["allowed_paths"] = ["."]
+        request["_delegation_prompt"] = "actual prompt"
+        contract = {"task_id": "scope-mismatch", "allowed_scope": ["safe.txt"]}
+        request["_delegation_contract"] = contract
+        request["_delegation_binding"] = {
+            "version": 1,
+            "profile": "agy",
+            "source_contract_sha256": harness_worker._digest(contract),
+            "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"]),
+        }
+        with self.assertRaisesRegex(ValueError, "rendered scope"):
+            harness_worker.bind_delegation(request)
+
+    def test_request_rejects_portability_ambiguous_scope_paths(self) -> None:
+        for path in ("./outside", "foo/./bar", "foo//bar", "C:/outside", "NUL", "foo\u200bbar"):
+            request = self.request(f"scope-{path}")
+            request["scope"]["allowed_paths"] = [path]
+            with self.subTest(path=path), patch.object(harness_worker.sys, "platform", "darwin"), self.assertRaises(ValueError):
+                harness_worker.sandbox_command(["echo", "ok"], request)
+
 
 
     def test_native_resume_binds_exact_provider_session(self) -> None:

@@ -504,6 +504,13 @@ class KernelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             issue_execution.validate_request(request)
 
+    def test_bounded_write_rejects_portability_ambiguous_scope_paths(self) -> None:
+        for path in ("./outside", "foo/./bar", "foo//bar", "C:/outside", "NUL", "foo\u200bbar"):
+            request = self.request(f"scope-{path}")
+            request["scope"]["allowed_paths"] = [path]
+            with self.subTest(path=path), self.assertRaises(ValueError):
+                issue_execution.validate_request(request)
+
     def test_bounded_write_accepts_explicit_repository_root_allowance(self) -> None:
         request = self.request("defect")
         request["scope"]["allowed_paths"] = ["."]

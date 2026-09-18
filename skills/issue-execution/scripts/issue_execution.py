@@ -11,6 +11,7 @@ import re
 import stat
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +37,30 @@ ERROR_CODES = {
 INVALID_REVIEWER_IDS = {"", "NOT_ASSESSED", "UNKNOWN", "UNAVAILABLE", "NONE", "NULL"}
 NATIVE_REVIEWER_ID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 MAX_TASK_EXECUTIONS = 8
+WINDOWS_RESERVED_BASENAMES = {
+    "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
+
+
+def valid_scope_path(value: Any) -> bool:
+    if not isinstance(value, str) or not value or value.strip() != value:
+        return False
+    if any(unicodedata.category(character) in {"Cc", "Cf"} for character in value):
+        return False
+    if value == ".":
+        return True
+    normalized = value[:-1] if value.endswith("/") else value
+    parts = normalized.split("/")
+    return bool(normalized) and "\\" not in value and ":" not in value and not value.startswith("/") and "//" not in value and not any(
+        not part
+        or part in {".", ".."}
+        or part != part.rstrip(" .")
+        or part.split(".", 1)[0].upper() in WINDOWS_RESERVED_BASENAMES
+        or any(character in '<>"|?*[]~$%' for character in part)
+        for part in parts
+    )
 HISTORY_NOISE_RE = re.compile(r"^(?:fix|test|wip|retry|debug|tmp|tweak|try)(?:\b|[:( -])", re.IGNORECASE)
 HISTORY_BOUNDARY_RE = re.compile(r"\b(?:review|repair|semantic|integrat(?:e|ion)|candidate|authority|policy|contract|reconcile|qualification|checkpoint)\b", re.IGNORECASE)
 
@@ -567,7 +592,7 @@ def validate_request(request: dict[str, Any]) -> None:
     if not isinstance(request.get("session"), dict) or request["session"].get("policy") not in {"fresh", "resume", "resume_or_start", "rebind"}:
         raise ValueError("unsupported session policy")
     for path in allowed:
-        if not isinstance(path, str) or os.path.isabs(path) or (path != "." and Path(path) == Path(".")) or ".." in Path(path).parts:
+        if not valid_scope_path(path):
             raise ValueError("scope allowed_paths must stay relative to repo root")
         if is_git_metadata_path(path):
             raise ValueError("scope allowed_paths cannot include .git metadata")

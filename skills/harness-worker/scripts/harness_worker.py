@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +44,30 @@ QUALIFICATION_STAGES = {"transport", "fixture", "repository"}
 AGY_DELEGATION_FLAGS = {"--print", "-p", "--sandbox"}
 AGY_DELEGATION_OPTIONS = {"--add-dir", "--mode", "--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
 USAGE_FIELDS = ("input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "latency_ms")
+WINDOWS_RESERVED_BASENAMES = {
+    "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
+
+
+def valid_scope_path(value: Any) -> bool:
+    if not isinstance(value, str) or not value or value.strip() != value:
+        return False
+    if any(unicodedata.category(character) in {"Cc", "Cf"} for character in value):
+        return False
+    if value == ".":
+        return True
+    normalized = value[:-1] if value.endswith("/") else value
+    parts = normalized.split("/")
+    return bool(normalized) and "\\" not in value and ":" not in value and not value.startswith("/") and "//" not in value and not any(
+        not part
+        or part in {".", ".."}
+        or part != part.rstrip(" .")
+        or part.split(".", 1)[0].upper() in WINDOWS_RESERVED_BASENAMES
+        or any(character in '<>"|?*[]~$%' for character in part)
+        for part in parts
+    )
 ANSI_ESCAPE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
 
 
@@ -274,7 +299,7 @@ def validate_harness_request(request: dict[str, Any]) -> None:
     if not isinstance(allowed, list): raise ValueError("scope allowed_paths must be a list")
     if request["permission_policy"] == "bounded-write" and not allowed: raise ValueError("bounded-write request must declare allowed_paths")
     for path in allowed:
-        if not isinstance(path, str) or os.path.isabs(path) or (path != "." and Path(path) == Path(".")) or ".." in Path(path).parts or is_git_metadata_path(path) or any(char in path for char in ('"', "\\", "\n", "\r", "\x00")):
+        if not valid_scope_path(path) or is_git_metadata_path(path):
             raise ValueError("scope allowed_paths must stay relative to repo root")
     outputs = request["outputs"]
     if not isinstance(outputs, dict) or not isinstance(outputs.get("registry"), str) or not isinstance(outputs.get("receipt"), str): raise ValueError("request outputs must declare registry and receipt paths")
@@ -678,6 +703,8 @@ def bind_delegation(request: dict) -> dict:
     if binding.get("version") != 1 or not re.fullmatch(r"[0-9a-f]{64}", str(binding.get("source_contract_sha256", ""))) or binding.get("rendered_prompt_sha256") != _digest(prompt):
         raise ValueError("DELEGATION_INVALID: renderer fingerprints do not bind the supplied prompt")
     contract = request.get("_delegation_contract")
+    if isinstance(contract, dict) and "allowed_scope" in contract and contract.get("allowed_scope") != (request.get("scope") or {}).get("allowed_paths"):
+        raise ValueError("DELEGATION_INVALID: rendered scope does not bind request allowed_paths")
     if request.get("harness") == "agy" and os.environ.get("HEADLESS_CLI_TEST_ONLY") != "1":
         if not isinstance(contract, dict) or _digest(contract) != binding.get("source_contract_sha256"):
             raise ValueError("DELEGATION_INVALID: renderer source contract is not bound")
@@ -1045,7 +1072,7 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
         sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
         for relative in request["scope"]["allowed_paths"]:
             relative_path = Path(relative)
-            if not relative or (relative != "." and relative_path == Path(".")) or relative_path.is_absolute() or ".." in relative_path.parts or any(char in relative for char in ('"', "\\", "\n", "\r", "\x00")):
+            if not valid_scope_path(relative):
                 raise ValueError(f"invalid bounded-write path: {relative!r}")
             if is_git_metadata_path(relative_path):
                 raise ValueError(f"bounded-write path cannot target .git metadata: {relative!r}")
