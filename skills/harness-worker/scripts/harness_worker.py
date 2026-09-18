@@ -1208,6 +1208,8 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
         raise ValueError(f"MUTATION_SCOPE_VIOLATION: read-only execution changed {sorted(changed)}")
     if request["permission_policy"] == "bounded-write":
         allowed = request["scope"]["allowed_paths"]
+        if "@git-state" in changed:
+            raise ValueError(f"MUTATION_SCOPE_VIOLATION: Git metadata changed {sorted(changed)}")
         changed_paths = {path.removeprefix("@git-path:") for path in changed if path.startswith("@git-path:")}
         if any(not path_matches_allowance(path, allowed, repo["worktree"]) for path in changed_paths):
             raise ValueError(f"MUTATION_SCOPE_VIOLATION: {sorted(changed)}")
