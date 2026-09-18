@@ -1070,7 +1070,10 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
         if any(char in root for char in ('"', "\\", "\n", "\r", "\x00")):
             raise ValueError("repo root contains unsafe sandbox syntax")
         sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
-        for relative in request["scope"]["allowed_paths"]:
+        allowed_paths = request["scope"].get("allowed_paths")
+        if not isinstance(allowed_paths, list):
+            raise ValueError("scope allowed_paths must be a list")
+        for relative in allowed_paths:
             relative_path = Path(relative)
             if not valid_scope_path(relative):
                 raise ValueError(f"invalid bounded-write path: {relative!r}")

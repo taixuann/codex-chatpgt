@@ -126,6 +126,12 @@ class DelegationPromptTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "relative"):
                         MODULE.render(malformed, "agy")
 
+    def test_allowed_scope_rejects_git_metadata(self):
+        malformed = copy.deepcopy(CONTRACT)
+        malformed["allowed_scope"] = [".git/HEAD"]
+        with self.assertRaisesRegex(ValueError, "relative"):
+            MODULE.render(malformed, "agy")
+
     def test_optional_content_is_not_invented(self):
         contract = copy.deepcopy(CONTRACT)
         contract.pop("starting_state")

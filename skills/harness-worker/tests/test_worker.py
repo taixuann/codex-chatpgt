@@ -249,6 +249,12 @@ class HarnessWorkerTests(unittest.TestCase):
             with self.subTest(path=path), patch.object(harness_worker.sys, "platform", "darwin"), self.assertRaises(ValueError):
                 harness_worker.sandbox_command(["echo", "ok"], request)
 
+    def test_sandbox_requires_a_scope_path_list(self) -> None:
+        request = self.request("scope-type")
+        request["scope"]["allowed_paths"] = "."
+        with patch.object(harness_worker.sys, "platform", "darwin"), self.assertRaisesRegex(ValueError, "must be a list"):
+            harness_worker.sandbox_command(["echo", "ok"], request)
+
 
 
     def test_native_resume_binds_exact_provider_session(self) -> None:

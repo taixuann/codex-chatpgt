@@ -587,6 +587,8 @@ def validate_request(request: dict[str, Any]) -> None:
     if not isinstance(scope, dict) or not scope.get("mutation_boundary"):
         raise ValueError("request scope must declare mutation_boundary")
     allowed = scope.get("allowed_paths") or []
+    if not isinstance(allowed, list):
+        raise ValueError("scope allowed_paths must be a list")
     if request["permission_policy"] == "bounded-write" and not allowed:
         raise ValueError("bounded-write request must declare allowed_paths")
     if not isinstance(request.get("session"), dict) or request["session"].get("policy") not in {"fresh", "resume", "resume_or_start", "rebind"}:

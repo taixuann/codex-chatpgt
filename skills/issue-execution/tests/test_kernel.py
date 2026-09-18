@@ -504,6 +504,12 @@ class KernelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             issue_execution.validate_request(request)
 
+    def test_bounded_write_requires_a_scope_path_list(self) -> None:
+        request = self.request("scope-type")
+        request["scope"]["allowed_paths"] = "."
+        with self.assertRaisesRegex(ValueError, "must be a list"):
+            issue_execution.validate_request(request)
+
     def test_bounded_write_rejects_portability_ambiguous_scope_paths(self) -> None:
         for path in ("./outside", "foo/./bar", "foo//bar", "C:/outside", "NUL", "foo\u200bbar"):
             request = self.request(f"scope-{path}")

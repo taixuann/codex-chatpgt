@@ -76,6 +76,7 @@ def _safe_scope_paths(value: list[Any], field: str) -> None:
             or any(
                 not part
                 or part in {".", ".."}
+                or (field == "allowed_scope" and part == ".git")
                 or part != part.rstrip(" .")
                 or part.split(".", 1)[0].upper() in WINDOWS_RESERVED_BASENAMES
                 or any(character in '<>"|?*[]~$%' for character in part)
