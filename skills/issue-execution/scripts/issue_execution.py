@@ -927,7 +927,7 @@ def accept_candidate(session: dict[str, Any], work_review: dict[str, Any], packe
         review_scripts = Path(__file__).resolve().parents[2] / "athena-review" / "scripts"
         if str(review_scripts) not in sys.path:
             sys.path.insert(0, str(review_scripts))
-        from review import supporting_documents_clear, validate_result
+        from review import review_receipt_filename, supporting_documents_clear, validate_result
         validate_result(work_review, {**packet, "review_attempt": work_review["review_attempt"]}, candidate)
         validate_result(goal_review, {**packet, "review_attempt": goal_review["review_attempt"]}, candidate)
     except (ImportError, ValueError, KeyError) as exc:
@@ -961,7 +961,7 @@ def accept_candidate(session: dict[str, Any], work_review: dict[str, Any], packe
     # Draft PR publication are outside this repository process.
     session["status"] = "awaiting_parent_decision"
     def receipt_pointer(attempt: dict[str, Any]) -> str:
-        return f"review/athena-{candidate[:7]}-{attempt['axis']}-r{attempt['round']}-{attempt['review_id'].removeprefix('athena-')}.yaml"
+        return f"review/{review_receipt_filename(attempt)}"
     session["review_cycle"] = {"round": work_review["review_attempt"]["round"], "candidate_head": candidate, "work": {"receipt": receipt_pointer(work_review["review_attempt"]), "display_label": work_review["review_attempt"]["display_label"], "review_id": work_review["review_attempt"]["review_id"], "reviewer_session_id": work_snapshot["reviewer_session_id"], "status": work_review["work_review"]["status"], "stale": False}, "goal": {"receipt": receipt_pointer(goal_review["review_attempt"]), "display_label": goal_review["review_attempt"]["display_label"], "review_id": goal_review["review_attempt"]["review_id"], "reviewer_session_id": goal_snapshot["reviewer_session_id"], "status": goal_review["goal_review"]["status"], "stale": False}}
     return session
 

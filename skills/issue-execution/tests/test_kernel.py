@@ -712,7 +712,7 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(eligible["status"], "awaiting_parent_decision")
         self.assertEqual(eligible["review_cycle"]["work"]["status"], "pass")
         self.assertEqual(eligible["review_cycle"]["goal"]["status"], "complete")
-        self.assertEqual(eligible["review_cycle"]["work"]["receipt"], f"review/athena-{candidate[:7]}-work-r1-{work['review_attempt']['review_id'].removeprefix('athena-')}.yaml")
+        self.assertEqual(eligible["review_cycle"]["work"]["receipt"], f"review/{review.review_receipt_filename(work['review_attempt'])}")
         self.assertIn("athena:repo:issue-107:", eligible["review_cycle"]["goal"]["display_label"])
         self.assertEqual(eligible["candidate"], {"head": candidate, "checkpoint_reason": "integrated_candidate"})
         self.assertNotIn("latest_review", eligible)

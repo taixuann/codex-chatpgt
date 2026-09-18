@@ -102,7 +102,8 @@ class ReviewTests(unittest.TestCase):
         result = review.normalize(self.packet(), {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
         attempt = result["review_attempt"]
         self.assertEqual(attempt["display_label"], "athena:repo:issue-107:aaaaaaa:joint:r1")
-        self.assertEqual(review.review_receipt_filename(attempt), f"athena-aaaaaaa-joint-r1-{attempt['review_id'].removeprefix('athena-')}.yaml")
+        digest_suffix = attempt["review_id"].rsplit("-", 1)[1]
+        self.assertEqual(review.review_receipt_filename(attempt), f"athena-{attempt['candidate_head']}-joint-r1-{digest_suffix}.yaml")
         other_attempt = review.review_attempt(self.packet(), OTHER_REVIEWER_ID)
         self.assertNotEqual(other_attempt["review_id"], attempt["review_id"])
         self.assertNotEqual(review.review_receipt_filename(other_attempt), review.review_receipt_filename(attempt))
@@ -116,6 +117,25 @@ class ReviewTests(unittest.TestCase):
         next_attempt = review.review_attempt(packet, REVIEWER_ID)
         self.assertNotEqual(next_attempt["review_id"], attempt["review_id"])
         self.assertEqual(next_attempt["display_label"], "athena:repo:issue-107:aaaaaaa:work:r2")
+
+    def test_same_prefix_candidates_have_distinct_machine_identity(self) -> None:
+        first = self.packet()
+        second = self.packet()
+        first["candidate"]["head"] = "a" * 7 + "c" * 33
+        second["candidate"]["head"] = "a" * 7 + "b" * 33
+        first_attempt = review.review_attempt(first, REVIEWER_ID)
+        second_attempt = review.review_attempt(second, REVIEWER_ID)
+        self.assertEqual(first_attempt["display_label"], second_attempt["display_label"])
+        self.assertIn(first["candidate"]["head"], first_attempt["review_id"])
+        self.assertIn(first["candidate"]["head"], review.review_receipt_filename(first_attempt))
+        self.assertNotEqual(first_attempt["review_id"], second_attempt["review_id"])
+        self.assertNotEqual(review.review_receipt_filename(first_attempt), review.review_receipt_filename(second_attempt))
+
+    def test_review_attempt_rejects_abbreviated_candidate_head(self) -> None:
+        packet = self.packet()
+        packet["candidate"]["head"] = "a" * 7
+        with self.assertRaisesRegex(ValueError, "exact candidate head"):
+            review.review_attempt(packet, REVIEWER_ID)
 
     def test_work_mode_does_not_require_goal_adjudication(self) -> None:
         packet = self.packet()

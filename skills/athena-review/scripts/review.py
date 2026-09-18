@@ -48,7 +48,7 @@ def review_attempt(packet: dict[str, Any], reviewer_session_id: str) -> dict[str
     evidence_fingerprint = fp(packet.get("evidence"))
     if not observed_reviewer_id(reviewer_session_id):
         raise ValueError("review_attempt requires a native reviewer session ID")
-    review_id = "athena-" + fp({"label": label, "criteria": criteria_fingerprint, "evidence": evidence_fingerprint, "reviewer_session_id": reviewer_session_id})[:16]
+    review_id = f"athena-{candidate}-" + fp({"label": label, "candidate_head": candidate, "criteria": criteria_fingerprint, "evidence": evidence_fingerprint, "reviewer_session_id": reviewer_session_id})[:16]
     if "display_label" in spec and spec["display_label"] != label:
         raise ValueError("review_attempt display_label is not deterministic")
     if "review_id" in spec and spec["review_id"] != review_id:
@@ -61,10 +61,10 @@ def review_receipt_filename(attempt: dict[str, Any]) -> str:
     if not isinstance(attempt, dict) or not re.fullmatch(r"[0-9a-f]{40}", str(attempt.get("candidate_head", ""))) or attempt.get("axis") not in REVIEW_AXES or isinstance(attempt.get("round"), bool) or not isinstance(attempt.get("round"), int) or attempt["round"] < 1:
         raise ValueError("review attempt is invalid")
     review_id = str(attempt.get("review_id", ""))
-    match = re.fullmatch(r"athena-([0-9a-f]{16})", review_id)
-    if not match:
+    match = re.fullmatch(r"athena-([0-9a-f]{40})-([0-9a-f]{16})", review_id)
+    if not match or match.group(1) != attempt["candidate_head"]:
         raise ValueError("review attempt is missing a collision-safe review_id")
-    return f"athena-{attempt['candidate_head'][:7]}-{attempt['axis']}-r{attempt['round']}-{match.group(1)}.yaml"
+    return f"athena-{attempt['candidate_head']}-{attempt['axis']}-r{attempt['round']}-{match.group(2)}.yaml"
 
 
 def review_receipt_path(directory: str | Path, attempt: dict[str, Any]) -> Path:

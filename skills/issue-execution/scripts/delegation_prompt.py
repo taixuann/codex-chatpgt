@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,11 @@ BLOCKED_KEYS = {
     "memory", "history", "conversation", "transcript", "prior_messages", "chat_history",
     "prompt_history", "clarification_questions", "tool_selection", "executor_selection",
     "model_catalog", "hidden_reasoning", "chain_of_thought",
+}
+WINDOWS_RESERVED_BASENAMES = {
+    "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
 }
 
 
@@ -53,7 +59,29 @@ def _items(value: Any, field: str) -> list[Any]:
 
 def _safe_scope_paths(value: list[Any], field: str) -> None:
     for item in value:
-        if not isinstance(item, str) or Path(item).is_absolute() or ".." in Path(item).parts:
+        if not isinstance(item, str) or not item or item.strip() != item:
+            raise ValueError(f"{field} paths must remain relative to the repository")
+        if any(unicodedata.category(character) in {"Cc", "Cf"} for character in item):
+            raise ValueError(f"{field} paths must remain relative to the repository")
+        if item == ".":
+            continue
+        normalized = item[:-1] if item.endswith("/") else item
+        parts = normalized.split("/")
+        if (
+            not normalized
+            or "\\" in item
+            or ":" in item
+            or item.startswith("/")
+            or "//" in item
+            or any(
+                not part
+                or part in {".", ".."}
+                or part != part.rstrip(" .")
+                or part.split(".", 1)[0].upper() in WINDOWS_RESERVED_BASENAMES
+                or any(character in '<>"|?*[]~$%' for character in part)
+                for part in parts
+            )
+        ):
             raise ValueError(f"{field} paths must remain relative to the repository")
 
 
