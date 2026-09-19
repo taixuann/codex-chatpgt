@@ -169,7 +169,7 @@ def git_observation_env() -> dict[str, str]:
     env = {
         key: value
         for key, value in os.environ.items()
-        if key not in GIT_OBSERVATION_ENV_BLOCKLIST and not key.startswith("GIT_CONFIG_")
+        if key not in GIT_OBSERVATION_ENV_BLOCKLIST and not key.startswith(("GIT_CONFIG_", "GIT_TRACE", "GIT_REDIRECT_STDERR"))
     }
     env.update(
         {
@@ -1112,7 +1112,6 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
         root = canonical(raw_root)
         if any(char in root for char in ('"', "\\", "\n", "\r", "\x00")):
             raise ValueError("repo root contains unsafe sandbox syntax")
-        sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
         allowed_paths = request["scope"].get("allowed_paths")
         if not isinstance(allowed_paths, list):
             raise ValueError("scope allowed_paths must be a list")
@@ -1132,6 +1131,7 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
                 raise ValueError(f"bounded-write path escapes repo root: {relative!r}")
             rule = "subpath" if relative.endswith("/") or Path(target).is_dir() else "literal"
             sandbox.append(f'(allow file-write* ({rule} "{target}"))')
+        sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
     if request["harness"] in NATIVE_TERMINAL_LANES:
         for root in runtime_write_roots(request):
             sandbox.append(f'(allow file-write* (subpath "{root}"))')

@@ -249,6 +249,15 @@ class HarnessWorkerTests(unittest.TestCase):
             with self.subTest(path=path), patch.object(harness_worker.sys, "platform", "darwin"), self.assertRaises(ValueError):
                 harness_worker.sandbox_command(["echo", "ok"], request)
 
+    def test_root_allowance_emits_git_deny_after_root_allow(self) -> None:
+        request = self.request("root-order")
+        request["scope"]["allowed_paths"] = ["."]
+        with patch.object(harness_worker.sys, "platform", "darwin"):
+            profile = harness_worker.sandbox_command(["echo", "ok"], request)[2]
+        deny = f'(deny file-write* (subpath "{harness_worker.canonical(self.repo)}/.git"))'
+        allow = f'(allow file-write* (subpath "{harness_worker.canonical(self.repo)}"))'
+        self.assertGreater(profile.index(deny), profile.index(allow))
+
     def test_sandbox_requires_a_scope_path_list(self) -> None:
         request = self.request("scope-type")
         request["scope"]["allowed_paths"] = "."
@@ -602,6 +611,10 @@ class HarnessWorkerTests(unittest.TestCase):
             "GIT_DIR": "/tmp/other-repo",
             "GIT_EXTERNAL_DIFF": "/tmp/other-diff",
             "GIT_CONFIG_GLOBAL": "/tmp/other-config",
+            "GIT_TRACE": "/tmp/git-trace.log",
+            "GIT_TRACE2": "/tmp/git-trace2.log",
+            "GIT_TRACE2_EVENT": "/tmp/git-trace2-event.json",
+            "GIT_REDIRECT_STDERR": "/tmp/git-stderr.log",
             "GIT_CONFIG_COUNT": "1",
             "GIT_CONFIG_KEY_0": "core.fsmonitor",
             "GIT_CONFIG_VALUE_0": "true",
@@ -610,7 +623,7 @@ class HarnessWorkerTests(unittest.TestCase):
             env = harness_worker.git_observation_env()
         self.assertEqual(env["GIT_OPTIONAL_LOCKS"], "0")
         self.assertEqual(env["PATH"], "/test-path")
-        for key in ("GIT_DIR", "GIT_EXTERNAL_DIFF", "GIT_CONFIG_GLOBAL"):
+        for key in ("GIT_DIR", "GIT_EXTERNAL_DIFF", "GIT_CONFIG_GLOBAL", "GIT_TRACE", "GIT_TRACE2", "GIT_TRACE2_EVENT", "GIT_REDIRECT_STDERR"):
             self.assertNotIn(key, env)
         self.assertEqual(env["GIT_CONFIG_COUNT"], "2")
         self.assertEqual(env["GIT_CONFIG_KEY_0"], "core.fsmonitor")
