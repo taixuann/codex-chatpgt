@@ -750,6 +750,9 @@ def validate_ledger(ledger: dict[str, Any], *, expected_repository: str | None =
         raise ValueError("ledger repository does not match the trusted Issue authority")
     if expected_issue is not None and ledger["issue"] != expected_issue:
         raise ValueError("ledger Issue does not match the trusted Issue authority")
+    allowed_paths = ledger.get("allowed_paths", [])
+    if not isinstance(allowed_paths, list) or any(not valid_scope_path(path) or is_git_metadata_path(path) for path in allowed_paths):
+        raise ValueError("ledger allowed_paths must be a valid scope path list")
     criteria_ids = [item.get("id") for item in ledger["criteria"] if isinstance(item, dict)]
     if len(criteria_ids) != len(ledger["criteria"]) or not criteria_ids or len(set(criteria_ids)) != len(criteria_ids):
         raise ValueError("ledger criteria must have unique ids")

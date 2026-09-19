@@ -475,6 +475,13 @@ class KernelTests(unittest.TestCase):
         self.assertFalse(issue_execution.path_matches_allowance("result.txt/child", ["result.txt"], str(self.repo)))
         self.assertTrue(issue_execution.path_matches_allowance("nested/child", ["nested/"], str(self.repo)))
 
+    def test_ledger_rejects_malformed_allowed_paths(self) -> None:
+        ledger = {"repository": "fixture/repo", "issue": 107, "criteria": [{"id": "AC-1"}], "tasks": [{"id": "T1", "objective": "one", "status": "done", "dependencies": [], "criteria": ["AC-1"]}], "files": [], "supporting_documents": [{"disposition": "NOT_APPLICABLE", "reason": "none"}]}
+        for allowed_paths in (".", ["../outside"], ["nested/.git/config"]):
+            with self.subTest(allowed_paths=allowed_paths):
+                with self.assertRaises(ValueError):
+                    issue_execution.validate_ledger({**ledger, "allowed_paths": allowed_paths})
+
     def test_ledger_rejects_cycles_and_unmapped_criteria(self) -> None:
         ledger = {"criteria": [{"id": "AC-1"}, {"id": "AC-2"}], "tasks": [{"id": "T1", "objective": "one", "status": "done", "dependencies": ["T2"], "criteria": ["AC-1"]}, {"id": "T2", "objective": "two", "status": "done", "dependencies": ["T1"], "criteria": ["AC-2"]}], "files": [], "supporting_documents": [{"disposition": "NOT_APPLICABLE", "reason": "none"}]}
         with self.assertRaises(ValueError):
