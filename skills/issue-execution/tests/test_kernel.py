@@ -613,6 +613,29 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(session["review_cycle"]["work"]["status"], "not_run")
         self.assertEqual(session["review_cycle"]["goal"]["status"], "not_run")
 
+    def test_preflight_accepts_explicit_repository_root_dirty_baseline(self) -> None:
+        criteria = Path(self.tmp.name) / "criteria-root.yaml"
+        criteria.write_text("- id: AC-1\n  status: pending\n")
+        (self.repo / "README.md").write_text("dirty\n")
+        state = self.repo / ".agents" / "sessions" / "issue-107-root"
+        command = [sys.executable, str(ISSUE_SCRIPTS / "issue_execution.py"), "preflight", "--repo-root", str(self.repo), "--repository", "fixture/repo", "--issue", "107", "--base-branch", "main", "--base-sha", self.base, "--state-dir", str(state), "--criteria", str(criteria)]
+        fingerprint = issue_execution.baseline(str(self.repo), [str(state)])["fingerprint"]
+        result = subprocess.run(command + ["--allowed-paths", ".", "--allow-known-dirty", "--dirty-baseline-fingerprint", fingerprint], text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        session = yaml.safe_load((state / "session.yaml").read_text())
+        self.assertEqual(session["baseline"]["status_records"][0]["path"], "README.md")
+
+    def test_preflight_rejects_dirty_path_outside_restricted_allowance(self) -> None:
+        criteria = Path(self.tmp.name) / "criteria-restricted.yaml"
+        criteria.write_text("- id: AC-1\n  status: pending\n")
+        (self.repo / "README.md").write_text("dirty\n")
+        state = self.repo / ".agents" / "sessions" / "issue-107-restricted"
+        command = [sys.executable, str(ISSUE_SCRIPTS / "issue_execution.py"), "preflight", "--repo-root", str(self.repo), "--repository", "fixture/repo", "--issue", "107", "--base-branch", "main", "--base-sha", self.base, "--state-dir", str(state), "--criteria", str(criteria)]
+        fingerprint = issue_execution.baseline(str(self.repo), [str(state)])["fingerprint"]
+        result = subprocess.run(command + ["--allowed-paths", "docs", "--allow-known-dirty", "--dirty-baseline-fingerprint", fingerprint], text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("BLOCKED: dirty baseline overlaps undeclared paths", result.stderr)
+
     def test_preflight_accepts_only_repository_local_state_directory(self) -> None:
         criteria = Path(self.tmp.name) / "criteria-inside.yaml"
         criteria.write_text("- id: AC-1\n  status: pending\n")

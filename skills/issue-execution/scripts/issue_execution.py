@@ -1018,7 +1018,7 @@ def command_preflight(args: argparse.Namespace) -> None:
         raise SystemExit("BLOCKED: dirty baseline fingerprint is missing or does not match current state")
     if current["status"]:
         allowed = args.allowed_paths
-        if not allowed or any(not any(path == item or path.startswith(item.rstrip("/") + "/") for item in allowed) for path in status_paths(current.get("status_records", []))):
+        if not allowed or any(not path_matches_allowance(path, allowed, repo) for path in status_paths(current.get("status_records", []))):
             raise SystemExit("BLOCKED: dirty baseline overlaps undeclared paths")
     if (state / "session.yaml").exists() or (state / "tasks.yaml").exists():
         raise SystemExit("BLOCKED: existing session state requires explicit reconciliation")
