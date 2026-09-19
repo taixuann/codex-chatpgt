@@ -512,7 +512,7 @@ def validate_native_prometheus_result(request: dict[str, Any], receipt: dict[str
     if not isinstance(repo, dict) or any(not isinstance(repo.get(key), str) or not repo[key].strip() for key in ("root", "cwd", "worktree")) or any(canonical(repo[key]) != canonical(expected_repo.get(key, "")) for key in ("root", "cwd", "worktree")):
         raise ValueError("native Prometheus fallback repository binding mismatch")
     changed_paths = result["changed_paths"]
-    if not isinstance(changed_paths, list) or any(not isinstance(path, str) or os.path.isabs(path) or ".." in Path(path).parts or is_git_metadata_path(path) for path in changed_paths):
+    if not isinstance(changed_paths, list) or any(not isinstance(path, str) or not valid_scope_path(path) or is_git_metadata_path(path) for path in changed_paths):
         raise ValueError("native Prometheus changed_paths are invalid")
     allowed = (request.get("scope") or {}).get("allowed_paths") or []
     worktree = (request.get("repo") or {}).get("worktree")

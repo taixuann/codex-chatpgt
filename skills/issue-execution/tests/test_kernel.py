@@ -241,6 +241,12 @@ class KernelTests(unittest.TestCase):
         bad = {**receipt, "native_prometheus_result": {**receipt["native_prometheus_result"], "changed_paths": ["outside.txt"]}}
         with self.assertRaisesRegex(ValueError, "exceed the parent allowed scope"):
             issue_execution.validate_receipt(request, bad)
+        request["scope"]["allowed_paths"] = ["."]
+        issue_execution.validate_request(request)
+        for path in ("foo/./bar", "foo//bar", "C:/outside", "NUL", "foo\u200bbar"):
+            bad = {**receipt, "native_prometheus_result": {**receipt["native_prometheus_result"], "changed_paths": [path]}}
+            with self.subTest(path=path), self.assertRaisesRegex(ValueError, "native Prometheus changed_paths are invalid"):
+                issue_execution.validate_receipt(request, bad)
 
     def test_native_one_shot_receipt_preserves_unobserved_session(self) -> None:
         request = self.request("agy-receipt")
