@@ -621,6 +621,20 @@ class KernelTests(unittest.TestCase):
             self.assertTrue(issue_execution.is_ancestor(str(self.repo), self.base, self.base))
         self.assertFalse(trace.exists())
 
+    def test_git_observations_ignore_replace_object_override(self) -> None:
+        subprocess.run(["git", "-C", str(self.repo), "switch", "-c", "replacement-fixture", "-q"], check=True)
+        (self.repo / "README.md").write_text("replacement\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "README.md"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "replacement"], check=True)
+        replacement = git(self.repo, "rev-parse", "HEAD")
+        subprocess.run(["git", "-C", str(self.repo), "switch", "main", "-q"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "replace", self.base, replacement], check=True)
+        try:
+            with patch.dict(os.environ, {"GIT_NO_REPLACE_OBJECTS": "1"}, clear=False):
+                self.assertEqual(issue_execution.git(str(self.repo), "show", "HEAD:README.md"), "replacement")
+        finally:
+            subprocess.run(["git", "-C", str(self.repo), "replace", "-d", self.base], check=True)
+
     def test_malformed_repo_request_fails_as_value_error(self) -> None:
         request = self.request("malformed-repo")
         request["repo"] = []

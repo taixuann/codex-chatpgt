@@ -141,36 +141,13 @@ def git_metadata_state(repo: str) -> str:
     return hashlib.sha256(b"\0".join(entries)).hexdigest()
 
 
-GIT_OBSERVATION_ENV_BLOCKLIST = frozenset(
-    {
-        "GIT_DIR",
-        "GIT_WORK_TREE",
-        "GIT_INDEX_FILE",
-        "GIT_OBJECT_DIRECTORY",
-        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-        "GIT_CEILING_DIRECTORIES",
-        "GIT_COMMON_DIR",
-        "GIT_NAMESPACE",
-        "GIT_EXTERNAL_DIFF",
-        "GIT_DIFF_OPTS",
-        "GIT_CONFIG_SYSTEM",
-        "GIT_CONFIG_GLOBAL",
-        "GIT_CONFIG_NOSYSTEM",
-    }
-)
-
-
 def git_observation_env() -> dict[str, str]:
     """Keep harness-issued Git reads pinned and free of optional writeback.
 
     This suppresses writeback from these reads only; unrelated concurrent writers
     still remain observable as metadata mutation.
     """
-    env = {
-        key: value
-        for key, value in os.environ.items()
-        if key not in GIT_OBSERVATION_ENV_BLOCKLIST and not key.startswith(("GIT_CONFIG_", "GIT_TRACE", "GIT_REDIRECT_STDERR"))
-    }
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
     env.update(
         {
             "GIT_OPTIONAL_LOCKS": "0",

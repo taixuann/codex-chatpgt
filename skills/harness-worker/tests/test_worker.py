@@ -647,6 +647,28 @@ class HarnessWorkerTests(unittest.TestCase):
             self.assertEqual(observed_env["GIT_OPTIONAL_LOCKS"], "0")
             self.assertNotIn("GIT_DIR", observed_env)
 
+    def test_git_observation_env_ignores_replace_object_override(self) -> None:
+        original = self.base
+        subprocess.run(["git", "-C", str(self.repo), "switch", "-c", "replacement-fixture", "-q"], check=True)
+        (self.repo / "README.md").write_text("replacement\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "README.md"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "replacement"], check=True)
+        replacement = git(self.repo, "rev-parse", "HEAD")
+        subprocess.run(["git", "-C", str(self.repo), "switch", "main", "-q"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "replace", original, replacement], check=True)
+        try:
+            with patch.dict(os.environ, {"GIT_NO_REPLACE_OBJECTS": "1"}, clear=False):
+                result = subprocess.run(
+                    ["git", "-C", str(self.repo), "show", "HEAD:README.md"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                    env=harness_worker.git_observation_env(),
+                )
+            self.assertEqual(result.stdout, "replacement\n")
+        finally:
+            subprocess.run(["git", "-C", str(self.repo), "replace", "-d", original], check=True)
+
 
     def test_runtime_requires_structured_test_result_envelope(self) -> None:
         request = self.request("defect")
