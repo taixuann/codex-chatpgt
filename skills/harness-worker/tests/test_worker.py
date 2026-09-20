@@ -118,6 +118,21 @@ class HarnessWorkerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "required skills unavailable"):
             harness_worker.effective_context(str(self.repo), str(self.repo), ["missing-skill"])
 
+    def test_context_rejects_symlinked_instruction_and_skill_sources(self) -> None:
+        outside = Path(self.tmp.name) / "outside"
+        outside.mkdir()
+        (outside / "AGENTS.md").write_text("outside instructions\n")
+        (self.repo / "AGENTS.md").symlink_to(outside / "AGENTS.md")
+        with self.assertRaisesRegex(ValueError, "CONTEXT_CONTRACT_UNVERIFIED"):
+            harness_worker.effective_context(str(self.repo), str(self.repo))
+        (self.repo / "AGENTS.md").unlink()
+        skill = self.repo / "skills" / "issue-execution" / "SKILL.md"
+        skill.unlink()
+        (outside / "SKILL.md").write_text("outside skill\n")
+        skill.symlink_to(outside / "SKILL.md")
+        with self.assertRaisesRegex(ValueError, "CONTEXT_CONTRACT_UNVERIFIED"):
+            harness_worker.effective_context(str(self.repo), str(self.repo), ["issue-execution"])
+
     def test_receipt_context_is_bound_to_request(self) -> None:
         request = self.request("context-bound")
         receipt = self.run_request(request, "context-bound")
@@ -150,6 +165,7 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_contract"] = {"task_id": "fixture"}
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
         clean_env = dict(os.environ)
+        clean_env["HEADLESS_CLI_ENABLE_AGY"] = "1"
         clean_env.pop("HEADLESS_CLI_ALLOW_NETWORK", None)
         clean_env.pop("HEADLESS_CLI_RUNTIME_WRITE_ROOTS", None)
         for launch_env in ({}, {"HEADLESS_CLI_ALLOW_NETWORK": "1"}):
@@ -157,6 +173,33 @@ class HarnessWorkerTests(unittest.TestCase):
                 receipt = harness_worker.run(request, Path(self.tmp.name) / "sessions.json", 10)
             self.assertEqual(receipt["execution"]["error_code"], "RUNTIME_UNAVAILABLE")
             self.assertEqual(receipt["fallback_required"], "prometheus")
+
+    def test_production_agy_is_suspended_without_explicit_enable(self) -> None:
+        request = self.request("agy-suspended")
+        request["harness"] = "agy"
+        request["command"] = ["agy", "--print"]
+        request["_delegation_prompt"] = "Return one harmless smoke token."
+        request["_delegation_contract"] = {"task_id": "agy-suspended", "allowed_scope": request["scope"]["allowed_paths"]}
+        request["_delegation_binding"] = {
+            "version": 1,
+            "profile": "agy",
+            "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]),
+            "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"]),
+        }
+        runtime = Path(self.tmp.name) / "agy-suspended-runtime"
+        runtime.mkdir()
+        env = {
+            "HEADLESS_CLI_ALLOW_NETWORK": "1",
+            "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime),
+            "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime),
+        }
+        with patch.dict(os.environ, env, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe") as probe:
+            receipt = harness_worker.run(request, Path(self.tmp.name) / "agy-suspended-sessions.json", 10)
+        self.assertEqual(receipt["execution"]["error_code"], "AGY_SUSPENDED")
+        self.assertEqual(receipt["live_qualification"]["reason"], "AGY_SUSPENDED")
+        self.assertFalse(receipt["live_qualification"]["provider_launched"])
+        self.assertEqual(receipt["fallback_required"], "prometheus")
+        probe.assert_not_called()
 
     def test_q0_blocks_repository_egress_before_native_launch(self) -> None:
         request = self.request("q0-egress")
@@ -167,7 +210,7 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
         runtime = Path(self.tmp.name) / "q0-runtime"
         runtime.mkdir()
-        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)):
+        with patch.dict(os.environ, {"HEADLESS_CLI_ENABLE_AGY": "1", "HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)):
             receipt = harness_worker.run(request, Path(self.tmp.name) / "q0-sessions.json", 10)
         self.assertEqual(receipt["execution"]["error_code"], "RUNTIME_UNAVAILABLE")
         self.assertEqual(receipt["live_qualification"]["status"], "NOT_ASSESSED")
@@ -176,7 +219,7 @@ class HarnessWorkerTests(unittest.TestCase):
         self.assertTrue(receipt["live_qualification"]["capability_fingerprint"])
 
         request["qualification_stage"] = "fixture"
-        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe"):
+        with patch.dict(os.environ, {"HEADLESS_CLI_ENABLE_AGY": "1", "HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe"):
             observation = harness_worker.agy_capability_preflight(request)
         self.assertEqual(observation["status"], "READY")
 
@@ -189,7 +232,7 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
         runtime = Path(self.tmp.name) / "q0-sandbox-runtime"
         runtime.mkdir()
-        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime), "HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED": "1"}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe", side_effect=RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_SANDBOX_INCOMPATIBLE")):
+        with patch.dict(os.environ, {"HEADLESS_CLI_ENABLE_AGY": "1", "HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime), "HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED": "1"}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe", side_effect=RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_SANDBOX_INCOMPATIBLE")):
             receipt = harness_worker.run(request, Path(self.tmp.name) / "q0-sandbox-sessions.json", 10)
         self.assertEqual(receipt["live_qualification"]["reason"], "HOST_AGY_SANDBOX_INCOMPATIBLE")
         self.assertFalse(receipt["live_qualification"]["provider_launched"])
@@ -211,6 +254,43 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": "0" * 64, "rendered_prompt_sha256": "1" * 64}
         with self.assertRaisesRegex(ValueError, "fingerprints"):
             harness_worker.bind_delegation(request)
+
+    def test_delegation_scope_mismatch_fails_closed(self) -> None:
+        request = self.request("delegation-scope-mismatch")
+        request["scope"]["allowed_paths"] = ["."]
+        request["_delegation_prompt"] = "actual prompt"
+        contract = {"task_id": "scope-mismatch", "allowed_scope": ["safe.txt"]}
+        request["_delegation_contract"] = contract
+        request["_delegation_binding"] = {
+            "version": 1,
+            "profile": "agy",
+            "source_contract_sha256": harness_worker._digest(contract),
+            "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"]),
+        }
+        with self.assertRaisesRegex(ValueError, "rendered scope"):
+            harness_worker.bind_delegation(request)
+
+    def test_request_rejects_portability_ambiguous_scope_paths(self) -> None:
+        for path in ("./outside", "foo/./bar", "foo//bar", "C:/outside", "NUL", "foo\u200bbar"):
+            request = self.request(f"scope-{path}")
+            request["scope"]["allowed_paths"] = [path]
+            with self.subTest(path=path), patch.object(harness_worker.sys, "platform", "darwin"), self.assertRaises(ValueError):
+                harness_worker.sandbox_command(["echo", "ok"], request)
+
+    def test_root_allowance_emits_git_deny_after_root_allow(self) -> None:
+        request = self.request("root-order")
+        request["scope"]["allowed_paths"] = ["."]
+        with patch.object(harness_worker.sys, "platform", "darwin"):
+            profile = harness_worker.sandbox_command(["echo", "ok"], request)[2]
+        deny = f'(deny file-write* (subpath "{harness_worker.canonical(self.repo)}/.git"))'
+        allow = f'(allow file-write* (subpath "{harness_worker.canonical(self.repo)}"))'
+        self.assertGreater(profile.index(deny), profile.index(allow))
+
+    def test_sandbox_requires_a_scope_path_list(self) -> None:
+        request = self.request("scope-type")
+        request["scope"]["allowed_paths"] = "."
+        with patch.object(harness_worker.sys, "platform", "darwin"), self.assertRaisesRegex(ValueError, "must be a list"):
+            harness_worker.sandbox_command(["echo", "ok"], request)
 
 
 
@@ -366,6 +446,21 @@ class HarnessWorkerTests(unittest.TestCase):
         with patch.dict(os.environ, {"PATH": f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}", "HEADLESS_CLI_TEST_ONLY": "1"}), patch.object(harness_worker, "sandbox_command", side_effect=lambda command, _: command):
             with self.assertRaisesRegex(ValueError, "MUTATION_SCOPE_VIOLATION"):
                 harness_worker.run(request, Path(self.tmp.name) / "agy-bounded-unrelated-sessions.json", 10)
+
+
+    def test_bounded_write_rejects_git_metadata_only_mutation(self) -> None:
+        script = self.repo / "git-metadata-mutator.py"
+        script.write_text(
+            "from pathlib import Path\n"
+            "Path('.git/description').write_text('mutated by runtime\\n')\n"
+            "print('{\"protocolVersion\":1,\"type\":\"result\",\"command\":\"invoke\",\"exitCode\":0,\"data\":{\"runtime\":{\"harness\":\"fake\",\"native_session_id\":\"native-git-only\"},\"execution\":{\"status\":\"SUCCESS\"}}}')\n"
+        )
+        request = self.request("git-only")
+        request["scope"]["allowed_paths"] = ["."]
+        request["command"] = [sys.executable, str(script)]
+        with patch.dict(os.environ, {"HEADLESS_CLI_TEST_ONLY": "1", "HEADLESS_CLI_SANDBOX_EXECUTABLE": str(self.sandbox)}, clear=False):
+            with self.assertRaisesRegex(ValueError, "Git metadata changed"):
+                harness_worker.run(request, Path(request["outputs"]["registry"]), 10)
 
 
     def test_child_environment_is_allowlisted(self) -> None:
@@ -536,6 +631,71 @@ class HarnessWorkerTests(unittest.TestCase):
     def test_detached_head_git_state_is_observable(self) -> None:
         subprocess.run(["git", "-C", str(self.repo), "switch", "--detach", "-q", self.base], check=True)
         self.assertIsInstance(harness_worker.git_state(str(self.repo)), str)
+
+    def test_git_observation_env_disables_optional_locks(self) -> None:
+        dangerous = {
+            "PATH": "/test-path",
+            "GIT_OPTIONAL_LOCKS": "1",
+            "GIT_DIR": "/tmp/other-repo",
+            "GIT_EXTERNAL_DIFF": "/tmp/other-diff",
+            "GIT_CONFIG_GLOBAL": "/tmp/other-config",
+            "GIT_TRACE": "/tmp/git-trace.log",
+            "GIT_TRACE2": "/tmp/git-trace2.log",
+            "GIT_TRACE2_EVENT": "/tmp/git-trace2-event.json",
+            "GIT_REDIRECT_STDERR": "/tmp/git-stderr.log",
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.fsmonitor",
+            "GIT_CONFIG_VALUE_0": "true",
+        }
+        with patch.dict(os.environ, dangerous, clear=False):
+            env = harness_worker.git_observation_env()
+        self.assertEqual(env["GIT_OPTIONAL_LOCKS"], "0")
+        self.assertEqual(env["PATH"], "/test-path")
+        for key in ("GIT_DIR", "GIT_EXTERNAL_DIFF", "GIT_CONFIG_GLOBAL", "GIT_TRACE", "GIT_TRACE2", "GIT_TRACE2_EVENT", "GIT_REDIRECT_STDERR"):
+            self.assertNotIn(key, env)
+        self.assertEqual(env["GIT_CONFIG_COUNT"], "2")
+        self.assertEqual(env["GIT_CONFIG_KEY_0"], "core.fsmonitor")
+        self.assertEqual(env["GIT_CONFIG_VALUE_0"], "false")
+        self.assertEqual(env["GIT_CONFIG_KEY_1"], "core.pager")
+
+        original_run = harness_worker.subprocess.run
+        calls = []
+
+        def observe_run(*args, **kwargs):
+            command = args[0] if args else kwargs.get("args", [])
+            if command and command[0] == "git":
+                calls.append(kwargs.get("env"))
+            return original_run(*args, **kwargs)
+
+        call_environment = {**dangerous, "PATH": os.environ["PATH"]}
+        with patch.dict(os.environ, call_environment, clear=False), patch.object(harness_worker.subprocess, "run", side_effect=observe_run):
+            harness_worker.git_state(str(self.repo))
+        self.assertTrue(calls)
+        for observed_env in calls:
+            self.assertEqual(observed_env["GIT_OPTIONAL_LOCKS"], "0")
+            self.assertNotIn("GIT_DIR", observed_env)
+
+    def test_git_observation_env_ignores_replace_object_override(self) -> None:
+        original = self.base
+        subprocess.run(["git", "-C", str(self.repo), "switch", "-c", "replacement-fixture", "-q"], check=True)
+        (self.repo / "README.md").write_text("replacement\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "README.md"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "replacement"], check=True)
+        replacement = git(self.repo, "rev-parse", "HEAD")
+        subprocess.run(["git", "-C", str(self.repo), "switch", "main", "-q"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "replace", original, replacement], check=True)
+        try:
+            with patch.dict(os.environ, {"GIT_NO_REPLACE_OBJECTS": "1"}, clear=False):
+                result = subprocess.run(
+                    ["git", "-C", str(self.repo), "show", "HEAD:README.md"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                    env=harness_worker.git_observation_env(),
+                )
+            self.assertEqual(result.stdout, "replacement\n")
+        finally:
+            subprocess.run(["git", "-C", str(self.repo), "replace", "-d", original], check=True)
 
 
     def test_runtime_requires_structured_test_result_envelope(self) -> None:

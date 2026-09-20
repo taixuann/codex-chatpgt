@@ -11,6 +11,7 @@ import re
 import stat
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +37,44 @@ ERROR_CODES = {
 INVALID_REVIEWER_IDS = {"", "NOT_ASSESSED", "UNKNOWN", "UNAVAILABLE", "NONE", "NULL"}
 NATIVE_REVIEWER_ID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 MAX_TASK_EXECUTIONS = 8
+WINDOWS_RESERVED_BASENAMES = {
+    "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
+def git_observation_env() -> dict[str, str]:
+    """Keep authority-critical Git reads pinned to the requested worktree."""
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    env.update(
+        {
+            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": "core.fsmonitor",
+            "GIT_CONFIG_VALUE_0": "false",
+            "GIT_CONFIG_KEY_1": "core.pager",
+            "GIT_CONFIG_VALUE_1": "cat",
+        }
+    )
+    return env
+
+
+def valid_scope_path(value: Any) -> bool:
+    if not isinstance(value, str) or not value or value.strip() != value:
+        return False
+    if any(unicodedata.category(character) in {"Cc", "Cf"} for character in value):
+        return False
+    if value == ".":
+        return True
+    normalized = value[:-1] if value.endswith("/") else value
+    parts = normalized.split("/")
+    return bool(normalized) and "\\" not in value and ":" not in value and not value.startswith("/") and "//" not in value and not any(
+        not part
+        or part in {".", ".."}
+        or part != part.rstrip(" .")
+        or part.split(".", 1)[0].upper() in WINDOWS_RESERVED_BASENAMES
+        or any(character in '<>"|?*[]~$%' for character in part)
+        for part in parts
+    )
 HISTORY_NOISE_RE = re.compile(r"^(?:fix|test|wip|retry|debug|tmp|tweak|try)(?:\b|[:( -])", re.IGNORECASE)
 HISTORY_BOUNDARY_RE = re.compile(r"\b(?:review|repair|semantic|integrat(?:e|ion)|candidate|authority|policy|contract|reconcile|qualification|checkpoint)\b", re.IGNORECASE)
 
@@ -129,7 +168,7 @@ def git_worktree_identity(repo: str) -> dict[str, str]:
         "git_common_dir": ("--git-common-dir",),
         "inside_worktree": ("--is-inside-work-tree",),
     }.items():
-        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True)
+        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True, env=git_observation_env())
         if result.returncode:
             raise ValueError("repository root is not a Git worktree")
         value = result.stdout.strip()
@@ -157,6 +196,21 @@ def repository_binding(repo_root: str, worktree: str | None = None) -> dict[str,
     }
 
 
+def _context_source(path: Path, root: Path) -> Path:
+    current = path
+    while True:
+        if current.is_symlink():
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source traverses a symlink")
+        if current == root:
+            break
+        if root not in current.parents:
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source escapes repository root")
+        current = current.parent
+    if Path(canonical(path)) != path:
+        raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source resolves outside repository root")
+    return path
+
+
 def effective_context(repo_root: str, cwd: str, required_skills: list[str] | None = None) -> dict[str, Any]:
     """Bind the applicable instruction chain and local skill roots to CWD."""
     root = Path(canonical(repo_root))
@@ -169,10 +223,10 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
     for directory in ancestors:
         override = directory / "AGENTS.override.md"
         standard = directory / "AGENTS.md"
-        if override.is_file():
-            instruction_paths.append(override)
-        elif standard.is_file():
-            instruction_paths.append(standard)
+        if override.is_symlink() or override.is_file():
+            instruction_paths.append(_context_source(override, root))
+        elif standard.is_symlink() or standard.is_file():
+            instruction_paths.append(_context_source(standard, root))
     skills = list(required_skills or [])
     skill_paths: list[Path] = []
     missing_skills: list[str] = []
@@ -184,8 +238,8 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
         found = False
         for base in (root / "skills", root / ".agents" / "skills"):
             candidate = base / name / "SKILL.md"
-            if candidate.is_file():
-                skill_paths.append(candidate)
+            if candidate.is_symlink() or candidate.is_file():
+                skill_paths.append(_context_source(candidate, root))
                 found = True
         if not found:
             missing_skills.append(name)
@@ -255,14 +309,12 @@ def validate_baseline_record(value: dict[str, Any]) -> None:
 
 def path_matches_allowance(path: str, allowed: list[str], repo_root: str | None = None) -> bool:
     for item in allowed:
-        if Path(item) == Path("."):
-            continue
+        if item == ".":
+            return True
         normalized = Path(item).as_posix().rstrip("/")
         if path == normalized:
             return True
         explicit_directory = item.endswith("/") or (repo_root is not None and (Path(repo_root) / normalized).is_dir())
-        if explicit_directory and normalized in {"", "."}:
-            return True
         if explicit_directory and path.startswith(normalized + "/"):
             return True
     return False
@@ -345,14 +397,14 @@ def workspace_manifest(repo: str, excluded: list[str] | None = None) -> dict[str
 
 
 def git(repo: str, *args: str) -> str:
-    result = subprocess.run(["git", "-C", repo, *args], text=True, capture_output=True)
+    result = subprocess.run(["git", "-C", repo, *args], text=True, capture_output=True, env=git_observation_env())
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or f"git failed: {args}")
     return result.stdout.strip()
 
 
 def git_status_records(repo: str) -> list[dict[str, str]]:
-    result = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "-z"], text=True, capture_output=True)
+    result = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "-z"], text=True, capture_output=True, env=git_observation_env())
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or "cannot inspect Git status")
     parts = [part for part in result.stdout.split("\0") if part]
@@ -474,7 +526,7 @@ def validate_native_prometheus_result(request: dict[str, Any], receipt: dict[str
     if not isinstance(repo, dict) or any(not isinstance(repo.get(key), str) or not repo[key].strip() for key in ("root", "cwd", "worktree")) or any(canonical(repo[key]) != canonical(expected_repo.get(key, "")) for key in ("root", "cwd", "worktree")):
         raise ValueError("native Prometheus fallback repository binding mismatch")
     changed_paths = result["changed_paths"]
-    if not isinstance(changed_paths, list) or any(not isinstance(path, str) or os.path.isabs(path) or ".." in Path(path).parts or is_git_metadata_path(path) for path in changed_paths):
+    if not isinstance(changed_paths, list) or any(not isinstance(path, str) or not valid_scope_path(path) or is_git_metadata_path(path) for path in changed_paths):
         raise ValueError("native Prometheus changed_paths are invalid")
     allowed = (request.get("scope") or {}).get("allowed_paths") or []
     worktree = (request.get("repo") or {}).get("worktree")
@@ -549,12 +601,14 @@ def validate_request(request: dict[str, Any]) -> None:
     if not isinstance(scope, dict) or not scope.get("mutation_boundary"):
         raise ValueError("request scope must declare mutation_boundary")
     allowed = scope.get("allowed_paths") or []
+    if not isinstance(allowed, list):
+        raise ValueError("scope allowed_paths must be a list")
     if request["permission_policy"] == "bounded-write" and not allowed:
         raise ValueError("bounded-write request must declare allowed_paths")
     if not isinstance(request.get("session"), dict) or request["session"].get("policy") not in {"fresh", "resume", "resume_or_start", "rebind"}:
         raise ValueError("unsupported session policy")
     for path in allowed:
-        if not isinstance(path, str) or os.path.isabs(path) or Path(path) == Path(".") or ".." in Path(path).parts:
+        if not valid_scope_path(path):
             raise ValueError("scope allowed_paths must stay relative to repo root")
         if is_git_metadata_path(path):
             raise ValueError("scope allowed_paths cannot include .git metadata")
@@ -667,7 +721,7 @@ def committed_changed_files(repo: str, base: str, candidate: str) -> list[str]:
 
 
 def is_ancestor(repo: str, base: str, candidate: str) -> bool:
-    return subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", base, candidate], capture_output=True).returncode == 0
+    return subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", base, candidate], capture_output=True, env=git_observation_env()).returncode == 0
 
 
 def classify_commit_history(repo: str, base: str, candidate: str) -> dict[str, Any]:
@@ -710,6 +764,9 @@ def validate_ledger(ledger: dict[str, Any], *, expected_repository: str | None =
         raise ValueError("ledger repository does not match the trusted Issue authority")
     if expected_issue is not None and ledger["issue"] != expected_issue:
         raise ValueError("ledger Issue does not match the trusted Issue authority")
+    allowed_paths = ledger.get("allowed_paths", [])
+    if not isinstance(allowed_paths, list) or any(not valid_scope_path(path) or is_git_metadata_path(path) for path in allowed_paths):
+        raise ValueError("ledger allowed_paths must be a valid scope path list")
     criteria_ids = [item.get("id") for item in ledger["criteria"] if isinstance(item, dict)]
     if len(criteria_ids) != len(ledger["criteria"]) or not criteria_ids or len(set(criteria_ids)) != len(criteria_ids):
         raise ValueError("ledger criteria must have unique ids")
@@ -912,7 +969,7 @@ def accept_candidate(session: dict[str, Any], work_review: dict[str, Any], packe
         review_scripts = Path(__file__).resolve().parents[2] / "athena-review" / "scripts"
         if str(review_scripts) not in sys.path:
             sys.path.insert(0, str(review_scripts))
-        from review import supporting_documents_clear, validate_result
+        from review import review_receipt_filename, supporting_documents_clear, validate_result
         validate_result(work_review, {**packet, "review_attempt": work_review["review_attempt"]}, candidate)
         validate_result(goal_review, {**packet, "review_attempt": goal_review["review_attempt"]}, candidate)
     except (ImportError, ValueError, KeyError) as exc:
@@ -945,7 +1002,9 @@ def accept_candidate(session: dict[str, Any], work_review: dict[str, Any], packe
     # This helper proves technical eligibility only. Parent acceptance and
     # Draft PR publication are outside this repository process.
     session["status"] = "awaiting_parent_decision"
-    session["review_cycle"] = {"round": work_review["review_attempt"]["round"], "candidate_head": candidate, "work": {"receipt": f"review/athena-{candidate[:7]}-work-r{work_review['review_attempt']['round']}.yaml", "display_label": work_review["review_attempt"]["display_label"], "review_id": work_review["review_attempt"]["review_id"], "reviewer_session_id": work_snapshot["reviewer_session_id"], "status": work_review["work_review"]["status"], "stale": False}, "goal": {"receipt": f"review/athena-{candidate[:7]}-goal-r{goal_review['review_attempt']['round']}.yaml", "display_label": goal_review["review_attempt"]["display_label"], "review_id": goal_review["review_attempt"]["review_id"], "reviewer_session_id": goal_snapshot["reviewer_session_id"], "status": goal_review["goal_review"]["status"], "stale": False}}
+    def receipt_pointer(attempt: dict[str, Any]) -> str:
+        return f"review/{review_receipt_filename(attempt)}"
+    session["review_cycle"] = {"round": work_review["review_attempt"]["round"], "candidate_head": candidate, "work": {"receipt": receipt_pointer(work_review["review_attempt"]), "display_label": work_review["review_attempt"]["display_label"], "review_id": work_review["review_attempt"]["review_id"], "reviewer_session_id": work_snapshot["reviewer_session_id"], "status": work_review["work_review"]["status"], "stale": False}, "goal": {"receipt": receipt_pointer(goal_review["review_attempt"]), "display_label": goal_review["review_attempt"]["display_label"], "review_id": goal_review["review_attempt"]["review_id"], "reviewer_session_id": goal_snapshot["reviewer_session_id"], "status": goal_review["goal_review"]["status"], "stale": False}}
     return session
 
 
@@ -976,7 +1035,7 @@ def command_preflight(args: argparse.Namespace) -> None:
         raise SystemExit("BLOCKED: dirty baseline fingerprint is missing or does not match current state")
     if current["status"]:
         allowed = args.allowed_paths
-        if not allowed or any(not any(path == item or path.startswith(item.rstrip("/") + "/") for item in allowed) for path in status_paths(current.get("status_records", []))):
+        if not allowed or any(not path_matches_allowance(path, allowed, repo) for path in status_paths(current.get("status_records", []))):
             raise SystemExit("BLOCKED: dirty baseline overlaps undeclared paths")
     if (state / "session.yaml").exists() or (state / "tasks.yaml").exists():
         raise SystemExit("BLOCKED: existing session state requires explicit reconciliation")

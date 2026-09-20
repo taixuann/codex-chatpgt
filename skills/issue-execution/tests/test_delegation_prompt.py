@@ -75,6 +75,62 @@ class DelegationPromptTests(unittest.TestCase):
         malformed["acceptance"] = [{"id": "DP-01", "requirement": "x"}, {"id": "DP-01", "requirement": "y"}]
         with self.assertRaises(ValueError):
             MODULE.render(malformed, "agy")
+        malformed = copy.deepcopy(CONTRACT)
+        malformed["allowed_scope"] = ["../outside"]
+        with self.assertRaisesRegex(ValueError, "relative"):
+            MODULE.render(malformed, "agy")
+
+    def test_scope_paths_use_portable_lexical_validation(self):
+        accepted = [["."], ["src"], ["src/"], ["a/b/c/"], ["docs", "lib/"]]
+        for field in ("allowed_scope", "forbidden_scope"):
+            for scope in accepted:
+                contract = copy.deepcopy(CONTRACT)
+                contract[field] = scope
+                with self.subTest(field=field, scope=scope):
+                    self.assertEqual(MODULE.render(contract, "agy")["renderer"]["profile"], "agy")
+        hostile = [
+            "/absolute",
+            "C:/outside",
+            "C:\\outside",
+            "C:outside",
+            "//server/share",
+            "\\\\server\\share",
+            "foo/../outside",
+            "./outside",
+            "foo/./bar",
+            "foo//bar",
+            "safe/.. /outside",
+            "dir./file",
+            "NUL",
+            "NUL.txt",
+            "COM1",
+            "bad?/file",
+            "foo*bar",
+            "~/.ssh",
+            "foo\u200bbar",
+            "foo\u202ebar",
+            "foo\nbar",
+            "foo\x00bar",
+        ]
+        for value in ("", "   "):
+            malformed = copy.deepcopy(CONTRACT)
+            malformed["allowed_scope"] = [value]
+            with self.subTest(value=repr(value)):
+                with self.assertRaises(ValueError):
+                    MODULE.render(malformed, "agy")
+        for field in ("allowed_scope", "forbidden_scope"):
+            for value in hostile:
+                malformed = copy.deepcopy(CONTRACT)
+                malformed[field] = [value]
+                with self.subTest(field=field, value=repr(value)):
+                    with self.assertRaisesRegex(ValueError, "relative"):
+                        MODULE.render(malformed, "agy")
+
+    def test_allowed_scope_rejects_git_metadata(self):
+        malformed = copy.deepcopy(CONTRACT)
+        malformed["allowed_scope"] = [".git/HEAD"]
+        with self.assertRaisesRegex(ValueError, "relative"):
+            MODULE.render(malformed, "agy")
 
     def test_optional_content_is_not_invented(self):
         contract = copy.deepcopy(CONTRACT)

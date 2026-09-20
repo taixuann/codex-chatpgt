@@ -18,13 +18,14 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 from pathlib import Path
 from typing import Any
 
 MAX_OUTPUT_BYTES = 1024 * 1024
 INVALID_NATIVE_SESSION_IDS = {"NOT_ASSESSED", "UNKNOWN", "NONE", "NULL", "UNAVAILABLE"}
 FORBIDDEN_RECEIPT_KEYS = {"ac_satisfied", "issue_complete", "review_passed", "accepted_head", "final_success"}
-WORKER_AVAILABILITY_FAILURES = {"QUOTA_EXHAUSTED", "RATE_LIMITED", "RUNTIME_UNAVAILABLE", "PROVIDER_UNAVAILABLE"}
+WORKER_AVAILABILITY_FAILURES = {"AGY_SUSPENDED", "QUOTA_EXHAUSTED", "RATE_LIMITED", "RUNTIME_UNAVAILABLE", "PROVIDER_UNAVAILABLE"}
 SESSION_INVALIDATING_ERRORS = {"AUTH_REQUIRED", "SESSION_INVALID", "SESSION_CONTEXT_MISMATCH"}
 SEMANTIC_ROUTES = {"economy", "balanced", "strong", "strongest"}
 ROUTE_EFFORT_MAP = {"economy": "low", "balanced": "medium", "strong": "high", "strongest": "xhigh"}
@@ -32,7 +33,7 @@ LEGACY_ROUTE_MAP = {"low": "economy", "bounded": "balanced", "medium": "balanced
 REASONING_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 CAPACITY_STATES = {"AVAILABLE", "LOW", "EXHAUSTED", "RATE_LIMITED", "UNKNOWN"}
 ERROR_CODES = {
-    "AUTH_REQUIRED", "QUOTA_EXHAUSTED", "RATE_LIMITED", "PERMISSION_DENIED",
+    "AGY_SUSPENDED", "AUTH_REQUIRED", "QUOTA_EXHAUSTED", "RATE_LIMITED", "PERMISSION_DENIED",
     "SESSION_INVALID", "RUNTIME_UNAVAILABLE", "PROVIDER_UNAVAILABLE",
     "MODEL_ROUTE_UNAVAILABLE", "EXECUTION_PROTOCOL_VIOLATION", "TIMED_OUT",
     "EXECUTION_FAILED", "MUTATION_SCOPE_VIOLATION",
@@ -43,6 +44,30 @@ QUALIFICATION_STAGES = {"transport", "fixture", "repository"}
 AGY_DELEGATION_FLAGS = {"--print", "-p", "--sandbox"}
 AGY_DELEGATION_OPTIONS = {"--add-dir", "--mode", "--output-format", "--model", "--effort", "--conversation", "--print-timeout"}
 USAGE_FIELDS = ("input_tokens", "cache_read_tokens", "cache_write_tokens", "output_tokens", "reasoning_tokens", "latency_ms")
+WINDOWS_RESERVED_BASENAMES = {
+    "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
+
+
+def valid_scope_path(value: Any) -> bool:
+    if not isinstance(value, str) or not value or value.strip() != value:
+        return False
+    if any(unicodedata.category(character) in {"Cc", "Cf"} for character in value):
+        return False
+    if value == ".":
+        return True
+    normalized = value[:-1] if value.endswith("/") else value
+    parts = normalized.split("/")
+    return bool(normalized) and "\\" not in value and ":" not in value and not value.startswith("/") and "//" not in value and not any(
+        not part
+        or part in {".", ".."}
+        or part != part.rstrip(" .")
+        or part.split(".", 1)[0].upper() in WINDOWS_RESERVED_BASENAMES
+        or any(character in '<>"|?*[]~$%' for character in part)
+        for part in parts
+    )
 ANSI_ESCAPE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
 
 
@@ -116,13 +141,33 @@ def git_metadata_state(repo: str) -> str:
     return hashlib.sha256(b"\0".join(entries)).hexdigest()
 
 
+def git_observation_env() -> dict[str, str]:
+    """Keep harness-issued Git reads pinned and free of optional writeback.
+
+    This suppresses writeback from these reads only; unrelated concurrent writers
+    still remain observable as metadata mutation.
+    """
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    env.update(
+        {
+            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": "core.fsmonitor",
+            "GIT_CONFIG_VALUE_0": "false",
+            "GIT_CONFIG_KEY_1": "core.pager",
+            "GIT_CONFIG_VALUE_1": "cat",
+        }
+    )
+    return env
+
+
 def git_worktree_identity(repo: str) -> dict[str, str]:
     root = canonical(repo)
     if not Path(root).is_dir():
         raise ValueError("repository root is not a directory")
     values: dict[str, str] = {}
     for key, args in {"top_level": ("--show-toplevel",), "git_dir": ("--git-dir",), "git_common_dir": ("--git-common-dir",), "inside_worktree": ("--is-inside-work-tree",)}.items():
-        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True)
+        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True, env=git_observation_env())
         if result.returncode:
             raise ValueError("repository root is not a Git worktree")
         value = result.stdout.strip()
@@ -144,6 +189,21 @@ def _walk_keys(value: Any) -> set[str]:
     return set()
 
 
+def _context_source(path: Path, root: Path) -> Path:
+    current = path
+    while True:
+        if current.is_symlink():
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source traverses a symlink")
+        if current == root:
+            break
+        if root not in current.parents:
+            raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source escapes repository root")
+        current = current.parent
+    if Path(canonical(path)) != path:
+        raise ValueError("CONTEXT_CONTRACT_UNVERIFIED: context source resolves outside repository root")
+    return path
+
+
 def effective_context(repo_root: str, cwd: str, required_skills: list[str] | None = None) -> dict[str, Any]:
     root = Path(canonical(repo_root)); current = Path(canonical(cwd))
     if current != root and root not in current.parents:
@@ -153,8 +213,8 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
     instruction_paths = []
     for directory in ancestors:
         override, standard = directory / "AGENTS.override.md", directory / "AGENTS.md"
-        if override.is_file(): instruction_paths.append(override)
-        elif standard.is_file(): instruction_paths.append(standard)
+        if override.is_symlink() or override.is_file(): instruction_paths.append(_context_source(override, root))
+        elif standard.is_symlink() or standard.is_file(): instruction_paths.append(_context_source(standard, root))
     skill_paths = []
     missing_skills = []
     for name in required_skills or []:
@@ -164,8 +224,8 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
         found = False
         for base in (root / "skills", root / ".agents" / "skills"):
             candidate = base / name / "SKILL.md"
-            if candidate.is_file():
-                skill_paths.append(candidate)
+            if candidate.is_symlink() or candidate.is_file():
+                skill_paths.append(_context_source(candidate, root))
                 found = True
         if not found:
             missing_skills.append(name)
@@ -179,7 +239,7 @@ def effective_context(repo_root: str, cwd: str, required_skills: list[str] | Non
 
 def path_matches_allowance(path: str, allowed: list[str], repo_root: str | None = None) -> bool:
     for item in allowed:
-        if Path(item) == Path("."): continue
+        if item == ".": return True
         normalized = Path(item).as_posix().rstrip("/")
         if path == normalized: return True
         explicit_directory = item.endswith("/") or (repo_root is not None and (Path(repo_root) / normalized).is_dir())
@@ -259,7 +319,7 @@ def validate_harness_request(request: dict[str, Any]) -> None:
     if not isinstance(allowed, list): raise ValueError("scope allowed_paths must be a list")
     if request["permission_policy"] == "bounded-write" and not allowed: raise ValueError("bounded-write request must declare allowed_paths")
     for path in allowed:
-        if not isinstance(path, str) or os.path.isabs(path) or Path(path) == Path(".") or ".." in Path(path).parts or is_git_metadata_path(path) or any(char in path for char in ('"', "\\", "\n", "\r", "\x00")):
+        if not valid_scope_path(path) or is_git_metadata_path(path):
             raise ValueError("scope allowed_paths must stay relative to repo root")
     outputs = request["outputs"]
     if not isinstance(outputs, dict) or not isinstance(outputs.get("registry"), str) or not isinstance(outputs.get("receipt"), str): raise ValueError("request outputs must declare registry and receipt paths")
@@ -459,7 +519,7 @@ def execution_snapshot(repo: str) -> dict[str, str]:
     root = Path(canonical(repo))
 
     def git_bytes(*args: str) -> bytes:
-        result = subprocess.run(["git", "-C", repo, *args], capture_output=True, check=False)
+        result = subprocess.run(["git", "-C", repo, *args], capture_output=True, check=False, env=git_observation_env())
         if result.returncode:
             raise RuntimeError(result.stderr.decode(errors="replace").strip() or "cannot inspect Git state")
         return result.stdout
@@ -469,8 +529,8 @@ def execution_snapshot(repo: str) -> dict[str, str]:
     snapshot = {
         "@git-status": hashlib.sha256(status).hexdigest(),
         "@git-ignored": hashlib.sha256(ignored).hexdigest(),
-        "@git-diff": hashlib.sha256(git_bytes("diff", "--binary")).hexdigest(),
-        "@git-index": hashlib.sha256(git_bytes("diff", "--cached", "--binary")).hexdigest(),
+        "@git-diff": hashlib.sha256(git_bytes("diff", "--no-ext-diff", "--binary")).hexdigest(),
+        "@git-index": hashlib.sha256(git_bytes("diff", "--cached", "--no-ext-diff", "--binary")).hexdigest(),
     }
     for relative in _status_paths(status) | _status_paths(ignored):
         target = root / relative
@@ -481,21 +541,21 @@ def execution_snapshot(repo: str) -> dict[str, str]:
                 payload += b"\0" + os.readlink(target).encode()
         else:
             payload = b"MISSING"
-        diff = git_bytes("diff", "--binary", "--", relative) + git_bytes("diff", "--cached", "--binary", "--", relative)
+        diff = git_bytes("diff", "--no-ext-diff", "--binary", "--", relative) + git_bytes("diff", "--cached", "--no-ext-diff", "--binary", "--", relative)
         snapshot[f"@git-path:{relative}"] = hashlib.sha256(payload + b"\0" + diff).hexdigest()
     return snapshot
 
 
 def repository_head(repo: str) -> str:
-    return subprocess.check_output(["git", "-C", repo, "rev-parse", "HEAD"], text=True).strip()
+    return subprocess.check_output(["git", "-C", repo, "rev-parse", "HEAD"], text=True, env=git_observation_env()).strip()
 
 
 def git_state(repo: str) -> str:
-    head_ref = subprocess.run(["git", "-C", repo, "symbolic-ref", "-q", "HEAD"], capture_output=True, text=True, check=False).stdout.strip() or "DETACHED_HEAD"
+    head_ref = subprocess.run(["git", "-C", repo, "symbolic-ref", "-q", "HEAD"], capture_output=True, text=True, check=False, env=git_observation_env()).stdout.strip() or "DETACHED_HEAD"
     root = Path(canonical(repo))
     git_pointer = root / ".git"
-    git_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-dir"], text=True).strip())
-    common_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-common-dir"], text=True).strip())
+    git_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-dir"], text=True, env=git_observation_env()).strip())
+    common_dir = Path(subprocess.check_output(["git", "-C", repo, "rev-parse", "--git-common-dir"], text=True, env=git_observation_env()).strip())
     if not git_dir.is_absolute():
         git_dir = root / git_dir
     if not common_dir.is_absolute():
@@ -504,7 +564,7 @@ def git_state(repo: str) -> str:
     for label, path in (("git-pointer", git_pointer), ("git-head", git_dir / "HEAD"), ("git-index", git_dir / "index"), ("git-commondir", git_dir / "commondir"), ("git-config", common_dir / "config"), ("git-common-head", common_dir / "HEAD")):
         metadata.append(label.encode() + b"\0" + (filesystem_payload(path) if path.exists() or path.is_symlink() else b"MISSING"))
     outputs = [
-        subprocess.check_output(["git", "-C", repo, "diff", "--cached", "--binary"]),
+        subprocess.check_output(["git", "-C", repo, "diff", "--cached", "--no-ext-diff", "--binary"], env=git_observation_env()),
         head_ref.encode(),
         repository_head(repo).encode(),
         git_metadata_state(repo).encode(),
@@ -603,6 +663,7 @@ def agy_capability_fingerprint(request: dict[str, Any]) -> str:
     return _digest({
         "platform": sys.platform,
         "stage": qualification_stage(request),
+        "agy_enabled": os.environ.get("HEADLESS_CLI_ENABLE_AGY") == "1",
         "agy_available": bool(shutil.which(request["command"][0])),
         "network_allowed": os.environ.get("HEADLESS_CLI_ALLOW_NETWORK") == "1",
         "repository_egress_allowed": os.environ.get("HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED") == "1",
@@ -630,6 +691,8 @@ def agy_capability_preflight(request: dict[str, Any]) -> dict[str, Any]:
     """Run Q0 before AGY; repository payload egress is an explicit host gate."""
     if request.get("harness") != "agy" or os.environ.get("HEADLESS_CLI_TEST_ONLY") == "1":
         return {"status": "SKIPPED", "reason": "TEST_ONLY", "provider_launched": False}
+    if os.environ.get("HEADLESS_CLI_ENABLE_AGY") != "1":
+        raise RuntimeError("AGY_SUSPENDED: production AGY is disabled by default")
     validate_agy_launch_environment(request)
     if not shutil.which(request["command"][0]):
         raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_EXECUTABLE_UNAVAILABLE")
@@ -663,6 +726,8 @@ def bind_delegation(request: dict) -> dict:
     if binding.get("version") != 1 or not re.fullmatch(r"[0-9a-f]{64}", str(binding.get("source_contract_sha256", ""))) or binding.get("rendered_prompt_sha256") != _digest(prompt):
         raise ValueError("DELEGATION_INVALID: renderer fingerprints do not bind the supplied prompt")
     contract = request.get("_delegation_contract")
+    if isinstance(contract, dict) and "allowed_scope" in contract and contract.get("allowed_scope") != (request.get("scope") or {}).get("allowed_paths"):
+        raise ValueError("DELEGATION_INVALID: rendered scope does not bind request allowed_paths")
     if request.get("harness") == "agy" and os.environ.get("HEADLESS_CLI_TEST_ONLY") != "1":
         if not isinstance(contract, dict) or _digest(contract) != binding.get("source_contract_sha256"):
             raise ValueError("DELEGATION_INVALID: renderer source contract is not bound")
@@ -1027,10 +1092,12 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
         root = canonical(raw_root)
         if any(char in root for char in ('"', "\\", "\n", "\r", "\x00")):
             raise ValueError("repo root contains unsafe sandbox syntax")
-        sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
-        for relative in request["scope"]["allowed_paths"]:
+        allowed_paths = request["scope"].get("allowed_paths")
+        if not isinstance(allowed_paths, list):
+            raise ValueError("scope allowed_paths must be a list")
+        for relative in allowed_paths:
             relative_path = Path(relative)
-            if not relative or relative_path == Path(".") or relative_path.is_absolute() or ".." in relative_path.parts or any(char in relative for char in ('"', "\\", "\n", "\r", "\x00")):
+            if not valid_scope_path(relative):
                 raise ValueError(f"invalid bounded-write path: {relative!r}")
             if is_git_metadata_path(relative_path):
                 raise ValueError(f"bounded-write path cannot target .git metadata: {relative!r}")
@@ -1044,6 +1111,7 @@ def sandbox_command(command: list[str], request: dict) -> list[str]:
                 raise ValueError(f"bounded-write path escapes repo root: {relative!r}")
             rule = "subpath" if relative.endswith("/") or Path(target).is_dir() else "literal"
             sandbox.append(f'(allow file-write* ({rule} "{target}"))')
+        sandbox.append(f'(deny file-write* (subpath "{root}/.git"))')
     if request["harness"] in NATIVE_TERMINAL_LANES:
         for root in runtime_write_roots(request):
             sandbox.append(f'(allow file-write* (subpath "{root}"))')
@@ -1175,6 +1243,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     command = sandbox_command(command, request)
     before_snapshot = execution_snapshot(repo["worktree"])
     before_snapshot["@git-state"] = git_state(repo["worktree"])
+    before_snapshot["@git-metadata"] = git_metadata_state(repo["worktree"])
     before_head = repository_head(repo["worktree"])
     start = time.monotonic()
     proc = None
@@ -1186,6 +1255,7 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
     duration_ms = int((time.monotonic() - start) * 1000)
     after_snapshot = execution_snapshot(repo["worktree"])
     after_snapshot["@git-state"] = git_state(repo["worktree"])
+    after_snapshot["@git-metadata"] = git_metadata_state(repo["worktree"])
     if repository_head(repo["worktree"]) != before_head:
         raise ValueError("EXECUTION_BOUNDARY_VIOLATION: executor changed repository HEAD")
     changed = {path for path in before_snapshot.keys() | after_snapshot.keys() if before_snapshot.get(path) != after_snapshot.get(path)}
@@ -1193,6 +1263,8 @@ def _run_once(request: dict, registry_path: Path, timeout: int) -> dict:
         raise ValueError(f"MUTATION_SCOPE_VIOLATION: read-only execution changed {sorted(changed)}")
     if request["permission_policy"] == "bounded-write":
         allowed = request["scope"]["allowed_paths"]
+        if "@git-metadata" in changed:
+            raise ValueError(f"MUTATION_SCOPE_VIOLATION: Git metadata changed {sorted(changed)}")
         changed_paths = {path.removeprefix("@git-path:") for path in changed if path.startswith("@git-path:")}
         if any(not path_matches_allowance(path, allowed, repo["worktree"]) for path in changed_paths):
             raise ValueError(f"MUTATION_SCOPE_VIOLATION: {sorted(changed)}")
@@ -1237,9 +1309,11 @@ def _availability_error_code(error: BaseException) -> str | None:
 
 def _qualification_reason(error: BaseException) -> str:
     message = str(error).strip()
+    if message.startswith("AGY_SUSPENDED"):
+        return "AGY_SUSPENDED"
     if ":" in message:
         candidate = message.split(":", 1)[1].strip()
-        if candidate.startswith("HOST_"):
+        if candidate.startswith("HOST_") or candidate == "AGY_SUSPENDED":
             return candidate
     return "HOST_CAPABILITY_UNAVAILABLE"
 

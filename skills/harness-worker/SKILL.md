@@ -11,11 +11,16 @@ invoke the selected supported backend; preserve fresh/resume semantics and
 native session/usage fields; normalize availability and execution errors; and
 return one bounded receipt.
 
-The current v1 backend is native AGY. The skill name is future-neutral, but it
-does not provide a generic router, model manager, plugin registry, or provider
-fallback. Availability failures are reported to the parent, which alone may
-invoke its native Prometheus fallback. Quality failures stay on the current
-worker for repair. Deferred providers are outside the active v1 lane.
+The current v1 backend adapter is native AGY, but production AGY is currently
+suspended by default because the host/provider path is unstable. A production
+caller must explicitly set `HEADLESS_CLI_ENABLE_AGY=1` to re-enable it; test-only
+fixtures remain available under `HEADLESS_CLI_TEST_ONLY=1`. Without that opt-in,
+the worker returns `AGY_SUSPENDED` before provider launch. The skill name is
+future-neutral, but it does not provide a generic router, model manager, plugin
+registry, or provider fallback. Availability failures are reported to the
+parent, which alone may invoke its native Prometheus fallback. Quality failures
+stay on the current worker for repair. Deferred providers are outside the
+active v1 lane.
 
 The harness owns disposable runtime roots and removes only roots it created.
 It never owns Issue lifecycle, acceptance, Athena review, commits, PR state,

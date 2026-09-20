@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "skills" / "athena-review" / "scripts"))
 import review  # noqa: E402
 
 REVIEWER_ID = "11111111-1111-1111-1111-111111111111"
+OTHER_REVIEWER_ID = "22222222-2222-2222-2222-222222222222"
 class ReviewTests(unittest.TestCase):
     def test_coupled_campaign_fixture_is_external_to_generic_core(self) -> None:
         import yaml
@@ -69,6 +70,9 @@ class ReviewTests(unittest.TestCase):
         invalid = {**supplied, "external_research": {**supplied["external_research"], "query_count": 3}}
         with self.assertRaisesRegex(ValueError, "external_research"):
             review.normalize(self.packet(), invalid, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+        invalid = {**supplied, "external_research": {**supplied["external_research"], "sources": [{"url": f"https://example.invalid/{i}"} for i in range(4)]}}
+        with self.assertRaisesRegex(ValueError, "external_research"):
+            review.normalize(self.packet(), invalid, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
 
     def attestation(self, reviewer_id: str = REVIEWER_ID) -> dict:
         return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-5.6-luna", "reasoning_effort": "max", "provider": "openai"}}
@@ -98,7 +102,11 @@ class ReviewTests(unittest.TestCase):
         result = review.normalize(self.packet(), {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
         attempt = result["review_attempt"]
         self.assertEqual(attempt["display_label"], "athena:repo:issue-107:aaaaaaa:joint:r1")
-        self.assertEqual(review.review_receipt_filename(attempt), "athena-aaaaaaa-joint-r1.yaml")
+        digest_suffix = attempt["review_id"].rsplit("-", 1)[1]
+        self.assertEqual(review.review_receipt_filename(attempt), f"athena-{attempt['candidate_head']}-joint-r1-{digest_suffix}.yaml")
+        other_attempt = review.review_attempt(self.packet(), OTHER_REVIEWER_ID)
+        self.assertNotEqual(other_attempt["review_id"], attempt["review_id"])
+        self.assertNotEqual(review.review_receipt_filename(other_attempt), review.review_receipt_filename(attempt))
         with tempfile.TemporaryDirectory() as directory:
             path = review.review_receipt_path(directory, attempt)
             path.touch()
@@ -109,6 +117,25 @@ class ReviewTests(unittest.TestCase):
         next_attempt = review.review_attempt(packet, REVIEWER_ID)
         self.assertNotEqual(next_attempt["review_id"], attempt["review_id"])
         self.assertEqual(next_attempt["display_label"], "athena:repo:issue-107:aaaaaaa:work:r2")
+
+    def test_same_prefix_candidates_have_distinct_machine_identity(self) -> None:
+        first = self.packet()
+        second = self.packet()
+        first["candidate"]["head"] = "a" * 7 + "c" * 33
+        second["candidate"]["head"] = "a" * 7 + "b" * 33
+        first_attempt = review.review_attempt(first, REVIEWER_ID)
+        second_attempt = review.review_attempt(second, REVIEWER_ID)
+        self.assertEqual(first_attempt["display_label"], second_attempt["display_label"])
+        self.assertIn(first["candidate"]["head"], first_attempt["review_id"])
+        self.assertIn(first["candidate"]["head"], review.review_receipt_filename(first_attempt))
+        self.assertNotEqual(first_attempt["review_id"], second_attempt["review_id"])
+        self.assertNotEqual(review.review_receipt_filename(first_attempt), review.review_receipt_filename(second_attempt))
+
+    def test_review_attempt_rejects_abbreviated_candidate_head(self) -> None:
+        packet = self.packet()
+        packet["candidate"]["head"] = "a" * 7
+        with self.assertRaisesRegex(ValueError, "exact candidate head"):
+            review.review_attempt(packet, REVIEWER_ID)
 
     def test_work_mode_does_not_require_goal_adjudication(self) -> None:
         packet = self.packet()

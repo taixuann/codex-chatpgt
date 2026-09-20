@@ -241,6 +241,12 @@ class KernelTests(unittest.TestCase):
         bad = {**receipt, "native_prometheus_result": {**receipt["native_prometheus_result"], "changed_paths": ["outside.txt"]}}
         with self.assertRaisesRegex(ValueError, "exceed the parent allowed scope"):
             issue_execution.validate_receipt(request, bad)
+        request["scope"]["allowed_paths"] = ["."]
+        issue_execution.validate_request(request)
+        for path in ("foo/./bar", "foo//bar", "C:/outside", "NUL", "foo\u200bbar"):
+            bad = {**receipt, "native_prometheus_result": {**receipt["native_prometheus_result"], "changed_paths": [path]}}
+            with self.subTest(path=path), self.assertRaisesRegex(ValueError, "native Prometheus changed_paths are invalid"):
+                issue_execution.validate_receipt(request, bad)
 
     def test_native_one_shot_receipt_preserves_unobserved_session(self) -> None:
         request = self.request("agy-receipt")
@@ -284,6 +290,15 @@ class KernelTests(unittest.TestCase):
         self.assertNotEqual(root_context["fingerprint"], nested_context["fingerprint"])
         with self.assertRaisesRegex(ValueError, "required skills unavailable"):
             issue_execution.effective_context(str(self.repo), str(self.repo), ["missing-skill"])
+        outside = Path(self.tmp.name) / "outside"
+        outside.mkdir()
+        (outside / "AGENTS.md").write_text("outside instructions\n")
+        (self.repo / "AGENTS.md").unlink()
+        (self.repo / "AGENTS.md").symlink_to(outside / "AGENTS.md")
+        with self.assertRaisesRegex(ValueError, "CONTEXT_CONTRACT_UNVERIFIED"):
+            issue_execution.effective_context(str(self.repo), str(self.repo))
+        (self.repo / "AGENTS.md").unlink()
+        (self.repo / "AGENTS.md").write_text("root instructions\n")
         request = self.request("context-root")
         registry = Path(self.tmp.name) / "context-sessions.json"
         request["outputs"]["registry"] = str(registry)
@@ -466,6 +481,13 @@ class KernelTests(unittest.TestCase):
         self.assertFalse(issue_execution.path_matches_allowance("result.txt/child", ["result.txt"], str(self.repo)))
         self.assertTrue(issue_execution.path_matches_allowance("nested/child", ["nested/"], str(self.repo)))
 
+    def test_ledger_rejects_malformed_allowed_paths(self) -> None:
+        ledger = {"repository": "fixture/repo", "issue": 107, "criteria": [{"id": "AC-1"}], "tasks": [{"id": "T1", "objective": "one", "status": "done", "dependencies": [], "criteria": ["AC-1"]}], "files": [], "supporting_documents": [{"disposition": "NOT_APPLICABLE", "reason": "none"}]}
+        for allowed_paths in (".", ["../outside"], ["nested/.git/config"]):
+            with self.subTest(allowed_paths=allowed_paths):
+                with self.assertRaises(ValueError):
+                    issue_execution.validate_ledger({**ledger, "allowed_paths": allowed_paths})
+
     def test_ledger_rejects_cycles_and_unmapped_criteria(self) -> None:
         ledger = {"criteria": [{"id": "AC-1"}, {"id": "AC-2"}], "tasks": [{"id": "T1", "objective": "one", "status": "done", "dependencies": ["T2"], "criteria": ["AC-1"]}, {"id": "T2", "objective": "two", "status": "done", "dependencies": ["T1"], "criteria": ["AC-2"]}], "files": [], "supporting_documents": [{"disposition": "NOT_APPLICABLE", "reason": "none"}]}
         with self.assertRaises(ValueError):
@@ -495,9 +517,31 @@ class KernelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             issue_execution.validate_request(request)
 
-    def test_bounded_write_rejects_repository_root_allowance(self) -> None:
+    def test_bounded_write_requires_a_scope_path_list(self) -> None:
+        request = self.request("scope-type")
+        request["scope"]["allowed_paths"] = "."
+        with self.assertRaisesRegex(ValueError, "must be a list"):
+            issue_execution.validate_request(request)
+
+    def test_bounded_write_rejects_portability_ambiguous_scope_paths(self) -> None:
+        for path in ("./outside", "foo/./bar", "foo//bar", "C:/outside", "NUL", "foo\u200bbar"):
+            request = self.request(f"scope-{path}")
+            request["scope"]["allowed_paths"] = [path]
+            with self.subTest(path=path), self.assertRaises(ValueError):
+                issue_execution.validate_request(request)
+
+    def test_bounded_write_accepts_explicit_repository_root_allowance(self) -> None:
         request = self.request("defect")
-        for root_allowance in (".", "./", ".//"):
+        request["scope"]["allowed_paths"] = ["."]
+        issue_execution.validate_request(request)
+        with patch.object(harness_worker.sys, "platform", "darwin"):
+            command = harness_worker.sandbox_command(["echo", "ok"], request)
+        self.assertIn("allow file-write*", command[2])
+        self.assertTrue(issue_execution.path_matches_allowance("any/file", ["."], str(self.repo)))
+
+    def test_bounded_write_rejects_repository_root_aliases(self) -> None:
+        request = self.request("defect")
+        for root_allowance in ("./", ".//"):
             request["scope"]["allowed_paths"] = [root_allowance]
             with self.assertRaises(ValueError):
                 issue_execution.validate_request(request)
@@ -554,6 +598,43 @@ class KernelTests(unittest.TestCase):
         finally:
             subprocess.run(["git", "-C", str(self.repo), "worktree", "remove", "--force", str(linked)], check=True)
 
+    def test_git_observations_ignore_hostile_inherited_environment(self) -> None:
+        decoy = Path(self.tmp.name) / "decoy"
+        subprocess.run(["git", "init", "-q", "-b", "main", str(decoy)], check=True)
+        trace = Path(self.tmp.name) / "git-trace.log"
+        hostile = {
+            "GIT_DIR": str(decoy / ".git"),
+            "GIT_WORK_TREE": str(decoy),
+            "GIT_CONFIG_GLOBAL": str(decoy / "config"),
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.bare",
+            "GIT_CONFIG_VALUE_0": "true",
+            "GIT_TRACE": str(trace),
+            "GIT_TRACE2": str(trace),
+            "GIT_REDIRECT_STDERR": str(trace),
+        }
+        with patch.dict(os.environ, hostile, clear=False):
+            identity = issue_execution.git_worktree_identity(str(self.repo))
+            self.assertEqual(identity["top_level"], issue_execution.canonical(self.repo))
+            self.assertEqual(issue_execution.git(str(self.repo), "rev-parse", "HEAD"), self.base)
+            self.assertEqual(issue_execution.git_status_records(str(self.repo)), [{"xy": "??", "path": "fake_runtime.py"}])
+            self.assertTrue(issue_execution.is_ancestor(str(self.repo), self.base, self.base))
+        self.assertFalse(trace.exists())
+
+    def test_git_observations_ignore_replace_object_override(self) -> None:
+        subprocess.run(["git", "-C", str(self.repo), "switch", "-c", "replacement-fixture", "-q"], check=True)
+        (self.repo / "README.md").write_text("replacement\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "README.md"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "replacement"], check=True)
+        replacement = git(self.repo, "rev-parse", "HEAD")
+        subprocess.run(["git", "-C", str(self.repo), "switch", "main", "-q"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "replace", self.base, replacement], check=True)
+        try:
+            with patch.dict(os.environ, {"GIT_NO_REPLACE_OBJECTS": "1"}, clear=False):
+                self.assertEqual(issue_execution.git(str(self.repo), "show", "HEAD:README.md"), "replacement")
+        finally:
+            subprocess.run(["git", "-C", str(self.repo), "replace", "-d", self.base], check=True)
+
     def test_malformed_repo_request_fails_as_value_error(self) -> None:
         request = self.request("malformed-repo")
         request["repo"] = []
@@ -581,6 +662,29 @@ class KernelTests(unittest.TestCase):
         self.assertTrue(session["baseline"]["status"])
         self.assertEqual(session["review_cycle"]["work"]["status"], "not_run")
         self.assertEqual(session["review_cycle"]["goal"]["status"], "not_run")
+
+    def test_preflight_accepts_explicit_repository_root_dirty_baseline(self) -> None:
+        criteria = Path(self.tmp.name) / "criteria-root.yaml"
+        criteria.write_text("- id: AC-1\n  status: pending\n")
+        (self.repo / "README.md").write_text("dirty\n")
+        state = self.repo / ".agents" / "sessions" / "issue-107-root"
+        command = [sys.executable, str(ISSUE_SCRIPTS / "issue_execution.py"), "preflight", "--repo-root", str(self.repo), "--repository", "fixture/repo", "--issue", "107", "--base-branch", "main", "--base-sha", self.base, "--state-dir", str(state), "--criteria", str(criteria)]
+        fingerprint = issue_execution.baseline(str(self.repo), [str(state)])["fingerprint"]
+        result = subprocess.run(command + ["--allowed-paths", ".", "--allow-known-dirty", "--dirty-baseline-fingerprint", fingerprint], text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        session = yaml.safe_load((state / "session.yaml").read_text())
+        self.assertEqual(session["baseline"]["status_records"][0]["path"], "README.md")
+
+    def test_preflight_rejects_dirty_path_outside_restricted_allowance(self) -> None:
+        criteria = Path(self.tmp.name) / "criteria-restricted.yaml"
+        criteria.write_text("- id: AC-1\n  status: pending\n")
+        (self.repo / "README.md").write_text("dirty\n")
+        state = self.repo / ".agents" / "sessions" / "issue-107-restricted"
+        command = [sys.executable, str(ISSUE_SCRIPTS / "issue_execution.py"), "preflight", "--repo-root", str(self.repo), "--repository", "fixture/repo", "--issue", "107", "--base-branch", "main", "--base-sha", self.base, "--state-dir", str(state), "--criteria", str(criteria)]
+        fingerprint = issue_execution.baseline(str(self.repo), [str(state)])["fingerprint"]
+        result = subprocess.run(command + ["--allowed-paths", "docs", "--allow-known-dirty", "--dirty-baseline-fingerprint", fingerprint], text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("BLOCKED: dirty baseline overlaps undeclared paths", result.stderr)
 
     def test_preflight_accepts_only_repository_local_state_directory(self) -> None:
         criteria = Path(self.tmp.name) / "criteria-inside.yaml"
@@ -703,7 +807,7 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(eligible["status"], "awaiting_parent_decision")
         self.assertEqual(eligible["review_cycle"]["work"]["status"], "pass")
         self.assertEqual(eligible["review_cycle"]["goal"]["status"], "complete")
-        self.assertEqual(eligible["review_cycle"]["work"]["receipt"], f"review/athena-{candidate[:7]}-work-r1.yaml")
+        self.assertEqual(eligible["review_cycle"]["work"]["receipt"], f"review/{review.review_receipt_filename(work['review_attempt'])}")
         self.assertIn("athena:repo:issue-107:", eligible["review_cycle"]["goal"]["display_label"])
         self.assertEqual(eligible["candidate"], {"head": candidate, "checkpoint_reason": "integrated_candidate"})
         self.assertNotIn("latest_review", eligible)

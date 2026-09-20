@@ -47,8 +47,9 @@ to those inputs makes the result stale.
 Every formal review also receives a fresh attempt identity: derive a readable
 `athena:<repo>:pr-<PR>:<head7>:<axis>:r<round>` display label and bind it to the
 native reviewer session ID, exact candidate, criteria/evidence fingerprints,
-axis, and round. Use `review_receipt_filename()` for
-`athena-<head7>-<axis>-r<round>.yaml`; refuse an existing path rather than
+axis, and round. Keep the seven-character head prefix only as a display label. Use
+`review_receipt_filename()` for
+`athena-<candidate-sha>-<axis>-r<round>-<attempt-id>.yaml`; refuse an existing path rather than
 overwriting an earlier attempt. WORK, GOAL, and joint reviews are separate
 attempts, and formal re-review starts a fresh thread/session. The display label
 is navigation metadata only and never establishes trust or acceptance. If the

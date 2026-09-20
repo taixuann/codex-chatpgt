@@ -47,9 +47,10 @@ second Issue body or acceptance ledger.
 The task ledger carries trusted `repository` and numeric `issue` authority;
 reconciliation consumes the matching preflight session and rejects a ledger
 from another Issue. Ignored lifecycle state and `.git` metadata are runtime
-state, not Issue-owned changed files. Bounded-write scopes must name concrete
-relative files or subdirectories; `.` and `./` are rejected as whole-repository
-allowances. Review evidence must bind to a result whose `stale` flag is
+state, not Issue-owned changed files. Bounded-write scopes must use portable
+relative files or subdirectories; an exact `.` is an explicit whole-repository
+allowance, while `./` aliases are rejected. The sandbox still excludes `.git`
+metadata. Review evidence must bind to a result whose `stale` flag is
 explicitly `false` before technical eligibility can be recorded. The local
 kernel ends at `awaiting_parent_decision`; the host owns reviewer trust, parent
 acceptance, and Draft PR publication. Detached Git worktrees are
@@ -63,8 +64,10 @@ reference, result (`success`, `failed`, `unavailable`, `timed_out`, or
 `execution` slot is rejected; this is bounded attempt history, not a transcript
 or execution database.
 
-Worker routing is explicitly two-stage. Stage 1 is always the requested AGY
-attempt: an availability failure records `actual_worker: agy`,
+Worker routing is explicitly two-stage. Stage 1 is always the requested
+AGY-shaped attempt; while production AGY is suspended, the worker returns
+`AGY_SUSPENDED` before launch. An availability failure records
+`actual_worker: agy`,
 `fallback_triggered: true`, its normalized `fallback_reason`, and
 `fallback_required: prometheus`. Stage 1 never claims that Prometheus ran.
 Only the parent/native host may return stage 2 with `actual_worker:
