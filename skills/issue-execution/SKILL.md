@@ -40,9 +40,10 @@ binding, and normalized receipts. Neither the transport nor this skill claims
 AC completion, review success, or acceptance. See `references/contracts.md` and
 `../harness-worker/references/contracts.md`.
 
-Use `agy` as the primary worker. On an availability failure
-(`QUOTA_EXHAUSTED`, `RATE_LIMITED`, `RUNTIME_UNAVAILABLE`, or provider
-unavailability), the stage-1 receipt remains an AGY receipt and returns
+Use the AGY-shaped primary request contract, but production AGY is currently
+suspended unless `HEADLESS_CLI_ENABLE_AGY=1` is explicitly supplied. On
+`AGY_SUSPENDED` or another availability failure (`QUOTA_EXHAUSTED`,
+`RATE_LIMITED`, `RUNTIME_UNAVAILABLE`, or provider unavailability), the stage-1 receipt remains an AGY receipt and returns
 `fallback_required: prometheus` to the parent/native host. Only a returned
 stage-2 native Prometheus result may set `actual_worker: prometheus`; it must
 bind the parent request, Issue/repository/CWD/worktree, fallback reason,

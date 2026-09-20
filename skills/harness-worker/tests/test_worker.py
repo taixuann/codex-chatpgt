@@ -165,6 +165,7 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_contract"] = {"task_id": "fixture"}
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
         clean_env = dict(os.environ)
+        clean_env["HEADLESS_CLI_ENABLE_AGY"] = "1"
         clean_env.pop("HEADLESS_CLI_ALLOW_NETWORK", None)
         clean_env.pop("HEADLESS_CLI_RUNTIME_WRITE_ROOTS", None)
         for launch_env in ({}, {"HEADLESS_CLI_ALLOW_NETWORK": "1"}):
@@ -172,6 +173,33 @@ class HarnessWorkerTests(unittest.TestCase):
                 receipt = harness_worker.run(request, Path(self.tmp.name) / "sessions.json", 10)
             self.assertEqual(receipt["execution"]["error_code"], "RUNTIME_UNAVAILABLE")
             self.assertEqual(receipt["fallback_required"], "prometheus")
+
+    def test_production_agy_is_suspended_without_explicit_enable(self) -> None:
+        request = self.request("agy-suspended")
+        request["harness"] = "agy"
+        request["command"] = ["agy", "--print"]
+        request["_delegation_prompt"] = "Return one harmless smoke token."
+        request["_delegation_contract"] = {"task_id": "agy-suspended", "allowed_scope": request["scope"]["allowed_paths"]}
+        request["_delegation_binding"] = {
+            "version": 1,
+            "profile": "agy",
+            "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]),
+            "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"]),
+        }
+        runtime = Path(self.tmp.name) / "agy-suspended-runtime"
+        runtime.mkdir()
+        env = {
+            "HEADLESS_CLI_ALLOW_NETWORK": "1",
+            "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime),
+            "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime),
+        }
+        with patch.dict(os.environ, env, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe") as probe:
+            receipt = harness_worker.run(request, Path(self.tmp.name) / "agy-suspended-sessions.json", 10)
+        self.assertEqual(receipt["execution"]["error_code"], "AGY_SUSPENDED")
+        self.assertEqual(receipt["live_qualification"]["reason"], "AGY_SUSPENDED")
+        self.assertFalse(receipt["live_qualification"]["provider_launched"])
+        self.assertEqual(receipt["fallback_required"], "prometheus")
+        probe.assert_not_called()
 
     def test_q0_blocks_repository_egress_before_native_launch(self) -> None:
         request = self.request("q0-egress")
@@ -182,7 +210,7 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
         runtime = Path(self.tmp.name) / "q0-runtime"
         runtime.mkdir()
-        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)):
+        with patch.dict(os.environ, {"HEADLESS_CLI_ENABLE_AGY": "1", "HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)):
             receipt = harness_worker.run(request, Path(self.tmp.name) / "q0-sessions.json", 10)
         self.assertEqual(receipt["execution"]["error_code"], "RUNTIME_UNAVAILABLE")
         self.assertEqual(receipt["live_qualification"]["status"], "NOT_ASSESSED")
@@ -191,7 +219,7 @@ class HarnessWorkerTests(unittest.TestCase):
         self.assertTrue(receipt["live_qualification"]["capability_fingerprint"])
 
         request["qualification_stage"] = "fixture"
-        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe"):
+        with patch.dict(os.environ, {"HEADLESS_CLI_ENABLE_AGY": "1", "HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime)}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe"):
             observation = harness_worker.agy_capability_preflight(request)
         self.assertEqual(observation["status"], "READY")
 
@@ -204,7 +232,7 @@ class HarnessWorkerTests(unittest.TestCase):
         request["_delegation_binding"] = {"version": 1, "profile": "agy", "source_contract_sha256": harness_worker._digest(request["_delegation_contract"]), "rendered_prompt_sha256": harness_worker._digest(request["_delegation_prompt"])}
         runtime = Path(self.tmp.name) / "q0-sandbox-runtime"
         runtime.mkdir()
-        with patch.dict(os.environ, {"HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime), "HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED": "1"}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe", side_effect=RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_SANDBOX_INCOMPATIBLE")):
+        with patch.dict(os.environ, {"HEADLESS_CLI_ENABLE_AGY": "1", "HEADLESS_CLI_ALLOW_NETWORK": "1", "HEADLESS_CLI_RUNTIME_WRITE_ROOTS": str(runtime), "HEADLESS_CLI_RUNTIME_READ_ROOTS": str(runtime), "HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED": "1"}, clear=True), patch.object(harness_worker.shutil, "which", return_value=str(self.fake)), patch.object(harness_worker, "agy_sandbox_probe", side_effect=RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_SANDBOX_INCOMPATIBLE")):
             receipt = harness_worker.run(request, Path(self.tmp.name) / "q0-sandbox-sessions.json", 10)
         self.assertEqual(receipt["live_qualification"]["reason"], "HOST_AGY_SANDBOX_INCOMPATIBLE")
         self.assertFalse(receipt["live_qualification"]["provider_launched"])

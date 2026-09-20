@@ -64,8 +64,10 @@ reference, result (`success`, `failed`, `unavailable`, `timed_out`, or
 `execution` slot is rejected; this is bounded attempt history, not a transcript
 or execution database.
 
-Worker routing is explicitly two-stage. Stage 1 is always the requested AGY
-attempt: an availability failure records `actual_worker: agy`,
+Worker routing is explicitly two-stage. Stage 1 is always the requested
+AGY-shaped attempt; while production AGY is suspended, the worker returns
+`AGY_SUSPENDED` before launch. An availability failure records
+`actual_worker: agy`,
 `fallback_triggered: true`, its normalized `fallback_reason`, and
 `fallback_required: prometheus`. Stage 1 never claims that Prometheus ran.
 Only the parent/native host may return stage 2 with `actual_worker:

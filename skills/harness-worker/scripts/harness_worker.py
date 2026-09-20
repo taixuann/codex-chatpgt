@@ -25,7 +25,7 @@ from typing import Any
 MAX_OUTPUT_BYTES = 1024 * 1024
 INVALID_NATIVE_SESSION_IDS = {"NOT_ASSESSED", "UNKNOWN", "NONE", "NULL", "UNAVAILABLE"}
 FORBIDDEN_RECEIPT_KEYS = {"ac_satisfied", "issue_complete", "review_passed", "accepted_head", "final_success"}
-WORKER_AVAILABILITY_FAILURES = {"QUOTA_EXHAUSTED", "RATE_LIMITED", "RUNTIME_UNAVAILABLE", "PROVIDER_UNAVAILABLE"}
+WORKER_AVAILABILITY_FAILURES = {"AGY_SUSPENDED", "QUOTA_EXHAUSTED", "RATE_LIMITED", "RUNTIME_UNAVAILABLE", "PROVIDER_UNAVAILABLE"}
 SESSION_INVALIDATING_ERRORS = {"AUTH_REQUIRED", "SESSION_INVALID", "SESSION_CONTEXT_MISMATCH"}
 SEMANTIC_ROUTES = {"economy", "balanced", "strong", "strongest"}
 ROUTE_EFFORT_MAP = {"economy": "low", "balanced": "medium", "strong": "high", "strongest": "xhigh"}
@@ -33,7 +33,7 @@ LEGACY_ROUTE_MAP = {"low": "economy", "bounded": "balanced", "medium": "balanced
 REASONING_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 CAPACITY_STATES = {"AVAILABLE", "LOW", "EXHAUSTED", "RATE_LIMITED", "UNKNOWN"}
 ERROR_CODES = {
-    "AUTH_REQUIRED", "QUOTA_EXHAUSTED", "RATE_LIMITED", "PERMISSION_DENIED",
+    "AGY_SUSPENDED", "AUTH_REQUIRED", "QUOTA_EXHAUSTED", "RATE_LIMITED", "PERMISSION_DENIED",
     "SESSION_INVALID", "RUNTIME_UNAVAILABLE", "PROVIDER_UNAVAILABLE",
     "MODEL_ROUTE_UNAVAILABLE", "EXECUTION_PROTOCOL_VIOLATION", "TIMED_OUT",
     "EXECUTION_FAILED", "MUTATION_SCOPE_VIOLATION",
@@ -663,6 +663,7 @@ def agy_capability_fingerprint(request: dict[str, Any]) -> str:
     return _digest({
         "platform": sys.platform,
         "stage": qualification_stage(request),
+        "agy_enabled": os.environ.get("HEADLESS_CLI_ENABLE_AGY") == "1",
         "agy_available": bool(shutil.which(request["command"][0])),
         "network_allowed": os.environ.get("HEADLESS_CLI_ALLOW_NETWORK") == "1",
         "repository_egress_allowed": os.environ.get("HEADLESS_CLI_REPOSITORY_EGRESS_ALLOWED") == "1",
@@ -690,6 +691,8 @@ def agy_capability_preflight(request: dict[str, Any]) -> dict[str, Any]:
     """Run Q0 before AGY; repository payload egress is an explicit host gate."""
     if request.get("harness") != "agy" or os.environ.get("HEADLESS_CLI_TEST_ONLY") == "1":
         return {"status": "SKIPPED", "reason": "TEST_ONLY", "provider_launched": False}
+    if os.environ.get("HEADLESS_CLI_ENABLE_AGY") != "1":
+        raise RuntimeError("AGY_SUSPENDED: production AGY is disabled by default")
     validate_agy_launch_environment(request)
     if not shutil.which(request["command"][0]):
         raise RuntimeError("RUNTIME_UNAVAILABLE: HOST_AGY_EXECUTABLE_UNAVAILABLE")
@@ -1306,9 +1309,11 @@ def _availability_error_code(error: BaseException) -> str | None:
 
 def _qualification_reason(error: BaseException) -> str:
     message = str(error).strip()
+    if message.startswith("AGY_SUSPENDED"):
+        return "AGY_SUSPENDED"
     if ":" in message:
         candidate = message.split(":", 1)[1].strip()
-        if candidate.startswith("HOST_"):
+        if candidate.startswith("HOST_") or candidate == "AGY_SUSPENDED":
             return candidate
     return "HOST_CAPABILITY_UNAVAILABLE"
 

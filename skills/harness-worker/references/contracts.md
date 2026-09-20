@@ -17,11 +17,13 @@ The harness owns backend mechanics only:
    worktree, and reject unexpected mutation; and
 6. clean disposable runtime roots created by the harness.
 
-AGY is the active v1 backend. Availability codes are limited to
-`QUOTA_EXHAUSTED`, `RATE_LIMITED`, `RUNTIME_UNAVAILABLE`, and
-`PROVIDER_UNAVAILABLE`. An AGY availability receipt remains an AGY stage-1
-receipt and may request the parent-owned native Prometheus fallback; it never
-claims that Prometheus ran. Quality or correctness failures remain on AGY.
+AGY remains the v1 backend adapter, but production AGY is suspended by default
+until explicitly enabled with `HEADLESS_CLI_ENABLE_AGY=1`. Availability codes
+include `AGY_SUSPENDED`, `QUOTA_EXHAUSTED`, `RATE_LIMITED`,
+`RUNTIME_UNAVAILABLE`, and `PROVIDER_UNAVAILABLE`. A suspension or availability
+receipt remains an AGY stage-1 receipt and may request the parent-owned native
+Prometheus fallback; it never claims that Prometheus ran. Quality or
+correctness failures remain on AGY when that lane is explicitly enabled.
 
 The parent retains worker selection, fallback authorization, Issue lifecycle,
 validation/reconciliation, Athena review, acceptance, commit, PR, and STOP
