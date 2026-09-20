@@ -42,6 +42,44 @@ WINDOWS_RESERVED_BASENAMES = {
     *(f"COM{index}" for index in range(1, 10)),
     *(f"LPT{index}" for index in range(1, 10)),
 }
+GIT_OBSERVATION_ENV_BLOCKLIST = frozenset(
+    {
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_CEILING_DIRECTORIES",
+        "GIT_COMMON_DIR",
+        "GIT_NAMESPACE",
+        "GIT_EXTERNAL_DIFF",
+        "GIT_DIFF_OPTS",
+        "GIT_CONFIG_SYSTEM",
+        "GIT_CONFIG_GLOBAL",
+        "GIT_CONFIG_NOSYSTEM",
+    }
+)
+
+
+def git_observation_env() -> dict[str, str]:
+    """Keep authority-critical Git reads pinned to the requested worktree."""
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key not in GIT_OBSERVATION_ENV_BLOCKLIST
+        and not key.startswith(("GIT_CONFIG_", "GIT_TRACE", "GIT_REDIRECT_STDERR"))
+    }
+    env.update(
+        {
+            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": "core.fsmonitor",
+            "GIT_CONFIG_VALUE_0": "false",
+            "GIT_CONFIG_KEY_1": "core.pager",
+            "GIT_CONFIG_VALUE_1": "cat",
+        }
+    )
+    return env
 
 
 def valid_scope_path(value: Any) -> bool:
@@ -154,7 +192,7 @@ def git_worktree_identity(repo: str) -> dict[str, str]:
         "git_common_dir": ("--git-common-dir",),
         "inside_worktree": ("--is-inside-work-tree",),
     }.items():
-        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True)
+        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True, env=git_observation_env())
         if result.returncode:
             raise ValueError("repository root is not a Git worktree")
         value = result.stdout.strip()
@@ -383,14 +421,14 @@ def workspace_manifest(repo: str, excluded: list[str] | None = None) -> dict[str
 
 
 def git(repo: str, *args: str) -> str:
-    result = subprocess.run(["git", "-C", repo, *args], text=True, capture_output=True)
+    result = subprocess.run(["git", "-C", repo, *args], text=True, capture_output=True, env=git_observation_env())
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or f"git failed: {args}")
     return result.stdout.strip()
 
 
 def git_status_records(repo: str) -> list[dict[str, str]]:
-    result = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "-z"], text=True, capture_output=True)
+    result = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "-z"], text=True, capture_output=True, env=git_observation_env())
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or "cannot inspect Git status")
     parts = [part for part in result.stdout.split("\0") if part]
@@ -707,7 +745,7 @@ def committed_changed_files(repo: str, base: str, candidate: str) -> list[str]:
 
 
 def is_ancestor(repo: str, base: str, candidate: str) -> bool:
-    return subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", base, candidate], capture_output=True).returncode == 0
+    return subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", base, candidate], capture_output=True, env=git_observation_env()).returncode == 0
 
 
 def classify_commit_history(repo: str, base: str, candidate: str) -> dict[str, Any]:

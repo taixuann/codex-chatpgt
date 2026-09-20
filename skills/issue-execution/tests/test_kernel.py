@@ -598,6 +598,29 @@ class KernelTests(unittest.TestCase):
         finally:
             subprocess.run(["git", "-C", str(self.repo), "worktree", "remove", "--force", str(linked)], check=True)
 
+    def test_git_observations_ignore_hostile_inherited_environment(self) -> None:
+        decoy = Path(self.tmp.name) / "decoy"
+        subprocess.run(["git", "init", "-q", "-b", "main", str(decoy)], check=True)
+        trace = Path(self.tmp.name) / "git-trace.log"
+        hostile = {
+            "GIT_DIR": str(decoy / ".git"),
+            "GIT_WORK_TREE": str(decoy),
+            "GIT_CONFIG_GLOBAL": str(decoy / "config"),
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.bare",
+            "GIT_CONFIG_VALUE_0": "true",
+            "GIT_TRACE": str(trace),
+            "GIT_TRACE2": str(trace),
+            "GIT_REDIRECT_STDERR": str(trace),
+        }
+        with patch.dict(os.environ, hostile, clear=False):
+            identity = issue_execution.git_worktree_identity(str(self.repo))
+            self.assertEqual(identity["top_level"], issue_execution.canonical(self.repo))
+            self.assertEqual(issue_execution.git(str(self.repo), "rev-parse", "HEAD"), self.base)
+            self.assertEqual(issue_execution.git_status_records(str(self.repo)), [{"xy": "??", "path": "fake_runtime.py"}])
+            self.assertTrue(issue_execution.is_ancestor(str(self.repo), self.base, self.base))
+        self.assertFalse(trace.exists())
+
     def test_malformed_repo_request_fails_as_value_error(self) -> None:
         request = self.request("malformed-repo")
         request["repo"] = []
