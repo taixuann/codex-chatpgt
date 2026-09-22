@@ -30,7 +30,7 @@ EVALUATE is a shared capability consumed by CREATE, UPDATE, INSTALL, and behavio
 
 - Preserve user scope, existing work, source/license identity, and parent authority.
 - Check native behavior, AGENTS guidance, scripts, tools, plugins, project procedures, sibling skills, and maintained sources before adding a skill.
-- Clone a suitable baseline unchanged before adapting it; donor/reference material is not an install target.
+- Route a suitable installable skill to INSTALL without redesigning it. For donor/reference-only material, bind an exact snapshot and adapt through CREATE; donor material is never an implicit install target.
 - Keep intent.md, raw traces, baselines, and reports in the Issue/session surface; do not leak creation evidence into the runtime package.
 - Keep deterministic validation, behavioral evaluation, and independent review separate. Missing runtime/reviewer signals remain NOT_ASSESSED.
 - Athena review is fresh, read-only, and non-binding. Issue-execution owns durable session/Git state and the awaiting_parent_decision boundary.

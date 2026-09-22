@@ -78,6 +78,44 @@ class EvalContractTests(unittest.TestCase):
         self.assertTrue(all(f"workflows/{action}.md" in root for action in ("create", "install", "update", "audit")))
         self.assertNotRegex(root, r"\bMAINTAIN\b")
 
+    def test_shared_reference_contracts_preserve_operational_semantics(self):
+        skill_dir = SCRIPT.parents[1]
+        evaluation = (skill_dir / "references" / "evaluation.md").read_text(encoding="utf-8")
+        authoring = (skill_dir / "references" / "authoring.md").read_text(encoding="utf-8")
+        environment = (skill_dir / "references" / "test-environment.md").read_text(encoding="utf-8")
+        architecture = (skill_dir / "references" / "architecture.md").read_text(encoding="utf-8")
+        self.assertNotIn("G0_NECESSITY", evaluation)
+        for marker in ("real-task selection", "portfolio", "held-out", "batch", "stochastic", "failure classification"):
+            self.assertIn(marker, evaluation.lower())
+        for marker in ("WHY", "WHEN", "WHAT", "HOW", "BRANCH", "OUTPUT", "RELATED RESOURCES"):
+            self.assertIn(marker, authoring)
+        for marker in ("ALLOCATE", "PREPARE", "BASELINE", "RUN", "FREEZE EVIDENCE", "REPORT", "ARCHIVE", "CLEAN", "CLEANED", "PRESERVED_FOR_REVIEW", "CLEANUP_BLOCKED"):
+            self.assertIn(marker, environment)
+        for marker in ("Phase Contract", "failure", "recovery", "forward trace", "reverse-trace"):
+            self.assertIn(marker.lower(), architecture.lower())
+
+    def test_create_install_boundary_and_multimode_case_are_current(self):
+        module = load_module()
+        skill_dir = SCRIPT.parents[1]
+        create = (skill_dir / "workflows" / "create.md").read_text(encoding="utf-8").lower()
+        cases = module.load_cases(skill_dir / "evals" / "cases.yaml")
+        multimode = next(case for case in cases["cases"] if case["id"] == "create-multimode-one-skill")
+        self.assertIn("install", create)
+        self.assertIn("donor", create)
+        self.assertIn("create, install, update, and audit", multimode["prompt"].lower())
+        self.assertIn("evaluate", multimode["prompt"].lower())
+        self.assertNotIn("create, update, evaluate, and audit", multimode["prompt"].lower())
+
+    def test_issue_fixture_has_no_unconsumed_duplicate(self):
+        module = load_module()
+        repo_root = SCRIPT.parents[3]
+        tracked = module.subprocess.check_output(
+            ["git", "ls-files", "fixtures/issue-121/skill-creator-v2"],
+            cwd=repo_root,
+            text=True,
+        )
+        self.assertEqual(tracked, "")
+
     def test_action_cases_have_a_runtime_workflow_observation_contract(self):
         module = load_module()
         case = {"id": "explicit-create", "kind": "ACTION", "prompt": "Create a reusable skill."}

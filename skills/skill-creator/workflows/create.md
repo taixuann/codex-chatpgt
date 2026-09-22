@@ -11,7 +11,7 @@ CREATE builds a new target skill only when no suitable installable owner satisfi
 - Bind the governing Issue, repository, CWD, target placement, session, and allowed paths. Resume the existing issue-execution session; do not create a competing state store.
 - Create or resume the task-scoped `intent.md` evidence note with Goal, Done when, Scope, Runtime, Placement, and the four linked architecture views. It is not a second lifecycle state store; keep lifecycle identity in issue-execution's session/task files.
 - Compare native behavior, AGENTS guidance, scripts/tools, plugins, local and maintained skills, sibling ownership, and donor sources.
-- Record source/ref/path/license, strongest rejected candidates, compatibility constraints, and whether the result is INSTALL_EXISTING, REFERENCE_AND_ADAPT, or CREATE_FROM_SCRATCH_WITH_JUSTIFICATION.
+- Record source/ref/path/license, strongest rejected candidates, compatibility constraints, and whether the result is INSTALL_EXISTING, REFERENCE_AND_ADAPT, or CREATE_FROM_SCRATCH_WITH_JUSTIFICATION. If a maintained source is an installable suitable skill, route INSTALL and do not redesign it here. Reserve CREATE for donor/reference-only material or no suitable installable owner.
 
 ### 4: resolve design
 
@@ -28,7 +28,7 @@ Run one fresh diagnostic design challenge. It is read-only and non-binding. Reco
 
 ### 5–8: package, baseline, build, validate
 
-Create Build Map and Case Map before package mutation. Each resource must name its owner, consumer, lifetime, validation, and runtime/creation-only status. Materialize the maintained baseline unchanged before adapting it.
+Create Build Map and Case Map before package mutation. Each resource must name its owner, consumer, lifetime, validation, and runtime/creation-only status. For a suitable installable source, stop and route to INSTALL. For donor/reference-only material, bind the exact donor snapshot, license, and hashes for provenance, then create via `REFERENCE_AND_ADAPT`; materialize a donor baseline only as a recoverable reference, never as an implicit install target.
 
 Build only the approved package. Validate frontmatter, names, links, package closure, scripts, eval schema, source/license records, and side effects. Run a static semantic walkthrough of one normal path and one highest-risk boundary.
 

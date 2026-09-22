@@ -1,22 +1,48 @@
 # EVALUATE
 
-Use this reference for readiness or quality review. Deterministic checks come
-first; a polished output cannot compensate for skipped process evidence.
+Use this shared capability for readiness or quality review of any target skill.
+It is consumed by CREATE, INSTALL, UPDATE, and AUDIT; it is not a peer action
+and does not own the skill-creator self-evaluation harness.
 
-## Eight gates
+## Evaluation design
 
-| Gate | Required evidence |
-| --- | --- |
-| `G0_NECESSITY` | structured ownership comparison using native, AGENTS, deterministic-script, project/user-skill, maintained-candidate, sibling/localization, and ordinary-instruction alternatives; checked alternatives carry substantive evidence |
-| `G1_STRUCTURE` | frontmatter, name/path, placeholders, references/resources, portability |
-| `G2_PROVENANCE` | exact source/ref/path, license, adaptation diff, donor boundary |
-| `G3_ROUTING` | positive, ambiguous/noisy, adjacent-negative, sibling-negative, and explicit opt-out cases |
-| `G4_BEHAVIOR` | requested process and disposition are observable, including no unauthorized side effect |
-| `G5_COEXISTENCE` | sibling collision, duplicate capability, and global/local ownership checks |
-| `G6_EFFICIENCY` | with/without comparison, context/command/resource cost, and necessity evidence |
-| `G7_INDEPENDENT_REVIEW` | fresh-context review of the exact revision with findings and limits, bound by an attestation rather than a caller flag |
+Start with real-task selection: choose requests that exercise the changed
+behavior, its highest-risk boundary, adjacent preserved behavior, and the
+expected failure path. Define the portfolio before running it and keep the
+baseline and candidate comparable.
 
-Routing reports separate activation precision and recall:
+Use complete partitions with distinct purposes:
+
+- `must_pass`: required normal paths and protected invariants;
+- `regression`: previously observed failures and changed boundaries;
+- `held_out`: cases not used to tune routing or wording.
+
+Cover the workflow's branches and checkpoints, not only its final prose:
+selection, inputs, state transitions, tool boundaries, normal completion,
+failure/recovery, side effects, artifacts, and terminal handoff. For
+stochastic behavior, use repeated trials or semantic checkpoints and compare
+forbidden actions and outcome classes rather than byte-identical prose.
+
+Batch the portfolio before repair. Classify each result as `EXPECTED_CHANGE`,
+`IMPROVEMENT`, `UNCHANGED`, `REGRESSION`, `NOT_COMPARABLE`, or
+`NOT_ASSESSED`; repair the earliest invalidated owner and rerun the same
+candidate evidence. Do not tune one case and silently change the comparison
+set.
+
+State whether each evaluation is persistent or creation-only. Runtime package
+files, generated artifacts, reports, raw traces, baselines, and temporary
+fixtures have different lifetimes; evaluate the intended lifetime and reject
+decorative or orphan resources.
+
+The report must preserve the exact case, condition, expected and observed
+outcome, process trace, artifact delta, cost fields, failure classification,
+and raw limitation. A qualitative score or caller-supplied review flag is not
+execution evidence. Keep activation, explicit invocation, implicit load, and
+behavior/artifact evidence as separate fields.
+
+## Routing metrics
+
+For routing portfolios, report activation separately from task quality:
 
 ```text
 TP = positive activated       FN = positive not activated
@@ -24,26 +50,14 @@ FP = negative activated       TN = negative not activated
 precision = TP / (TP + FP)    recall = TP / (TP + FN)
 ```
 
-For substantive updates, compare baseline and candidate on matching complete
-must-pass, regression, and held-out cases. Accept only when all must-pass
-cases remain passing, held-out performance is non-zero and non-regressing,
-regression failures do not increase, and no required gate is `NOT_ASSESSED`. A
-polished answer or caller-supplied review flag is not evidence of execution or
-independent review. Use a structured result with the exact case, condition,
-expected/observed outcome, trace/load signal, artifact delta, cost fields, and
-raw limitation; qualitative review must not be reduced to an ungrounded prose
-score. Lifecycle results include a typed action disposition and an evidence
-state for each inspected G0 alternative. Use `CHECKED`, `NOT_AVAILABLE`, or
-`NOT_RELEVANT`; only `CHECKED` alternatives require substantive evidence, and
-unavailable alternatives must not claim an action disposition. Coexistence
-cases bind evidence to the actual sibling or local `SKILL.md` paths in the
-fixture snapshots. Every case also declares `origin.type` and `origin.source`
-so regressions remain attributable.
+Keep description-tuning cases separate from held-out cases. Use isolated
+`.agents/skills` fixtures and require an explicit host load signal. Without
+one, report `NOT_ASSESSED` rather than inferring activation from prose.
 
 ## Runtime result semantics
 
 Run CREATE and UPDATE cases in an isolated writable fixture. The agent must
-perform the requested operation, and the harness must grade the resulting
+perform the requested operation, and the harness must grade resulting
 files/resources plus the structured process trace. A disposition alone is not
 behavioral proof.
 
@@ -53,32 +67,29 @@ with a classified `NOT_ASSESSED` result; it must not launch every case against
 an empty per-case `CODEX_HOME`. Use staged execution (`smoke`, `lifecycle`,
 then `full`) so a failed smoke does not spend the full corpus budget.
 
-Use the following status boundary:
+Use this status boundary:
 
-- `PASS`: expected outcome, required process trace, and artifact contract are all observed.
+- `PASS`: expected outcome, required process trace, and artifact contract are observed.
 - `FAIL`: runtime evidence exists but the outcome, trace, or artifact contract is wrong or incomplete.
 - `NOT_ASSESSED`: the host/runtime is unavailable, times out, exits before producing evidence, or withholds a required structured signal.
 
-Aggregate each case into its declared `gate` (and optional additional `gates`)
-from the case file. Any observed failure makes that gate `FAIL`; an incomplete
-or unavailable case makes it `NOT_ASSESSED`. Do not replace case-owned gate
-aggregation with hard-coded case sets.
-
 Record before/after snapshots for the operation workspace only. Exclude the
-temporary `CODEX_HOME` so plugin synchronization and runtime caches cannot
-masquerade as skill artifacts. Efficiency evidence records command count, tool
-calls, token usage when exposed, and changed-resource count; wall-clock time
-is diagnostic, not the admission metric. Paired efficiency cases require
-complete baseline and candidate outcome/process/artifact evidence, an observed
-outcome or artifact delta, and a resource-vector comparison; missing corpus or
-evidence fails closed.
+temporary `CODEX_HOME` so caches cannot masquerade as skill artifacts.
+Efficiency evidence records command count, tool calls, token usage when
+exposed, and changed-resource count; wall-clock time is diagnostic, not the
+admission metric. Paired cases require complete baseline and candidate
+outcome/process/artifact evidence plus a resource-vector comparison.
 
-Persist the raw process/tool events, before snapshot, after snapshot, and final
-structured report for every assessed case. Keep skill discovery, explicit
-invocation, implicit activation, and behavioral/artifact evidence as separate
-fields. The current `codex exec --json` interface may not expose discovery or
-activation events; retain those fields as `NOT_ASSESSED` rather than inferring
-them from model text. The comparator must recompute process observation, trace
-markers, changed paths, artifact contracts, and necessity evidence from those
-raw records; summary booleans are only valid when they match the
-recomputation.
+Persist raw process/tool events, before and after snapshots, and the final
+structured report for every assessed case. The comparator must recompute
+process observation, trace markers, changed paths, artifact contracts, and
+necessity evidence from those raw records; summary booleans are valid only
+when they match the recomputation.
+
+## Self-evaluation boundary
+
+The skill-creator-specific G0-G7 gate model, 26-case corpus, action probes,
+and validator schema belong to `evals/cases.yaml` and
+`scripts/validate_eval_cases.py`. They are a self-evaluation implementation,
+not generic evaluation guidance. `EVALUATE` remains a shared capability even
+when a self-evaluation case has `kind: EVALUATE`.
