@@ -358,7 +358,10 @@ def git(repo: str, *args: str) -> str:
 
 
 def git_nul(repo: str, *args: str) -> list[str]:
-    return [item for item in git(repo, *args, "-z").split("\0") if item]
+    result = subprocess.run(["git", "-C", repo, *args, "-z"], capture_output=True, env=_git_env())
+    if result.returncode:
+        raise RuntimeError(os.fsdecode(result.stderr).strip() or f"git failed: {args}")
+    return [os.fsdecode(item) for item in result.stdout.split(b"\0") if item]
 
 
 def git_status_records(repo: str) -> list[dict[str, str]]:

@@ -138,6 +138,12 @@ class KernelTests(unittest.TestCase):
         finally:
             empty.chmod(0o755)
 
+    def test_git_nul_preserves_leading_whitespace_in_paths(self) -> None:
+        path = self.repo / " leading.txt"
+        path.write_text("path\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", str(path)], check=True)
+        self.assertIn(" leading.txt", issue_execution.git_nul(str(self.repo), "ls-files"))
+
     def test_git_helpers_ignore_inherited_git_redirects(self) -> None:
         with patch.dict(os.environ, {"GIT_DIR": str(self.repo / "evil.git"), "GIT_WORK_TREE": str(self.tmp.name)}):
             identity = issue_execution.git_worktree_identity(str(self.repo))

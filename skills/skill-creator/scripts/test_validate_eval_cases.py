@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import uuid
 from unittest.mock import patch
 
 
@@ -88,8 +89,8 @@ class EvalContractTests(unittest.TestCase):
             1,
             None,
             "smoke",
-            "HEAD",
-            "HEAD",
+            None,
+            None,
         )
         self.assertEqual(report["runtime_preflight"]["status"], "NO_RUNTIME")
         self.assertEqual(len(report["results"]), 3)
@@ -235,7 +236,7 @@ class EvalContractTests(unittest.TestCase):
 
             def trial(condition):
                 return {
-                    "trial_id": "01234567-89ab-cdef-0123-456789abcdef",
+                    "trial_id": str(uuid.UUID(int=next(trial.counter))),
                     "condition": condition,
                     "environment_kind": "temporary_copy",
                     "candidate_fingerprint": {"revision": binding["candidate_head"], "tree_sha256": binding["skill_tree_sha256"]},
@@ -244,6 +245,7 @@ class EvalContractTests(unittest.TestCase):
                     "runtime_auth_status": "READY",
                     "lifecycle": {"sequence": module.TRIAL_SEQUENCE, "baseline": "paired_without_skill", "evidence_frozen": True, "terminal_state": "CLEANED"},
                 }
+            trial.counter = iter(range(1, 1000))
             results = []
             for case in cases:
                 routing = case["kind"] == "routing"
@@ -410,6 +412,10 @@ class EvalContractTests(unittest.TestCase):
             missing_trial["results"][0].pop("trial")
             before.write_text(json.dumps(missing_trial), encoding="utf-8")
             self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            duplicate_trial = json.loads(json.dumps(payload))
+            duplicate_trial["action_cases"][0]["trial"]["trial_id"] = duplicate_trial["results"][0]["trial"]["trial_id"]
+            before.write_text(json.dumps(duplicate_trial), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
             invalid_gate = json.loads(json.dumps(payload))
             invalid_gate["gates"]["G7_INDEPENDENT_REVIEW"] = "PASS"
             before.write_text(json.dumps(invalid_gate), encoding="utf-8")
@@ -450,6 +456,13 @@ class EvalContractTests(unittest.TestCase):
         self.assertIsNone(binding["candidate_head"])
         self.assertFalse(module._valid_evidence_binding(binding))
 
+    def test_evidence_binding_rejects_dirty_candidate_package(self):
+        module = load_module()
+        root = Path(__file__).resolve().parents[3]
+        with patch.object(module, "_git_revision", side_effect=["a" * 40, "a" * 40, "b" * 40]), patch.object(module, "_candidate_worktree_matches", return_value=False):
+            binding = module._evidence_binding(root / "skills" / "skill-creator", root / "skills" / "skill-creator" / "evals" / "cases.yaml", "base", "candidate")
+        self.assertIsNone(binding["candidate_head"])
+
     def test_negative_activation_requires_explicit_empty_load_signal(self):
         module = load_module()
         self.assertEqual(module._runtime_activation([{"skill_loads": []}]), "unloaded")
@@ -462,6 +475,7 @@ class EvalContractTests(unittest.TestCase):
         self.assertEqual(module._runtime_activation([{"skill_loads": ["not-skill-creator"]}]), "unloaded")
         self.assertEqual(module._runtime_activation([{"loaded_skill": "another-skill"}]), "unloaded")
         self.assertEqual(module._runtime_activation([{"skill_loads": []}, {"skill_loads": ["skill-creator"]}]), "loaded")
+        self.assertIsNone(module._runtime_activation([{"skill_loads": ["skill-creator"]}, {"skill_loads": []}]))
 
     def test_run_requires_revision_binding(self):
         module = load_module()
@@ -524,7 +538,22 @@ class EvalContractTests(unittest.TestCase):
             cache = root / "__pycache__"
             cache.mkdir()
             (cache / "generated.cpython-313.pyc").write_bytes(b"cache")
-            self.assertEqual(module._snapshot(root), {"kept.txt": module.hashlib.sha256(b"kept").hexdigest()})
+            snapshot = module._snapshot(root)
+            self.assertEqual(set(snapshot), {"kept.txt"})
+
+    def test_snapshot_binds_directories_and_symlink_targets(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "target").mkdir()
+            (root / "target" / "file.txt").write_text("one", encoding="utf-8")
+            (root / "link").symlink_to("target", target_is_directory=True)
+            first = module._snapshot(root)
+            (root / "link").unlink()
+            (root / "link").symlink_to("other", target_is_directory=True)
+            second = module._snapshot(root)
+            self.assertIn("@dir/target", first)
+            self.assertNotEqual(first["link"], second["link"])
 
     def test_routing_metrics_counts_observed_failures(self):
         module = load_module()

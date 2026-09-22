@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import shutil
 import socket
+import stat
 import subprocess
 import sys
 import tempfile
@@ -243,19 +244,21 @@ def _is_skill_creator_name(value: object) -> bool:
 
 def _runtime_activation(events: list[dict]) -> str | None:
     """Return loaded/unloaded only from an explicit structured activation event."""
-    observed: set[str] = set()
+    observed: list[str] = []
     for event in events:
         for key in ("skill_loads", "loaded_skills", "loaded_skill"):
             if key not in event:
                 continue
             value = event[key]
             if isinstance(value, list):
-                observed.add("loaded" if any(_is_skill_creator_name(item) for item in value) else "unloaded")
+                observed.append("loaded" if any(_is_skill_creator_name(item) for item in value) else "unloaded")
                 continue
             if _is_skill_creator_name(value):
-                observed.add("loaded")
+                observed.append("loaded")
             elif isinstance(value, (str, dict)):
-                observed.add("unloaded")
+                observed.append("unloaded")
+    if "loaded" in observed and any(state == "unloaded" for state in observed[observed.index("loaded") + 1:]):
+        return None
     if "loaded" in observed:
         return "loaded"
     return "unloaded" if "unloaded" in observed else None
@@ -337,19 +340,38 @@ def _cost_metrics(events: list[dict], changed_paths: set[str]) -> dict:
 
 
 def _snapshot(root: Path) -> dict[str, str]:
-    files = {}
-    for path in root.rglob("*"):
-        if path.is_file():
+    entries: dict[str, str] = {}
+
+    def ignored(relative: Path) -> bool:
+        return bool(
+            {".codex-home", ".git", "__pycache__"}.intersection(relative.parts)
+            or relative.suffix == ".pyc"
+        )
+
+    def fingerprint(path: Path) -> str:
+        mode = path.lstat().st_mode
+        if stat.S_ISLNK(mode):
+            payload = b"symlink\0" + os.readlink(path).encode("utf-8", "surrogateescape")
+        elif stat.S_ISREG(mode):
+            payload = b"file\0" + path.read_bytes()
+        elif stat.S_ISDIR(mode):
+            payload = b"directory\0"
+        else:
+            payload = b"special\0"
+        return hashlib.sha256(str(mode).encode() + b"\0" + payload).hexdigest()
+
+    def visit(directory: Path) -> None:
+        for path in sorted(directory.iterdir(), key=lambda item: item.name):
             relative = path.relative_to(root)
-            if (
-                ".codex-home" in relative.parts
-                or ".git" in relative.parts
-                or "__pycache__" in relative.parts
-                or relative.suffix == ".pyc"
-            ):
+            if ignored(relative):
                 continue
-            files[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
-    return files
+            key = f"@dir/{relative.as_posix()}" if path.is_dir() and not path.is_symlink() else relative.as_posix()
+            entries[key] = fingerprint(path)
+            if path.is_dir() and not path.is_symlink():
+                visit(path)
+
+    visit(root)
+    return entries
 
 
 def _git_revision(root: Path, ref: str | None) -> str | None:
@@ -377,7 +399,11 @@ def _evidence_binding(skill_dir: Path, cases_path: Path, base_ref: str | None = 
         cases_digest = hashlib.sha256(cases_path.read_bytes()).hexdigest()
         candidate_head = _git_revision(skill_dir, candidate_ref or "HEAD")
         current_head = _git_revision(skill_dir, "HEAD")
-        if candidate_ref and (candidate_head is None or candidate_head != current_head):
+        if candidate_ref and (
+            candidate_head is None
+            or candidate_head != current_head
+            or not _candidate_worktree_matches(skill_dir, candidate_head)
+        ):
             candidate_head = None
     except (OSError, subprocess.CalledProcessError, UnicodeError):
         repository_root = ""
@@ -391,6 +417,30 @@ def _evidence_binding(skill_dir: Path, cases_path: Path, base_ref: str | None = 
         "skill_tree_sha256": tree_digest,
         "cases_sha256": cases_digest,
     }
+
+
+def _candidate_worktree_matches(skill_dir: Path, candidate: str) -> bool:
+    try:
+        repository_root = Path(
+            subprocess.check_output(
+                ["git", "rev-parse", "--show-toplevel"],
+                cwd=skill_dir, text=True, stderr=subprocess.DEVNULL, env=_subprocess_env(),
+            ).strip()
+        )
+        package = str(skill_dir.resolve().relative_to(repository_root.resolve()))
+        for args in (
+            ("diff", "--quiet", candidate, "--", package),
+            ("diff", "--quiet", "--cached", candidate, "--", package),
+        ):
+            if subprocess.run(["git", *args], cwd=repository_root, env=_subprocess_env(), capture_output=True).returncode != 0:
+                return False
+        status = subprocess.run(
+            ["git", "status", "--porcelain=v1", "--untracked-files=all", "--", package],
+            cwd=repository_root, text=True, capture_output=True, env=_subprocess_env(), check=False,
+        )
+        return status.returncode == 0 and not status.stdout
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return False
 
 
 def _valid_evidence_binding(binding: object) -> bool:
@@ -411,7 +461,10 @@ def _valid_evidence_binding(binding: object) -> bool:
 
 
 def _changed_paths(before: dict[str, str], after: dict[str, str]) -> set[str]:
-    return {path for path in set(before) | set(after) if before.get(path) != after.get(path)}
+    return {
+        path for path in set(before) | set(after)
+        if not path.startswith("@dir/") and before.get(path) != after.get(path)
+    }
 
 
 def _trial_fingerprint(value: object) -> str:
@@ -1178,6 +1231,10 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
         action_results = data.get("action_cases")
         action_by_id = {case["id"]: case for case in expected_action_cases}
         if not isinstance(action_results, list) or {item.get("case_id") for item in action_results} != set(action_by_id) or len(action_results) != len(action_by_id):
+            return False
+        records = [*action_results, *results, *baseline_results]
+        trial_ids = [item.get("trial", {}).get("trial_id") for item in records if isinstance(item.get("trial"), dict)]
+        if len(trial_ids) != len(set(trial_ids)):
             return False
         for item in action_results:
             case = action_by_id.get(item.get("case_id"))
