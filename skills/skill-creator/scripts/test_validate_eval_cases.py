@@ -58,6 +58,44 @@ class EvalContractTests(unittest.TestCase):
             (root / "artifact.txt").write_text("artifact", encoding="utf-8")
             self.assertEqual(set(module._snapshot(root)), {"artifact.txt"})
 
+    def test_trial_metadata_binds_identity_and_terminal_cleanup(self):
+        module = load_module()
+        skill_dir = SCRIPT.parents[1]
+        case = {"id": "create-local-upstream", "kind": "CREATE", "paired": True}
+        trial = module._trial_metadata(
+            skill_dir,
+            case,
+            "with_skill",
+            {"candidate_revision": "a" * 40, "base_identity": "b" * 40, "test_fingerprint": "c" * 64},
+        )
+        result = module._trial_result({"status": "PASS"}, trial)
+        self.assertRegex(result["trial"]["trial_id"], r"^[0-9a-f-]{36}$")
+        self.assertEqual(result["trial"]["candidate_fingerprint"]["revision"], "a" * 40)
+        self.assertEqual(result["trial"]["base_identity"], "b" * 40)
+        self.assertEqual(result["trial"]["test_fingerprint"], "c" * 64)
+        self.assertEqual(result["trial"]["lifecycle"]["terminal_state"], "CLEANED")
+        self.assertTrue(result["trial"]["lifecycle"]["evidence_frozen"])
+
+    def test_unavailable_preflight_emits_per_case_not_assessed_records(self):
+        module = load_module()
+        cases_path = SCRIPT.parents[1] / "evals" / "cases.yaml"
+        report = module.run(
+            cases_path,
+            SCRIPT.parents[1],
+            "definitely-not-a-codex-runtime",
+            "gpt-5.6-luna",
+            "medium",
+            1,
+            None,
+            "smoke",
+            "HEAD",
+            "HEAD",
+        )
+        self.assertEqual(report["runtime_preflight"]["status"], "NO_RUNTIME")
+        self.assertEqual(len(report["results"]), 3)
+        self.assertTrue(all(item["status"] == "NOT_ASSESSED" for item in report["results"]))
+        self.assertTrue(all(item["trial"]["lifecycle"]["terminal_state"] == "CLEANED" for item in report["results"]))
+
     def test_fixture_is_a_nested_git_project_for_runtime_write_boundaries(self):
         module = load_module()
         with module._fixture(SCRIPT.parents[1], True) as fixture:

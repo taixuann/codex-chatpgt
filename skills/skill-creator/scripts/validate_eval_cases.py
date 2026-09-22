@@ -17,6 +17,7 @@ import sys
 import tempfile
 import time
 from typing import Iterator
+import uuid
 
 import yaml
 
@@ -411,6 +412,82 @@ def _changed_paths(before: dict[str, str], after: dict[str, str]) -> set[str]:
     return {path for path in set(before) | set(after) if before.get(path) != after.get(path)}
 
 
+def _trial_fingerprint(value: object) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    ).hexdigest()
+
+
+def _trial_metadata(
+    skill_dir: Path,
+    case: dict,
+    condition: str,
+    context: dict | None = None,
+    *,
+    environment_kind: str = "temporary_copy",
+    runtime_status: str = "READY",
+) -> dict:
+    context = context or {}
+    return {
+        "trial_id": str(uuid.uuid4()),
+        "condition": condition,
+        "environment_kind": environment_kind,
+        "candidate_fingerprint": {
+            "revision": context.get("candidate_revision"),
+            "tree_sha256": context.get("candidate_tree_sha256") or _trial_fingerprint(_snapshot(skill_dir)),
+        },
+        "test_fingerprint": context.get("test_fingerprint") or _trial_fingerprint(case),
+        "base_identity": context.get("base_identity"),
+        "runtime_auth_status": runtime_status,
+        "lifecycle": {
+            "sequence": ["ALLOCATE", "PREPARE", "BASELINE", "RUN", "FREEZE", "REPORT", "ARCHIVE", "CLEAN"],
+            "baseline": "paired_without_skill" if case.get("paired") else "NOT_REQUESTED",
+            "evidence_frozen": False,
+            "terminal_state": None,
+        },
+    }
+
+
+def _trial_result(result: dict, trial: dict, *, terminal_state: str = "CLEANED") -> dict:
+    lifecycle = trial["lifecycle"]
+    lifecycle["evidence_frozen"] = True
+    lifecycle["terminal_state"] = terminal_state
+    result["trial"] = trial
+    return result
+
+
+def _unassessed_case(
+    case: dict,
+    skill_dir: Path,
+    reason: str,
+    context: dict,
+    runtime_status: str,
+    condition: str = "with_skill",
+) -> dict:
+    trial = _trial_metadata(
+        skill_dir,
+        case,
+        condition,
+        context,
+        environment_kind="not_allocated",
+        runtime_status=runtime_status,
+    )
+    return _trial_result({
+        "case_id": case["id"],
+        "kind": case["kind"],
+        "expected": case["expected"],
+        "condition": condition,
+        "status": "NOT_ASSESSED",
+        "runtime_evidence": {
+            "skill_discovery": "NOT_ASSESSED",
+            "explicit_invocation": "NOT_REQUESTED",
+            "implicit_activation": "NOT_ASSESSED",
+            "behavior": "NOT_ASSESSED",
+        },
+        "reason": reason,
+    }, trial)
+
+
 def _package_structure_ok(skill_dir: Path) -> bool:
     files = {
         path.relative_to(skill_dir).as_posix()
@@ -786,7 +863,24 @@ def _runtime_prompt(case: dict, operation_root: Path) -> str:
     )
 
 
-def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeout: int, skill_dir: Path, with_skill: bool) -> dict:
+def _run_once(
+    case: dict,
+    runtime: str,
+    model: str,
+    reasoning_effort: str,
+    timeout: int,
+    skill_dir: Path,
+    with_skill: bool,
+    trial_context: dict | None = None,
+    runtime_status: str = "READY",
+) -> dict:
+    trial = _trial_metadata(
+        skill_dir,
+        case,
+        "with_skill" if with_skill else "without_skill",
+        trial_context,
+        runtime_status=runtime_status,
+    )
     with _fixture(skill_dir, with_skill, case) as fixture:
         operation_root = fixture / "project" if case["id"] == "audit-localize" else fixture
         prompt = _runtime_prompt(case, operation_root)
@@ -804,7 +898,10 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             },
         }
         if not shutil.which(runtime):
-            return {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"}
+            return _trial_result(
+                {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"},
+                trial,
+            )
         sandbox = "read-only" if case["kind"] in {"routing", "ACTION"} else "workspace-write"
         command = [
             runtime, "exec", "--model", model, "-c", f'model_reasoning_effort="{reasoning_effort}"',
@@ -825,14 +922,14 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             partial_stdout = str(exc.stdout or "")
             partial_stderr = str(exc.stderr or "")
             timeout_class = _timeout_class(partial_stderr)
-            return {
+            return _trial_result({
                 **base,
                 "status": "NOT_ASSESSED",
                 "timeout_class": timeout_class,
                 "reason": f"runtime {timeout_class.lower()} after {timeout}s",
                 "stdout_tail": partial_stdout.splitlines()[-20:],
                 "stderr_tail": partial_stderr.splitlines()[-20:],
-            }
+            }, trial)
         stdout = process.stdout or ""
         events = _events(stdout)
         report = _json_object(_final_text(events))
@@ -886,7 +983,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         else:
             status, reason = "NOT_ASSESSED", "runtime outcome unavailable"
         cost_metrics = _cost_metrics(events, changed_paths)
-        return {
+        return _trial_result({
             **base,
             "status": status,
             "observed": observed,
@@ -913,7 +1010,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             "stdout_bytes": len(stdout.encode("utf-8")),
             "reason": reason,
             "stderr": (process.stderr or "").splitlines()[-5:],
-        }
+        }, trial)
 
 
 def _action_metrics(results: list[dict], cases: list[dict]) -> dict:
@@ -1247,6 +1344,12 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
 def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort: str, timeout: int, case_ids: set[str] | None, stage: str = "full", base_ref: str | None = None, candidate_ref: str | None = None) -> dict:
     data = load_cases(path)
     evidence_binding = _evidence_binding(skill_dir, path, base_ref, candidate_ref)
+    trial_context = {
+        "candidate_revision": evidence_binding.get("candidate_head"),
+        "candidate_tree_sha256": evidence_binding.get("skill_tree_sha256"),
+        "base_identity": evidence_binding.get("base_head"),
+        "test_fingerprint": evidence_binding.get("cases_sha256") or _trial_fingerprint(data["cases"]),
+    }
     stage_ids = {
         "smoke": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative"},
         "lifecycle": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative", "create-local-upstream", "update-bounded", "audit-overlap", "evaluate-good"},
@@ -1255,6 +1358,25 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
     cases = [case for case in data["cases"] if case["id"] in stage_ids and (not case_ids or case["id"] in case_ids)]
     preflight = _runtime_preflight(runtime, timeout)
     if preflight["status"] != "READY":
+        unavailable_results = []
+        unavailable_actions = []
+        for action_case in data.get("action_cases", []) if stage == "full" else []:
+            action = {**action_case, "kind": "ACTION"}
+            unavailable_actions.append(_unassessed_case(
+                action, skill_dir, preflight["reason"], trial_context, preflight["status"],
+            ))
+        for case in cases:
+            result = _unassessed_case(
+                case, skill_dir, preflight["reason"], trial_context, preflight["status"],
+            )
+            result.update({"partition": case["partition"], "gate": case["gate"], "gates": _case_gates(case)})
+            unavailable_results.append(result)
+            if case.get("paired"):
+                baseline = _unassessed_case(
+                    case, skill_dir, preflight["reason"], trial_context, preflight["status"], "without_skill",
+                )
+                baseline.update({"partition": case["partition"], "gate": case["gate"], "gates": _case_gates(case)})
+                unavailable_results.append(baseline)
         return {
             "schema_version": 2, "skill": "skill-creator",
             "coverage": {"requested_cases": len(cases), "total_cases": len(data["cases"]), "full_corpus": False},
@@ -1262,7 +1384,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
             "evidence_binding": evidence_binding,
             "gates": {gate: "NOT_ASSESSED" for gate in GATES},
             "routing": {"status": "NOT_ASSESSED", "assessed_cases": 0, "total_cases": 0},
-            "paired": [], "action_cases": [], "results": [],
+            "paired": [], "action_cases": unavailable_actions, "results": unavailable_results,
         }
     results = []
     action_results = []
@@ -1273,16 +1395,25 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
                 "kind": "ACTION",
                 "trace_markers": [],
             }
-            action_results.append(_run_once(runtime_case, runtime, model, reasoning_effort, timeout, skill_dir, True))
+            action_results.append(_run_once(
+                runtime_case, runtime, model, reasoning_effort, timeout, skill_dir, True,
+                trial_context, preflight["status"],
+            ))
     for case in cases:
-        result = _run_once(case, runtime, model, reasoning_effort, timeout, skill_dir, True)
+        result = _run_once(
+            case, runtime, model, reasoning_effort, timeout, skill_dir, True,
+            trial_context, preflight["status"],
+        )
         result["runtime_version"] = preflight.get("runtime_version")
         result["partition"] = case["partition"]
         result["gate"] = case["gate"]
         result["gates"] = _case_gates(case)
         results.append(result)
         if case.get("paired"):
-            baseline = _run_once(case, runtime, model, reasoning_effort, timeout, skill_dir, False)
+            baseline = _run_once(
+                case, runtime, model, reasoning_effort, timeout, skill_dir, False,
+                trial_context, preflight["status"],
+            )
             baseline["runtime_version"] = preflight.get("runtime_version")
             baseline["partition"] = case["partition"]
             baseline["gate"] = case["gate"]
