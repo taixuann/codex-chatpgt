@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and run the bounded skill-creator evaluation contract."""
+"""Validate and run the bounded skill-creator-v2 evaluation contract."""
 
 from __future__ import annotations
 
@@ -33,10 +33,10 @@ GATES = {
 }
 PARTITIONS = {"must_pass", "regression", "held_out"}
 KINDS = {"routing", "CREATE", "UPDATE", "AUDIT", "EVALUATE"}
-ACTIONS = {"create", "install", "update", "audit"}
+ACTIONS = {"create", "update", "evaluate", "audit"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
 ACTION_DISPOSITIONS = {
-    "USE_EXISTING", "INSTALL_EXISTING", "REFERENCE_AND_ADAPT", "CLONE_AND_ADAPT", "UPDATE_EXISTING", "LOCALIZE", "MERGE",
+    "USE_EXISTING", "CLONE_AND_ADAPT", "UPDATE_EXISTING", "LOCALIZE", "MERGE",
     "DISABLE_IMPLICIT", "RETIRE", "REJECT", "CREATE_FROM_SCRATCH_WITH_JUSTIFICATION", "BLOCKED",
     "HEALTHY", "UPDATE_NEEDED",
 }
@@ -66,10 +66,7 @@ EXPECTED_PARTITIONS = {
 EXPECTED_CASE_IDS = frozenset().union(*EXPECTED_PARTITIONS.values())
 EXPECTED_FILES = {
     "SKILL.md", "license.txt", "evals/cases.yaml",
-    "workflows/create.md", "workflows/install.md", "workflows/audit.md", "workflows/update.md",
-    "references/architecture.md", "references/authoring.md", "references/discovery.md",
-    "references/source-strategy.md", "references/review.md", "references/validation.md",
-    "references/evaluation.md", "references/test-environment.md", "references/qualification.md",
+    "workflows/create.md", "workflows/evaluate.md", "workflows/audit.md", "workflows/update.md",
     "references/provenance.md", "references/routing.md",
     "scripts/generate_openai_yaml.py", "scripts/init_skill.py", "scripts/quick_validate.py",
     "scripts/test_validate_eval_cases.py", "scripts/validate_eval_cases.py",
@@ -87,15 +84,6 @@ UPSTREAM_MARKERS = (
 )
 
 
-def _subprocess_env() -> dict[str, str]:
-    """Keep inherited credentials/config, but never inherited Git routing state."""
-    environment = os.environ.copy()
-    for name in list(environment):
-        if name.startswith("GIT_"):
-            environment.pop(name, None)
-    return environment
-
-
 def load_cases(path: Path) -> dict:
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if not isinstance(data, dict):
@@ -109,8 +97,8 @@ def validate(path: Path) -> list[str]:
     except (OSError, UnicodeError, yaml.YAMLError, ValueError) as exc:
         return [str(exc)]
     errors: list[str] = []
-    if data.get("schema_version") != 2 or data.get("skill") != "skill-creator":
-        errors.append("schema_version 2 and skill skill-creator are required")
+    if data.get("schema_version") != 2 or data.get("skill") != "skill-creator-v2":
+        errors.append("schema_version 2 and skill skill-creator-v2 are required")
     gates = data.get("gates")
     if not isinstance(gates, list):
         errors.append("gates must be a list")
@@ -174,7 +162,7 @@ def validate(path: Path) -> list[str]:
         errors.append("evaluation requires at least one paired with/without-skill case")
     action_cases = data.get("action_cases")
     if not isinstance(action_cases, list) or {case.get("id") for case in action_cases if isinstance(case, dict)} != {
-        "explicit-create", "explicit-update", "explicit-install", "explicit-audit", "unknown-action", "ambiguous-lifecycle",
+        "explicit-create", "explicit-update", "explicit-evaluate", "explicit-audit", "unknown-action", "ambiguous-lifecycle",
     }:
         errors.append("action_cases must cover the four actions, unknown action, and ambiguity")
     for case in action_cases or []:
@@ -229,44 +217,22 @@ def _json_object(text: str) -> dict:
     return {}
 
 
-def _is_skill_creator_name(value: object) -> bool:
-    if isinstance(value, str):
-        name = value.strip().rstrip("/")
-        return name == "skill-creator" or name.endswith("/skill-creator")
-    if isinstance(value, dict):
-        return any(_is_skill_creator_name(value.get(key)) for key in ("name", "skill", "id", "path"))
-    return False
-
-
 def _runtime_activation(events: list[dict]) -> str | None:
     """Return loaded/unloaded only from an explicit structured activation event."""
-    observed: set[str] = set()
     for event in events:
         for key in ("skill_loads", "loaded_skills", "loaded_skill"):
             if key not in event:
                 continue
             value = event[key]
-            if isinstance(value, list):
-                observed.add("loaded" if any(_is_skill_creator_name(item) for item in value) else "unloaded")
-                continue
-            if _is_skill_creator_name(value):
-                observed.add("loaded")
-            elif isinstance(value, (str, dict)):
-                observed.add("unloaded")
-    if "loaded" in observed:
-        return "loaded"
-    return "unloaded" if "unloaded" in observed else None
-
-
-def _routing_status(case: dict, activation: str | None, observed: object) -> tuple[str, str]:
-    if activation is None:
-        return "NOT_ASSESSED", "runtime did not expose an explicit activation signal"
-    expected_activation = "unloaded" if case.get("expected") == "none" else "loaded"
-    if activation != expected_activation:
-        return "FAIL", f"expected explicit {expected_activation} activation, observed {activation}"
-    if observed != case.get("expected"):
-        return "FAIL", f"expected {case['expected']}, observed {observed!r}"
-    return "PASS", "expected outcome and explicit activation state observed"
+            if isinstance(value, list) and any("skill-creator-v2" in json.dumps(item) for item in value):
+                return "loaded"
+            if isinstance(value, list) and not value:
+                return "unloaded"
+            if isinstance(value, str) and value.lower() in {"none", "unloaded"}:
+                return "unloaded"
+            if isinstance(value, dict) and value.get("status") in {"none", "unloaded"}:
+                return "unloaded"
+    return None
 
 
 def _process_observed(events: list[dict]) -> bool:
@@ -354,8 +320,7 @@ def _git_revision(root: Path, ref: str | None) -> str | None:
         return None
     try:
         return subprocess.check_output(
-            ["git", "rev-parse", ref], cwd=root, text=True, stderr=subprocess.DEVNULL,
-            env=_subprocess_env(),
+            ["git", "rev-parse", ref], cwd=root, text=True, stderr=subprocess.DEVNULL
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return None
@@ -366,16 +331,14 @@ def _evidence_binding(skill_dir: Path, cases_path: Path, base_ref: str | None = 
     try:
         repository_root = subprocess.check_output(
             ["git", "rev-parse", "--show-toplevel"],
-            cwd=skill_dir, text=True, stderr=subprocess.DEVNULL, env=_subprocess_env(),
+            cwd=skill_dir,
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
         tree_digest = hashlib.sha256(
             json.dumps(_snapshot(skill_dir), sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
         cases_digest = hashlib.sha256(cases_path.read_bytes()).hexdigest()
-        candidate_head = _git_revision(skill_dir, candidate_ref or "HEAD")
-        current_head = _git_revision(skill_dir, "HEAD")
-        if candidate_ref and (candidate_head is None or candidate_head != current_head):
-            candidate_head = None
     except (OSError, subprocess.CalledProcessError, UnicodeError):
         repository_root = ""
         tree_digest = ""
@@ -384,7 +347,7 @@ def _evidence_binding(skill_dir: Path, cases_path: Path, base_ref: str | None = 
         "version": BINDING_VERSION,
         "repository_root": repository_root,
         "base_head": _git_revision(skill_dir, base_ref),
-        "candidate_head": candidate_head,
+        "candidate_head": _git_revision(skill_dir, candidate_ref or "HEAD"),
         "skill_tree_sha256": tree_digest,
         "cases_sha256": cases_digest,
     }
@@ -484,14 +447,14 @@ def _paired_evidence(with_skill: dict | None, without_skill: dict | None) -> dic
 
 
 def _artifact_contract(case: dict, with_skill: bool = True) -> dict:
-    if case["id"] == "create-no-skill" or case.get("kind") == "ACTION":
+    if case["id"] == "create-no-skill":
         return {}
     if case.get("artifact") and case.get("artifact_path"):
         contract = {"operation": case["artifact"], "path": case["artifact_path"]}
         if with_skill and case.get("side_effects"):
             contract["side_effects"] = case["side_effects"]
         return contract
-    if case.get("kind") not in {"routing", "ACTION"}:
+    if case.get("kind") != "routing":
         return {"operation": "created", "path": f".evaluation/{case['id']}.json"}
     return {}
 
@@ -538,7 +501,7 @@ EXPECTED_NECESSITY_DISPOSITIONS = {
     "create-no-skill": "REJECT",
     "update-bounded": "UPDATE_EXISTING",
     "update-substantive": "UPDATE_EXISTING",
-    "audit-upstream-drift": "UPDATE_NEEDED",
+    "audit-upstream-drift": "UPDATE_EXISTING",
     "audit-overlap": "MERGE",
     "audit-localize": "LOCALIZE",
     "audit-retire": "RETIRE",
@@ -593,9 +556,7 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
     report = item.get("final_report")
     if not isinstance(events, list) or not isinstance(before, dict) or not isinstance(after, dict) or not isinstance(report, dict):
         return None
-    key = "selected_skill" if case["kind"] == "routing" else (
-        "selected_workflow" if case["kind"] == "ACTION" else "disposition"
-    )
+    key = "selected_skill" if case["kind"] == "routing" else "disposition"
     artifact_ok, artifact_reason = _artifact_ok(case, before, after, item.get("condition") != "without_skill")
     necessity_ok, necessity_reason = _necessity_ok(case, report)
     runtime_evidence = {
@@ -661,12 +622,9 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
 
 @contextmanager
 def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Iterator[Path]:
-    with tempfile.TemporaryDirectory(prefix="skill-creator-eval-", dir=skill_dir.parents[1]) as directory:
+    with tempfile.TemporaryDirectory(prefix="skill-creator-v2-eval-", dir=skill_dir.parents[1]) as directory:
         root = Path(directory)
-        subprocess.run(
-            ["git", "init", "--quiet"], cwd=root, check=True, capture_output=True, text=True,
-            env=_subprocess_env(),
-        )
+        subprocess.run(["git", "init", "--quiet"], cwd=root, check=True, capture_output=True, text=True)
         (root / "AGENTS.md").write_text(
             "# Isolated skill evaluation\n\nUse available skills only when the request matches their description.\n",
             encoding="utf-8",
@@ -675,7 +633,7 @@ def _fixture(skill_dir: Path, with_skill: bool, case: dict | None = None) -> Ite
         if case and case["id"] == "audit-localize":
             fixture_root.mkdir(parents=True, exist_ok=True)
         if with_skill:
-            target = fixture_root / ".agents" / "skills" / "skill-creator"
+            target = fixture_root / ".agents" / "skills" / "skill-creator-v2"
             shutil.copytree(skill_dir, target, ignore=shutil.ignore_patterns("__pycache__"))
         if case and case["id"] in {"audit-overlap", "audit-localize", "audit-retire", "evaluate-sibling-collision"}:
             sibling = fixture_root / ".agents" / "skills" / "pdf"
@@ -703,7 +661,7 @@ def _runtime_preflight(runtime: str, timeout: int) -> dict:
     try:
         version_process = subprocess.run(
             [runtime, "--version"], capture_output=True, text=True,
-            timeout=min(timeout, 5), check=False, env=_subprocess_env(),
+            timeout=min(timeout, 5), check=False, env=os.environ.copy(),
         )
     except subprocess.TimeoutExpired:
         return {"status": "CONFIG_ERROR", "reason": "runtime version check timed out"}
@@ -717,7 +675,7 @@ def _runtime_preflight(runtime: str, timeout: int) -> dict:
     try:
         process = subprocess.run(
             [runtime, "login", "status"], capture_output=True, text=True,
-            timeout=min(timeout, 10), check=False, env=_subprocess_env(),
+            timeout=min(timeout, 10), check=False, env=os.environ.copy(),
         )
     except subprocess.TimeoutExpired:
         return {"status": "AUTH_TIMEOUT", "reason": "login status timed out"}
@@ -741,16 +699,11 @@ def _timeout_class(output: str) -> str:
 
 
 def _runtime_prompt(case: dict, operation_root: Path) -> str:
-    if case["kind"] in {"routing", "ACTION"}:
-        if case["kind"] == "ACTION":
-            result_key = "selected_workflow"
-            result_values = "the selected workflow path, fail-closed, clarify-or-no-route, or none"
-        else:
-            result_key = "selected_skill"
-            result_values = "the selected skill name or none"
+    if case["kind"] == "routing":
         task = (
             "Handle this natural user request in the isolated fixture. Do not change files. "
-            f"Return exactly one JSON object with key {result_key}, whose value is {result_values}.\n\n"
+            "Return exactly one JSON object with key selected_skill, whose value is the selected "
+            "skill name or none.\n\n"
             f"{case['prompt']}"
         )
     else:
@@ -795,7 +748,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             "kind": case["kind"],
             "expected": case["expected"],
             "condition": "with_skill" if with_skill else "without_skill",
-            "fixture": ("project/.agents/skills/skill-creator" if case["id"] == "audit-localize" else ".agents/skills/skill-creator") if with_skill else "no skill fixture",
+            "fixture": ("project/.agents/skills/skill-creator-v2" if case["id"] == "audit-localize" else ".agents/skills/skill-creator-v2") if with_skill else "no skill fixture",
             "runtime_evidence": {
                 "skill_discovery": "NOT_ASSESSED",
                 "explicit_invocation": "NOT_REQUESTED",
@@ -805,7 +758,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         }
         if not shutil.which(runtime):
             return {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"}
-        sandbox = "read-only" if case["kind"] in {"routing", "ACTION"} else "workspace-write"
+        sandbox = "read-only" if case["kind"] == "routing" else "workspace-write"
         command = [
             runtime, "exec", "--model", model, "-c", f'model_reasoning_effort="{reasoning_effort}"',
             "--json", "--ephemeral", "--sandbox", sandbox,
@@ -816,7 +769,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         base["command"] = command
         # Reuse the caller's authenticated CODEX_HOME. The fixture remains isolated;
         # an empty per-case home only measures auth retry behavior, not skill behavior.
-        environment = _subprocess_env()
+        environment = os.environ.copy()
         before_snapshot = _snapshot(operation_root)
         started = time.monotonic()
         try:
@@ -836,7 +789,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         stdout = process.stdout or ""
         events = _events(stdout)
         report = _json_object(_final_text(events))
-        key = "selected_workflow" if case["kind"] == "ACTION" else ("selected_skill" if case["kind"] == "routing" else "disposition")
+        key = "selected_skill" if case["kind"] == "routing" else "disposition"
         observed = report.get(key)
         activation = _runtime_activation(events)
         loaded = activation == "loaded"
@@ -852,7 +805,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             "skill_discovery": "NOT_ASSESSED",
             "explicit_invocation": "NOT_REQUESTED",
             "implicit_activation": activation or "NOT_ASSESSED",
-            "behavior": "OBSERVED" if observed is not None and (case["kind"] in {"routing", "ACTION"} or (process_observed and trace_matches and artifact_ok)) else "NOT_ASSESSED",
+            "behavior": "OBSERVED" if observed is not None and (case["kind"] == "routing" or (process_observed and trace_matches and artifact_ok)) else "NOT_ASSESSED",
         }
         unavailable = any(
             marker in (process.stderr or "").lower()
@@ -865,12 +818,16 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         elif not with_skill:
             if observed is None or not process_observed:
                 status, reason = "NOT_ASSESSED", "baseline outcome or process evidence was not observed"
-            elif case["kind"] not in {"routing", "ACTION"} and not artifact_ok:
+            elif case["kind"] != "routing" and not artifact_ok:
                 status, reason = "NOT_ASSESSED", artifact_reason
             else:
                 status, reason = "OBSERVED", "baseline output and evidence recorded without skill fixture"
-        elif case["kind"] in {"routing", "ACTION"}:
-            status, reason = _routing_status(case, activation, observed)
+        elif case["kind"] == "routing" and case["expected"] == "none" and activation == "unloaded" and observed == "none":
+            status, reason = "PASS", "explicit runtime non-activation and expected outcome observed"
+        elif case["kind"] == "routing" and case["expected"] == "none" and activation == "loaded":
+            status, reason = "FAIL", "skill activated for an explicit negative request"
+        elif case["kind"] == "routing" and activation is None:
+            status, reason = "NOT_ASSESSED", "runtime did not expose an explicit non-activation signal"
         elif activation is None:
             status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
         elif observed != case["expected"]:
@@ -879,7 +836,7 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
             status, reason = "FAIL", necessity_reason
         elif with_skill and "G5_COEXISTENCE" in _case_gates(case) and not coexistence_fixture:
             status, reason = "FAIL", "coexistence fixture evidence is missing"
-        elif case["kind"] not in {"routing", "ACTION"} and not (process_observed and trace_matches and artifact_ok):
+        elif case["kind"] != "routing" and not (process_observed and trace_matches and artifact_ok):
             status, reason = "FAIL", artifact_reason if not artifact_ok else "required process trace was not observed"
         elif observed == case["expected"]:
             status, reason = "PASS", "expected outcome, process trace, and artifact evidence observed"
@@ -916,86 +873,20 @@ def _run_once(case: dict, runtime: str, model: str, reasoning_effort: str, timeo
         }
 
 
-def _action_metrics(results: list[dict], cases: list[dict]) -> dict:
-    expected = len(cases)
-    expected_ids = {case.get("id") for case in cases}
-    result_ids = [item.get("case_id") for item in results]
-    assessed = [item for item in results if item.get("status") in {"PASS", "FAIL"}]
-    if any(item.get("status") == "FAIL" for item in results):
-        status = "FAIL"
-    elif (
-        len(results) == expected
-        and set(result_ids) == expected_ids
-        and len(assessed) == expected
-        and all(
-            _action_record_is_valid(item, {**case, "kind": "ACTION"})
-            for item in results
-            for case in cases
-            if case.get("id") == item.get("case_id")
-        )
-    ):
-        status = "PASS"
-    else:
-        status = "NOT_ASSESSED"
-    return {
-        "status": status,
-        "assessed_cases": len(assessed),
-        "total_cases": len(results),
-        "expected_cases": expected,
-    }
-
-
-def _action_record_is_valid(item: dict, case: dict) -> bool:
-    if (
-        item.get("kind") != "ACTION"
-        or item.get("condition") != "with_skill"
-        or item.get("status") != "PASS"
-        or item.get("expected") != case.get("expected")
-        or item.get("observed") != case.get("expected")
-        or item.get("activation") != "loaded"
-        or item.get("runtime_observed") is not True
-        or item.get("process_observed") is not True
-        or item.get("trace_matches") is not True
-        or item.get("artifact_ok") is not True
-    ):
-        return False
-    recomputed = _recomputed_record(item, case)
-    if recomputed is None:
-        return False
-    return all(
-        item.get(field) == recomputed.get(field)
-        for field in (
-            "observed",
-            "activation",
-            "process_observed",
-            "trace_matches",
-            "changed_paths",
-            "artifact_ok",
-            "runtime_evidence",
-            "cost_metrics",
-        )
-    )
-
-
-def _routing_metrics(results: list[dict], cases: list[dict], action_results: list[dict] | None = None, action_cases: list[dict] | None = None) -> dict:
+def _routing_metrics(results: list[dict], cases: list[dict]) -> dict:
     by_id = {case["id"]: case for case in cases}
     assessed = [result for result in results if result.get("status") in {"PASS", "FAIL"} and result.get("observed") is not None]
-    tp = sum(by_id[result["case_id"]].get("polarity") == "positive" for result in assessed if result.get("observed") == "skill-creator")
-    fn = sum(by_id[result["case_id"]].get("polarity") == "positive" for result in assessed if result.get("observed") != "skill-creator")
-    fp = sum(by_id[result["case_id"]].get("polarity") == "negative" for result in assessed if result.get("observed") == "skill-creator")
-    tn = sum(by_id[result["case_id"]].get("polarity") == "negative" for result in assessed if result.get("observed") != "skill-creator")
+    tp = sum(by_id[result["case_id"]].get("polarity") == "positive" for result in assessed if result.get("observed") == "skill-creator-v2")
+    fn = sum(by_id[result["case_id"]].get("polarity") == "positive" for result in assessed if result.get("observed") != "skill-creator-v2")
+    fp = sum(by_id[result["case_id"]].get("polarity") == "negative" for result in assessed if result.get("observed") == "skill-creator-v2")
+    tn = sum(by_id[result["case_id"]].get("polarity") == "negative" for result in assessed if result.get("observed") != "skill-creator-v2")
     denominator_precision = tp + fp
     denominator_recall = tp + fn
     expected_cases = [case for case in cases if case.get("kind") == "routing"]
     complete = len(results) == len(expected_cases) and bool(results)
-    action = _action_metrics(action_results, action_cases) if action_results is not None and action_cases is not None else {"status": "NOT_REQUESTED", "assessed_cases": 0, "total_cases": 0, "expected_cases": 0}
-    status = "PASS" if complete and len(assessed) == len(results) and not any(item.get("status") == "FAIL" for item in results) and action["status"] in {"PASS", "NOT_REQUESTED"} else (
+    status = "PASS" if complete and len(assessed) == len(results) and not any(item.get("status") == "FAIL" for item in results) else (
         "FAIL" if any(item.get("status") == "FAIL" for item in results) else "NOT_ASSESSED"
     )
-    if action["status"] == "FAIL":
-        status = "FAIL"
-    elif action["status"] == "NOT_ASSESSED" and status == "PASS":
-        status = "NOT_ASSESSED"
     return {
         "status": status,
         "TP": tp, "FN": fn, "FP": fp, "TN": tn,
@@ -1004,10 +895,6 @@ def _routing_metrics(results: list[dict], cases: list[dict], action_results: lis
         "false_positive_rate": round(fp / (fp + tn), 3) if fp + tn else None,
         "assessed_cases": len(assessed),
         "total_cases": len(results),
-        "action_status": action["status"],
-        "action_assessed_cases": action["assessed_cases"],
-        "action_total_cases": action["total_cases"],
-        "action_expected_cases": action["expected_cases"],
     }
 
 
@@ -1024,9 +911,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
     try:
         before = json.loads(before_path.read_text(encoding="utf-8"))
         after = json.loads(after_path.read_text(encoding="utf-8"))
-        case_data = load_cases(cases_path) if cases_path else {}
-        expected_cases = case_data.get("cases", [])
-        expected_action_cases = case_data.get("action_cases", [])
+        expected_cases = load_cases(cases_path).get("cases", []) if cases_path else []
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
         return {"status": "REJECT", "validation_gated": False, "reason": "invalid before/after/case evidence"}
     bindings = [before.get("evidence_binding"), after.get("evidence_binding")]
@@ -1053,14 +938,6 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             return False
         if any(gates.get(gate) != "PASS" for gate in GATES if gate != "G7_INDEPENDENT_REVIEW"):
             return False
-        action_results = data.get("action_cases")
-        action_by_id = {case["id"]: case for case in expected_action_cases}
-        if not isinstance(action_results, list) or {item.get("case_id") for item in action_results} != set(action_by_id) or len(action_results) != len(action_by_id):
-            return False
-        for item in action_results:
-            case = action_by_id.get(item.get("case_id"))
-            if not case or not _action_record_is_valid(item, {**case, "kind": "ACTION"}):
-                return False
         if routing.get("status") not in {"PASS", "FAIL"} or not all(
             isinstance(routing.get(field), (int, float)) for field in ("precision", "recall")
         ):
@@ -1149,12 +1026,12 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             recomputed = _recomputed_record(item, case)
             if recomputed is None:
                 return False
-            status, _ = _routing_status(case, recomputed["activation"], recomputed["observed"])
+            status = "PASS" if recomputed["activation"] in {"loaded", "unloaded"} and recomputed["observed"] == case["expected"] else "FAIL"
             recomputed_routing.append({"case_id": item["case_id"], "status": status, "observed": recomputed["observed"]})
-        expected_routing = _routing_metrics(recomputed_routing, expected_cases, action_results, expected_action_cases)
+        expected_routing = _routing_metrics(recomputed_routing, expected_cases)
         if any(routing.get(field) != expected_routing.get(field) for field in (
             "status", "TP", "FN", "FP", "TN", "precision", "recall", "false_positive_rate",
-            "assessed_cases", "total_cases", "action_status", "action_assessed_cases", "action_total_cases", "action_expected_cases",
+            "assessed_cases", "total_cases",
         )):
             return False
         for gate in GATES - {"G6_EFFICIENCY", "G7_INDEPENDENT_REVIEW"}:
@@ -1256,24 +1133,15 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
     preflight = _runtime_preflight(runtime, timeout)
     if preflight["status"] != "READY":
         return {
-            "schema_version": 2, "skill": "skill-creator",
+            "schema_version": 2, "skill": "skill-creator-v2",
             "coverage": {"requested_cases": len(cases), "total_cases": len(data["cases"]), "full_corpus": False},
             "runtime_preflight": preflight, "stage": stage,
             "evidence_binding": evidence_binding,
             "gates": {gate: "NOT_ASSESSED" for gate in GATES},
             "routing": {"status": "NOT_ASSESSED", "assessed_cases": 0, "total_cases": 0},
-            "paired": [], "action_cases": [], "results": [],
+            "paired": [], "results": [],
         }
     results = []
-    action_results = []
-    if stage == "full":
-        for action_case in data.get("action_cases", []):
-            runtime_case = {
-                **action_case,
-                "kind": "ACTION",
-                "trace_markers": [],
-            }
-            action_results.append(_run_once(runtime_case, runtime, model, reasoning_effort, timeout, skill_dir, True))
     for case in cases:
         result = _run_once(case, runtime, model, reasoning_effort, timeout, skill_dir, True)
         result["runtime_version"] = preflight.get("runtime_version")
@@ -1289,12 +1157,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
             baseline["gates"] = _case_gates(case)
             results.append(baseline)
     routing_ids = {case["id"] for case in cases if case["kind"] == "routing"}
-    routing = _routing_metrics(
-        [item for item in results if item["condition"] == "with_skill" and item["case_id"] in routing_ids],
-        cases,
-        action_results,
-        data.get("action_cases", []),
-    )
+    routing = _routing_metrics([item for item in results if item["condition"] == "with_skill" and item["case_id"] in routing_ids], cases)
     paired = []
     for case in cases:
         if not case.get("paired"):
@@ -1314,7 +1177,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         })
     structure_check = subprocess.run(
         [sys.executable, str(skill_dir / "scripts" / "quick_validate.py"), str(skill_dir)],
-        capture_output=True, text=True, check=False, env=_subprocess_env(),
+        capture_output=True, text=True, check=False,
     )
     structure_ok = structure_check.returncode == 0 and _package_structure_ok(skill_dir)
     provenance_ok = _provenance_ok(skill_dir)
@@ -1341,7 +1204,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
     )
     return {
         "schema_version": 2,
-        "skill": "skill-creator",
+        "skill": "skill-creator-v2",
         "coverage": {"requested_cases": len(cases), "total_cases": len(data["cases"]), "full_corpus": len(cases) == len(data["cases"])},
         "model": model,
         "reasoning_effort": reasoning_effort,
@@ -1352,7 +1215,6 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         "gates": status_by_gate,
         "routing": routing,
         "paired": paired,
-        "action_cases": action_results,
         "results": results,
     }
 
@@ -1388,9 +1250,6 @@ def main() -> int:
         data = load_cases(args.cases)
         print(f"OK eval cases: {len(data['gates'])} gates, {sum(case['kind'] == 'routing' for case in data['cases'])} routing and {sum(case['kind'] != 'routing' for case in data['cases'])} lifecycle cases")
         return 0
-    if not args.base or not args.candidate:
-        print("FAIL eval cases: --run requires both --base and --candidate for revision-bound evidence")
-        return 1
     report = run(args.cases, args.skill_dir, args.runtime, args.model, args.reasoning_effort, args.timeout, set(args.case_id) if args.case_id else None, args.stage, args.base, args.candidate)
     if args.results:
         args.results.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

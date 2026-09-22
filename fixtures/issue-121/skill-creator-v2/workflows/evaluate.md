@@ -1,4 +1,28 @@
-# EVALUATE
+# EVALUATE workflow
+
+EVALUATE answers: does this skill perform its intended job well? It is
+read-only by default. It may recommend UPDATE, but never repairs the skill to
+make its own result pass.
+
+## Flow
+
+```text
+BASELINE + INTENDED JOB
+→ STRUCTURE
+→ ROUTING / TRIGGERS
+→ BEHAVIOR
+→ ARTIFACT / RESULT QUALITY
+→ REGRESSION + SIBLING COEXISTENCE
+→ EFFICIENCY / VALUE
+→ RUNTIME LIMITATIONS
+→ PASS / FAIL / NOT_ASSESSED
+```
+
+Run deterministic checks first, then representative positive, negative,
+ambiguous, sibling, and opt-out cases. Separate skill discovery, explicit
+invocation, implicit activation, process trace, final output, and filesystem
+side effects. Preserve raw evidence and the exact candidate revision. Missing
+runtime or activation signals are `NOT_ASSESSED`, not inferred success.
 
 Use this reference for readiness or quality review. Deterministic checks come
 first; a polished output cannot compensate for skipped process evidence.

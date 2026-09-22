@@ -1,5 +1,5 @@
 schema_version: 2
-skill: skill-creator
+skill: skill-creator-v2
 purpose: Bound routing and lifecycle evaluation with must-pass, regression, and held-out evidence.
 gates:
   - {id: G0_NECESSITY, evidence: full native/AGENTS/script/project-local/user-global/upstream/plugin/sibling/localization/ordinary-instruction comparison and case-consistent disposition}
@@ -13,16 +13,16 @@ gates:
 action_cases:
   - {id: explicit-create, action: create, expected: workflows/create.md, prompt: "Create a reusable skill for a repeated evidence-backed workflow."}
   - {id: explicit-update, action: update, expected: workflows/update.md, prompt: "Update the existing skill for this observed routing failure and compare before and after."}
-  - {id: explicit-install, action: install, expected: workflows/install.md, prompt: "Install this existing skill faithfully; do not redesign or edit its behavior."}
+  - {id: explicit-evaluate, action: evaluate, expected: workflows/evaluate.md, prompt: "Evaluate whether this skill performs its intended job; do not edit it."}
   - {id: explicit-audit, action: audit, expected: workflows/audit.md, prompt: "Audit whether this skill is still necessary, healthy, and correctly placed; do not apply changes."}
   - {id: unknown-action, action: migrate, expected: fail-closed, prompt: "Run the unsupported migrate action."}
   - {id: ambiguous-lifecycle, action: none, expected: clarify-or-no-route, prompt: "This skill may need work; decide what to do."}
 cases:
-  - {id: route-explicit-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Create a Codex skill for a repeated document transformation with provenance and validation."}
-  - {id: route-implicit-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "This procedure keeps recurring across repositories; should it become a skill, and where should it live?"}
-  - {id: route-contextual-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "While reviewing a project setup, compare the existing skills and decide whether a small local skill is justified."}
-  - {id: route-ambiguous-positive, kind: routing, polarity: positive, partition: held_out, gate: G3_ROUTING, expected: skill-creator, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "We keep repeating the same evidence-backed workflow. First determine whether guidance, a script, or a reusable skill is the right owner."}
-  - {id: route-noisy-positive, kind: routing, polarity: positive, partition: held_out, gate: G3_ROUTING, expected: skill-creator, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "The team has copied this multi-step workflow into four repositories and it now drifts; please compare references and decide whether a maintained Codex skill is warranted, preserving provenance and validation."}
+  - {id: route-explicit-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator-v2, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Create a Codex skill for a repeated document transformation with provenance and validation."}
+  - {id: route-implicit-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator-v2, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "This procedure keeps recurring across repositories; should it become a skill, and where should it live?"}
+  - {id: route-contextual-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator-v2, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "While reviewing a project setup, compare the existing skills and decide whether a small local skill is justified."}
+  - {id: route-ambiguous-positive, kind: routing, polarity: positive, partition: held_out, gate: G3_ROUTING, expected: skill-creator-v2, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "We keep repeating the same evidence-backed workflow. First determine whether guidance, a script, or a reusable skill is the right owner."}
+  - {id: route-noisy-positive, kind: routing, polarity: positive, partition: held_out, gate: G3_ROUTING, expected: skill-creator-v2, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "The team has copied this multi-step workflow into four repositories and it now drifts; please compare references and decide whether a maintained Codex skill is warranted, preserving provenance and validation."}
   - {id: route-explicit-negative, kind: routing, polarity: negative, partition: must_pass, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Use $pdf to rotate this PDF; do not create or modify a skill."}
   - {id: route-adjacent-negative, kind: routing, polarity: negative, partition: must_pass, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Fix the failing parser implementation and add a unit test."}
   - {id: route-sibling-negative, kind: routing, polarity: negative, partition: must_pass, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Use the existing PDF skill to rotate this PDF; do not create or modify a skill."}

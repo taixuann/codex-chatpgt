@@ -132,6 +132,51 @@ class ReviewTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "review_attempt"):
             review.normalize(packet, {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
 
+    def test_review_contract_is_fingerprinted_and_bound_to_snapshot(self) -> None:
+        packet = self.packet()
+        references = [{"id": "project-rubric", "kind": "project", "locator": "docs/review.md", "fingerprint": "a" * 64}]
+        packet["review_contract"] = {"revision": "project-r1", "references": references}
+        packet["review_contract_fingerprint"] = review.fp(packet["review_contract"])
+        result = review.normalize(packet, {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+        self.assertEqual(result["snapshot"]["review_contract_fingerprint"], review.fp(packet["review_contract"]))
+        review.validate_result(result, packet, packet["candidate"]["head"])
+        packet["review_contract"]["references"][0]["fingerprint"] = "b" * 64
+        with self.assertRaisesRegex(ValueError, "review contract"):
+            review.validate_result(result, packet, packet["candidate"]["head"])
+
+    def test_review_contract_rejects_unfingerprinted_reference(self) -> None:
+        packet = self.packet()
+        packet["review_contract"] = {"revision": "project-r1", "references": [{"id": "project-rubric", "kind": "project", "locator": "docs/review.md"}]}
+        packet["review_contract_fingerprint"] = review.fp(packet["review_contract"])
+        with self.assertRaisesRegex(ValueError, "fingerprint"):
+            review.normalize(packet, {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+
+    def test_review_contract_rejects_conflicting_fingerprints_at_one_locator(self) -> None:
+        packet = self.packet()
+        packet["review_contract"] = {
+            "revision": "project-r1",
+            "references": [
+                {"id": "project-rubric-v1", "kind": "project", "locator": "docs/review.md", "fingerprint": "a" * 64},
+                {"id": "project-rubric-v2", "kind": "project", "locator": "docs/review.md", "fingerprint": "b" * 64},
+            ],
+        }
+        packet["review_contract_fingerprint"] = review.fp(packet["review_contract"])
+        with self.assertRaisesRegex(ValueError, "contradict"):
+            review.normalize(packet, {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+
+    def test_review_contract_rejects_duplicate_reference_at_one_locator(self) -> None:
+        packet = self.packet()
+        packet["review_contract"] = {
+            "revision": "project-r1",
+            "references": [
+                {"id": "project-rubric-v1", "kind": "project", "locator": "docs/review.md", "fingerprint": "a" * 64},
+                {"id": "project-rubric-copy", "kind": "project", "locator": "docs/review.md", "fingerprint": "a" * 64},
+            ],
+        }
+        packet["review_contract_fingerprint"] = review.fp(packet["review_contract"])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            review.normalize(packet, {"fresh_context": True, "read_only": True, "reviewer_session_id": "NOT_ASSESSED", "criteria_review": [{"id": "AC-1", "status": "fulfilled", "evidence": "reviewed"}], "findings": []}, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
+
     def test_calibration_set_and_convergence_fixture_are_bounded(self) -> None:
         import yaml
         calibration = yaml.safe_load((ROOT / "skills" / "athena-review" / "references" / "calibration.yaml").read_text())

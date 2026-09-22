@@ -36,6 +36,16 @@ The caller supplies the complete locked `criteria_manifest` and its
 `criteria_revision`/fingerprint; this generic Skill does not know or hard-code
 any repository, Issue, or campaign criterion set.
 
+## Review contract and rubric references
+
+The packet may include a `review_contract` with a revision and a list of
+references. Each reference has a stable ID, kind, locator, and content
+fingerprint; caller-provided references are subordinate to the Issue,
+criteria manifest, exact snapshot, and this review contract. Missing,
+unfingerprinted, duplicate, or contradictory references make the packet
+`NOT_REVIEWABLE`. The normalized result records the contract fingerprint, so a
+rubric or reference mutation makes the review stale.
+
 ## Reviewability and freshness
 
 Return `NOT_REVIEWABLE` / `insufficient_evidence` when exact candidate/base,

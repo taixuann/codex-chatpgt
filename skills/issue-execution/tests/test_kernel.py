@@ -91,6 +91,51 @@ class KernelTests(unittest.TestCase):
         self.assertEqual(noisy["status"], "fail")
         self.assertEqual(noisy["violations"][0]["type"], "repeated_history_noise")
 
+    def test_committed_changed_files_preserves_rename_endpoints(self) -> None:
+        new_path = self.repo / "new.md"
+        subprocess.run(["git", "-C", str(self.repo), "mv", "README.md", "new.md"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "rename source"], check=True)
+        candidate = git(self.repo, "rev-parse", "HEAD")
+        self.assertEqual(issue_execution.committed_changed_files(str(self.repo), self.base, candidate), ["README.md", "new.md"])
+
+    def test_workspace_fingerprint_ignores_ignored_runtime_state(self) -> None:
+        (self.repo / ".gitignore").write_text("runtime.sqlite\n")
+        (self.repo / "tracked").mkdir()
+        (self.repo / "tracked" / "file.txt").write_text("stable")
+        subprocess.run(["git", "-C", str(self.repo), "add", ".gitignore"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "add", "tracked"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "ignore runtime state"], check=True)
+        before = issue_execution.workspace_fingerprint(str(self.repo))
+        (self.repo / "runtime.sqlite").write_bytes(b"volatile-1")
+        after = issue_execution.workspace_fingerprint(str(self.repo))
+        self.assertEqual(before, after)
+        original_mode = (self.repo / "tracked").stat().st_mode & 0o777
+        (self.repo / "tracked").chmod(0o700 if original_mode != 0o700 else 0o755)
+        try:
+            self.assertNotEqual(before, issue_execution.workspace_fingerprint(str(self.repo)))
+        finally:
+            (self.repo / "tracked").chmod(original_mode)
+        newline_file = self.repo / "line\nname.txt"
+        newline_file.write_text("one")
+        subprocess.run(["git", "-C", str(self.repo), "add", str(newline_file.name)], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "newline path"], check=True)
+        before_newline = issue_execution.workspace_fingerprint(str(self.repo))
+        newline_file.write_text("two")
+        self.assertNotEqual(before_newline, issue_execution.workspace_fingerprint(str(self.repo)))
+        empty = self.repo / "empty"
+        empty.mkdir()
+        before_empty = issue_execution.workspace_fingerprint(str(self.repo))
+        empty.chmod(0o700)
+        try:
+            self.assertNotEqual(before_empty, issue_execution.workspace_fingerprint(str(self.repo)))
+        finally:
+            empty.chmod(0o755)
+
+    def test_git_helpers_ignore_inherited_git_redirects(self) -> None:
+        with patch.dict(os.environ, {"GIT_DIR": str(self.repo / "evil.git"), "GIT_WORK_TREE": str(self.tmp.name)}):
+            identity = issue_execution.git_worktree_identity(str(self.repo))
+            self.assertEqual(identity["top_level"], str(self.repo.resolve()))
+
     def request(self, mode: str, policy: str = "resume_or_start") -> dict:
         request = {
             "version": 1,

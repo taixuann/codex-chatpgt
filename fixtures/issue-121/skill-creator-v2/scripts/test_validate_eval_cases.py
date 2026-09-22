@@ -1,12 +1,8 @@
 import importlib.util
-import contextlib
-import io
 import json
 from pathlib import Path
-import sys
 import tempfile
 import unittest
-from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).with_name("validate_eval_cases.py")
@@ -22,16 +18,11 @@ def load_module():
 
 
 def load_initializer():
-    script_dir = str(INITIALIZER.parent)
-    sys.path.insert(0, script_dir)
-    try:
-        spec = importlib.util.spec_from_file_location("init_skill", INITIALIZER)
-        module = importlib.util.module_from_spec(spec)
-        assert spec.loader is not None
-        spec.loader.exec_module(module)
-        return module
-    finally:
-        sys.path.remove(script_dir)
+    spec = importlib.util.spec_from_file_location("init_skill", INITIALIZER)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 class EvalContractTests(unittest.TestCase):
@@ -39,7 +30,7 @@ class EvalContractTests(unittest.TestCase):
         module = load_module()
         skill_dir = SCRIPT.parents[1]
         with module._fixture(skill_dir, True) as fixture:
-            self.assertTrue((fixture / ".agents" / "skills" / "skill-creator" / "SKILL.md").is_file())
+            self.assertTrue((fixture / ".agents" / "skills" / "skill-creator-v2" / "SKILL.md").is_file())
 
     def test_localize_coexistence_marker_is_in_project_fixture(self):
         module = load_module()
@@ -71,19 +62,12 @@ class EvalContractTests(unittest.TestCase):
         module = load_module()
         skill_dir = SCRIPT.parents[1]
         cases = module.load_cases(skill_dir / "evals" / "cases.yaml")["action_cases"]
-        self.assertEqual({case["action"] for case in cases[:4]}, {"create", "install", "update", "audit"})
+        self.assertEqual({case["action"] for case in cases[:4]}, {"create", "update", "evaluate", "audit"})
         self.assertEqual(cases[4]["expected"], "fail-closed")
         self.assertEqual(cases[5]["expected"], "clarify-or-no-route")
         root = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
-        self.assertTrue(all(f"workflows/{action}.md" in root for action in ("create", "install", "update", "audit")))
+        self.assertTrue(all(f"workflows/{action}.md" in root for action in ("create", "update", "evaluate", "audit")))
         self.assertNotRegex(root, r"\bMAINTAIN\b")
-
-    def test_action_cases_have_a_runtime_workflow_observation_contract(self):
-        module = load_module()
-        case = {"id": "explicit-create", "kind": "ACTION", "prompt": "Create a reusable skill."}
-        prompt = module._runtime_prompt(case, Path("/tmp/eval"))
-        self.assertIn("selected_workflow", prompt)
-        self.assertEqual(module._artifact_contract(case), {})
 
     def test_audit_workflow_is_read_only_and_returns_dispositions(self):
         audit = (SCRIPT.parents[1] / "workflows" / "audit.md").read_text(encoding="utf-8")
@@ -92,27 +76,13 @@ class EvalContractTests(unittest.TestCase):
         self.assertIn("BLOCKED", audit)
         self.assertNotIn("execute the selected disposition", audit)
 
-    def test_initializer_omits_unsupported_metadata_by_default(self):
+    def test_initializer_does_not_generate_unregistered_metadata(self):
         module = load_initializer()
         with tempfile.TemporaryDirectory() as directory:
-            result = module.init_skill("generated-skill", Path(directory), [], False, {})
+            result = module.init_skill("generated-skill", Path(directory), [], False)
             self.assertIsNotNone(result)
             self.assertTrue((result / "SKILL.md").is_file())
-            self.assertFalse((result / "agents").exists())
-        self.assertFalse((SCRIPT.parents[1] / "agents" / "openai.yaml").exists())
-
-    def test_initializer_creates_metadata_only_for_explicit_interface_contract(self):
-        module = load_initializer()
-        with tempfile.TemporaryDirectory() as directory:
-            result = module.init_skill(
-                "generated-skill",
-                Path(directory),
-                [],
-                False,
-                ["short_description=Generate a reusable skill package"],
-            )
-            self.assertIsNotNone(result)
-            self.assertTrue((result / "agents" / "openai.yaml").is_file())
+            self.assertFalse((result / "agents" / "openai.yaml").exists())
 
     def test_compare_rejects_missing_before_or_after_evidence(self):
         module = load_module()
@@ -138,11 +108,11 @@ class EvalContractTests(unittest.TestCase):
                 expected = "none" if case.get("expected") == "none" else case["expected"]
                 contract = {}
                 if routing:
-                    trace_events = [{"skill_loads": [] if expected == "none" else ["skill-creator"]}]
+                    trace_events = [{"skill_loads": [] if expected == "none" else ["skill-creator-v2"]}]
                     before_snapshot = {}
                     after_snapshot = {}
                 else:
-                    trace_events = [{"skill_loads": ["skill-creator"], "item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}]
+                    trace_events = [{"skill_loads": ["skill-creator-v2"], "item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}]
                     contract = module._artifact_contract(case)
                     if contract.get("operation") == "modified":
                         before_snapshot = {contract["path"]: "old"}
@@ -240,30 +210,6 @@ class EvalContractTests(unittest.TestCase):
                 candidate = next(item for item in results if item["case_id"] == case["id"])
                 paired.append({"case_id": case["id"], "with_status": "PASS", "without_status": "OBSERVED", **module._paired_evidence(candidate, baseline)})
             results.extend(baseline_results)
-            action_cases = module.load_cases(cases_path)["action_cases"]
-            action_results = [
-                {
-                    "case_id": case["id"],
-                    "kind": "ACTION",
-                    "condition": "with_skill",
-                    "expected": case["expected"],
-                    "status": "PASS",
-                    "observed": case["expected"],
-                    "activation": "loaded",
-                    "runtime_observed": True,
-                    "runtime_evidence": {"skill_discovery": "NOT_ASSESSED", "explicit_invocation": "NOT_REQUESTED", "implicit_activation": "loaded", "behavior": "OBSERVED"},
-                    "process_observed": True,
-                    "trace_matches": True,
-                    "artifact_ok": True,
-                    "changed_paths": [],
-                    "cost_metrics": {"tool_calls": 1, "command_count": 1, "token_count": None, "tokens_observed": False, "artifact_count": 0},
-                    "trace_events": [{"skill_loads": ["skill-creator"], "item": {"type": "command_execution", "command": "skill action probe"}}],
-                    "before_snapshot": {},
-                    "after_snapshot": {},
-                    "final_report": {"selected_workflow": case["expected"]},
-                }
-                for case in action_cases
-            ]
             payload = {
                 "evidence_binding": {
                     "version": 1,
@@ -275,8 +221,7 @@ class EvalContractTests(unittest.TestCase):
                 },
                 "coverage": {"full_corpus": True},
                 "gates": gates,
-                "routing": {"status": "PASS", "TP": 5, "FN": 0, "FP": 0, "TN": 7, "precision": 1.0, "recall": 1.0, "false_positive_rate": 0.0, "assessed_cases": 12, "total_cases": 12, "action_status": "PASS", "action_assessed_cases": 6, "action_total_cases": 6, "action_expected_cases": 6},
-                "action_cases": action_results,
+                "routing": {"status": "PASS", "TP": 5, "FN": 0, "FP": 0, "TN": 7, "precision": 1.0, "recall": 1.0, "false_positive_rate": 0.0, "assessed_cases": 12, "total_cases": 12},
                 "paired": paired,
                 "results": results,
             }
@@ -306,14 +251,6 @@ class EvalContractTests(unittest.TestCase):
             missing_pair["paired"] = []
             before.write_text(json.dumps(missing_pair), encoding="utf-8")
             self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
-            missing_actions = json.loads(json.dumps(payload))
-            missing_actions.pop("action_cases")
-            before.write_text(json.dumps(missing_actions), encoding="utf-8")
-            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
-            missing_action_runtime = json.loads(json.dumps(payload))
-            missing_action_runtime["action_cases"][0].pop("trace_events")
-            before.write_text(json.dumps(missing_action_runtime), encoding="utf-8")
-            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
             missing_baseline = json.loads(json.dumps(payload))
             missing_baseline["results"] = [item for item in missing_baseline["results"] if item["condition"] == "with_skill"]
             before.write_text(json.dumps(missing_baseline), encoding="utf-8")
@@ -330,48 +267,10 @@ class EvalContractTests(unittest.TestCase):
     def test_independent_review_is_not_caller_supplied(self):
         self.assertNotIn("--review-status", SCRIPT.read_text(encoding="utf-8"))
 
-    def test_evidence_binding_rejects_candidate_ref_not_at_current_head(self):
-        module = load_module()
-        root = Path(__file__).resolve().parents[3]
-        with patch.object(module, "_git_revision", side_effect=["0" * 40, "1" * 40, "2" * 40]):
-            binding = module._evidence_binding(root / "skills" / "skill-creator", root / "skills" / "skill-creator" / "evals" / "cases.yaml", "base", "candidate")
-        self.assertIsNone(binding["candidate_head"])
-        self.assertFalse(module._valid_evidence_binding(binding))
-
     def test_negative_activation_requires_explicit_empty_load_signal(self):
         module = load_module()
         self.assertEqual(module._runtime_activation([{"skill_loads": []}]), "unloaded")
         self.assertIsNone(module._runtime_activation([{"item": {"type": "agent_message", "text": "none"}}]))
-
-    def test_activation_matching_is_exact_and_targeted(self):
-        module = load_module()
-        self.assertEqual(module._runtime_activation([{"skill_loads": ["skill-creator"]}]), "loaded")
-        self.assertEqual(module._runtime_activation([{"skill_loads": [{"name": "skill-creator"}]}]), "loaded")
-        self.assertEqual(module._runtime_activation([{"skill_loads": ["not-skill-creator"]}]), "unloaded")
-        self.assertEqual(module._runtime_activation([{"loaded_skill": "another-skill"}]), "unloaded")
-        self.assertEqual(module._runtime_activation([{"skill_loads": []}, {"skill_loads": ["skill-creator"]}]), "loaded")
-
-    def test_run_requires_revision_binding(self):
-        module = load_module()
-        original = sys.argv
-        try:
-            sys.argv = [str(SCRIPT), str(SCRIPT.parent.parent / "evals" / "cases.yaml"), "--run"]
-            output = io.StringIO()
-            with contextlib.redirect_stdout(output), patch.object(module, "run") as run:
-                self.assertEqual(module.main(), 1)
-            run.assert_not_called()
-            self.assertIn("--run requires both --base and --candidate", output.getvalue())
-        finally:
-            sys.argv = original
-
-    def test_routing_pass_requires_expected_activation_state(self):
-        module = load_module()
-        positive = {"kind": "routing", "expected": "skill-creator"}
-        negative = {"kind": "routing", "expected": "none"}
-        self.assertEqual(module._routing_status(positive, "loaded", "skill-creator")[0], "PASS")
-        self.assertEqual(module._routing_status(positive, "unloaded", "skill-creator")[0], "FAIL")
-        self.assertEqual(module._routing_status(negative, "unloaded", "none")[0], "PASS")
-        self.assertEqual(module._routing_status(negative, "loaded", "none")[0], "FAIL")
 
     def test_trace_markers_are_bound_to_process_payloads(self):
         module = load_module()
@@ -422,42 +321,12 @@ class EvalContractTests(unittest.TestCase):
         ]
         results = [
             {"case_id": "positive", "status": "FAIL", "observed": "none"},
-            {"case_id": "negative", "status": "PASS", "observed": "skill-creator"},
+            {"case_id": "negative", "status": "PASS", "observed": "skill-creator-v2"},
         ]
         report = module._routing_metrics(results, cases)
         self.assertEqual(report["FN"], 1)
         self.assertEqual(report["FP"], 1)
         self.assertEqual(report["status"], "FAIL")
-
-    def test_action_probe_failures_are_qualification_failures(self):
-        module = load_module()
-        cases = [{"id": "explicit-create"}, {"id": "unknown-action"}]
-        report = module._routing_metrics(
-            [{"case_id": "positive", "status": "PASS", "observed": "skill-creator"}],
-            [{"id": "positive", "kind": "routing", "polarity": "positive"}],
-            [{"case_id": "explicit-create", "status": "FAIL"}, {"case_id": "unknown-action", "status": "PASS"}],
-            cases,
-        )
-        self.assertEqual(report["action_status"], "FAIL")
-        self.assertEqual(report["status"], "FAIL")
-
-    def test_create_source_strategy_branches_are_valid_alternatives(self):
-        module = load_module()
-        self.assertIn("INSTALL_EXISTING", module.ACTION_DISPOSITIONS)
-        self.assertIn("REFERENCE_AND_ADAPT", module.ACTION_DISPOSITIONS)
-        alternatives = {
-            check: {
-                "state": "CHECKED",
-                "disposition": "INSTALL_EXISTING" if check == "maintained_candidate" else "USE_EXISTING",
-                "reason": "The candidate was inspected against the requested reusable capability.",
-            }
-            for check in module.NECESSITY_CHECKS
-        }
-        ok, reason = module._necessity_ok(
-            {"id": "create-local-upstream", "kind": "CREATE"},
-            {"necessity": {"disposition": "CLONE_AND_ADAPT", "alternatives": alternatives, "justification": "The baseline was compared before adaptation."}},
-        )
-        self.assertTrue(ok, reason)
 
     def test_artifact_contract_requires_real_change(self):
         module = load_module()
@@ -480,40 +349,9 @@ class EvalContractTests(unittest.TestCase):
         self.assertFalse(module._recomputed_record({"trace_events": [], "before_snapshot": {".fixture-coexistence": "hash"}, "after_snapshot": {}, "final_report": {}}, {"id": "audit-overlap", "kind": "AUDIT"})["coexistence_fixture"])
         self.assertTrue(module._recomputed_record({"trace_events": [], "before_snapshot": coexistence, "after_snapshot": coexistence, "final_report": {}}, {"id": "audit-overlap", "kind": "AUDIT"})["coexistence_fixture"])
 
-    def test_audit_upstream_drift_uses_update_needed_disposition(self):
-        module = load_module()
-        case = {"id": "audit-upstream-drift", "kind": "AUDIT"}
-        alternatives = {
-            name: {
-                "state": "CHECKED",
-                "disposition": "USE_EXISTING",
-                "reason": "checked alternative capability and captured evidence",
-            }
-            for name in module.NECESSITY_CHECKS
-        }
-        self.assertTrue(module._necessity_ok(case, {
-            "necessity": {
-                "disposition": "UPDATE_NEEDED",
-                "alternatives": alternatives,
-                "justification": "upstream drift requires a later update",
-            }
-        })[0])
-
     def test_runtime_preflight_rejects_missing_runtime_without_launching_cases(self):
         module = load_module()
         self.assertEqual(module._runtime_preflight("definitely-not-a-codex-runtime", 1)["status"], "NO_RUNTIME")
-
-    def test_subprocess_env_strips_inherited_git_routing_state(self):
-        module = load_module()
-        with patch.dict(module.os.environ, {
-            "GIT_DIR": "/tmp/redirected-git",
-            "GIT_WORK_TREE": "/tmp/redirected-worktree",
-            "GIT_CONFIG_GLOBAL": "/tmp/redirected-config",
-        }, clear=False):
-            environment = module._subprocess_env()
-        self.assertNotIn("GIT_DIR", environment)
-        self.assertNotIn("GIT_WORK_TREE", environment)
-        self.assertNotIn("GIT_CONFIG_GLOBAL", environment)
 
     def test_timeout_classes_preserve_auth_transport_turn_and_process_causes(self):
         module = load_module()

@@ -3,22 +3,19 @@
 Skill Initializer - Creates a new skill from template
 
 Usage:
-    init_skill.py <skill-name> --path <path> [--resources scripts,references,assets] [--examples] [--interface key=value]
+    init_skill.py <skill-name> --path <path> [--resources scripts,references,assets] [--examples]
 
 Examples:
     init_skill.py my-new-skill --path skills/public
     init_skill.py my-new-skill --path skills/public --resources scripts,references
     init_skill.py my-api-helper --path skills/private --resources scripts --examples
     init_skill.py custom-skill --path /custom/location
-    init_skill.py my-skill --path skills/public --interface short_description="Short UI label"
 """
 
 import argparse
 import re
 import sys
 from pathlib import Path
-
-from generate_openai_yaml import write_openai_yaml
 
 MAX_SKILL_NAME_LENGTH = 64
 ALLOWED_RESOURCES = {"scripts", "references", "assets"}
@@ -155,7 +152,7 @@ def create_resource_dirs(
                 print("[OK] Created assets/")
 
 
-def init_skill(skill_name, path, resources, include_examples, interface_overrides):
+def init_skill(skill_name, path, resources, include_examples):
     """
     Initialize a new skill directory with template SKILL.md.
 
@@ -180,6 +177,7 @@ def init_skill(skill_name, path, resources, include_examples, interface_override
     try:
         skill_dir.mkdir(parents=True, exist_ok=False)
         print(f"[OK] Created skill directory: {skill_dir}")
+    # aqg: top-level boundary — copied initializer reports filesystem failures.
     except Exception as e:
         print(f"[ERROR] Error creating directory: {e}")
         return None
@@ -194,19 +192,14 @@ def init_skill(skill_name, path, resources, include_examples, interface_override
     try:
         skill_md_path.write_text(skill_content)
         print("[OK] Created SKILL.md")
+    # aqg: top-level boundary — copied initializer reports template-write failures.
     except Exception as e:
         print(f"[ERROR] Error creating SKILL.md: {e}")
         return None
 
-    # Create runtime metadata only when an explicit consumer contract is supplied.
-    if interface_overrides:
-        try:
-            result = write_openai_yaml(skill_dir, skill_name, interface_overrides)
-            if not result:
-                return None
-        except Exception as e:
-            print(f"[ERROR] Error creating agents/openai.yaml: {e}")
-            return None
+    # This prototype deliberately stays outside active registration and does not
+    # generate agents/openai.yaml. The standalone generator remains available
+    # for explicit, separately governed metadata work.
 
     # Create resource directories if requested
     if resources:
@@ -214,6 +207,7 @@ def init_skill(skill_name, path, resources, include_examples, interface_override
             create_resource_dirs(
                 skill_dir, skill_name, skill_title, resources, include_examples
             )
+        # aqg: top-level boundary — copied initializer reports resource setup failures.
         except Exception as e:
             print(f"[ERROR] Error creating resource directories: {e}")
             return None
@@ -233,13 +227,9 @@ def init_skill(skill_name, path, resources, include_examples, interface_override
         print(
             "2. Create resource directories only if needed (scripts/, references/, assets/)"
         )
-    if interface_overrides:
-        print("3. Update agents/openai.yaml only if the demonstrated consumer contract changes")
-    else:
-        print("3. Add runtime metadata only when a target consumer is demonstrated")
-    print("4. Run the validator when ready to check the skill structure")
+    print("3. Run the validator when ready to check the skill structure")
     print(
-        "5. Consider independent forward-testing only when complexity or risk warrants it"
+        "4. Consider independent forward-testing only when complexity or risk warrants it"
     )
 
     return skill_dir
@@ -260,12 +250,6 @@ def main():
         "--examples",
         action="store_true",
         help="Create example files inside the selected resource directories",
-    )
-    parser.add_argument(
-        "--interface",
-        action="append",
-        default=[],
-        help="Interface override in key=value format (repeatable)",
     )
     args = parser.parse_args()
 
@@ -300,7 +284,7 @@ def main():
         print("   Resources: none (create as needed)")
     print()
 
-    result = init_skill(skill_name, path, resources, args.examples, args.interface)
+    result = init_skill(skill_name, path, resources, args.examples)
 
     if result:
         sys.exit(0)

@@ -52,10 +52,24 @@ stay on the current compatible worker for repair. Record `requested_worker`,
 route.
 Semantic routes remain request-time details, not a model-manager service.
 
+## Action ownership
+
+The lifecycle is one bounded Issue workflow, not a generic engine:
+
+- PREFLIGHT binds the live Issue, repository/CWD, base, allowed paths, dirty
+  baseline, and compact session state.
+- RUN owns bounded worker execution, Git reconciliation, validation, and task
+  receipts; TRACK is not a second action surface.
+- QUALIFY owns integrated validation and fresh separate WORK then GOAL review.
+- HANDOFF ends at awaiting_parent_decision; the parent owns commit, Draft PR,
+  merge, and Issue closure.
+
+The existing session and task schemas are sufficient for these actions. Do not
+add a second tracker, generic workflow engine, or alternate acceptance state.
+
 ## State
 
-Keep only these durable workflow files in the repository-local ignored state
-directory:
+Keep lifecycle state only in these repository-local ignored workflow files:
 
 ```text
 <repo>/.agents/sessions/issue-<N>/session.yaml
@@ -75,6 +89,11 @@ not to these files. Never store transcripts or hidden reasoning. Each formal
 Athena attempt has a fresh native reviewer thread/session and a deterministic
 display label; never resume an Athena thread for formal re-review. Existing
 receipt paths are never overwritten.
+
+Task-scoped authoring evidence may also include `intent.md` with compact Build,
+Case, Evidence, and Deviations maps. It is a report/evidence note, not lifecycle
+state or a second tracker; keep it in the Issue/session evidence surface and
+point to it from the task mapping when needed.
 
 ## Hard gates
 

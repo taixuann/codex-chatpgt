@@ -1,4 +1,32 @@
-# UPDATE
+# UPDATE workflow
+
+UPDATE is a bounded mutation for an existing skill. It requires an observed
+problem, upstream change, routing/resource issue, or other evidence-backed
+reason; lifecycle inspection alone belongs to AUDIT.
+
+## Flow and evidence
+
+```text
+CHANGE / FAILURE
+→ VERIFY UPDATE IS NEEDED
+→ CURRENT BASELINE
+→ TARGETED EVIDENCE
+→ SMALLEST CHANGE
+→ VALIDATE
+→ AFFECTED EVALUATION
+→ BEFORE / AFTER COMPARISON
+→ ACCEPT / REJECT / BLOCK
+```
+
+Record the current package, source/ref/license, adaptation boundary, affected
+cases, and allowed paths before editing. Preserve unrelated content. Run the
+baseline before a substantive change, then compare exact per-case outcomes,
+process traces, artifacts/resources, routing metrics, and measured cost. A
+textual difference is not an improvement without observable evidence.
+
+UPDATE may apply a disposition previously identified by AUDIT only when the
+user explicitly authorizes the mutation. It must not silently localize, merge,
+disable, or retire a skill merely because inspection found that outcome.
 
 Use this reference for a bounded change to an existing skill. A changed file is
 not evidence of an improved skill.
