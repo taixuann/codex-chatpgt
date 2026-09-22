@@ -77,8 +77,9 @@ independent workflow engines:
 | `HANDOFF` | parent decision boundary | `awaiting_parent_decision` | `CLOSE` cannot merge or close the Issue |
 
 The executable helpers therefore remain `preflight`, bounded worker execution,
-`reconcile`, and host-owned review/handoff operations. Adding a peer action or
-state schema requires a new approved architectural delta.
+`validate-receipt`, and `reconcile`; host-owned review/handoff operations are
+separate external operations. Adding a peer action or state schema requires a
+new approved architectural delta.
 
 The existing session and task schemas are sufficient for these actions. Do not
 add a second tracker, generic workflow engine, or alternate acceptance state.
