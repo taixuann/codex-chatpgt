@@ -286,8 +286,8 @@ def workspace_fingerprint(repo: str, excluded: list[str] | None = None) -> str:
     root = Path(canonical(repo))
     excluded_roots = [Path(canonical(item)) for item in (excluded or [])]
     files: dict[str, str] = {"@root": hashlib.sha256(str(root.stat().st_mode).encode()).hexdigest()}
-    paths = git(repo, "ls-files", "--cached", "--others", "--exclude-standard", "-z").split("\0")
-    paths.extend(git(repo, "ls-files", "--others", "--exclude-standard", "--directory", "-z").split("\0"))
+    paths = git_nul(repo, "ls-files", "--cached", "--others", "--exclude-standard")
+    paths.extend(git_nul(repo, "ls-files", "--others", "--exclude-standard", "--directory"))
     for relative in paths:
         relative = relative.rstrip("/")
         if not relative:

@@ -173,6 +173,23 @@ class KernelTests(unittest.TestCase):
         with patch.object(issue_execution, "git", side_effect=reject_newline_diff):
             issue_execution.reconcile(str(self.repo), base, ledger, trusted, expected_repository="fixture/repo", expected_issue=107)
 
+    def test_workspace_fingerprint_preserves_leading_newline_filename(self) -> None:
+        path = self.repo / "\nname.txt"
+        path.write_text("before\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", path.name], check=True)
+        original_git = issue_execution.git
+
+        def reject_nul_git(repo: str, *args: str) -> str:
+            if "-z" in args:
+                raise AssertionError("workspace_fingerprint must use git_nul for path extraction")
+            return original_git(repo, *args)
+
+        with patch.object(issue_execution, "git", side_effect=reject_nul_git):
+            before = issue_execution.workspace_fingerprint(str(self.repo))
+            path.write_text("after\n")
+            after = issue_execution.workspace_fingerprint(str(self.repo))
+        self.assertNotEqual(before, after)
+
     def test_git_helpers_ignore_inherited_git_redirects(self) -> None:
         with patch.dict(os.environ, {"GIT_DIR": str(self.repo / "evil.git"), "GIT_WORK_TREE": str(self.tmp.name)}):
             identity = issue_execution.git_worktree_identity(str(self.repo))
