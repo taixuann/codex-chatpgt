@@ -28,7 +28,24 @@ Run one fresh diagnostic design challenge. It is read-only and non-binding. Reco
 
 ### 5–8: package, baseline, build, validate
 
-Create Build Map and Case Map before package mutation. Each resource must name its owner, consumer, lifetime, validation, and runtime/creation-only status. For a suitable installable source, stop and route to INSTALL. For donor/reference-only material, bind the exact donor snapshot, license, and hashes for provenance, then create via `REFERENCE_AND_ADAPT`; materialize a donor baseline only as a recoverable reference, never as an implicit install target.
+Create Build Map and Case Map before package mutation. Each resource must name its owner, consumer, lifetime, validation, and runtime/creation-only status.
+
+Apply this source boundary before materializing any baseline:
+
+1. If a maintained existing skill already satisfies the requested capability
+   and is installable, stop CREATE and route to INSTALL; do not copy, adapt, or
+   redesign that skill under CREATE.
+2. If the source is donor/reference-only, or no suitable installable owner
+   exists, bind the exact source snapshot, license, path, and hashes, then use
+   `REFERENCE_AND_ADAPT` or
+   `CREATE_FROM_SCRATCH_WITH_JUSTIFICATION` as appropriate.
+3. A donor baseline may be materialized only as a recoverable reference for
+   comparison. It is never an implicit install target and never silently
+   becomes the shipped package.
+
+Validate the routing decision before package mutation. For a suitable
+installable source, stop and route to INSTALL. For donor/reference-only
+material, create only the approved target package.
 
 Build only the approved package. Validate frontmatter, names, links, package closure, scripts, eval schema, source/license records, and side effects. Run a static semantic walkthrough of one normal path and one highest-risk boundary.
 

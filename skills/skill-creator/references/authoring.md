@@ -15,10 +15,10 @@ WHY → WHEN → WHAT → HOW
     → RELATED RESOURCES
 ```
 
-Put the normal path before exceptions, decision before enumeration, and route
-resources by `WHEN`. Say whether a script is meant to be run or merely read;
+Put the normal path before exceptions, decision before enumeration, and make
+resource routing by `WHEN` explicit. Say whether a script is meant to be run or merely read;
 do not hide a required action in a reference file. State consumer/load timing
-when a resource is created during authoring but not shipped at runtime.
+when a resource is created during authoring but not shipped at runtime. A flat inventory is not a package contract.
 
 ## Package conventions
 
@@ -28,6 +28,17 @@ when a resource is created during authoring but not shipped at runtime.
 - Scripts own deterministic mechanics, validation, and machine-readable errors; document invocation and expected outputs.
 - Assets/templates exist only with a named consumer and a validation path.
 - Eval cases and reports belong to the evaluation surface; creation-only traces and baselines stay outside the runtime package.
+
+Use the following file-format semantics:
+
+| resource | contract |
+| --- | --- |
+| `SKILL.md` | discriminating router: why/when it applies, boundaries, and the next workflow or reference |
+| workflow docs | ordered decisions, normal path, branches, failure handling, terminal output, related resources |
+| reference docs | reusable definitions and contracts; no duplicated workflow ownership |
+| scripts | executable mechanics, invocation, deterministic validation, and machine-readable errors; say `RUN` or `READ` |
+| assets/templates | only with a named consumer, load timing, and validation path |
+| eval cases/reports | evaluation inputs and evidence; creation-only traces/baselines remain outside the shipped package |
 
 Before mutation, map each file to behavior, source, consumer, validation,
 lifetime, and runtime/creation-only status. Prefer deletion or navigation over

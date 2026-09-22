@@ -85,11 +85,27 @@ class EvalContractTests(unittest.TestCase):
         environment = (skill_dir / "references" / "test-environment.md").read_text(encoding="utf-8")
         architecture = (skill_dir / "references" / "architecture.md").read_text(encoding="utf-8")
         self.assertNotIn("G0_NECESSITY", evaluation)
-        for marker in ("real-task selection", "portfolio", "held-out", "batch", "stochastic", "failure classification"):
+        for marker in (
+            "real-task selection", "portfolio", "outcome correctness", "workflow fidelity",
+            "branch/checkpoint coverage", "held-out", "batch-before-repair", "stochastic",
+            "persistent or creation-only", "failure classification",
+        ):
             self.assertIn(marker, evaluation.lower())
         for marker in ("WHY", "WHEN", "WHAT", "HOW", "BRANCH", "OUTPUT", "RELATED RESOURCES"):
             self.assertIn(marker, authoring)
-        for marker in ("ALLOCATE", "PREPARE", "BASELINE", "RUN", "FREEZE EVIDENCE", "REPORT", "ARCHIVE", "CLEAN", "CLEANED", "PRESERVED_FOR_REVIEW", "CLEANUP_BLOCKED"):
+        for marker in ("RUN", "READ"):
+            self.assertIn(marker, authoring)
+        for marker in (
+            "normal path before exceptions", "decision before enumeration",
+            "resource routing by `when`", "consumer/load timing", "flat inventory",
+        ):
+            self.assertIn(marker, authoring.lower())
+        for marker in (
+            "ALLOCATE", "PREPARE", "BASELINE", "RUN", "FREEZE EVIDENCE", "REPORT",
+            "ARCHIVE", "CLEAN", "CLEANED", "PRESERVED_FOR_REVIEW", "CLEANUP_BLOCKED",
+            "temporary copy", "worktree", "sandbox", "candidate revision/tree fingerprint",
+            "test/case fingerprint",
+        ):
             self.assertIn(marker, environment)
         for marker in ("Phase Contract", "failure", "recovery", "forward trace", "reverse-trace"):
             self.assertIn(marker.lower(), architecture.lower())

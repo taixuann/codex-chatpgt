@@ -4,6 +4,34 @@ Use this shared capability for readiness or quality review of any target skill.
 It is consumed by CREATE, INSTALL, UPDATE, and AUDIT; it is not a peer action
 and does not own the skill-creator self-evaluation harness.
 
+## Generic target-skill evaluation contract
+
+This reference owns evaluation of the target skill being considered by CREATE,
+INSTALL, UPDATE, or AUDIT. It does not define the skill-creator package's own
+G0-G7 gates, canonical case corpus, action probes, or validator schema; those
+belong to `evals/cases.yaml` and `scripts/validate_eval_cases.py`.
+
+For every evaluated target, preserve these separate observations:
+
+- outcome correctness: did the requested result satisfy the target contract;
+- workflow fidelity: did the agent follow the required decisions, checkpoints,
+  boundaries, and failure handling;
+- branch/checkpoint coverage: were normal, adjacent, failure, recovery, and
+  terminal paths exercised;
+- stochastic repeats: use repeated trials or semantic checkpoints when one
+  run cannot establish stable behavior;
+- batch-before-repair: complete the planned portfolio before changing the
+  candidate, then rerun the same comparison set;
+- held-out/regression evidence: keep tuning cases separate from held-out and
+  previously failing cases;
+- lifetime: label each result persistent or creation-only; and
+- report semantics: retain exact case, condition, expected/observed outcome,
+  process trace, artifact delta, cost, classification, and raw limitation.
+
+Activation, explicit invocation, implicit load, and behavior/artifact evidence
+are separate fields. A qualitative score, disposition, or caller-supplied
+review flag is not execution evidence.
+
 ## Evaluation design
 
 Start with real-task selection: choose requests that exercise the changed

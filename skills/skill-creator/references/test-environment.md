@@ -30,3 +30,20 @@ fingerprint, base identity when comparing, selected environment kind, and
 runtime/auth status. Exclude runtime homes and caches from artifact snapshots.
 Preserve baseline purity, do not reuse a dirty fixture, and stop on orphaned
 worktrees, dirty overlap, unavailable auth, or ambiguous candidate identity.
+
+## Environment selection and fingerprints
+
+- Use a temporary copy when the trial must isolate ordinary files and the
+  candidate can be materialized without Git history.
+- Use a worktree when Git identity, tracked/untracked state, or exact revision
+  comparison is part of the contract.
+- Use a sandbox only when its filesystem and provider/auth capabilities are
+  explicitly available; an unavailable sandbox is `NOT_ASSESSED`, not a
+  successful empty trial.
+
+At `PREPARE`, record the fresh trial ID, candidate revision/tree fingerprint,
+test/case fingerprint, base revision for paired comparisons, environment kind,
+and runtime/auth status. The before/after snapshot covers only the operation
+workspace; temporary `CODEX_HOME`, caches, and disposable provider state are
+excluded. Freeze these records before cleanup so a later report cannot silently
+substitute a different candidate or test corpus.
