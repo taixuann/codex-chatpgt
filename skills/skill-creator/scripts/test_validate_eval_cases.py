@@ -224,6 +224,26 @@ class EvalContractTests(unittest.TestCase):
             after = root / "after.json"
             cases_path = SCRIPT.parents[1] / "evals" / "cases.yaml"
             cases = module.load_cases(cases_path)["cases"]
+            binding = {
+                "version": 1,
+                "repository_root": "/tmp/repository",
+                "base_head": "0" * 40,
+                "candidate_head": "1" * 40,
+                "skill_tree_sha256": "a" * 64,
+                "cases_sha256": "b" * 64,
+            }
+
+            def trial(condition):
+                return {
+                    "trial_id": "01234567-89ab-cdef-0123-456789abcdef",
+                    "condition": condition,
+                    "environment_kind": "temporary_copy",
+                    "candidate_fingerprint": {"revision": binding["candidate_head"], "tree_sha256": binding["skill_tree_sha256"]},
+                    "test_fingerprint": binding["cases_sha256"],
+                    "base_identity": binding["base_head"],
+                    "runtime_auth_status": "READY",
+                    "lifecycle": {"sequence": module.TRIAL_SEQUENCE, "baseline": "paired_without_skill", "evidence_frozen": True, "terminal_state": "CLEANED"},
+                }
             results = []
             for case in cases:
                 routing = case["kind"] == "routing"
@@ -280,6 +300,7 @@ class EvalContractTests(unittest.TestCase):
                     "before_snapshot": before_snapshot,
                     "after_snapshot": after_snapshot,
                     "final_report": final_report,
+                    "trial": trial("with_skill"),
                 })
             gates = {gate: "PASS" for gate in module.GATES}
             gates["G7_INDEPENDENT_REVIEW"] = "NOT_ASSESSED"
@@ -327,6 +348,7 @@ class EvalContractTests(unittest.TestCase):
                     "before_snapshot": baseline_before,
                     "after_snapshot": baseline_after,
                     "final_report": {"disposition": "baseline"},
+                    "trial": trial("without_skill"),
                 }
                 baseline_results.append(baseline)
                 candidate = next(item for item in results if item["case_id"] == case["id"])
@@ -353,18 +375,12 @@ class EvalContractTests(unittest.TestCase):
                     "before_snapshot": {},
                     "after_snapshot": {},
                     "final_report": {"selected_workflow": case["expected"]},
+                    "trial": trial("with_skill"),
                 }
                 for case in action_cases
             ]
             payload = {
-                "evidence_binding": {
-                    "version": 1,
-                    "repository_root": "/tmp/repository",
-                    "base_head": "0" * 40,
-                    "candidate_head": "1" * 40,
-                    "skill_tree_sha256": "a" * 64,
-                    "cases_sha256": "b" * 64,
-                },
+                "evidence_binding": binding,
                 "coverage": {"full_corpus": True},
                 "gates": gates,
                 "routing": {"status": "PASS", "TP": 5, "FN": 0, "FP": 0, "TN": 7, "precision": 1.0, "recall": 1.0, "false_positive_rate": 0.0, "assessed_cases": 12, "total_cases": 12, "action_status": "PASS", "action_assessed_cases": 6, "action_total_cases": 6, "action_expected_cases": 6},
@@ -389,6 +405,10 @@ class EvalContractTests(unittest.TestCase):
             incomplete = json.loads(json.dumps(payload))
             incomplete["results"][0].pop("activation")
             before.write_text(json.dumps(incomplete), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            missing_trial = json.loads(json.dumps(payload))
+            missing_trial["results"][0].pop("trial")
+            before.write_text(json.dumps(missing_trial), encoding="utf-8")
             self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
             invalid_gate = json.loads(json.dumps(payload))
             invalid_gate["gates"]["G7_INDEPENDENT_REVIEW"] = "PASS"
@@ -594,6 +614,30 @@ class EvalContractTests(unittest.TestCase):
     def test_runtime_preflight_rejects_missing_runtime_without_launching_cases(self):
         module = load_module()
         self.assertEqual(module._runtime_preflight("definitely-not-a-codex-runtime", 1)["status"], "NO_RUNTIME")
+
+    def test_run_rejects_candidate_ref_that_is_not_current_head(self):
+        module = load_module()
+        cases_path = SCRIPT.parents[1] / "evals" / "cases.yaml"
+        report = module.run(
+            cases_path,
+            SCRIPT.parents[1],
+            "definitely-not-a-codex-runtime",
+            "gpt-5.6-luna",
+            "medium",
+            1,
+            None,
+            "smoke",
+            "HEAD",
+            "HEAD~1",
+        )
+        self.assertEqual(report["runtime_preflight"]["status"], "CANDIDATE_MISMATCH")
+        self.assertTrue(all(item["status"] == "NOT_ASSESSED" for item in report["results"]))
+
+    def test_trial_record_validation_rejects_missing_lifecycle_evidence(self):
+        module = load_module()
+        binding = {"candidate_head": "a" * 40, "skill_tree_sha256": "b" * 64, "cases_sha256": "c" * 64, "base_head": "d" * 40}
+        item = {"condition": "with_skill"}
+        self.assertFalse(module._trial_record_is_valid(item, binding))
 
     def test_subprocess_env_strips_inherited_git_routing_state(self):
         module = load_module()

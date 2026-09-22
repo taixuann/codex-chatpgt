@@ -303,6 +303,10 @@ def workspace_fingerprint(repo: str, excluded: list[str] | None = None) -> str:
             directory = directory.parent
         if not target.exists() and not target.is_symlink():
             continue
+        if target.is_symlink():
+            mode = target.lstat().st_mode
+            files[relative] = hashlib.sha256(str(mode).encode() + b"\0" + filesystem_payload(target)).hexdigest()
+            continue
         if target.is_dir():
             files[f"@dir/{relative}"] = hashlib.sha256(str(target.lstat().st_mode).encode()).hexdigest()
             continue

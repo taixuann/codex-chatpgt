@@ -48,6 +48,8 @@ EXPECTED_CASE_COUNT = 26
 EXPECTED_ROUTING_CASE_COUNT = 12
 EXPECTED_LIFECYCLE_CASE_COUNT = 14
 BINDING_VERSION = 1
+TRIAL_SEQUENCE = ["ALLOCATE", "PREPARE", "BASELINE", "RUN", "FREEZE", "REPORT", "ARCHIVE", "CLEAN"]
+TRIAL_TERMINAL_STATES = {"CLEANED", "PRESERVED_FOR_REVIEW", "CLEANUP_BLOCKED"}
 EXPECTED_PARTITIONS = {
     "must_pass": frozenset({
         "route-explicit-positive", "route-implicit-positive", "route-contextual-positive",
@@ -486,6 +488,29 @@ def _unassessed_case(
         },
         "reason": reason,
     }, trial)
+
+
+def _trial_record_is_valid(item: dict, binding: dict) -> bool:
+    trial = item.get("trial")
+    candidate = trial.get("candidate_fingerprint") if isinstance(trial, dict) else None
+    lifecycle = trial.get("lifecycle") if isinstance(trial, dict) else None
+    return bool(
+        isinstance(trial, dict)
+        and isinstance(trial.get("trial_id"), str)
+        and re.fullmatch(r"[0-9a-f-]{36}", trial["trial_id"])
+        and trial.get("condition") == item.get("condition")
+        and trial.get("environment_kind") in {"temporary_copy", "worktree", "sandbox", "not_allocated"}
+        and isinstance(candidate, dict)
+        and candidate.get("revision") == binding.get("candidate_head")
+        and candidate.get("tree_sha256") == binding.get("skill_tree_sha256")
+        and trial.get("test_fingerprint") == binding.get("cases_sha256")
+        and trial.get("base_identity") == binding.get("base_head")
+        and isinstance(trial.get("runtime_auth_status"), str)
+        and isinstance(lifecycle, dict)
+        and lifecycle.get("sequence") == TRIAL_SEQUENCE
+        and lifecycle.get("evidence_frozen") is True
+        and lifecycle.get("terminal_state") in TRIAL_TERMINAL_STATES
+    )
 
 
 def _package_structure_ok(skill_dir: Path) -> bool:
@@ -1156,7 +1181,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             return False
         for item in action_results:
             case = action_by_id.get(item.get("case_id"))
-            if not case or not _action_record_is_valid(item, {**case, "kind": "ACTION"}):
+            if not case or not _trial_record_is_valid(item, bindings[0]) or not _action_record_is_valid(item, {**case, "kind": "ACTION"}):
                 return False
         if routing.get("status") not in {"PASS", "FAIL"} or not all(
             isinstance(routing.get(field), (int, float)) for field in ("precision", "recall")
@@ -1182,7 +1207,7 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
         with_by_case = {item.get("case_id"): item for item in results}
         for item in results + baseline_results:
             case = cases_by_id.get(item.get("case_id"))
-            if not case or any(
+            if not case or not _trial_record_is_valid(item, bindings[0]) or any(
                 item.get(field) != expected
                 for field, expected in (
                     ("kind", case["kind"]),
@@ -1356,7 +1381,13 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         "full": {case["id"] for case in data["cases"]},
     }[stage]
     cases = [case for case in data["cases"] if case["id"] in stage_ids and (not case_ids or case["id"] in case_ids)]
-    preflight = _runtime_preflight(runtime, timeout)
+    if candidate_ref is not None and evidence_binding.get("candidate_head") is None:
+        preflight = {
+            "status": "CANDIDATE_MISMATCH",
+            "reason": "requested candidate is not the current repository HEAD",
+        }
+    else:
+        preflight = _runtime_preflight(runtime, timeout)
     if preflight["status"] != "READY":
         unavailable_results = []
         unavailable_actions = []

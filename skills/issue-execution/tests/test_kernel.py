@@ -122,6 +122,13 @@ class KernelTests(unittest.TestCase):
         before_newline = issue_execution.workspace_fingerprint(str(self.repo))
         newline_file.write_text("two")
         self.assertNotEqual(before_newline, issue_execution.workspace_fingerprint(str(self.repo)))
+        (self.repo / "other").mkdir()
+        link = self.repo / "directory-link"
+        link.symlink_to(self.repo / "tracked", target_is_directory=True)
+        before_link = issue_execution.workspace_fingerprint(str(self.repo))
+        link.unlink()
+        link.symlink_to(self.repo / "other", target_is_directory=True)
+        self.assertNotEqual(before_link, issue_execution.workspace_fingerprint(str(self.repo)))
         empty = self.repo / "empty"
         empty.mkdir()
         before_empty = issue_execution.workspace_fingerprint(str(self.repo))
