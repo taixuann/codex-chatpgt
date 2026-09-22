@@ -46,6 +46,23 @@ unfingerprinted, duplicate, or contradictory references make the packet
 `NOT_REVIEWABLE`. The normalized result records the contract fingerprint, so a
 rubric or reference mutation makes the review stale.
 
+### Packet dimension contract
+
+`review_attempt.axis` selects the review question; `review_contract` selects
+subordinate criteria references. They are independent packet dimensions:
+
+| route | axis | contract use | terminal? |
+|---|---|---|---|
+| diagnostic quality/design/package review | `work` | optional caller reference(s) | no |
+| diagnostic mixed review | `joint` | optional caller reference(s) | no |
+| terminal quality review | `work` | locked Issue criteria and evidence | yes, only as WORK |
+| terminal completion review | `goal` | locked Issue criteria and evidence | yes, only as separate GOAL |
+
+Caller references may explain a rubric, design, authoring, package, or project
+dimension, but never replace Issue authority, the locked criteria manifest,
+the exact candidate/base, or the evidence snapshot. Missing or incompatible
+contract evidence remains `NOT_REVIEWABLE` / `insufficient_evidence`.
+
 ## Reviewability and freshness
 
 Return `NOT_REVIEWABLE` / `insufficient_evidence` when exact candidate/base,

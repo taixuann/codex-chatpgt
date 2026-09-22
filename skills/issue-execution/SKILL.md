@@ -64,6 +64,22 @@ The lifecycle is one bounded Issue workflow, not a generic engine:
 - HANDOFF ends at awaiting_parent_decision; the parent owns commit, Draft PR,
   merge, and Issue closure.
 
+### Resolved action/mode contract
+
+These are semantic lifecycle modes over the one Issue session, not four
+independent workflow engines:
+
+| mode | current owner | legal result | not a separate action |
+|---|---|---|---|
+| `PREFLIGHT` | issue-execution preflight helper | bound baseline/session | `INIT` is only a caller description |
+| `RUN` | worker boundary + reconciliation | task/integrated receipts | `TRACK` is state carried by RUN |
+| `QUALIFY` | validation + fresh Athena WORK then GOAL | technical eligibility candidate | `REVIEW` is not an acceptance authority |
+| `HANDOFF` | parent decision boundary | `awaiting_parent_decision` | `CLOSE` cannot merge or close the Issue |
+
+The executable helpers therefore remain `preflight`, bounded worker execution,
+`reconcile`, and host-owned review/handoff operations. Adding a peer action or
+state schema requires a new approved architectural delta.
+
 The existing session and task schemas are sufficient for these actions. Do not
 add a second tracker, generic workflow engine, or alternate acceptance state.
 
