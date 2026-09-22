@@ -154,6 +154,13 @@ class EvalContractTests(unittest.TestCase):
         skill_dir = SCRIPT.parents[1]
         create = (skill_dir / "workflows" / "create.md").read_text(encoding="utf-8").lower()
         cases = module.load_cases(skill_dir / "evals" / "cases.yaml")
+        local_upstream = next(case for case in cases["cases"] if case["id"] == "create-local-upstream")
+        self.assertEqual(local_upstream["expected"], "REFERENCE_AND_ADAPT")
+        self.assertIn("donor/reference-only", local_upstream["prompt"].lower())
+        self.assertIn("not independently installable", local_upstream["prompt"].lower())
+        source_strategy = (skill_dir / "references" / "source-strategy.md").read_text(encoding="utf-8").lower()
+        self.assertIn("installable owner", source_strategy)
+        self.assertIn("donor/reference", source_strategy)
         multimode = next(case for case in cases["cases"] if case["id"] == "create-multimode-one-skill")
         self.assertIn("install", create)
         self.assertIn("donor", create)

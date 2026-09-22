@@ -838,7 +838,7 @@ def reconcile(repo: str, base: str, ledger: dict[str, Any], baseline: dict[str, 
     actual_all = set(changed_files(repo, base))
     baseline_manifest = (baseline or {}).get("workspace_manifest") or {}
     current_manifest = workspace_manifest(repo, (baseline or {}).get("excluded_paths") or None)
-    committed = set(git(repo, "diff", "--name-only", f"{base}..HEAD").splitlines())
+    committed = set(git_nul(repo, "diff", "--name-only", f"{base}..HEAD"))
     if baseline is not None:
         actual_all.update({path for path in baseline_manifest.keys() | current_manifest.keys() if baseline_manifest.get(path) != current_manifest.get(path)})
     tracked = set((baseline or {}).get("tracked_files", []))

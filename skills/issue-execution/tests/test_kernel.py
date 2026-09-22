@@ -144,6 +144,35 @@ class KernelTests(unittest.TestCase):
         subprocess.run(["git", "-C", str(self.repo), "add", "--", str(path)], check=True)
         self.assertIn(" leading.txt", issue_execution.git_nul(str(self.repo), "ls-files"))
 
+    def test_reconcile_preserves_newline_filename_as_one_committed_path(self) -> None:
+        path = self.repo / "line\nname.txt"
+        path.write_text("before\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", path.name], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "newline baseline"], check=True)
+        base = git(self.repo, "rev-parse", "HEAD")
+        trusted = issue_execution.baseline(str(self.repo))
+        path.write_text("after\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", path.name], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "newline candidate"], check=True)
+        ledger = {
+            "repository": "fixture/repo",
+            "issue": 107,
+            "allowed_paths": [path.name],
+            "criteria": [{"id": "AC-1"}],
+            "tasks": [{"id": "T1", "objective": "reconcile newline path", "status": "done", "dependencies": [], "criteria": ["AC-1"]}],
+            "files": [{"path": path.name, "task": "T1", "disposition": "MODIFIED", "evidence": "newline path remains one Git path", "criteria": ["AC-1"]}],
+            "supporting_documents": [{"disposition": "NOT_APPLICABLE", "reason": "fixture"}],
+        }
+        original_git = issue_execution.git
+
+        def reject_newline_diff(repo: str, *args: str) -> str:
+            if args[:2] == ("diff", "--name-only"):
+                raise AssertionError("reconcile must use git_nul for path extraction")
+            return original_git(repo, *args)
+
+        with patch.object(issue_execution, "git", side_effect=reject_newline_diff):
+            issue_execution.reconcile(str(self.repo), base, ledger, trusted, expected_repository="fixture/repo", expected_issue=107)
+
     def test_git_helpers_ignore_inherited_git_redirects(self) -> None:
         with patch.dict(os.environ, {"GIT_DIR": str(self.repo / "evil.git"), "GIT_WORK_TREE": str(self.tmp.name)}):
             identity = issue_execution.git_worktree_identity(str(self.repo))
