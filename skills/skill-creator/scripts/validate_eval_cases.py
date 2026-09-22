@@ -688,7 +688,7 @@ NECESSITY_CHECKS = {
     "sibling_or_localization", "ordinary_instructions",
 }
 EXPECTED_NECESSITY_DISPOSITIONS = {
-    "create-local-upstream": "CLONE_AND_ADAPT",
+    "create-local-upstream": "REFERENCE_AND_ADAPT",
     "create-multimode-one-skill": "CLONE_AND_ADAPT",
     "create-no-skill": "REJECT",
     "update-bounded": "UPDATE_EXISTING",
@@ -698,6 +698,8 @@ EXPECTED_NECESSITY_DISPOSITIONS = {
     "audit-localize": "LOCALIZE",
     "audit-retire": "RETIRE",
 }
+CREATE_ADAPTATION_DISPOSITIONS = {"CLONE_AND_ADAPT", "REFERENCE_AND_ADAPT"}
+CREATE_SOURCE_ROLES = {"DONOR_REFERENCE_ONLY", "INSTALLABLE_OWNER"}
 COEXISTENCE_PATHS = {
     "audit-overlap": {".agents/skills/pdf/SKILL.md", ".agents/skills/overlap-skill/SKILL.md"},
     "audit-localize": {".agents/skills/pdf/SKILL.md", ".agents/skills/domain-workflow/SKILL.md"},
@@ -720,6 +722,17 @@ def _necessity_ok(case: dict, report: dict) -> tuple[bool, str]:
         return False, "necessity evidence needs available alternative states"
     if set(alternatives) - NECESSITY_CHECKS:
         return False, "necessity evidence contains an unknown alternative"
+    if case.get("kind") == "CREATE" and disposition in CREATE_ADAPTATION_DISPOSITIONS:
+        maintained = alternatives.get("maintained_candidate")
+        if not isinstance(maintained, dict) or maintained.get("state") != "CHECKED":
+            return False, "CREATE adaptation requires a checked maintained-source disposition"
+        source_role = maintained.get("source_role")
+        if source_role not in CREATE_SOURCE_ROLES:
+            return False, "CREATE adaptation requires source_role DONOR_REFERENCE_ONLY or INSTALLABLE_OWNER"
+        if source_role == "INSTALLABLE_OWNER" or maintained.get("disposition") == "INSTALL_EXISTING":
+            return False, "installable maintained owner must route to INSTALL; CREATE cannot adapt it"
+        if source_role != "DONOR_REFERENCE_ONLY" or maintained.get("disposition") not in CREATE_ADAPTATION_DISPOSITIONS:
+            return False, "CREATE adaptation requires donor/reference-only maintained material"
     checked = 0
     for name, detail in alternatives.items():
         if not isinstance(detail, dict) or detail.get("state") not in NECESSITY_STATES:
@@ -928,6 +941,8 @@ def _runtime_prompt(case: dict, operation_root: Path) -> str:
             f"an alternatives object whose candidate keys come from: {candidates}. Each alternative must have "
             f"state {states}. Use CHECKED only when the fixture was actually inspected; a CHECKED alternative "
             "must include the fields disposition and reason, with disposition from the allowed action enum and reason of at least 20 characters. "
+            "For CREATE, a checked maintained_candidate must also include source_role exactly INSTALLABLE_OWNER or DONOR_REFERENCE_ONLY. "
+            "INSTALLABLE_OWNER or INSTALL_EXISTING means route to INSTALL and do not materialize CREATE; CREATE adaptation requires DONOR_REFERENCE_ONLY. "
             "Use NOT_AVAILABLE or NOT_RELEVANT when inspection is not possible or the candidate does not apply; "
             "do not invent unsupported plugin, upstream, global-catalog, or sibling facts. Include at least one "
             "checked plausible alternative. The artifacts value lists changed relative paths; the process value "

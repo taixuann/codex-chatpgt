@@ -282,7 +282,7 @@ class EvalContractTests(unittest.TestCase):
                     if effect["operation"] == "deleted":
                         after_snapshot.pop(effect["path"], None)
                 final_report = {"selected_skill": expected} if routing else (
-                    {"disposition": expected, "necessity": {"disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]], "alternatives": {check: {"state": "CHECKED", "disposition": "USE_EXISTING", "reason": "fixture alternative was compared against the requested reusable capability"} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
+                    {"disposition": expected, "necessity": {"disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]], "alternatives": {check: {"state": "CHECKED", "disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]] if case["kind"] == "CREATE" and check == "maintained_candidate" else "USE_EXISTING", "reason": "fixture alternative was compared against the requested reusable capability", **({"source_role": "DONOR_REFERENCE_ONLY"} if case["kind"] == "CREATE" and check == "maintained_candidate" else {})} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
                     if case["kind"] in {"CREATE", "UPDATE", "AUDIT"} else {"disposition": expected}
                 )
                 changed_paths = sorted(module._changed_paths(before_snapshot, after_snapshot))
@@ -596,16 +596,35 @@ class EvalContractTests(unittest.TestCase):
         alternatives = {
             check: {
                 "state": "CHECKED",
-                "disposition": "INSTALL_EXISTING" if check == "maintained_candidate" else "USE_EXISTING",
+                "disposition": "REFERENCE_AND_ADAPT" if check == "maintained_candidate" else "USE_EXISTING",
                 "reason": "The candidate was inspected against the requested reusable capability.",
+                **({"source_role": "DONOR_REFERENCE_ONLY"} if check == "maintained_candidate" else {}),
             }
             for check in module.NECESSITY_CHECKS
         }
         ok, reason = module._necessity_ok(
             {"id": "create-local-upstream", "kind": "CREATE"},
-            {"necessity": {"disposition": "CLONE_AND_ADAPT", "alternatives": alternatives, "justification": "The baseline was compared before adaptation."}},
+            {"necessity": {"disposition": "REFERENCE_AND_ADAPT", "alternatives": alternatives, "justification": "The baseline was compared before adaptation."}},
         )
         self.assertTrue(ok, reason)
+
+    def test_create_rejects_installable_maintained_candidate(self):
+        module = load_module()
+        alternatives = {
+            check: {
+                "state": "CHECKED",
+                "disposition": "INSTALL_EXISTING" if check == "maintained_candidate" else "USE_EXISTING",
+                "reason": "The candidate was inspected against the requested reusable capability.",
+                **({"source_role": "INSTALLABLE_OWNER"} if check == "maintained_candidate" else {}),
+            }
+            for check in module.NECESSITY_CHECKS
+        }
+        ok, reason = module._necessity_ok(
+            {"id": "create-local-upstream", "kind": "CREATE"},
+            {"necessity": {"disposition": "REFERENCE_AND_ADAPT", "alternatives": alternatives, "justification": "The maintained owner satisfies the requested capability."}},
+        )
+        self.assertFalse(ok)
+        self.assertIn("INSTALL", reason)
 
     def test_artifact_contract_requires_real_change(self):
         module = load_module()
@@ -622,7 +641,7 @@ class EvalContractTests(unittest.TestCase):
         self.assertFalse(module._necessity_ok(case, weak)[0])
         malformed = {"necessity": {"disposition": {}, "alternatives": {"native": {"state": "NOT_AVAILABLE", "disposition": "REJECT"}}, "justification": "malformed model output"}}
         self.assertFalse(module._necessity_ok(case, malformed)[0])
-        strong = {"necessity": {"disposition": "CLONE_AND_ADAPT", "alternatives": {"native": {"state": "CHECKED", "disposition": "REJECT", "reason": "Native behavior was inspected and cannot own this reusable workflow."}, "maintained_candidate": {"state": "CHECKED", "disposition": "CLONE_AND_ADAPT", "reason": "The maintained candidate was inspected and is the closest suitable owner."}, "project_or_user_skill": {"state": "NOT_AVAILABLE"}}, "justification": "The maintained upstream baseline is the smallest justified owner."}}
+        strong = {"necessity": {"disposition": "REFERENCE_AND_ADAPT", "alternatives": {"native": {"state": "CHECKED", "disposition": "REJECT", "reason": "Native behavior was inspected and cannot own this reusable workflow."}, "maintained_candidate": {"state": "CHECKED", "disposition": "REFERENCE_AND_ADAPT", "source_role": "DONOR_REFERENCE_ONLY", "reason": "The maintained donor was inspected and is not independently installable."}, "project_or_user_skill": {"state": "NOT_AVAILABLE"}}, "justification": "The donor baseline is the smallest justified reference adaptation."}}
         self.assertTrue(module._necessity_ok(case, strong)[0])
         coexistence = {path: "hash" for path in module.COEXISTENCE_PATHS["audit-overlap"]}
         self.assertFalse(module._recomputed_record({"trace_events": [], "before_snapshot": {".fixture-coexistence": "hash"}, "after_snapshot": {}, "final_report": {}}, {"id": "audit-overlap", "kind": "AUDIT"})["coexistence_fixture"])
