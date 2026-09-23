@@ -39,7 +39,7 @@ approved #121 contract surface:
 | SKILL.md | ADAPT_TO_121 | Four peer actions; EVALUATE is shared and MAINTAIN is retired. |
 | workflows/create.md | ADD_FROM_REVIEWED_BASELINE | Canonical CREATE procedure for new owned skills. |
 | workflows/update.md | ADD_FROM_REVIEWED_BASELINE | Canonical UPDATE procedure for pinned existing targets. |
-| workflows/install.md | ROUTE_ONLY | Faithful integration path; redesign routes to CREATE. |
+| workflows/install.md | OPERATIONAL | Faithful materialization path with pinned source, canonical source/selected/installed digests, exact per-file receipt, ownership, and safe uninstall evidence; redesign routes to CREATE or UPDATE. |
 | workflows/audit.md | ROUTE_ONLY | Read-only assessment path; no mutation or acceptance. |
 | architecture.md, authoring.md, discovery.md | ADD_FROM_REVIEWED_BASELINE | Ownership, package shape, and placement constraints. |
 | source-strategy.md, review.md, validation.md | ADD_FROM_REVIEWED_BASELINE | Source identity, review independence, and deterministic checks. |

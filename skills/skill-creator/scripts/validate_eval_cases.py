@@ -173,9 +173,16 @@ def validate(path: Path) -> list[str]:
             if outcome == "INSTALLED":
                 source_fixture = case.get("source_fixture")
                 package_files = case.get("package_files")
+                if not all(isinstance(case.get(key), str) and case[key].strip() for key in ("source_repository", "source_ref", "source_license")):
+                    errors.append(f"{case_id}: installed case must pin expected source repository, ref, and license")
                 if not isinstance(source_fixture, str) or not _safe_relative_posix_path(source_fixture):
                     errors.append(f"{case_id}: installed case source_fixture must stay inside the fixture")
-                if not isinstance(package_files, list) or not package_files or any(not isinstance(path, str) or not _safe_relative_posix_path(path) for path in package_files):
+                if (
+                    not isinstance(package_files, list)
+                    or not package_files
+                    or any(not isinstance(path, str) or not _safe_relative_posix_path(path) for path in package_files)
+                    or len(package_files) != len(set(package_files))
+                ):
                     errors.append(f"{case_id}: installed case package_files must be non-empty relative paths")
                 if (
                     case.get("artifact") != "created"
@@ -391,7 +398,9 @@ def _snapshot(root: Path) -> dict[str, str]:
         if stat.S_ISLNK(mode):
             payload = b"symlink\0" + os.readlink(path).encode("utf-8", "surrogateescape")
         elif stat.S_ISREG(mode):
-            payload = b"file\0" + path.read_bytes()
+            content = path.read_bytes()
+            entries[f"@content/{path.relative_to(root).as_posix()}"] = hashlib.sha256(content).hexdigest()
+            payload = b"file\0" + content
         elif stat.S_ISDIR(mode):
             payload = b"directory\0"
         else:
@@ -417,7 +426,7 @@ def _git_revision(root: Path, ref: str | None) -> str | None:
         return None
     try:
         return subprocess.check_output(
-            ["git", "rev-parse", ref], cwd=root, text=True, stderr=subprocess.DEVNULL,
+            ["git", "rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}"], cwd=root, text=True, stderr=subprocess.DEVNULL,
             env=_subprocess_env(),
         ).strip()
     except (OSError, subprocess.CalledProcessError):
@@ -501,8 +510,24 @@ def _valid_evidence_binding(binding: object) -> bool:
 def _changed_paths(before: dict[str, str], after: dict[str, str]) -> set[str]:
     return {
         path for path in set(before) | set(after)
-        if not path.startswith("@dir/") and before.get(path) != after.get(path)
+        if not path.startswith(("@dir/", "@content/")) and before.get(path) != after.get(path)
     }
+
+
+def _content_tree_sha256(snapshot: dict[str, str], prefix: str, paths: list[str] | None = None) -> str | None:
+    root = f"@content/{prefix.rstrip('/')}/"
+    files = {key[len(root):]: value for key, value in snapshot.items() if key.startswith(root)}
+    if paths is not None:
+        if any(path not in files for path in paths):
+            return None
+        files = {path: files[path] for path in paths}
+    if not files:
+        return None
+    manifest = json.dumps(
+        [[path, files[path]] for path in sorted(files)],
+        ensure_ascii=False, separators=(",", ":"),
+    )
+    return hashlib.sha256(manifest.encode("utf-8")).hexdigest()
 
 
 def _trial_fingerprint(value: object) -> str:
@@ -737,6 +762,12 @@ def _install_evidence_ok(
         return False, "source identity requires repository, requested ref, path, and license"
     if not isinstance(source.get("revision"), str) or not re.fullmatch(r"[0-9a-f]{40}", source["revision"]):
         return False, "source revision must be an immutable 40-character commit"
+    for source_key, case_key in (("repository", "source_repository"), ("requested_ref", "source_ref"), ("path", "source_fixture"), ("license", "source_license")):
+        if case.get(case_key) is not None and source[source_key] != case[case_key]:
+            return False, f"source {source_key} does not match the declared fixture contract"
+    resolved_revision = case.get("_resolved_revision")
+    if before is not None and after is not None and (not resolved_revision or source["revision"] != resolved_revision):
+        return False, "source revision does not match the fixture ref resolved before the trial"
     if not all(isinstance(target.get(key), str) and target[key].strip() for key in ("runtime", "path")) or target.get("scope") not in {"project", "global"} or target.get("mode") not in {"copy", "editable", "runtime"}:
         return False, "target requires runtime, project/global scope, path, and supported install mode"
     if not _safe_relative_posix_path(target["path"]):
@@ -788,12 +819,43 @@ def _install_evidence_ok(
             installed_path = f"{target['path'].rstrip('/')}/{relative}"
             source_fingerprint = before.get(source_path)
             installed_fingerprint = after.get(installed_path)
+            source_content = before.get(f"@content/{source_path}")
+            installed_content = after.get(f"@content/{installed_path}")
             if source_fingerprint is None or before.get(installed_path) is not None or installed_fingerprint is None:
                 return False, f"installed package file is missing or the target was already occupied: {relative}"
+            if source_content is None or installed_content is None:
+                return False, f"raw file content hash is unavailable for package file: {relative}"
             if installed_fingerprint != source_fingerprint and relative not in adapted_files:
                 return False, f"installed package file does not byte-match its fixture source: {relative}"
+            if relative not in adapted_files and installed_content != source_content:
+                return False, f"installed package content hash differs from its fixture source: {relative}"
             if relative in adapted_files and adapted_files[relative]["source_sha256"] == adapted_files[relative]["installed_sha256"]:
                 return False, f"declared compatibility adaptation has no per-file hash delta: {relative}"
+            if relative in adapted_files and (
+                adapted_files[relative]["source_sha256"] != source_content
+                or adapted_files[relative]["installed_sha256"] != installed_content
+            ):
+                return False, f"adaptation receipt hashes do not match source and installed contents: {relative}"
+        actual_source = _content_tree_sha256(before, source_fixture)
+        actual_selected = _content_tree_sha256(before, source_fixture, package_files)
+        actual_installed = _content_tree_sha256(after, target_prefix, package_files)
+        if (payload["source_sha256"], payload["selected_sha256"], payload["installed_sha256"]) != (
+            actual_source, actual_selected, actual_installed,
+        ):
+            return False, "reported payload fingerprints do not match snapshotted source, selected, and installed contents"
+        file_receipts = payload.get("files")
+        if not isinstance(file_receipts, list) or any(not isinstance(item, dict) for item in file_receipts):
+            return False, "payload receipt must include per-file source and installed SHA-256 values"
+        receipt_by_path = {item.get("path"): item for item in file_receipts if isinstance(item.get("path"), str)}
+        if len(receipt_by_path) != len(file_receipts) or set(receipt_by_path) != set(package_files):
+            return False, "payload file receipts must cover exactly the selected package paths"
+        for relative in package_files:
+            receipt = receipt_by_path[relative]
+            if (
+                receipt.get("source_sha256") != before.get(f"@content/{source_fixture.rstrip('/')}/{relative}")
+                or receipt.get("installed_sha256") != after.get(f"@content/{target_prefix}/{relative}")
+            ):
+                return False, f"per-file payload receipt does not match snapshotted content: {relative}"
     if audit.get("status") != "PASS" or not isinstance(audit.get("backend"), str) or not audit["backend"].strip():
         return False, "a named static audit backend must pass before installation"
     if validation.get("status") != "PASS" or real_task.get("status") != "PASS":
@@ -937,7 +999,8 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
     )
     artifact_ok, artifact_reason = _artifact_ok(case, before, after, item.get("condition") != "without_skill")
     necessity_ok, necessity_reason = _necessity_ok(case, report)
-    install_ok, install_reason = _install_evidence_ok(case, report, before, after)
+    install_case = {**case, "_resolved_revision": item.get("source_revision_resolved")}
+    install_ok, install_reason = _install_evidence_ok(install_case, report, before, after)
     runtime_evidence = {
         "skill_discovery": "NOT_ASSESSED",
         "explicit_invocation": "NOT_REQUESTED",
@@ -1008,6 +1071,17 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
             encoding="utf-8",
         )
         (source / "references" / "guide.md").write_text("Follow the task-specific steps and preserve supplied facts.\n", encoding="utf-8")
+        (source / "LICENSE.txt").write_text("SPDX-License-Identifier: MIT\n", encoding="utf-8")
+        subprocess.run(["git", "init", "--quiet"], cwd=source, check=True, env=_subprocess_env())
+        subprocess.run(["git", "add", "."], cwd=source, check=True, env=_subprocess_env())
+        commit_env = _subprocess_env()
+        commit_env.update({
+            "GIT_AUTHOR_NAME": "Fixture", "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
+            "GIT_COMMITTER_NAME": "Fixture", "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
+        })
+        subprocess.run(["git", "commit", "--quiet", "-m", "fixture source"], cwd=source, check=True, env=commit_env)
+        subprocess.run(["git", "tag", "--", case["source_ref"]], cwd=source, check=True, env=_subprocess_env())
+        case["_resolved_revision"] = _git_revision(source, case["source_ref"])
     elif case_id == "install-collision-refused":
         target = skills_root / "existing-owned-skill"
         target.mkdir(parents=True, exist_ok=True)
@@ -1191,6 +1265,8 @@ def _run_once(
                 "behavior": "NOT_ASSESSED",
             },
         }
+        if case.get("kind") == "INSTALL" and case.get("installation_outcome") == "INSTALLED":
+            base["source_revision_resolved"] = case.get("_resolved_revision")
         if not shutil.which(runtime):
             return _trial_result(
                 {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"},
