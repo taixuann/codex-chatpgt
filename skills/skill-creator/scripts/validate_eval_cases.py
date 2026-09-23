@@ -8,7 +8,7 @@ from contextlib import contextmanager
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import shutil
 import socket
@@ -34,7 +34,7 @@ GATES = {
     "G7_INDEPENDENT_REVIEW",
 }
 PARTITIONS = {"must_pass", "regression", "held_out"}
-KINDS = {"routing", "CREATE", "UPDATE", "AUDIT", "EVALUATE"}
+KINDS = {"routing", "CREATE", "INSTALL", "UPDATE", "AUDIT", "EVALUATE"}
 ACTIONS = {"create", "install", "update", "audit"}
 PROCESS_ITEM_TYPES = {"command_execution", "custom_tool_call", "function_call", "mcp_tool_call", "tool_call"}
 ACTION_DISPOSITIONS = {
@@ -45,9 +45,9 @@ ACTION_DISPOSITIONS = {
 EVALUATION_DISPOSITIONS = {"PASS", "REJECT", "SIMPLIFY"}
 NECESSITY_STATES = {"CHECKED", "NOT_AVAILABLE", "NOT_RELEVANT"}
 ORIGIN_TYPES = {"observed_failure", "user_requirement", "upstream_change", "model_change", "architecture_contract"}
-EXPECTED_CASE_COUNT = 26
+EXPECTED_CASE_COUNT = 30
 EXPECTED_ROUTING_CASE_COUNT = 12
-EXPECTED_LIFECYCLE_CASE_COUNT = 14
+EXPECTED_LIFECYCLE_CASE_COUNT = 18
 BINDING_VERSION = 1
 TRIAL_SEQUENCE = ["ALLOCATE", "PREPARE", "BASELINE", "RUN", "FREEZE", "REPORT", "ARCHIVE", "CLEAN"]
 TRIAL_TERMINAL_STATES = {"CLEANED", "PRESERVED_FOR_REVIEW", "CLEANUP_BLOCKED"}
@@ -56,15 +56,18 @@ EXPECTED_PARTITIONS = {
         "route-explicit-positive", "route-implicit-positive", "route-contextual-positive",
         "route-explicit-negative", "route-adjacent-negative", "route-sibling-negative",
         "create-local-upstream", "create-multimode-one-skill", "update-bounded", "evaluate-good",
+        "install-healthy-copy",
     }),
     "regression": frozenset({
         "create-no-skill", "update-substantive", "audit-upstream-drift", "audit-retire",
         "evaluate-broad-description", "evaluate-decorative-resources",
+        "install-collision-refused", "install-redesign-routed",
     }),
     "held_out": frozenset({
         "route-ambiguous-positive", "route-noisy-positive", "route-agents-negative",
         "route-script-negative", "route-native-negative", "route-noisy-negative",
         "audit-overlap", "audit-localize", "evaluate-sibling-collision", "evaluate-skipped-process",
+        "install-zero-adaptation",
     }),
 }
 EXPECTED_CASE_IDS = frozenset().union(*EXPECTED_PARTITIONS.values())
@@ -163,9 +166,44 @@ def validate(path: Path) -> list[str]:
             errors.append(f"{case_id}: routing polarity must be positive or negative")
         if case.get("kind") != "routing" and not isinstance(case.get("trace_markers"), list):
             errors.append(f"{case_id}: lifecycle cases require trace_markers")
+        if case.get("kind") == "INSTALL":
+            outcome = case.get("installation_outcome")
+            if outcome not in {"INSTALLED", "BLOCKED", "ROUTE"}:
+                errors.append(f"{case_id}: INSTALL case requires installation_outcome INSTALLED, BLOCKED, or ROUTE")
+            if outcome == "INSTALLED":
+                source_fixture = case.get("source_fixture")
+                package_files = case.get("package_files")
+                if not isinstance(source_fixture, str) or not _safe_relative_posix_path(source_fixture):
+                    errors.append(f"{case_id}: installed case source_fixture must stay inside the fixture")
+                if not isinstance(package_files, list) or not package_files or any(not isinstance(path, str) or not _safe_relative_posix_path(path) for path in package_files):
+                    errors.append(f"{case_id}: installed case package_files must be non-empty relative paths")
+                if (
+                    case.get("artifact") != "created"
+                    or not isinstance(case.get("artifact_path"), str)
+                    or not _safe_relative_posix_path(case["artifact_path"])
+                    or not isinstance(case.get("side_effects"), list)
+                    or not case["side_effects"]
+                    or sum(
+                        isinstance(effect, dict)
+                        and isinstance(effect.get("path"), str)
+                        and effect["path"].endswith("/SKILL.md")
+                        for effect in case["side_effects"]
+                    ) != 1
+                    or len({effect.get("path") for effect in case["side_effects"] if isinstance(effect, dict)}) != len(case["side_effects"])
+                    or any(
+                        not isinstance(effect, dict)
+                        or effect.get("operation") != "created"
+                        or not isinstance(effect.get("path"), str)
+                        or not _safe_relative_posix_path(effect["path"])
+                        for effect in case["side_effects"]
+                    )
+                ):
+                    errors.append(f"{case_id}: installed case requires a report artifact and explicit installed-file side effects")
+            elif case.get("artifact") != "none":
+                errors.append(f"{case_id}: blocked/routed install case must declare artifact none")
     routing = [case for case in cases if isinstance(case, dict) and case.get("kind") == "routing"]
     if seen != EXPECTED_CASE_IDS:
-        errors.append("case ids must match the canonical 26-case corpus")
+        errors.append(f"case ids must match the canonical {EXPECTED_CASE_COUNT}-case corpus")
     for partition, expected_ids in EXPECTED_PARTITIONS.items():
         actual_ids = {case.get("id") for case in cases if isinstance(case, dict) and case.get("partition") == partition}
         if actual_ids != expected_ids:
@@ -639,7 +677,7 @@ def _paired_evidence(with_skill: dict | None, without_skill: dict | None) -> dic
 
 
 def _artifact_contract(case: dict, with_skill: bool = True) -> dict:
-    if case["id"] == "create-no-skill" or case.get("kind") == "ACTION":
+    if case["id"] == "create-no-skill" or case.get("kind") == "ACTION" or case.get("artifact") == "none":
         return {}
     if case.get("artifact") and case.get("artifact_path"):
         contract = {"operation": case["artifact"], "path": case["artifact_path"]}
@@ -655,15 +693,136 @@ def _case_gates(case: dict) -> list[str]:
     return case.get("gates", [case["gate"]])
 
 
+def _install_evidence_ok(
+    case: dict,
+    report: dict,
+    before: dict[str, str] | None = None,
+    after: dict[str, str] | None = None,
+) -> tuple[bool, str]:
+    """Recompute the minimum source, payload, validation, task, and ownership evidence for INSTALL."""
+    if case.get("kind") != "INSTALL":
+        return True, "installation evidence not applicable"
+    evidence = report.get("installation")
+    outcome = case.get("installation_outcome")
+    if not isinstance(evidence, dict) or evidence.get("status") != outcome:
+        return False, "structured installation outcome is missing or mismatched"
+    if outcome == "BLOCKED":
+        if evidence.get("workspace_changed") is not False or not isinstance(evidence.get("collision"), str) or len(evidence["collision"].strip()) < 10:
+            return False, "blocked install must document the preserved collision and no workspace mutation"
+        return True, "unmanaged collision was preserved"
+    if outcome == "ROUTE":
+        if evidence.get("workspace_changed") is not False or evidence.get("route") not in {"CREATE", "UPDATE"}:
+            return False, "redesign route must select CREATE or UPDATE without mutation"
+        if not isinstance(evidence.get("reason"), str) or len(evidence["reason"].strip()) < 20:
+            return False, "redesign route needs a substantive reason"
+        return True, "material redesign was routed without mutation"
+    if outcome != "INSTALLED":
+        return False, "unknown INSTALL case outcome"
+    if evidence.get("workspace_changed") is not True:
+        return False, "successful INSTALL must materialize the target payload in its isolated fixture"
+    source, target, payload = (evidence.get(key) for key in ("source", "target", "payload"))
+    audit, validation, real_task, ownership = (evidence.get(key) for key in ("audit", "validation", "real_task", "ownership"))
+    if not all(isinstance(item, dict) for item in (source, target, payload, audit, validation, real_task, ownership)):
+        return False, "install receipt is missing source, target, payload, audit, validation, real-task, or ownership sections"
+    if not all(isinstance(source.get(key), str) and source[key].strip() for key in ("repository", "requested_ref", "path", "license")):
+        return False, "source identity requires repository, requested ref, path, and license"
+    if not isinstance(source.get("revision"), str) or not re.fullmatch(r"[0-9a-f]{40}", source["revision"]):
+        return False, "source revision must be an immutable 40-character commit"
+    if not all(isinstance(target.get(key), str) and target[key].strip() for key in ("runtime", "path")) or target.get("scope") not in {"project", "global"} or target.get("mode") not in {"copy", "editable", "runtime"}:
+        return False, "target requires runtime, project/global scope, path, and supported install mode"
+    if not _safe_relative_posix_path(target["path"]):
+        return False, "target path must remain within the selected scope"
+    expected_target = next((
+        effect["path"][:-len("/SKILL.md")]
+        for effect in case.get("side_effects", [])
+        if isinstance(effect, dict) and isinstance(effect.get("path"), str) and effect["path"].endswith("/SKILL.md")
+    ), None)
+    if expected_target is not None and target["path"] != expected_target:
+        return False, "receipt target does not match the materialized skill path"
+    hashes = [payload.get(key) for key in ("source_sha256", "selected_sha256", "installed_sha256")]
+    if not all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) for value in hashes):
+        return False, "source, selected, and installed payload fingerprints must be SHA-256 values"
+    adaptation = payload.get("adaptation")
+    adapted_files: dict[str, dict] = {}
+    if adaptation != "none":
+        if not isinstance(adaptation, dict) or not isinstance(adaptation.get("reason"), str) or len(adaptation["reason"].strip()) < 20 or not isinstance(adaptation.get("files"), list) or not adaptation["files"]:
+            return False, "adaptation needs a substantive reason and per-file evidence"
+        for item in adaptation["files"]:
+            if (
+                not isinstance(item, dict)
+                or not isinstance(item.get("path"), str)
+                or not _safe_relative_posix_path(item["path"])
+                or not all(isinstance(item.get(key), str) and re.fullmatch(r"[0-9a-f]{64}", item[key]) for key in ("source_sha256", "installed_sha256"))
+                or item["path"] in adapted_files
+            ):
+                return False, "adaptation entries require unique safe file paths and source/installed SHA-256 values"
+            adapted_files[item["path"]] = item
+    if adaptation == "none" and hashes[1] != hashes[2]:
+        return False, "installed payload does not match the selected payload"
+    source_fixture = case.get("source_fixture")
+    package_files = case.get("package_files")
+    if before is not None and after is not None:
+        if not isinstance(source_fixture, str) or not isinstance(package_files, list) or not package_files:
+            return False, "install case must bind the source fixture and consumed package files"
+        target_prefix = target["path"].rstrip("/")
+        occupied_target = any(
+            key.removeprefix("@dir/") == target_prefix
+            or key.removeprefix("@dir/").startswith(f"{target_prefix}/")
+            for key in before
+        )
+        if occupied_target:
+            return False, "successful install target was not empty before materialization"
+        for relative in package_files:
+            if not isinstance(relative, str) or not _safe_relative_posix_path(relative):
+                return False, "package file paths must remain within the selected source and target roots"
+            source_path = f"{source_fixture.rstrip('/')}/{relative}"
+            installed_path = f"{target['path'].rstrip('/')}/{relative}"
+            source_fingerprint = before.get(source_path)
+            installed_fingerprint = after.get(installed_path)
+            if source_fingerprint is None or before.get(installed_path) is not None or installed_fingerprint is None:
+                return False, f"installed package file is missing or the target was already occupied: {relative}"
+            if installed_fingerprint != source_fingerprint and relative not in adapted_files:
+                return False, f"installed package file does not byte-match its fixture source: {relative}"
+            if relative in adapted_files and adapted_files[relative]["source_sha256"] == adapted_files[relative]["installed_sha256"]:
+                return False, f"declared compatibility adaptation has no per-file hash delta: {relative}"
+    if audit.get("status") != "PASS" or not isinstance(audit.get("backend"), str) or not audit["backend"].strip():
+        return False, "a named static audit backend must pass before installation"
+    if validation.get("status") != "PASS" or real_task.get("status") != "PASS":
+        return False, "post-install validation and a real-task smoke must both pass"
+    if not isinstance(ownership.get("receipt_id"), str) or not ownership["receipt_id"].strip() or not isinstance(ownership.get("uninstall"), str) or len(ownership["uninstall"].strip()) < 12:
+        return False, "ownership identity and safe uninstall mechanism are required"
+    if case.get("id") == "install-zero-adaptation" and adaptation != "none":
+        return False, "the clean control must install without manufacturing an adaptation"
+    return True, "source-bound install lifecycle evidence observed"
+
+
+def _safe_relative_posix_path(value: str) -> bool:
+    """Accept normalized relative POSIX package paths, independent of host OS."""
+    if not value or value.startswith(("/", "~")) or "\\" in value or "\x00" in value or ":" in value:
+        return False
+    path = PurePosixPath(value)
+    return not path.is_absolute() and all(part not in {"", ".", ".."} for part in value.split("/"))
+
+
 def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str], with_skill: bool = True) -> tuple[bool, str]:
     contract = _artifact_contract(case, with_skill)
     changed = _changed_paths(before, after)
+    changed_directories = {
+        path for path in set(before) | set(after)
+        if path.startswith("@dir/") and before.get(path) != after.get(path)
+    }
     if not contract:
-        return (not changed, "no artifact required")
+        return (not changed and not changed_directories, "no artifact required")
     path = contract["path"]
     operation = contract["operation"]
     side_effects = contract.get("side_effects", [])
     expected_paths = {path, *(effect["path"] for effect in side_effects)}
+    expected_directories = {
+        f"@dir/{parent.as_posix()}"
+        for expected_path in expected_paths
+        for parent in PurePosixPath(expected_path).parents
+        if parent.as_posix() != "."
+    }
     exists_before = path in before
     exists_after = path in after
     side_effects_ok = all(
@@ -672,8 +831,11 @@ def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str], with
         or effect.get("operation") == "deleted" and effect["path"] in before and effect["path"] not in after
         for effect in side_effects
     )
-    if not side_effects_ok or changed != expected_paths:
-        return False, f"expected only contracted artifact paths {sorted(expected_paths)}"
+    unexpected = (changed - expected_paths) | (changed_directories - expected_directories)
+    if not side_effects_ok or unexpected:
+        return False, f"unexpected changed paths outside the contracted artifacts: {sorted(unexpected)}"
+    if not expected_paths.issubset(changed):
+        return False, f"contracted artifact paths were not materialized: {sorted(expected_paths - changed)}"
     if operation == "created":
         return (not exists_before and exists_after, f"expected only created artifact {path}")
     if operation == "modified":
@@ -766,11 +928,12 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
     )
     artifact_ok, artifact_reason = _artifact_ok(case, before, after, item.get("condition") != "without_skill")
     necessity_ok, necessity_reason = _necessity_ok(case, report)
+    install_ok, install_reason = _install_evidence_ok(case, report, before, after)
     runtime_evidence = {
         "skill_discovery": "NOT_ASSESSED",
         "explicit_invocation": "NOT_REQUESTED",
         "implicit_activation": _runtime_activation(events) or "NOT_ASSESSED",
-        "behavior": "OBSERVED" if report.get(key) is not None and (case["kind"] == "routing" or (_process_observed(events) and _trace_matches(case, events) and artifact_ok)) else "NOT_ASSESSED",
+        "behavior": "OBSERVED" if report.get(key) is not None and (case["kind"] == "routing" or (_process_observed(events) and _trace_matches(case, events) and artifact_ok and install_ok)) else "NOT_ASSESSED",
     }
     changed_paths = sorted(_changed_paths(before, after))
     coexistence_ok = COEXISTENCE_PATHS.get(case["id"], set()).issubset(before)
@@ -785,6 +948,8 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
         "artifact_reason": artifact_reason,
         "necessity_observed": necessity_ok,
         "necessity_reason": necessity_reason,
+        "installation_observed": install_ok,
+        "installation_reason": install_reason,
         "coexistence_fixture": coexistence_ok,
         "cost_metrics": _cost_metrics(events, set(changed_paths)),
     }
@@ -825,6 +990,24 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
             "---\nname: candidate-skill\ndescription: Candidate evaluation fixture.\n---\n\nCandidate content.\n",
             encoding="utf-8",
         )
+    elif case_id in {"install-healthy-copy", "install-zero-adaptation"}:
+        source = fixture_root / case["source_fixture"]
+        (source / "references").mkdir(parents=True, exist_ok=True)
+        skill_name = "healthy" if case_id == "install-healthy-copy" else "clean-control"
+        (source / "SKILL.md").write_text(
+            f"---\nname: {skill_name}\ndescription: A maintained, portable fixture skill.\n---\n\nUse the included guide faithfully.\n",
+            encoding="utf-8",
+        )
+        (source / "references" / "guide.md").write_text("Follow the task-specific steps and preserve supplied facts.\n", encoding="utf-8")
+    elif case_id == "install-collision-refused":
+        target = skills_root / "existing-owned-skill"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "SKILL.md").write_text("Unmanaged collision canary; preserve exactly.\n", encoding="utf-8")
+        (fixture_root / ".agents" / "neighbor-canary.txt").write_text("Unrelated file; preserve exactly.\n", encoding="utf-8")
+    elif case_id == "install-redesign-routed":
+        source = fixture_root / ".fixture-sources" / "redesign"
+        source.mkdir(parents=True, exist_ok=True)
+        (source / "SKILL.md").write_text("This source must be materially redesigned to meet the request.\n", encoding="utf-8")
 
 
 @contextmanager
@@ -948,6 +1131,15 @@ def _runtime_prompt(case: dict, operation_root: Path) -> str:
             "checked plausible alternative. The artifacts value lists changed relative paths; the process value "
             f"lists the concrete steps performed. {artifact_instruction}\n\n{case['prompt']}"
         )
+        if case["kind"] == "INSTALL":
+            task += (
+                " For INSTALL, include top-level installation evidence with status, workspace_changed, and: "
+                "for INSTALLED, source {repository, requested_ref, revision, path, license}, target "
+                "{runtime, scope, path, mode}, payload {source_sha256, selected_sha256, installed_sha256, adaptation}, "
+                "audit {status, backend}, validation {status}, real_task {status}, and ownership {receipt_id, uninstall}; "
+                "when adaptation is none, selected_sha256 must equal installed_sha256; otherwise adaptation must contain a reason and files [{path, source_sha256, installed_sha256}]. For BLOCKED, document the unchanged unmanaged-target "
+                "collision. For ROUTE, select CREATE or UPDATE, explain the material redesign, and make no mutation."
+            )
     return (
         f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
         "For apply_patch or file-change operations, use paths relative to this working directory; "
@@ -1036,13 +1228,14 @@ def _run_once(
         changed_paths = _changed_paths(before_snapshot, after_snapshot)
         artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot, with_skill)
         necessity_ok, necessity_reason = _necessity_ok(case, report)
+        install_ok, install_reason = _install_evidence_ok(case, report, before_snapshot, after_snapshot)
         coexistence_fixture = (((fixture / "project") if case["id"] == "audit-localize" else fixture) / ".fixture-coexistence").is_file()
         side_effect_free = not changed_paths
         runtime_evidence = {
             "skill_discovery": "NOT_ASSESSED",
             "explicit_invocation": "NOT_REQUESTED",
             "implicit_activation": activation or "NOT_ASSESSED",
-            "behavior": "OBSERVED" if observed is not None and (case["kind"] in {"routing", "ACTION"} or (process_observed and trace_matches and artifact_ok)) else "NOT_ASSESSED",
+            "behavior": "OBSERVED" if observed is not None and (case["kind"] in {"routing", "ACTION"} or (process_observed and trace_matches and artifact_ok and install_ok)) else "NOT_ASSESSED",
         }
         unavailable = any(
             marker in (process.stderr or "").lower()
@@ -1067,6 +1260,8 @@ def _run_once(
             status, reason = "FAIL", f"expected {case['expected']}, observed {observed!r}"
         elif case["kind"] in {"CREATE", "UPDATE", "AUDIT"} and with_skill and not necessity_ok:
             status, reason = "FAIL", necessity_reason
+        elif case["kind"] == "INSTALL" and with_skill and not install_ok:
+            status, reason = "FAIL", install_reason
         elif with_skill and "G5_COEXISTENCE" in _case_gates(case) and not coexistence_fixture:
             status, reason = "FAIL", "coexistence fixture evidence is missing"
         elif case["kind"] not in {"routing", "ACTION"} and not (process_observed and trace_matches and artifact_ok):
@@ -1087,6 +1282,8 @@ def _run_once(
             "trace_matches": trace_matches,
             "necessity_observed": necessity_ok,
             "necessity_reason": necessity_reason,
+            "installation_observed": install_ok,
+            "installation_reason": install_reason,
             "coexistence_fixture": coexistence_fixture,
             "side_effect_free": side_effect_free,
             "artifact_ok": artifact_ok,
@@ -1314,7 +1511,8 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             recomputed = _recomputed_record(item, case)
             if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
                 "observed", "activation", "process_observed", "trace_matches", "changed_paths",
-                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics", "runtime_evidence",
+                "artifact_ok", "necessity_observed", "installation_observed", "installation_reason",
+                "coexistence_fixture", "cost_metrics", "runtime_evidence",
             )):
                 return False
             activation = item.get("activation")
@@ -1332,7 +1530,8 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
             recomputed = _recomputed_record(item, case)
             if recomputed is None or any(item.get(field) != recomputed.get(field) for field in (
                 "observed", "activation", "process_observed", "trace_matches", "changed_paths",
-                "artifact_ok", "necessity_observed", "coexistence_fixture", "cost_metrics", "runtime_evidence",
+                "artifact_ok", "necessity_observed", "installation_observed", "installation_reason",
+                "coexistence_fixture", "cost_metrics", "runtime_evidence",
             )):
                 return False
         recomputed_routing = []

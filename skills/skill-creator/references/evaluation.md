@@ -84,7 +84,10 @@ one, report `NOT_ASSESSED` rather than inferring activation from prose.
 
 ## Runtime result semantics
 
-Run CREATE and UPDATE cases in an isolated writable fixture. The agent must
+Run CREATE, INSTALL, and UPDATE cases in an isolated writable fixture. INSTALL
+must verify source-bound materialization, target ownership/collision handling,
+post-install validation, and a representative task through the installed path.
+The agent must
 perform the requested operation, and the harness must grade resulting
 files/resources plus the structured process trace. A disposition alone is not
 behavioral proof.
@@ -116,7 +119,7 @@ when they match the recomputation.
 
 ## Self-evaluation boundary
 
-The skill-creator-specific G0-G7 gate model, 26-case corpus, action probes,
+The skill-creator-specific G0-G7 gate model, 30-case corpus, action probes,
 and validator schema belong to `evals/cases.yaml` and
 `scripts/validate_eval_cases.py`. They are a self-evaluation implementation,
 not generic evaluation guidance. `EVALUATE` remains a shared capability even

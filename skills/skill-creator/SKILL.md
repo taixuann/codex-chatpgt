@@ -52,4 +52,4 @@ Read only the selected workflow, then its owning references:
 
 ## Qualification boundary
 
-CREATE and UPDATE require deterministic validation, a static semantic walkthrough, affected real-task evidence, regression classification, and an exact candidate handoff. Terminal technical eligibility is separate fresh WORK then GOAL review owned by issue-execution. This campaign does not claim INSTALL or AUDIT qualification, and never merges, closes, or accepts a parent Issue.
+CREATE, INSTALL, and UPDATE require action-specific deterministic validation, a static semantic walkthrough, affected real-task evidence, regression classification, and an exact candidate handoff. INSTALL additionally requires source/payload provenance, backend ownership and uninstall evidence, faithful materialization, and collision-safe target verification. Each action needs its own exact-candidate qualification; AUDIT remains unqualified absent its own campaign. Terminal technical eligibility is separate fresh WORK then GOAL review owned by issue-execution. Never merge, close, or accept a parent Issue.

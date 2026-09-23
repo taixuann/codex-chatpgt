@@ -1,7 +1,7 @@
 # Test Environment
 
-Owner: isolated trial lifecycle. Consumers: CREATE probe/evaluation and UPDATE
-U9. Persistence: raw runs and reports stay outside the runtime package.
+Owner: isolated trial lifecycle. Consumers: CREATE probe/evaluation, INSTALL
+materialization/real-task checks, and UPDATE U9. Persistence: raw runs and reports stay outside the runtime package.
 Non-overlap: issue-execution owns repository session state.
 
 ## Trial lifecycle

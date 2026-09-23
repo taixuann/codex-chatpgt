@@ -44,3 +44,61 @@ cases:
   - {id: evaluate-sibling-collision, kind: EVALUATE, partition: held_out, gate: G5_COEXISTENCE, expected: REJECT, origin: {type: architecture_contract, source: issue-103/coexistence-contract}, trace_markers: [collision, reject, pdf], prompt: "Evaluate the isolated skill that steals a sibling's trigger in the active catalog and write the rejection evidence in the fixture."}
   - {id: evaluate-decorative-resources, kind: EVALUATE, partition: regression, gate: G1_STRUCTURE, expected: SIMPLIFY, origin: {type: architecture_contract, source: issue-103/resource-contract}, trace_markers: [resource, simplify], prompt: "Evaluate the fixture skill containing unused scripts and decorative references and write the simplification evidence in the fixture."}
   - {id: evaluate-skipped-process, kind: EVALUATE, partition: held_out, gate: G2_PROVENANCE, expected: REJECT, origin: {type: observed_failure, source: issue-103/process-regression-contract}, trace_markers: [provenance, reject], prompt: "The output looks correct, but the required provenance search was skipped; write the rejection evidence in the fixture."}
+  - id: install-healthy-copy
+    kind: INSTALL
+    partition: must_pass
+    gate: G2_PROVENANCE
+    gates: [G2_PROVENANCE, G4_BEHAVIOR]
+    expected: INSTALL_EXISTING
+    installation_outcome: INSTALLED
+    origin: {type: user_requirement, source: issue-121/install-contract}
+    trace_markers: [inspect, license, copy, verify]
+    source_fixture: .fixture-sources/healthy
+    package_files: [SKILL.md, references/guide.md]
+    artifact: created
+    artifact_path: .evaluation/install-healthy-copy.json
+    side_effects:
+      - {operation: created, path: .agents/skills/healthy/SKILL.md}
+      - {operation: created, path: .agents/skills/healthy/references/guide.md}
+      - {operation: created, path: .agents/.skill-installs/healthy.json}
+    prompt: "Inspect the provided source and license, audit its consumed links, copy its files unchanged into the unoccupied project skill target using the fixture backend, run a real task that applies its guide, and record a provenance/ownership receipt in the requested report. Return INSTALL_EXISTING; do not manufacture edits."
+  - id: install-collision-refused
+    kind: INSTALL
+    partition: regression
+    gate: G4_BEHAVIOR
+    gates: [G4_BEHAVIOR, G5_COEXISTENCE]
+    expected: BLOCKED
+    installation_outcome: BLOCKED
+    origin: {type: observed_failure, source: issue-121/install-ownership-contract}
+    trace_markers: [collision, preserve]
+    artifact: none
+    prompt: "The requested target already exists without a matching backend ownership receipt. Inspect the collision and neighbor canary, leave every file unchanged, and return BLOCKED with the concrete collision reason."
+  - id: install-redesign-routed
+    kind: INSTALL
+    partition: regression
+    gate: G0_NECESSITY
+    gates: [G0_NECESSITY, G4_BEHAVIOR]
+    expected: REJECT
+    installation_outcome: ROUTE
+    origin: {type: architecture_contract, source: issue-121/install-create-update-boundary}
+    trace_markers: [redesign, create]
+    artifact: none
+    prompt: "The source would require material action/workflow redesign to meet the request. Inspect the source, do not install or edit it, and route to CREATE or UPDATE with a substantive reason."
+  - id: install-zero-adaptation
+    kind: INSTALL
+    partition: held_out
+    gate: G4_BEHAVIOR
+    gates: [G4_BEHAVIOR, G6_EFFICIENCY]
+    expected: INSTALL_EXISTING
+    installation_outcome: INSTALLED
+    origin: {type: architecture_contract, source: issue-121/zero-adaptation-install-contract}
+    trace_markers: [inspect, copy, verify, unchanged]
+    source_fixture: .fixture-sources/clean
+    package_files: [SKILL.md, references/guide.md]
+    artifact: created
+    artifact_path: .evaluation/install-zero-adaptation.json
+    side_effects:
+      - {operation: created, path: .agents/skills/clean-control/SKILL.md}
+      - {operation: created, path: .agents/skills/clean-control/references/guide.md}
+      - {operation: created, path: .agents/.skill-installs/clean-control.json}
+    prompt: "Install the healthy source into the unoccupied project target by exact copy, verify the source and installed payload hashes match, run one real guide-based task, and record the full receipt. Return INSTALL_EXISTING and adaptation none; a zero-edit faithful install is the intended success."

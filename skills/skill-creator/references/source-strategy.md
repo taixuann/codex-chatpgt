@@ -1,6 +1,6 @@
 # Source Strategy
 
-Owner: targeted upstream/donor/source decisions. Consumers: CREATE baseline and UPDATE only when current external facts are necessary. Persistence: provenance records and intent.md; no copied donor collection. Non-overlap: self history belongs in references/provenance.md.
+Owner: targeted upstream/donor/source decisions. Consumers: INSTALL source resolution, CREATE baseline, and UPDATE only when current external facts are necessary. Persistence: provenance records and intent.md; no copied donor collection. Non-overlap: self history belongs in references/provenance.md.
 
 Use USE_EXISTING, INSTALL_EXISTING, UPDATE_EXISTING, CLONE_AND_ADAPT, REFERENCE_AND_ADAPT, or CREATE_FROM_SCRATCH_WITH_JUSTIFICATION. An installable maintained owner routes to INSTALL_EXISTING; CREATE may use CLONE_AND_ADAPT only for a donor/reference baseline that is not independently installable as the requested target, and REFERENCE_AND_ADAPT is preferred when only concepts or bounded material are reused. For a donor/reference baseline, copy it unchanged first and record repository, ref, path, license, and hashes before adapting it.
 

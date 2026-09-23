@@ -36,6 +36,129 @@ def load_initializer():
 
 
 class EvalContractTests(unittest.TestCase):
+    def test_install_is_a_behavioral_case_kind_with_four_canonical_cases(self):
+        module = load_module()
+        self.assertIn("INSTALL", module.KINDS)
+        cases = module.load_cases(SCRIPT.parents[1] / "evals" / "cases.yaml")["cases"]
+        install_cases = {case["id"]: case for case in cases if case["kind"] == "INSTALL"}
+        self.assertEqual(set(install_cases), {
+            "install-healthy-copy",
+            "install-collision-refused",
+            "install-redesign-routed",
+            "install-zero-adaptation",
+        })
+        self.assertEqual(install_cases["install-healthy-copy"]["installation_outcome"], "INSTALLED")
+        self.assertEqual(install_cases["install-collision-refused"]["installation_outcome"], "BLOCKED")
+        self.assertEqual(install_cases["install-redesign-routed"]["installation_outcome"], "ROUTE")
+
+    def test_install_receipt_requires_source_payload_runtime_validation_and_ownership(self):
+        module = load_module()
+        case = {"kind": "INSTALL", "installation_outcome": "INSTALLED"}
+        digest = "a" * 64
+        report = {"installation": {
+            "status": "INSTALLED",
+            "workspace_changed": True,
+            "source": {"repository": "owner/skill", "requested_ref": "v1.0", "revision": "1" * 40, "path": "skill", "license": "MIT"},
+            "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/skill", "mode": "copy"},
+            "payload": {"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest, "adaptation": "none"},
+            "audit": {"status": "PASS", "backend": "skills-lint 1.0"},
+            "validation": {"status": "PASS"},
+            "real_task": {"status": "PASS"},
+            "ownership": {"receipt_id": "install-001", "uninstall": "remove only receipt-owned unchanged files"},
+        }}
+        self.assertTrue(module._install_evidence_ok(case, report)[0])
+        report["installation"]["payload"]["installed_sha256"] = "b" * 64
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+
+    def test_install_snapshot_rejects_path_escape_wrong_target_and_changed_payload(self):
+        module = load_module()
+        case = {
+            "id": "install-healthy-copy", "kind": "INSTALL", "installation_outcome": "INSTALLED",
+            "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md"],
+            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
+        }
+        report = {"installation": {
+            "status": "INSTALLED", "workspace_changed": True,
+            "source": {"repository": "owner/skill", "requested_ref": "v1", "revision": "1" * 40, "path": "skill", "license": "MIT"},
+            "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/healthy", "mode": "copy"},
+            "payload": {"source_sha256": "a" * 64, "selected_sha256": "a" * 64, "installed_sha256": "a" * 64, "adaptation": "none"},
+            "audit": {"status": "PASS", "backend": "fixture"}, "validation": {"status": "PASS"},
+            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "uninstall": "remove receipt-owned unchanged file"},
+        }}
+        before = {".fixture-sources/healthy/SKILL.md": "sha256:source"}
+        after = {**before, ".agents/skills/healthy/SKILL.md": "sha256:source"}
+        self.assertTrue(module._install_evidence_ok(case, report, before, after)[0])
+        after[".agents/skills/healthy/SKILL.md"] = "sha256:changed"
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        after[".agents/skills/healthy/SKILL.md"] = "sha256:source"
+        report["installation"]["target"]["path"] = "../outside"
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        report["installation"]["target"]["path"] = ".agents/skills/other"
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        report["installation"]["target"]["path"] = ".agents/skills/healthy"
+        before[".agents/skills/healthy/unmanaged.txt"] = "canary"
+        after[".agents/skills/healthy/unmanaged.txt"] = "canary"
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+
+    def test_artifact_contract_allows_only_directories_needed_for_declared_files(self):
+        module = load_module()
+        case = {"id": "fixture", "kind": "CREATE", "artifact": "created", "artifact_path": ".evaluation/result.json"}
+        before = {}
+        after = {"@dir/.evaluation": "dir", ".evaluation/result.json": "report"}
+        self.assertTrue(module._artifact_ok(case, before, after)[0])
+        after["@dir/unexpected"] = "dir"
+        self.assertFalse(module._artifact_ok(case, before, after)[0])
+
+    def test_no_artifact_contract_rejects_empty_directory_mutation(self):
+        module = load_module()
+        self.assertFalse(module._artifact_ok(
+            {"id": "blocked-install", "kind": "INSTALL", "artifact": "none"},
+            {}, {"@dir/.agents/skills/target": "dir"},
+        )[0])
+
+    def test_install_compatibility_adaptation_is_bounded_to_declared_files(self):
+        module = load_module()
+        case = {
+            "id": "install-healthy-copy", "kind": "INSTALL", "installation_outcome": "INSTALLED",
+            "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md", "references/guide.md"],
+            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
+        }
+        report = {"installation": {
+            "status": "INSTALLED", "workspace_changed": True,
+            "source": {"repository": "owner/skill", "requested_ref": "v1", "revision": "1" * 40, "path": "skill", "license": "MIT"},
+            "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/healthy", "mode": "copy"},
+            "payload": {"source_sha256": "a" * 64, "selected_sha256": "b" * 64, "installed_sha256": "c" * 64,
+                "adaptation": {"reason": "Adjust one documented runtime compatibility token.", "files": [{"path": "SKILL.md", "source_sha256": "b" * 64, "installed_sha256": "c" * 64}]}},
+            "audit": {"status": "PASS", "backend": "fixture"}, "validation": {"status": "PASS"},
+            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "uninstall": "remove receipt-owned unchanged file"},
+        }}
+        before = {".fixture-sources/healthy/SKILL.md": "source-skill", ".fixture-sources/healthy/references/guide.md": "guide"}
+        after = {**before, ".agents/skills/healthy/SKILL.md": "compat-adjusted", ".agents/skills/healthy/references/guide.md": "guide"}
+        self.assertTrue(module._install_evidence_ok(case, report, before, after)[0])
+        after[".agents/skills/healthy/references/guide.md"] = "also-adjusted"
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+
+    def test_install_collision_and_redesign_must_preserve_the_fixture(self):
+        module = load_module()
+        self.assertTrue(module._install_evidence_ok(
+            {"kind": "INSTALL", "installation_outcome": "BLOCKED"},
+            {"installation": {"status": "BLOCKED", "workspace_changed": False, "collision": "unmanaged target preserved"}},
+        )[0])
+        self.assertTrue(module._install_evidence_ok(
+            {"kind": "INSTALL", "installation_outcome": "ROUTE"},
+            {"installation": {"status": "ROUTE", "workspace_changed": False, "route": "CREATE", "reason": "The requested source requires material workflow redesign."}},
+        )[0])
+        self.assertFalse(module._install_evidence_ok(
+            {"kind": "INSTALL", "installation_outcome": "BLOCKED"},
+            {"installation": {"status": "BLOCKED", "workspace_changed": True, "collision": "unmanaged target preserved"}},
+        )[0])
+
+    def test_install_workflow_is_operational_not_route_only(self):
+        workflow = (SCRIPT.parents[1] / "workflows" / "install.md").read_text(encoding="utf-8").lower()
+        for marker in ("resolve", "pin", "license", "package closure", "collision", "install receipt", "real-task", "cleanup"):
+            self.assertIn(marker, workflow)
+        self.assertNotIn("route-only", workflow)
+
     def test_runtime_fixture_uses_repo_skill_discovery_location(self):
         module = load_module()
         skill_dir = SCRIPT.parents[1]
@@ -274,10 +397,21 @@ class EvalContractTests(unittest.TestCase):
                     else:
                         before_snapshot = {}
                         after_snapshot = {}
-                if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
-                    for path in module.COEXISTENCE_PATHS[case["id"]]:
-                        before_snapshot[path] = "fixture"
-                        after_snapshot[path] = "fixture"
+                    if case["kind"] == "INSTALL" and case["installation_outcome"] == "INSTALLED":
+                        source_root = case["source_fixture"]
+                        target_path = next(effect["path"] for effect in case["side_effects"] if effect["path"].endswith("/SKILL.md")).removesuffix("/SKILL.md")
+                        for relative in case["package_files"]:
+                            source_path = f"{source_root}/{relative}"
+                            installed_path = f"{target_path}/{relative}"
+                            before_snapshot[source_path] = f"bytes:{relative}"
+                            after_snapshot[source_path] = f"bytes:{relative}"
+                            after_snapshot[installed_path] = f"bytes:{relative}"
+                        for effect in case["side_effects"]:
+                            after_snapshot.setdefault(effect["path"], f"owned:{effect['path']}")
+                    if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
+                        for path in module.COEXISTENCE_PATHS.get(case["id"], set()):
+                            before_snapshot[path] = "fixture"
+                            after_snapshot[path] = "fixture"
                 for effect in contract.get("side_effects", []):
                     if effect["operation"] == "deleted":
                         after_snapshot.pop(effect["path"], None)
@@ -285,6 +419,21 @@ class EvalContractTests(unittest.TestCase):
                     {"disposition": expected, "necessity": {"disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]], "alternatives": {check: {"state": "CHECKED", "disposition": module.EXPECTED_NECESSITY_DISPOSITIONS[case["id"]] if case["kind"] == "CREATE" and check == "maintained_candidate" else "USE_EXISTING", "reason": "fixture alternative was compared against the requested reusable capability", **({"source_role": "DONOR_REFERENCE_ONLY"} if case["kind"] == "CREATE" and check == "maintained_candidate" else {})} for check in module.NECESSITY_CHECKS}, "justification": "fixture alternatives compared"}}
                     if case["kind"] in {"CREATE", "UPDATE", "AUDIT"} else {"disposition": expected}
                 )
+                if case["kind"] == "INSTALL":
+                    if case["installation_outcome"] == "INSTALLED":
+                        target_path = next(effect["path"] for effect in case["side_effects"] if effect["path"].endswith("/SKILL.md")).removesuffix("/SKILL.md")
+                        final_report = {"disposition": expected, "installation": {
+                            "status": "INSTALLED", "workspace_changed": True,
+                            "source": {"repository": "owner/skill", "requested_ref": "v1", "revision": "1" * 40, "path": "skill", "license": "MIT"},
+                            "target": {"runtime": "codex", "scope": "project", "path": target_path, "mode": "copy"},
+                            "payload": {"source_sha256": "a" * 64, "selected_sha256": "a" * 64, "installed_sha256": "a" * 64, "adaptation": "none"},
+                            "audit": {"status": "PASS", "backend": "fixture"}, "validation": {"status": "PASS"},
+                            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "fixture-001", "uninstall": "remove only receipt-owned files"},
+                        }}
+                    elif case["installation_outcome"] == "BLOCKED":
+                        final_report = {"disposition": expected, "installation": {"status": "BLOCKED", "workspace_changed": False, "collision": "unmanaged target preserved"}}
+                    else:
+                        final_report = {"disposition": expected, "installation": {"status": "ROUTE", "workspace_changed": False, "route": "CREATE", "reason": "Material behavior redesign is required."}}
                 changed_paths = sorted(module._changed_paths(before_snapshot, after_snapshot))
                 results.append({
                     "case_id": case["id"],
@@ -309,6 +458,8 @@ class EvalContractTests(unittest.TestCase):
                     "before_snapshot": before_snapshot,
                     "after_snapshot": after_snapshot,
                     "final_report": final_report,
+                    "installation_observed": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[0],
+                    "installation_reason": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[1],
                     "trial": trial("with_skill"),
                 })
             gates = {gate: "PASS" for gate in module.GATES}
@@ -357,6 +508,8 @@ class EvalContractTests(unittest.TestCase):
                     "before_snapshot": baseline_before,
                     "after_snapshot": baseline_after,
                     "final_report": {"disposition": "baseline"},
+                    "installation_observed": module._install_evidence_ok(case, {"disposition": "baseline"}, baseline_before, baseline_after)[0],
+                    "installation_reason": module._install_evidence_ok(case, {"disposition": "baseline"}, baseline_before, baseline_after)[1],
                     "trial": trial("without_skill"),
                 }
                 baseline_results.append(baseline)
