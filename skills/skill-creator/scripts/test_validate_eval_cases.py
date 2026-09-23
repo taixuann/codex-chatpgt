@@ -51,6 +51,14 @@ class EvalContractTests(unittest.TestCase):
         self.assertEqual(install_cases["install-collision-refused"]["installation_outcome"], "BLOCKED")
         self.assertEqual(install_cases["install-redesign-routed"]["installation_outcome"], "ROUTE")
 
+    def test_case_filter_does_not_select_unrequested_action_probes(self):
+        module = load_module()
+        data = module.load_cases(SCRIPT.parents[1] / "evals" / "cases.yaml")
+        self.assertEqual(module._selected_action_cases(data, "full", {"install-healthy-copy"}), [])
+        selected = module._selected_action_cases(data, "full", {"explicit-install"})
+        self.assertEqual([case["id"] for case in selected], ["explicit-install"])
+        self.assertEqual(module._selected_action_cases(data, "smoke", None), [])
+
     def test_install_receipt_requires_source_payload_runtime_validation_and_ownership(self):
         module = load_module()
         case = {"kind": "INSTALL", "installation_outcome": "INSTALLED"}

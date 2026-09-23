@@ -693,6 +693,15 @@ def _case_gates(case: dict) -> list[str]:
     return case.get("gates", [case["gate"]])
 
 
+def _selected_action_cases(data: dict, stage: str, case_ids: set[str] | None) -> list[dict]:
+    if stage != "full":
+        return []
+    return [
+        case for case in data.get("action_cases", [])
+        if not case_ids or case.get("id") in case_ids
+    ]
+
+
 def _install_evidence_ok(
     case: dict,
     report: dict,
@@ -1652,6 +1661,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         "full": {case["id"] for case in data["cases"]},
     }[stage]
     cases = [case for case in data["cases"] if case["id"] in stage_ids and (not case_ids or case["id"] in case_ids)]
+    action_cases = _selected_action_cases(data, stage, case_ids)
     if candidate_ref is not None and evidence_binding.get("candidate_head") is None:
         preflight = {
             "status": "CANDIDATE_MISMATCH",
@@ -1662,7 +1672,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
     if preflight["status"] != "READY":
         unavailable_results = []
         unavailable_actions = []
-        for action_case in data.get("action_cases", []) if stage == "full" else []:
+        for action_case in action_cases:
             action = {**action_case, "kind": "ACTION"}
             unavailable_actions.append(_unassessed_case(
                 action, skill_dir, preflight["reason"], trial_context, preflight["status"],
@@ -1690,8 +1700,8 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         }
     results = []
     action_results = []
-    if stage == "full":
-        for action_case in data.get("action_cases", []):
+    if action_cases:
+        for action_case in action_cases:
             runtime_case = {
                 **action_case,
                 "kind": "ACTION",
@@ -1726,7 +1736,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         [item for item in results if item["condition"] == "with_skill" and item["case_id"] in routing_ids],
         cases,
         action_results,
-        data.get("action_cases", []),
+        action_cases,
     )
     paired = []
     for case in cases:
