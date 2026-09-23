@@ -83,15 +83,29 @@ class EvalContractTests(unittest.TestCase):
         module = load_module()
         case = {
             "id": "install-healthy-copy", "source_fixture": ".fixture-sources/healthy",
-            "source_ref": "fixture-v1",
+            "source_ref": "fixture-v1", "source_revision": "d6f5e671b8c7d0a28ef4a32aaa4124d93a9b0b6f",
         }
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             module._seed_case(root, case)
             source = root / case["source_fixture"]
             self.assertEqual(case["_resolved_revision"], module._git_revision(source, "fixture-v1"))
+            self.assertEqual(case["_resolved_revision"], case["source_revision"])
             self.assertRegex(case["_resolved_revision"], r"^[0-9a-f]{40}$")
             self.assertTrue((source / "LICENSE.txt").is_file())
+            self.assertEqual(case["_resolved_license"], "MIT")
+
+    def test_snapshot_metadata_cannot_hide_a_real_at_content_path(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "foo").write_text("stable", encoding="utf-8")
+            (root / "@content").mkdir()
+            (root / "@content" / "foo").write_text("before", encoding="utf-8")
+            before = module._snapshot(root)
+            (root / "@content" / "foo").write_text("after", encoding="utf-8")
+            after = module._snapshot(root)
+            self.assertIn("@content/foo", module._changed_paths(before, after))
 
     def test_install_snapshot_rejects_path_escape_wrong_target_and_changed_payload(self):
         module = load_module()
@@ -99,7 +113,7 @@ class EvalContractTests(unittest.TestCase):
             "id": "install-healthy-copy", "kind": "INSTALL", "installation_outcome": "INSTALLED",
             "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md"],
             "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
-            "_resolved_revision": "1" * 40,
+            "_resolved_revision": "1" * 40, "_resolved_license": "MIT",
         }
         content_hash = hashlib.sha256(b"source").hexdigest()
         report = {"installation": {
@@ -113,12 +127,12 @@ class EvalContractTests(unittest.TestCase):
         }}
         before = {
             ".fixture-sources/healthy/SKILL.md": "snapshot:source",
-            "@content/.fixture-sources/healthy/SKILL.md": content_hash,
+            "\0content/.fixture-sources/healthy/SKILL.md": content_hash,
         }
         after = {
             **before,
             ".agents/skills/healthy/SKILL.md": "snapshot:source",
-            "@content/.agents/skills/healthy/SKILL.md": content_hash,
+            "\0content/.agents/skills/healthy/SKILL.md": content_hash,
         }
         digest = module._content_tree_sha256(before, ".fixture-sources/healthy", ["SKILL.md"])
         report["installation"]["payload"].update({"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest})
@@ -143,17 +157,17 @@ class EvalContractTests(unittest.TestCase):
             "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md"],
             "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
             "source_repository": "fixture/healthy", "source_ref": "fixture-v1", "source_license": "MIT",
-            "_resolved_revision": "1" * 40,
+            "_resolved_revision": "1" * 40, "_resolved_license": "MIT",
         }
         source = "a" * 64
         before = {
             ".fixture-sources/healthy/SKILL.md": "snapshot:source",
-            "@content/.fixture-sources/healthy/SKILL.md": source,
+            "\0content/.fixture-sources/healthy/SKILL.md": source,
         }
         after = {
             **before,
             ".agents/skills/healthy/SKILL.md": "snapshot:source",
-            "@content/.agents/skills/healthy/SKILL.md": source,
+            "\0content/.agents/skills/healthy/SKILL.md": source,
         }
         digest = module._content_tree_sha256(before, ".fixture-sources/healthy", ["SKILL.md"])
         report = {"installation": {
@@ -166,6 +180,9 @@ class EvalContractTests(unittest.TestCase):
             "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "uninstall": "remove receipt-owned unchanged files"},
         }}
         self.assertTrue(module._install_evidence_ok(case, report, before, after)[0])
+        case["_resolved_license"] = "GPL-3.0-only"
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        case["_resolved_license"] = "MIT"
         report["installation"]["source"]["revision"] = "2" * 40
         self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
         report["installation"]["source"]["revision"] = "1" * 40
@@ -176,16 +193,16 @@ class EvalContractTests(unittest.TestCase):
         module = load_module()
         case = {"id": "fixture", "kind": "CREATE", "artifact": "created", "artifact_path": ".evaluation/result.json"}
         before = {}
-        after = {"@dir/.evaluation": "dir", ".evaluation/result.json": "report"}
+        after = {"\0dir/.evaluation": "dir", ".evaluation/result.json": "report"}
         self.assertTrue(module._artifact_ok(case, before, after)[0])
-        after["@dir/unexpected"] = "dir"
+        after["\0dir/unexpected"] = "dir"
         self.assertFalse(module._artifact_ok(case, before, after)[0])
 
     def test_no_artifact_contract_rejects_empty_directory_mutation(self):
         module = load_module()
         self.assertFalse(module._artifact_ok(
             {"id": "blocked-install", "kind": "INSTALL", "artifact": "none"},
-            {}, {"@dir/.agents/skills/target": "dir"},
+            {}, {"\0dir/.agents/skills/target": "dir"},
         )[0])
 
     def test_install_compatibility_adaptation_is_bounded_to_declared_files(self):
@@ -195,7 +212,7 @@ class EvalContractTests(unittest.TestCase):
             "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md", "references/guide.md"],
             "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
             "source_repository": "owner/skill", "source_ref": "v1", "source_license": "MIT",
-            "_resolved_revision": "1" * 40,
+            "_resolved_revision": "1" * 40, "_resolved_license": "MIT",
         }
         source_hash = hashlib.sha256(b"source-skill").hexdigest()
         installed_hash = hashlib.sha256(b"compat-adjusted").hexdigest()
@@ -203,15 +220,15 @@ class EvalContractTests(unittest.TestCase):
         before = {
             ".fixture-sources/healthy/SKILL.md": "source-skill",
             ".fixture-sources/healthy/references/guide.md": "guide",
-            "@content/.fixture-sources/healthy/SKILL.md": source_hash,
-            "@content/.fixture-sources/healthy/references/guide.md": guide_hash,
+            "\0content/.fixture-sources/healthy/SKILL.md": source_hash,
+            "\0content/.fixture-sources/healthy/references/guide.md": guide_hash,
         }
         after = {
             **before,
             ".agents/skills/healthy/SKILL.md": "compat-adjusted",
             ".agents/skills/healthy/references/guide.md": "guide",
-            "@content/.agents/skills/healthy/SKILL.md": installed_hash,
-            "@content/.agents/skills/healthy/references/guide.md": guide_hash,
+            "\0content/.agents/skills/healthy/SKILL.md": installed_hash,
+            "\0content/.agents/skills/healthy/references/guide.md": guide_hash,
         }
         report = {"installation": {
             "status": "INSTALLED", "workspace_changed": True,
@@ -230,6 +247,11 @@ class EvalContractTests(unittest.TestCase):
         }}
         ok, reason = module._install_evidence_ok(case, report, before, after)
         self.assertTrue(ok, reason)
+        report["installation"]["payload"]["adaptation"]["files"].append({
+            "path": "unselected.txt", "source_sha256": source_hash, "installed_sha256": installed_hash,
+        })
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        report["installation"]["payload"]["adaptation"]["files"].pop()
         after[".agents/skills/healthy/references/guide.md"] = "also-adjusted"
         self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
 
@@ -275,7 +297,7 @@ class EvalContractTests(unittest.TestCase):
             (root / ".codex-home").mkdir()
             (root / ".codex-home" / "cache").write_text("runtime", encoding="utf-8")
             (root / "artifact.txt").write_text("artifact", encoding="utf-8")
-            self.assertEqual(set(module._snapshot(root)), {"artifact.txt", "@content/artifact.txt"})
+            self.assertEqual(set(module._snapshot(root)), {"artifact.txt", "\0content/artifact.txt"})
 
     def test_trial_metadata_binds_identity_and_terminal_cleanup(self):
         module = load_module()
@@ -493,7 +515,8 @@ class EvalContractTests(unittest.TestCase):
                         before_snapshot = {}
                         after_snapshot = {}
                     if case["kind"] == "INSTALL" and case["installation_outcome"] == "INSTALLED":
-                        case["_resolved_revision"] = "1" * 40
+                        case["_resolved_revision"] = case["source_revision"]
+                        case["_resolved_license"] = case.get("source_license", "MIT")
                         source_root = case["source_fixture"]
                         target_path = next(effect["path"] for effect in case["side_effects"] if effect["path"].endswith("/SKILL.md")).removesuffix("/SKILL.md")
                         for relative in case["package_files"]:
@@ -503,9 +526,9 @@ class EvalContractTests(unittest.TestCase):
                             after_snapshot[source_path] = f"bytes:{relative}"
                             after_snapshot[installed_path] = f"bytes:{relative}"
                             digest = hashlib.sha256(f"bytes:{relative}".encode()).hexdigest()
-                            before_snapshot[f"@content/{source_path}"] = digest
-                            after_snapshot[f"@content/{source_path}"] = digest
-                            after_snapshot[f"@content/{installed_path}"] = digest
+                            before_snapshot[f"\0content/{source_path}"] = digest
+                            after_snapshot[f"\0content/{source_path}"] = digest
+                            after_snapshot[f"\0content/{installed_path}"] = digest
                         for effect in case["side_effects"]:
                             after_snapshot.setdefault(effect["path"], f"owned:{effect['path']}")
                     if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
@@ -524,7 +547,7 @@ class EvalContractTests(unittest.TestCase):
                         target_path = next(effect["path"] for effect in case["side_effects"] if effect["path"].endswith("/SKILL.md")).removesuffix("/SKILL.md")
                         final_report = {"disposition": expected, "installation": {
                             "status": "INSTALLED", "workspace_changed": True,
-                            "source": {"repository": case.get("source_repository", "owner/skill"), "requested_ref": case.get("source_ref", "v1"), "revision": "1" * 40, "path": case["source_fixture"], "license": case.get("source_license", "MIT")},
+                            "source": {"repository": case.get("source_repository", "owner/skill"), "requested_ref": case.get("source_ref", "v1"), "revision": case["source_revision"], "path": case["source_fixture"], "license": case.get("source_license", "MIT")},
                             "target": {"runtime": "codex", "scope": "project", "path": target_path, "mode": "copy"},
                             "payload": {
                                 "source_sha256": module._content_tree_sha256(before_snapshot, case["source_fixture"]),
@@ -532,8 +555,8 @@ class EvalContractTests(unittest.TestCase):
                                 "installed_sha256": module._content_tree_sha256(after_snapshot, target_path, case["package_files"]),
                                 "files": [{
                                     "path": relative,
-                                    "source_sha256": before_snapshot[f"@content/{case['source_fixture']}/{relative}"],
-                                    "installed_sha256": after_snapshot[f"@content/{target_path}/{relative}"],
+                                    "source_sha256": before_snapshot[f"\0content/{case['source_fixture']}/{relative}"],
+                                    "installed_sha256": after_snapshot[f"\0content/{target_path}/{relative}"],
                                 } for relative in case["package_files"]],
                                 "adaptation": "none",
                             },
@@ -568,7 +591,7 @@ class EvalContractTests(unittest.TestCase):
                     "before_snapshot": before_snapshot,
                     "after_snapshot": after_snapshot,
                     "final_report": final_report,
-                    **({"source_revision_resolved": case.get("_resolved_revision")} if case["kind"] == "INSTALL" and case["installation_outcome"] == "INSTALLED" else {}),
+                    **({"source_revision_resolved": case.get("_resolved_revision"), "source_license_resolved": case.get("_resolved_license")} if case["kind"] == "INSTALL" and case["installation_outcome"] == "INSTALLED" else {}),
                     "installation_observed": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[0],
                     "installation_reason": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[1],
                     "trial": trial("with_skill"),
@@ -665,6 +688,27 @@ class EvalContractTests(unittest.TestCase):
             after.write_text(json.dumps(payload), encoding="utf-8")
             comparison = module._compare(before, after, cases_path)
             self.assertEqual(comparison["status"], "PASS", comparison)
+            invalid_install = json.loads(json.dumps(payload))
+            install_case = next(case for case in module.load_cases(cases_path)["cases"] if case["id"] == "install-healthy-copy")
+            install_record = next(item for item in invalid_install["results"] if item["case_id"] == "install-healthy-copy")
+            install_record["final_report"]["installation"]["source"]["revision"] = "2" * 40
+            recomputed_install = module._recomputed_record(install_record, install_case)
+            install_record["installation_observed"] = recomputed_install["installation_observed"]
+            install_record["installation_reason"] = recomputed_install["installation_reason"]
+            install_record["runtime_evidence"] = recomputed_install["runtime_evidence"]
+            before.write_text(json.dumps(invalid_install), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            correlated_tamper = json.loads(json.dumps(payload))
+            install_record = next(item for item in correlated_tamper["results"] if item["case_id"] == "install-healthy-copy")
+            install_record["final_report"]["installation"]["source"]["revision"] = "3" * 40
+            install_record["source_revision_resolved"] = "3" * 40
+            recomputed_install = module._recomputed_record(install_record, install_case)
+            install_record["installation_observed"] = recomputed_install["installation_observed"]
+            install_record["installation_reason"] = recomputed_install["installation_reason"]
+            install_record["runtime_evidence"] = recomputed_install["runtime_evidence"]
+            before.write_text(json.dumps(correlated_tamper), encoding="utf-8")
+            self.assertEqual(module._compare(before, after, cases_path)["status"], "REJECT")
+            before.write_text(json.dumps(payload), encoding="utf-8")
             expected_binding = dict(payload["evidence_binding"])
             expected_binding["candidate_head"] = "2" * 40
             self.assertEqual(module._compare(before, after, cases_path, expected_binding)["status"], "REJECT")
@@ -811,7 +855,7 @@ class EvalContractTests(unittest.TestCase):
             cache.mkdir()
             (cache / "generated.cpython-313.pyc").write_bytes(b"cache")
             snapshot = module._snapshot(root)
-            self.assertEqual(set(snapshot), {"kept.txt", "@content/kept.txt"})
+            self.assertEqual(set(snapshot), {"kept.txt", "\0content/kept.txt"})
 
     def test_snapshot_binds_directories_and_symlink_targets(self):
         module = load_module()
@@ -824,7 +868,7 @@ class EvalContractTests(unittest.TestCase):
             (root / "link").unlink()
             (root / "link").symlink_to("other", target_is_directory=True)
             second = module._snapshot(root)
-            self.assertIn("@dir/target", first)
+            self.assertIn("\0dir/target", first)
             self.assertNotEqual(first["link"], second["link"])
 
     def test_routing_metrics_counts_observed_failures(self):

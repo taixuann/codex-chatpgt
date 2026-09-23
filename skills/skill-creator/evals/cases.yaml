@@ -56,6 +56,7 @@ cases:
     source_fixture: .fixture-sources/healthy
     source_repository: fixture/healthy
     source_ref: fixture-v1
+    source_revision: d6f5e671b8c7d0a28ef4a32aaa4124d93a9b0b6f
     source_license: MIT
     package_files: [SKILL.md, references/guide.md, LICENSE.txt]
     artifact: created
@@ -100,6 +101,7 @@ cases:
     source_fixture: .fixture-sources/clean
     source_repository: fixture/clean
     source_ref: fixture-clean-v1
+    source_revision: 7aa3031e646fe7c00807800db0714fbbc46d76a3
     source_license: MIT
     package_files: [SKILL.md, references/guide.md, LICENSE.txt]
     artifact: created
@@ -109,4 +111,4 @@ cases:
       - {operation: created, path: .agents/skills/clean-control/references/guide.md}
       - {operation: created, path: .agents/skills/clean-control/LICENSE.txt}
       - {operation: created, path: .agents/.skill-installs/clean-control.json}
-    prompt: "Install the healthy source into the unoccupied project target by exact copy, resolve fixture-clean-v1 to its actual Git commit, verify source and installed payload content hashes, run one real guide-based task, and write the report as JSON. Compute each payload digest as SHA-256 over compact UTF-8 JSON encoding of sorted [relative POSIX path, lowercase raw-file SHA-256] pairs with no insignificant spaces; source_sha256 covers all regular source files, selected_sha256 covers package_files, and installed_sha256 covers the same paths at target. Include payload.files with each package path and source_sha256/installed_sha256, plus top-level disposition INSTALL_EXISTING and installation status INSTALLED, workspace_changed true, source (repository, requested_ref, immutable revision, path, license), target (runtime, scope, exact path, mode), payload (source_sha256, selected_sha256, installed_sha256, adaptation none, files), audit (status PASS, named backend), validation (status PASS), real_task (status PASS), and ownership (receipt_id, safe uninstall mechanism). Return INSTALL_EXISTING and adaptation none; a zero-edit faithful install is the intended success."
+    prompt: "Install the clean-control source into the unoccupied project target by exact copy, resolve fixture-clean-v1 to its actual Git commit, verify source and installed payload content hashes, run one real guide-based task, and write the report as JSON. Compute each payload digest as SHA-256 over compact UTF-8 JSON encoding of sorted [relative POSIX path, lowercase raw-file SHA-256] pairs with no insignificant spaces; source_sha256 covers all regular source files, selected_sha256 covers package_files, and installed_sha256 covers the same paths at target. Include exactly one payload.files entry per package_files path with source_sha256 and installed_sha256, and no extra paths; plus top-level disposition INSTALL_EXISTING and installation status INSTALLED, workspace_changed true, source (repository, requested_ref, immutable revision, path, license), target (runtime, scope, exact path, mode), payload (source_sha256, selected_sha256, installed_sha256, adaptation none, files), audit (status PASS, named backend), validation (status PASS), real_task (status PASS), and ownership (receipt_id, safe uninstall mechanism). Return INSTALL_EXISTING and adaptation none; a zero-edit faithful install is the intended success."

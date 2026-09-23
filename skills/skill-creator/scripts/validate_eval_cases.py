@@ -49,6 +49,8 @@ EXPECTED_CASE_COUNT = 30
 EXPECTED_ROUTING_CASE_COUNT = 12
 EXPECTED_LIFECYCLE_CASE_COUNT = 18
 BINDING_VERSION = 1
+SNAPSHOT_DIR_PREFIX = "\0dir/"
+SNAPSHOT_CONTENT_PREFIX = "\0content/"
 TRIAL_SEQUENCE = ["ALLOCATE", "PREPARE", "BASELINE", "RUN", "FREEZE", "REPORT", "ARCHIVE", "CLEAN"]
 TRIAL_TERMINAL_STATES = {"CLEANED", "PRESERVED_FOR_REVIEW", "CLEANUP_BLOCKED"}
 EXPECTED_PARTITIONS = {
@@ -175,6 +177,8 @@ def validate(path: Path) -> list[str]:
                 package_files = case.get("package_files")
                 if not all(isinstance(case.get(key), str) and case[key].strip() for key in ("source_repository", "source_ref", "source_license")):
                     errors.append(f"{case_id}: installed case must pin expected source repository, ref, and license")
+                if not isinstance(case.get("source_revision"), str) or not re.fullmatch(r"[0-9a-f]{40}", case["source_revision"]):
+                    errors.append(f"{case_id}: installed case must pin the expected immutable source revision")
                 if not isinstance(source_fixture, str) or not _safe_relative_posix_path(source_fixture):
                     errors.append(f"{case_id}: installed case source_fixture must stay inside the fixture")
                 if (
@@ -399,7 +403,7 @@ def _snapshot(root: Path) -> dict[str, str]:
             payload = b"symlink\0" + os.readlink(path).encode("utf-8", "surrogateescape")
         elif stat.S_ISREG(mode):
             content = path.read_bytes()
-            entries[f"@content/{path.relative_to(root).as_posix()}"] = hashlib.sha256(content).hexdigest()
+            entries[f"{SNAPSHOT_CONTENT_PREFIX}{path.relative_to(root).as_posix()}"] = hashlib.sha256(content).hexdigest()
             payload = b"file\0" + content
         elif stat.S_ISDIR(mode):
             payload = b"directory\0"
@@ -412,7 +416,7 @@ def _snapshot(root: Path) -> dict[str, str]:
             relative = path.relative_to(root)
             if ignored(relative):
                 continue
-            key = f"@dir/{relative.as_posix()}" if path.is_dir() and not path.is_symlink() else relative.as_posix()
+            key = f"{SNAPSHOT_DIR_PREFIX}{relative.as_posix()}" if path.is_dir() and not path.is_symlink() else relative.as_posix()
             entries[key] = fingerprint(path)
             if path.is_dir() and not path.is_symlink():
                 visit(path)
@@ -510,12 +514,12 @@ def _valid_evidence_binding(binding: object) -> bool:
 def _changed_paths(before: dict[str, str], after: dict[str, str]) -> set[str]:
     return {
         path for path in set(before) | set(after)
-        if not path.startswith(("@dir/", "@content/")) and before.get(path) != after.get(path)
+        if not path.startswith((SNAPSHOT_DIR_PREFIX, SNAPSHOT_CONTENT_PREFIX)) and before.get(path) != after.get(path)
     }
 
 
 def _content_tree_sha256(snapshot: dict[str, str], prefix: str, paths: list[str] | None = None) -> str | None:
-    root = f"@content/{prefix.rstrip('/')}/"
+    root = f"{SNAPSHOT_CONTENT_PREFIX}{prefix.rstrip('/')}/"
     files = {key[len(root):]: value for key, value in snapshot.items() if key.startswith(root)}
     if paths is not None:
         if any(path not in files for path in paths):
@@ -765,6 +769,9 @@ def _install_evidence_ok(
     for source_key, case_key in (("repository", "source_repository"), ("requested_ref", "source_ref"), ("path", "source_fixture"), ("license", "source_license")):
         if case.get(case_key) is not None and source[source_key] != case[case_key]:
             return False, f"source {source_key} does not match the declared fixture contract"
+    resolved_license = case.get("_resolved_license")
+    if before is not None and after is not None and (not resolved_license or source["license"] != resolved_license):
+        return False, "reported license does not match the source license marker inspected before the trial"
     resolved_revision = case.get("_resolved_revision")
     if before is not None and after is not None and (not resolved_revision or source["revision"] != resolved_revision):
         return False, "source revision does not match the fixture ref resolved before the trial"
@@ -806,12 +813,14 @@ def _install_evidence_ok(
             return False, "install case must bind the source fixture and consumed package files"
         target_prefix = target["path"].rstrip("/")
         occupied_target = any(
-            key.removeprefix("@dir/") == target_prefix
-            or key.removeprefix("@dir/").startswith(f"{target_prefix}/")
+            key.removeprefix(SNAPSHOT_DIR_PREFIX) == target_prefix
+            or key.removeprefix(SNAPSHOT_DIR_PREFIX).startswith(f"{target_prefix}/")
             for key in before
         )
         if occupied_target:
             return False, "successful install target was not empty before materialization"
+        if not set(adapted_files).issubset(package_files):
+            return False, "adaptation receipt contains paths outside the selected package closure"
         for relative in package_files:
             if not isinstance(relative, str) or not _safe_relative_posix_path(relative):
                 return False, "package file paths must remain within the selected source and target roots"
@@ -819,8 +828,8 @@ def _install_evidence_ok(
             installed_path = f"{target['path'].rstrip('/')}/{relative}"
             source_fingerprint = before.get(source_path)
             installed_fingerprint = after.get(installed_path)
-            source_content = before.get(f"@content/{source_path}")
-            installed_content = after.get(f"@content/{installed_path}")
+            source_content = before.get(f"{SNAPSHOT_CONTENT_PREFIX}{source_path}")
+            installed_content = after.get(f"{SNAPSHOT_CONTENT_PREFIX}{installed_path}")
             if source_fingerprint is None or before.get(installed_path) is not None or installed_fingerprint is None:
                 return False, f"installed package file is missing or the target was already occupied: {relative}"
             if source_content is None or installed_content is None:
@@ -852,8 +861,8 @@ def _install_evidence_ok(
         for relative in package_files:
             receipt = receipt_by_path[relative]
             if (
-                receipt.get("source_sha256") != before.get(f"@content/{source_fixture.rstrip('/')}/{relative}")
-                or receipt.get("installed_sha256") != after.get(f"@content/{target_prefix}/{relative}")
+                receipt.get("source_sha256") != before.get(f"{SNAPSHOT_CONTENT_PREFIX}{source_fixture.rstrip('/')}/{relative}")
+                or receipt.get("installed_sha256") != after.get(f"{SNAPSHOT_CONTENT_PREFIX}{target_prefix}/{relative}")
             ):
                 return False, f"per-file payload receipt does not match snapshotted content: {relative}"
     if audit.get("status") != "PASS" or not isinstance(audit.get("backend"), str) or not audit["backend"].strip():
@@ -880,7 +889,7 @@ def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str], with
     changed = _changed_paths(before, after)
     changed_directories = {
         path for path in set(before) | set(after)
-        if path.startswith("@dir/") and before.get(path) != after.get(path)
+        if path.startswith(SNAPSHOT_DIR_PREFIX) and before.get(path) != after.get(path)
     }
     if not contract:
         return (not changed and not changed_directories, "no artifact required")
@@ -889,7 +898,7 @@ def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str], with
     side_effects = contract.get("side_effects", [])
     expected_paths = {path, *(effect["path"] for effect in side_effects)}
     expected_directories = {
-        f"@dir/{parent.as_posix()}"
+        f"{SNAPSHOT_DIR_PREFIX}{parent.as_posix()}"
         for expected_path in expected_paths
         for parent in PurePosixPath(expected_path).parents
         if parent.as_posix() != "."
@@ -999,7 +1008,11 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
     )
     artifact_ok, artifact_reason = _artifact_ok(case, before, after, item.get("condition") != "without_skill")
     necessity_ok, necessity_reason = _necessity_ok(case, report)
-    install_case = {**case, "_resolved_revision": item.get("source_revision_resolved")}
+    install_case = {
+        **case,
+        "_resolved_revision": case.get("source_revision"),
+        "_resolved_license": case.get("source_license"),
+    }
     install_ok, install_reason = _install_evidence_ok(install_case, report, before, after)
     runtime_evidence = {
         "skill_discovery": "NOT_ASSESSED",
@@ -1072,12 +1085,17 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
         )
         (source / "references" / "guide.md").write_text("Follow the task-specific steps and preserve supplied facts.\n", encoding="utf-8")
         (source / "LICENSE.txt").write_text("SPDX-License-Identifier: MIT\n", encoding="utf-8")
+        license_text = (source / "LICENSE.txt").read_text(encoding="utf-8")
+        license_match = re.search(r"(?m)^SPDX-License-Identifier:\s*([A-Za-z0-9.+-]+)\s*$", license_text)
+        case["_resolved_license"] = license_match.group(1) if license_match else None
         subprocess.run(["git", "init", "--quiet"], cwd=source, check=True, env=_subprocess_env())
         subprocess.run(["git", "add", "."], cwd=source, check=True, env=_subprocess_env())
         commit_env = _subprocess_env()
         commit_env.update({
             "GIT_AUTHOR_NAME": "Fixture", "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
             "GIT_COMMITTER_NAME": "Fixture", "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
+            "GIT_AUTHOR_DATE": "2000-01-01T00:00:00+00:00",
+            "GIT_COMMITTER_DATE": "2000-01-01T00:00:00+00:00",
         })
         subprocess.run(["git", "commit", "--quiet", "-m", "fixture source"], cwd=source, check=True, env=commit_env)
         subprocess.run(["git", "tag", "--", case["source_ref"]], cwd=source, check=True, env=_subprocess_env())
@@ -1218,7 +1236,8 @@ def _runtime_prompt(case: dict, operation_root: Path) -> str:
             task += (
                 " For INSTALL, include top-level installation evidence with status, workspace_changed, and: "
                 "for INSTALLED, source {repository, requested_ref, revision, path, license}, target "
-                "{runtime, scope, path, mode}, payload {source_sha256, selected_sha256, installed_sha256, adaptation}, "
+                "{runtime, scope, path, mode}, payload {source_sha256, selected_sha256, installed_sha256, adaptation, "
+                "files [{path, source_sha256, installed_sha256}] with exactly one entry per package_files path and no extras}, "
                 "audit {status, backend}, validation {status}, real_task {status}, and ownership {receipt_id, uninstall}; "
                 "when adaptation is none, selected_sha256 must equal installed_sha256; otherwise adaptation must contain a reason and files [{path, source_sha256, installed_sha256}]. For BLOCKED, document the unchanged unmanaged-target "
                 "collision. For ROUTE, select CREATE or UPDATE, explain the material redesign, and make no mutation."
@@ -1267,6 +1286,7 @@ def _run_once(
         }
         if case.get("kind") == "INSTALL" and case.get("installation_outcome") == "INSTALLED":
             base["source_revision_resolved"] = case.get("_resolved_revision")
+            base["source_license_resolved"] = case.get("_resolved_license")
         if not shutil.which(runtime):
             return _trial_result(
                 {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"},
@@ -1599,6 +1619,8 @@ def _compare(before_path: Path, after_path: Path, cases_path: Path | None = None
                 "artifact_ok", "necessity_observed", "installation_observed", "installation_reason",
                 "coexistence_fixture", "cost_metrics", "runtime_evidence",
             )):
+                return False
+            if case["kind"] == "INSTALL" and recomputed["installation_observed"] is not True:
                 return False
             activation = item.get("activation")
             if item.get("kind", "routing") == "routing":
