@@ -61,7 +61,7 @@ cases:
       - {operation: created, path: .agents/skills/healthy/SKILL.md}
       - {operation: created, path: .agents/skills/healthy/references/guide.md}
       - {operation: created, path: .agents/.skill-installs/healthy.json}
-    prompt: "Inspect the provided source and license, audit its consumed links, copy its files unchanged into the unoccupied project skill target using the fixture backend, run a real task that applies its guide, and record a provenance/ownership receipt in the requested report. Return INSTALL_EXISTING; do not manufacture edits."
+    prompt: "Inspect the provided source and license, audit its consumed links, copy its files unchanged into the unoccupied project skill target using the fixture backend, run a real task that applies its guide, and write the report as JSON. Include top-level disposition INSTALL_EXISTING and an installation object with status INSTALLED, workspace_changed true, source (repository, requested_ref, immutable revision, path, license), target (runtime, scope, exact path, mode), payload (source_sha256, selected_sha256, installed_sha256, adaptation none), audit (status PASS, named backend), validation (status PASS), real_task (status PASS), and ownership (receipt_id, safe uninstall mechanism). Return INSTALL_EXISTING; do not manufacture edits."
   - id: install-collision-refused
     kind: INSTALL
     partition: regression
@@ -101,4 +101,4 @@ cases:
       - {operation: created, path: .agents/skills/clean-control/SKILL.md}
       - {operation: created, path: .agents/skills/clean-control/references/guide.md}
       - {operation: created, path: .agents/.skill-installs/clean-control.json}
-    prompt: "Install the healthy source into the unoccupied project target by exact copy, verify the source and installed payload hashes match, run one real guide-based task, and record the full receipt. Return INSTALL_EXISTING and adaptation none; a zero-edit faithful install is the intended success."
+    prompt: "Install the healthy source into the unoccupied project target by exact copy, verify the source and installed payload hashes match, run one real guide-based task, and write the report as JSON. Include top-level disposition INSTALL_EXISTING and an installation object with status INSTALLED, workspace_changed true, source (repository, requested_ref, immutable revision, path, license), target (runtime, scope, exact path, mode), payload (source_sha256, selected_sha256, installed_sha256, adaptation none), audit (status PASS, named backend), validation (status PASS), real_task (status PASS), and ownership (receipt_id, safe uninstall mechanism). Return INSTALL_EXISTING and adaptation none; a zero-edit faithful install is the intended success."
