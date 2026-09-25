@@ -349,15 +349,20 @@ def _process_observed(events: list[dict]) -> bool:
 
 def _trace_matches(case: dict, events: list[dict]) -> bool:
     markers = case.get("trace_markers", [])
-    payloads = [_process_payload(event) for event in events]
     if case.get("id") == "install-owned-lifecycle":
+        observed = [event.get("runner_stage") for event in events if isinstance(event, dict) and event.get("runner_stage")]
+        expected = [
+            "after_initial_install", "after_same_revision", "after_changed_revision",
+            "after_local_edit", "after_uninstall", "neighbor_preserved", "after_final_reinstall",
+        ]
         cursor = -1
-        for marker in markers:
-            match = next((index for index in range(cursor + 1, len(payloads)) if marker.lower() in payloads[index]), None)
-            if match is None:
+        for stage in expected:
+            try:
+                cursor = observed.index(stage, cursor + 1)
+            except ValueError:
                 return False
-            cursor = match
         return True
+    payloads = [_process_payload(event) for event in events]
     for marker in markers:
         if not any(marker.lower() in payload for payload in payloads):
             return False
@@ -774,6 +779,7 @@ def _install_evidence_ok(
     report: dict,
     before: dict[str, str] | None = None,
     after: dict[str, str] | None = None,
+    lifecycle_evidence: dict | None = None,
 ) -> tuple[bool, str]:
     """Recompute the minimum source, payload, validation, task, and ownership evidence for INSTALL."""
     if case.get("kind") != "INSTALL":
@@ -938,10 +944,191 @@ def _install_evidence_ok(
         ):
             return False, "a null backend revision requires verified composite source-to-installed provenance"
     if case.get("id") == "install-owned-lifecycle":
-        return False, "owned lifecycle transitions are NOT_ASSESSED: the runner does not capture each intermediate backend state"
+        revisions = lifecycle_evidence.get("source_revisions") if isinstance(lifecycle_evidence, dict) else None
+        if (
+            not _owned_lifecycle_snapshots_ok(case, lifecycle_evidence)
+            or not isinstance(revisions, list) or not revisions or revisions[0] != source["revision"]
+            or not _lifecycle_stage_reports_ok(case, lifecycle_evidence, backend["identity"], revisions)
+        ):
+            return False, "owned lifecycle transitions are NOT_ASSESSED: runner-owned intermediate state snapshots are incomplete or inconsistent"
     if case.get("id") == "install-zero-adaptation" and adaptation != "none":
         return False, "the clean control must install without manufacturing an adaptation"
     return True, "source-bound install lifecycle evidence observed"
+
+
+LIFECYCLE_SNAPSHOT_STAGES = (
+    "after_initial_install", "after_same_revision", "after_changed_revision",
+    "after_local_edit", "after_uninstall", "after_final_reinstall",
+)
+
+
+def _owned_lifecycle_snapshots_ok(case: dict, evidence: dict | None) -> bool:
+    """Validate filesystem snapshots captured by the runner around each backend process."""
+    if not isinstance(evidence, dict):
+        return False
+    snapshots = evidence.get("snapshots")
+    if not isinstance(snapshots, dict) or any(not isinstance(snapshots.get(stage), dict) for stage in LIFECYCLE_SNAPSHOT_STAGES):
+        return False
+    source_revisions = evidence.get("source_revisions")
+    edited_path = evidence.get("edited_path")
+    package_files = case.get("package_files")
+    source_root = case.get("source_fixture")
+    target = next((
+        effect["path"].removesuffix("/SKILL.md")
+        for effect in case.get("side_effects", [])
+        if isinstance(effect, dict) and isinstance(effect.get("path"), str) and effect["path"].endswith("/SKILL.md")
+    ), None)
+    manifest = next((
+        effect["path"] for effect in case.get("side_effects", [])
+        if isinstance(effect, dict) and isinstance(effect.get("path"), str)
+        and "/.skill-installs/" in f"/{effect['path']}"
+    ), None)
+    if (
+        not isinstance(package_files, list) or not package_files
+        or not isinstance(source_root, str) or not target or not manifest
+        or not isinstance(source_revisions, list) or len(source_revisions) != 2
+        or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value) for value in source_revisions)
+        or source_revisions[0] == source_revisions[1]
+        or edited_path not in package_files
+    ):
+        return False
+    states = [snapshots[stage] for stage in LIFECYCLE_SNAPSHOT_STAGES]
+    source_prefix = f"{SNAPSHOT_CONTENT_PREFIX}{source_root.rstrip('/')}/"
+    target_prefix = f"{SNAPSHOT_CONTENT_PREFIX}{target.rstrip('/')}/"
+    neighbor = ".fixture-data/neighbor-canary.txt"
+    neighbor_key = f"{SNAPSHOT_CONTENT_PREFIX}{neighbor}"
+    neighbor_hash = states[0].get(neighbor_key)
+    if not isinstance(neighbor_hash, str) or any(state.get(neighbor_key) != neighbor_hash for state in states):
+        return False
+
+    def payload(state: dict, prefix: str) -> dict[str, str]:
+        return {
+            path[len(prefix):]: value
+            for path, value in state.items()
+            if path.startswith(prefix)
+        }
+
+    def owned(state: dict) -> dict[str, str]:
+        return payload(state, target_prefix)
+
+    def only_expected_changes(left: dict, right: dict, allowed_dirs: set[str], allowed_files: set[str] = frozenset()) -> bool:
+        changed_paths = {
+            key.removeprefix(SNAPSHOT_CONTENT_PREFIX).removeprefix(SNAPSHOT_DIR_PREFIX)
+            for key in set(left) | set(right) if left.get(key) != right.get(key)
+        }
+        return all(
+            path in allowed_files or any(path == prefix or path.startswith(f"{prefix.rstrip('/')}/") for prefix in allowed_dirs)
+            for path in changed_paths
+        )
+
+    initial, same, changed, edited, uninstalled, final = states
+    initial_payload = owned(initial)
+    changed_payload = owned(changed)
+    expected_files = set(package_files)
+    revision_hashes = evidence.get("source_revision_hashes")
+    if not isinstance(revision_hashes, dict) or any(
+        not isinstance(revision_hashes.get(revision), dict)
+        or set(revision_hashes[revision]) != expected_files
+        or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in revision_hashes[revision].values())
+        for revision in source_revisions
+    ):
+        return False
+    for state, revision in zip(states, (source_revisions[0], source_revisions[0], source_revisions[1], source_revisions[1], source_revisions[1], source_revisions[1])):
+        if payload(state, source_prefix) != revision_hashes[revision]:
+            return False
+    expected_initial = revision_hashes[source_revisions[0]]
+    expected_changed = revision_hashes[source_revisions[1]]
+    if (
+        set(initial_payload) != expected_files
+        or any(initial_payload.get(path) != expected_initial.get(path) for path in expected_files)
+        or owned(same) != initial_payload
+        or same.get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}") != initial.get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}")
+        or set(changed_payload) != expected_files
+        or any(changed_payload.get(path) != expected_changed.get(path) for path in expected_files)
+        or not any(expected_changed.get(path) != expected_initial.get(path) for path in expected_files)
+        or changed.get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}") == initial.get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}")
+        or not only_expected_changes(initial, same, set())
+        or not only_expected_changes(same, changed, {source_root.rstrip("/"), target.rstrip("/")}, {manifest})
+        or not only_expected_changes(changed, edited, {target.rstrip("/")})
+        or not only_expected_changes(edited, uninstalled, {target.rstrip("/")}, {manifest})
+        or not only_expected_changes(uninstalled, final, {target.rstrip("/")}, {manifest})
+        or set(owned(edited)) != expected_files
+        or any(owned(edited).get(path) != changed_payload.get(path) for path in expected_files if path != edited_path)
+        or owned(edited).get(edited_path) in {None, changed_payload.get(edited_path)}
+        or owned(uninstalled) != {edited_path: owned(edited).get(edited_path)}
+        or f"{SNAPSHOT_CONTENT_PREFIX}{manifest}" in uninstalled
+        or set(owned(final)) != expected_files
+        or any(owned(final).get(path) != expected_changed.get(path) for path in expected_files)
+        or owned(final) != changed_payload
+        or not isinstance(final.get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}"), str)
+    ):
+        return False
+    return True
+
+
+def _git_file_sha256(repository: Path, revision: str, relative_path: str) -> str | None:
+    if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-f]{40}", revision) or not _safe_relative_posix_path(relative_path):
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "show", f"{revision}:{relative_path}"],
+            cwd=repository, capture_output=True, check=False, env=_subprocess_env(),
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    return hashlib.sha256(result.stdout).hexdigest()
+
+
+def _source_matches_revision(snapshot: dict, source_prefix: str, repository: Path, revision: str, paths: list[str]) -> bool:
+    for relative in paths:
+        expected = _git_file_sha256(repository, revision, relative)
+        observed = snapshot.get(f"{SNAPSHOT_CONTENT_PREFIX}{source_prefix.rstrip('/')}/{relative}")
+        if expected is None or observed != expected:
+            return False
+    return True
+
+
+def _git_revision_hashes(repository: Path, revision: str, paths: list[str]) -> dict[str, str] | None:
+    hashes = {relative: _git_file_sha256(repository, revision, relative) for relative in paths}
+    return hashes if all(value is not None for value in hashes.values()) else None
+
+
+def _lifecycle_stage_reports_ok(case: dict, evidence: dict, backend: str, revisions: list[str]) -> bool:
+    reports = evidence.get("stage_reports")
+    snapshots = evidence.get("snapshots")
+    target = next((
+        effect["path"].removesuffix("/SKILL.md")
+        for effect in case.get("side_effects", [])
+        if isinstance(effect, dict) and isinstance(effect.get("path"), str) and effect["path"].endswith("/SKILL.md")
+    ), None)
+    manifest = next((
+        effect["path"] for effect in case.get("side_effects", [])
+        if isinstance(effect, dict) and isinstance(effect.get("path"), str)
+        and "/.skill-installs/" in f"/{effect['path']}"
+    ), None)
+    if not isinstance(reports, dict) or not isinstance(snapshots, dict) or not target or not manifest:
+        return False
+    expectations = {
+        "after_same_revision": ("install", {"NO_OP", "UNCHANGED"}, revisions[0]),
+        "after_changed_revision": ("update", {"UPDATED", "REINSTALLED"}, revisions[1]),
+        "after_uninstall": ("uninstall", {"UNINSTALLED", "REMOVED"}, revisions[1]),
+        "after_final_reinstall": ("install", {"INSTALLED", "REINSTALLED"}, revisions[1]),
+    }
+    return bool(
+        isinstance(reports, dict)
+        and all(
+            isinstance(reports.get(stage), dict)
+            and reports[stage].get("operation") == operation
+            and reports[stage].get("status") in statuses
+            and reports[stage].get("backend") == backend
+            and reports[stage].get("source_revision") == revision
+            and reports[stage].get("target") == target
+            and reports[stage].get("state_identity") == snapshots[stage].get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}")
+            for stage, (operation, statuses, revision) in expectations.items()
+        )
+    )
 
 
 def _safe_relative_posix_path(value: str) -> bool:
@@ -950,6 +1137,16 @@ def _safe_relative_posix_path(value: str) -> bool:
         return False
     path = PurePosixPath(value)
     return not path.is_absolute() and all(part not in {"", ".", ".."} for part in value.split("/"))
+
+
+def _confined_regular_file(root: Path, path: Path) -> bool:
+    try:
+        resolved_root = root.resolve(strict=True)
+        resolved_path = path.resolve(strict=True)
+        resolved_path.relative_to(resolved_root)
+        return not path.is_symlink() and stat.S_ISREG(path.stat().st_mode)
+    except (OSError, ValueError):
+        return False
 
 
 def _artifact_ok(case: dict, before: dict[str, str], after: dict[str, str], with_skill: bool = True) -> tuple[bool, str]:
@@ -1081,7 +1278,7 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
         "_resolved_revision": case.get("source_revision"),
         "_resolved_license": case.get("source_license"),
     }
-    install_ok, install_reason = _install_evidence_ok(install_case, report, before, after)
+    install_ok, install_reason = _install_evidence_ok(install_case, report, before, after, item.get("lifecycle_evidence"))
     runtime_evidence = {
         "skill_discovery": "NOT_ASSESSED",
         "explicit_invocation": "NOT_REQUESTED",
@@ -1319,9 +1516,8 @@ def _runtime_prompt(case: dict, operation_root: Path) -> str:
             )
             if case.get("id") == "install-owned-lifecycle":
                 task += (
-                    " This case exercises the install lifecycle, but the current evaluator does not independently capture "
-                    "intermediate backend states. Do not claim those transitions as independently observed or provide "
-                    "model-authored snapshots as proof; the evaluator will report lifecycle behavior NOT_ASSESSED."
+                    " The runner will invoke this initial installation, then exercise later lifecycle operations in separate "
+                    "processes and capture the filesystem after each transition. Do not write or claim transition snapshots."
                 )
     return (
         f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
@@ -1329,6 +1525,217 @@ def _runtime_prompt(case: dict, operation_root: Path) -> str:
         "never pass an absolute path or a path prefixed with the working directory.\n\n"
         f"{task}"
     )
+
+
+def _lifecycle_prompt(operation_root: Path, stage: str, source_ref: str = "fixture-v1") -> str:
+    actions = {
+        "after_initial_install": (
+            f"Perform only the initial INSTALL of fixture/healthy from {source_ref} into the empty project target. "
+            "Inspect the source and package, use the maintained installer/backend selected by the INSTALL workflow, "
+            "validate it, run one guide-based task, write the required ordinary INSTALL receipt JSON, and return that receipt."
+        ),
+        "after_same_revision": (
+            f"Re-run the existing receipt-owned installation of fixture/healthy from the same immutable ref {source_ref}. "
+            "Use its selected maintained backend; report whether this is a no-op and do not alter unrelated files. "
+            "Return JSON with operation=install, status=NO_OP or UNCHANGED, backend (the exact receipt identity), target (the receipt target path), source_revision (the resolved commit SHA), and state_identity (SHA-256 of the actual receipt manifest bytes)."
+        ),
+        "after_changed_revision": (
+            f"Update the existing receipt-owned installation from fixture/healthy ref {source_ref}, whose immutable commit "
+            "now differs from the installed revision. Use the selected backend and preserve unrelated files. "
+            "Return JSON with operation=update, status=UPDATED or REINSTALLED, backend (the exact receipt identity), target (the receipt target path), source_revision (the resolved commit SHA), and state_identity (SHA-256 of the actual receipt manifest bytes)."
+        ),
+        "after_uninstall": (
+            "Safely uninstall only this backend receipt's installation. Verify its owned payload before removing files; "
+            "preserve any locally edited file and the unowned neighbor canary. Do not reinstall in this step. "
+            "Return JSON with operation=uninstall, status=UNINSTALLED or REMOVED, backend (the exact receipt identity), target (the receipt target path), source_revision (the removed installation's commit SHA), and state_identity=null."
+        ),
+        "after_final_reinstall": (
+            f"Reinstall fixture/healthy from its changed immutable ref {source_ref} using the selected maintained backend. "
+            "Preserve the unowned neighbor canary. Return JSON with operation=install, status=INSTALLED or REINSTALLED, "
+            "backend (the exact receipt identity), target (the receipt target path), source_revision (the resolved commit SHA), "
+            "and state_identity (SHA-256 of the actual receipt manifest bytes)."
+        ),
+    }
+    return (
+        f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
+        "For apply_patch or file-change operations, use paths relative to this working directory; "
+        "never pass an absolute path or a path prefixed with the working directory.\n\n"
+        "This is one isolated lifecycle process; prior process state exists only in the fixture filesystem. "
+        f"{actions[stage]} Return one JSON object describing the performed operation."
+    )
+
+
+def _run_owned_lifecycle(case, runtime, model, reasoning_effort, timeout, fixture, operation_root, base, trial, environment):
+    """Run each backend transition in its own process and capture state outside the model fixture."""
+    snapshots = {}
+    events = []
+    process_rows = []
+    stage_reports = {}
+    started = time.monotonic()
+    source = fixture / case["source_fixture"]
+    initial_revision = case.get("_resolved_revision")
+    initial_hashes = _git_revision_hashes(source, initial_revision, case["package_files"])
+    if not initial_hashes:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "source fixture revision could not be fingerprinted"}, trial)
+    before = _snapshot(operation_root)
+    if source.is_symlink() or not source.is_dir() or not _confined_regular_file(source, source / "SKILL.md"):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "source fixture escaped the isolated trial or is not a regular skill"}, trial)
+
+    def run_stage(stage, prompt):
+        command = [
+            runtime, "exec", "--model", model, "-c", f'model_reasoning_effort="{reasoning_effort}"',
+            "--json", "--ephemeral", "--sandbox", "workspace-write", "--skip-git-repo-check",
+            "--ignore-user-config", "--add-dir", str(fixture), "--add-dir", str(fixture / ".agents"),
+            "--cd", str(fixture), prompt,
+        ]
+        try:
+            process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=environment)
+        except subprocess.TimeoutExpired as exc:
+            return None, {"stage": stage, "timeout_class": _timeout_class(str(exc.stderr or ""))}
+        stdout = process.stdout or ""
+        stage_events = _events(stdout)
+        events.extend(stage_events)
+        process_rows.append({
+            "stage": stage, "returncode": process.returncode,
+            "event_count": len(stage_events), "process_observed": _process_observed(stage_events),
+        })
+        return (process, _json_object(_final_text(stage_events))), None
+
+    initial_case = {
+        **case,
+        "prompt": "Perform only the initial installation of fixture/healthy from fixture-v1 into the empty project target; "
+        "use the selected maintained backend, validate it, run one guide-based task, and write the complete ordinary INSTALL receipt.",
+    }
+    initial, error = run_stage("after_initial_install", _runtime_prompt(initial_case, operation_root))
+    if error or initial is None:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": f"initial lifecycle process unavailable: {error}"}, trial)
+    initial_process, report = initial
+    snapshots["after_initial_install"] = _snapshot(operation_root)
+    events.append({"runner_stage": "after_initial_install"})
+    if initial_process.returncode != 0 or not report:
+        return _trial_result({**base, "status": "FAIL", "reason": "initial lifecycle INSTALL failed or returned no receipt", "trace_events": events, "after_snapshot": snapshots["after_initial_install"]}, trial)
+    if not _source_matches_revision(snapshots["after_initial_install"], case["source_fixture"], source, initial_revision, case["package_files"]):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "initial source bytes no longer match the immutable fixture revision"}, trial)
+
+    same, error = run_stage("after_same_revision", _lifecycle_prompt(operation_root, "after_same_revision"))
+    if error or same is None or same[0].returncode != 0:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": f"same-revision lifecycle process failed: {error or 'nonzero exit'}"}, trial)
+    stage_reports["after_same_revision"] = same[1]
+    snapshots["after_same_revision"] = _snapshot(operation_root)
+    events.append({"runner_stage": "after_same_revision"})
+    if not _source_matches_revision(snapshots["after_same_revision"], case["source_fixture"], source, initial_revision, case["package_files"]):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "same-revision process changed immutable source bytes"}, trial)
+
+    guide = source / "references" / "guide.md"
+    source_status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=all"],
+        cwd=source, capture_output=True, text=True, check=False, env=_subprocess_env(),
+    )
+    if source.is_symlink() or source_status.returncode != 0 or source_status.stdout.strip() or not _confined_regular_file(source, guide):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "source fixture changed outside the runner before changed-ref setup"}, trial)
+    guide.write_text(guide.read_text(encoding="utf-8") + "Changed immutable fixture revision for lifecycle evaluation.\n", encoding="utf-8")
+    subprocess.run(["git", "add", "references/guide.md"], cwd=source, check=True, env=_subprocess_env())
+    commit_env = _subprocess_env()
+    commit_env.update({
+        "GIT_AUTHOR_NAME": "Fixture", "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
+        "GIT_COMMITTER_NAME": "Fixture", "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
+        "GIT_AUTHOR_DATE": "2000-01-02T00:00:00+00:00", "GIT_COMMITTER_DATE": "2000-01-02T00:00:00+00:00",
+    })
+    subprocess.run(["git", "commit", "--quiet", "-m", "fixture changed revision"], cwd=source, check=True, env=commit_env)
+    subprocess.run(["git", "tag", "--", "fixture-v2"], cwd=source, check=True, env=_subprocess_env())
+    changed_revision = _git_revision(source, "fixture-v2")
+    if not changed_revision or changed_revision == case.get("_resolved_revision"):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "runner could not bind a fresh changed fixture revision"}, trial)
+    changed_hashes = _git_revision_hashes(source, changed_revision, case["package_files"])
+    if not changed_hashes:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "changed source revision could not be fingerprinted"}, trial)
+
+    changed, error = run_stage("after_changed_revision", _lifecycle_prompt(operation_root, "after_changed_revision", "fixture-v2"))
+    if error or changed is None or changed[0].returncode != 0:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": f"changed-revision lifecycle process failed: {error or 'nonzero exit'}"}, trial)
+    stage_reports["after_changed_revision"] = changed[1]
+    snapshots["after_changed_revision"] = _snapshot(operation_root)
+    events.append({"runner_stage": "after_changed_revision"})
+    if not _source_matches_revision(snapshots["after_changed_revision"], case["source_fixture"], source, changed_revision, case["package_files"]):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "updated source bytes do not match the immutable changed revision"}, trial)
+
+    edited_path = case["package_files"][0]
+    edited_file = fixture / next(
+        effect["path"].removesuffix("/SKILL.md") for effect in case["side_effects"]
+        if effect["path"].endswith("/SKILL.md")
+    ) / edited_path
+    if not _confined_regular_file(operation_root, edited_file):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "local-edit target is missing, non-regular, or outside the isolated trial"}, trial)
+    edited_file.write_bytes(edited_file.read_bytes() + b"\nUser-owned local edit.\n")
+    snapshots["after_local_edit"] = _snapshot(operation_root)
+    events.append({"runner_stage": "after_local_edit"})
+
+    uninstalled, error = run_stage("after_uninstall", _lifecycle_prompt(operation_root, "after_uninstall"))
+    if error or uninstalled is None or uninstalled[0].returncode != 0:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": f"safe-uninstall lifecycle process failed: {error or 'nonzero exit'}"}, trial)
+    stage_reports["after_uninstall"] = uninstalled[1]
+    snapshots["after_uninstall"] = _snapshot(operation_root)
+    events.extend([{"runner_stage": "after_uninstall"}, {"runner_stage": "neighbor_preserved"}])
+
+    final, error = run_stage("after_final_reinstall", _lifecycle_prompt(operation_root, "after_final_reinstall", "fixture-v2"))
+    if error or final is None or final[0].returncode != 0:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": f"final-reinstall lifecycle process failed: {error or 'nonzero exit'}"}, trial)
+    stage_reports["after_final_reinstall"] = final[1]
+    snapshots["after_final_reinstall"] = _snapshot(operation_root)
+    events.append({"runner_stage": "after_final_reinstall"})
+
+    after = snapshots["after_initial_install"]
+    artifact_ok, artifact_reason = _artifact_ok(case, before, after, True)
+    install_ok, install_reason = _install_evidence_ok(case, report, before, after, {
+        "snapshots": snapshots,
+        "stage_reports": stage_reports,
+        "source_revisions": [case.get("_resolved_revision"), changed_revision],
+        "source_revision_hashes": {case.get("_resolved_revision"): initial_hashes, changed_revision: changed_hashes},
+        "edited_path": edited_path,
+    })
+    activation = _runtime_activation(events)
+    lifecycle_evidence = {
+        "snapshots": snapshots,
+        "stage_reports": stage_reports,
+        "source_revisions": [case.get("_resolved_revision"), changed_revision],
+        "source_revision_hashes": {case.get("_resolved_revision"): initial_hashes, changed_revision: changed_hashes},
+        "edited_path": edited_path,
+        "processes": process_rows,
+    }
+    trace_matches = _trace_matches(case, events)
+    status = "PASS" if (
+        initial_process.returncode == 0 and artifact_ok and install_ok and trace_matches
+        and activation == "loaded" and len(process_rows) == 5
+        and all(row["returncode"] == 0 and row["process_observed"] for row in process_rows)
+    ) else "NOT_ASSESSED"
+    reason = "runner observed each owned INSTALL lifecycle transition" if status == "PASS" else (
+        "runtime did not expose the required skill-load signal" if activation != "loaded" else install_reason
+    )
+    return _trial_result({
+        **base,
+        "status": status,
+        "observed": report.get("disposition"),
+        "runtime_observed": activation == "loaded",
+        "runtime_evidence": {"skill_discovery": "NOT_ASSESSED", "explicit_invocation": "NOT_REQUESTED", "implicit_activation": activation or "NOT_ASSESSED", "behavior": "OBSERVED" if status == "PASS" else "NOT_ASSESSED"},
+        "activation": activation,
+        "process_observed": all(row["process_observed"] for row in process_rows),
+        "trace_matches": trace_matches,
+        "installation_observed": install_ok,
+        "installation_reason": install_reason,
+        "artifact_ok": artifact_ok,
+        "artifact_reason": artifact_reason,
+        "changed_paths": sorted(_changed_paths(before, after)),
+        "cost_metrics": _cost_metrics(events, _changed_paths(before, after)),
+        "trace_events": events,
+        "before_snapshot": before,
+        "after_snapshot": after,
+        "lifecycle_evidence": lifecycle_evidence,
+        "final_report": report,
+        "events": sum(row["event_count"] for row in process_rows),
+        "returncode": initial_process.returncode,
+        "elapsed_seconds": round(time.monotonic() - started, 3),
+        "reason": reason,
+    }, trial)
 
 
 def _run_once(
@@ -1372,6 +1779,11 @@ def _run_once(
             return _trial_result(
                 {**base, "status": "NOT_ASSESSED", "reason": f"runtime not found: {runtime}"},
                 trial,
+            )
+        if case.get("id") == "install-owned-lifecycle" and with_skill:
+            return _run_owned_lifecycle(
+                case, runtime, model, reasoning_effort, timeout, fixture, operation_root,
+                base, trial, _subprocess_env(),
             )
         sandbox = "read-only" if case["kind"] in {"routing", "ACTION"} else "workspace-write"
         command = [

@@ -13,8 +13,8 @@ ALLOCATE → PREPARE → BASELINE → RUN → FREEZE EVIDENCE → REPORT → ARC
 - `ALLOCATE`: choose a temporary copy, worktree, or sandbox and record why it fits the boundary.
 - `PREPARE`: load the exact candidate, required instructions, dependencies, and fixture inputs.
 - `BASELINE`: run the unchanged baseline before a substantive update and freeze its identity.
-- `RUN`: execute the selected portfolio without repairing between individual cases.
-- `FREEZE EVIDENCE`: preserve raw events, snapshots, candidate fingerprint, test fingerprint, and trial identity.
+- `RUN`: execute the selected portfolio without repairing between individual cases. When intermediate state matters, finish each operation in a separate process and snapshot the workspace from the runner before continuing.
+- `FREEZE EVIDENCE`: preserve raw events, ordered transition snapshots, candidate fingerprint, test fingerprint, and trial identity. Never treat model-authored snapshots as runner observations.
 - `REPORT`: classify outcomes, artifacts, side effects, cost, and limitations.
 - `ARCHIVE`: retain only the raw evidence and compact pointers required for review.
 - `CLEAN`: remove temporary state only after evidence is frozen and no review hold applies.

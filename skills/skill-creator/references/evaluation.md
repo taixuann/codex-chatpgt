@@ -91,6 +91,9 @@ The agent must
 perform the requested operation, and the harness must grade resulting
 files/resources plus the structured process trace. A disposition alone is not
 behavioral proof.
+When a case depends on intermediate state, the runner must capture each
+transition after its operation completes; model-authored snapshots are claims,
+not independent observations.
 
 Runtime qualification starts with one provider/auth preflight. An unavailable
 runtime, missing authentication, or unreachable provider skips model cases
@@ -111,8 +114,9 @@ exposed, and changed-resource count; wall-clock time is diagnostic, not the
 admission metric. Paired cases require complete baseline and candidate
 outcome/process/artifact evidence plus a resource-vector comparison.
 
-Persist raw process/tool events, before and after snapshots, and the final
-structured report for every assessed case. The comparator must recompute
+Persist raw process/tool events, before and after snapshots, required
+per-transition snapshots, and the final structured report for every assessed
+case. The comparator must recompute
 process observation, trace markers, changed paths, artifact contracts, and
 necessity evidence from those raw records; summary booleans are valid only
 when they match the recomputation.

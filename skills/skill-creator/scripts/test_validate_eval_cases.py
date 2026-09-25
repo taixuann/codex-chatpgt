@@ -207,7 +207,182 @@ class EvalContractTests(unittest.TestCase):
         observed, reason = module._install_evidence_ok(case, report)
         self.assertFalse(observed)
         self.assertIn("NOT_ASSESSED", reason)
-        self.assertIn("does not capture each intermediate backend state", reason)
+        self.assertIn("runner-owned intermediate state snapshots", reason)
+
+    def test_runner_owned_lifecycle_snapshots_are_checked_at_every_transition(self):
+        module = load_module()
+        case = {
+            "id": "install-owned-lifecycle", "kind": "INSTALL", "installation_outcome": "INSTALLED",
+            "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md", "references/guide.md"],
+            "side_effects": [
+                {"path": ".agents/skills/healthy/SKILL.md"},
+                {"path": ".agents/skills/healthy/references/guide.md"},
+                {"path": ".agents/.skill-installs/healthy.json"},
+            ],
+        }
+        prefix = module.SNAPSHOT_CONTENT_PREFIX
+        paths = case["package_files"]
+        old, new, edited = "a" * 64, "b" * 64, "c" * 64
+        neighbor = hashlib.sha256(b"unowned neighbor canary\n").hexdigest()
+
+        def state(source_hash, target_hash, manifest_hash, edited_hash=None):
+            result = {
+                f"{prefix}.fixture-data/neighbor-canary.txt": neighbor,
+                f"{prefix}.agents/.skill-installs/healthy.json": manifest_hash,
+                f"{prefix}.agents/.skill-installs/unrelated.json": "d" * 64,
+            }
+            for path in paths:
+                result[f"{prefix}.fixture-sources/healthy/{path}"] = source_hash
+                result[f"{prefix}.agents/skills/healthy/{path}"] = edited_hash if path == "SKILL.md" and edited_hash else target_hash
+            return result
+
+        initial = state(old, old, "1" * 64)
+        changed = state(new, new, "2" * 64)
+        uninstalled = state(new, new, "2" * 64, edited)
+        uninstalled.pop(f"{prefix}.agents/.skill-installs/healthy.json")
+        uninstalled.pop(f"{prefix}.agents/skills/healthy/references/guide.md")
+        evidence = {
+            "source_revisions": ["1" * 40, "2" * 40], "edited_path": "SKILL.md",
+            "source_revision_hashes": {
+                "1" * 40: {path: old for path in paths},
+                "2" * 40: {path: new for path in paths},
+            },
+            "stage_reports": {
+                "after_same_revision": {"operation": "install", "status": "NO_OP", "backend": "fixture-backend", "source_revision": "1" * 40, "target": ".agents/skills/healthy", "state_identity": "1" * 64},
+                "after_changed_revision": {"operation": "update", "status": "UPDATED", "backend": "fixture-backend", "source_revision": "2" * 40, "target": ".agents/skills/healthy", "state_identity": "2" * 64},
+                "after_uninstall": {"operation": "uninstall", "status": "UNINSTALLED", "backend": "fixture-backend", "source_revision": "2" * 40, "target": ".agents/skills/healthy", "state_identity": None},
+                "after_final_reinstall": {"operation": "install", "status": "INSTALLED", "backend": "fixture-backend", "source_revision": "2" * 40, "target": ".agents/skills/healthy", "state_identity": "3" * 64},
+            },
+            "snapshots": dict(zip(module.LIFECYCLE_SNAPSHOT_STAGES, (
+                initial, dict(initial), changed, state(new, new, "2" * 64, edited),
+                uninstalled, state(new, new, "3" * 64),
+            ))),
+        }
+        self.assertFalse(module._owned_lifecycle_snapshots_ok(case, None))
+        self.assertTrue(module._owned_lifecycle_snapshots_ok(case, evidence))
+        self.assertTrue(module._lifecycle_stage_reports_ok(case, evidence, "fixture-backend", evidence["source_revisions"]))
+        evidence["snapshots"]["after_changed_revision"][f"{prefix}.agents/.skill-installs/unrelated.json"] = "e" * 64
+        self.assertFalse(module._owned_lifecycle_snapshots_ok(case, evidence))
+        evidence["snapshots"]["after_changed_revision"][f"{prefix}.agents/.skill-installs/unrelated.json"] = "d" * 64
+        evidence["snapshots"]["after_changed_revision"][f"{prefix}.fixture-sources/healthy/SKILL.md"] = "f" * 64
+        self.assertFalse(module._owned_lifecycle_snapshots_ok(case, evidence))
+        evidence["snapshots"]["after_changed_revision"][f"{prefix}.fixture-sources/healthy/SKILL.md"] = new
+        evidence["stage_reports"]["after_changed_revision"]["source_revision"] = "1" * 40
+        self.assertFalse(module._lifecycle_stage_reports_ok(case, evidence, "fixture-backend", evidence["source_revisions"]))
+        evidence["stage_reports"]["after_changed_revision"]["source_revision"] = "2" * 40
+        evidence["snapshots"]["after_uninstall"].pop(f"{prefix}.agents/skills/healthy/SKILL.md")
+        self.assertFalse(module._owned_lifecycle_snapshots_ok(case, evidence))
+
+    def test_runner_refuses_local_edit_through_a_fixture_symlink(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            fixture = root / "fixture"
+            fixture.mkdir()
+            outside = root / "outside.txt"
+            outside.write_text("preserve", encoding="utf-8")
+            link = fixture / "target.txt"
+            link.symlink_to(outside)
+            self.assertFalse(module._confined_regular_file(fixture, link))
+            regular = fixture / "owned.txt"
+            regular.write_text("owned", encoding="utf-8")
+            self.assertTrue(module._confined_regular_file(fixture, regular))
+
+    def test_owned_lifecycle_runner_invokes_five_processes_and_observes_states(self):
+        module = load_module()
+        cases_path = SCRIPT.parents[1] / "evals" / "cases.yaml"
+        case = next(item for item in module.load_cases(cases_path)["cases"] if item["id"] == "install-owned-lifecycle")
+        skill_dir = SCRIPT.parents[1]
+        real_run = subprocess.run
+        calls = []
+
+        def install_payload(root, revision):
+            source = root / case["source_fixture"]
+            target = root / ".agents" / "skills" / "healthy"
+            for relative in case["package_files"]:
+                destination = target / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes((source / relative).read_bytes())
+            manifest = root / ".agents" / ".skill-installs" / "healthy.json"
+            manifest.parent.mkdir(parents=True, exist_ok=True)
+            manifest.write_text(revision, encoding="utf-8")
+            return manifest
+
+        def fake_run(command, **kwargs):
+            if command[0] != "fake-codex":
+                return real_run(command, **kwargs)
+            calls.append(command)
+            root = Path(command[command.index("--cd") + 1])
+            prompt = command[-1]
+            if "initial installation" in prompt:
+                source = root / case["source_fixture"]
+                source_before = module._snapshot(root)
+                manifest = install_payload(root, "receipt-v1")
+                artifact = root / case["artifact_path"]
+                artifact.parent.mkdir(parents=True, exist_ok=True)
+                artifact.write_text("{}\n", encoding="utf-8")
+                target_prefix = ".agents/skills/healthy"
+                source_hashes = {path: source_before[f"{module.SNAPSHOT_CONTENT_PREFIX}{case['source_fixture']}/{path}"] for path in case["package_files"]}
+                installed_snapshot = module._snapshot(root)
+                installed_hashes = {path: installed_snapshot[f"{module.SNAPSHOT_CONTENT_PREFIX}{target_prefix}/{path}"] for path in case["package_files"]}
+                selected = module._content_tree_sha256(source_before, case["source_fixture"], case["package_files"])
+                report = {"disposition": "INSTALL_EXISTING", "installation": {
+                    "status": "INSTALLED", "workspace_changed": True,
+                    "source": {"repository": "fixture/healthy", "requested_ref": "fixture-v1", "revision": case["_resolved_revision"], "path": case["source_fixture"], "license": "MIT"},
+                    "target": {"runtime": "codex", "scope": "project", "path": target_prefix, "mode": "copy"},
+                    "payload": {"source_sha256": module._content_tree_sha256(source_before, case["source_fixture"]), "selected_sha256": selected, "installed_sha256": module._content_tree_sha256(installed_snapshot, target_prefix, case["package_files"]), "adaptation": "none", "files": [{"path": path, "source_sha256": source_hashes[path], "installed_sha256": installed_hashes[path]} for path in case["package_files"]]},
+                    "backend": {"identity": "fixture-backend", "version": "1", "state_identity": hashlib.sha256(manifest.read_bytes()).hexdigest(), "native_revision": "2" * 40},
+                    "audit": {"status": "PASS", "backend": "fixture-lint"}, "validation": {"status": "PASS"}, "real_task": {"status": "PASS"},
+                    "ownership": {"receipt_id": "receipt-1", "update_behavior": "same revision is a no-op; changed revision updates explicitly", "uninstall": "remove only unchanged receipt-owned files"},
+                }}
+                message = json.dumps(report)
+            elif "same immutable ref" in prompt:
+                identity = hashlib.sha256((root / ".agents/.skill-installs/healthy.json").read_bytes()).hexdigest()
+                message = json.dumps({"operation": "install", "status": "NO_OP", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": case["_resolved_revision"], "state_identity": identity})
+            elif "whose immutable commit" in prompt:
+                manifest = install_payload(root, "receipt-v2")
+                message = json.dumps({"operation": "update", "status": "UPDATED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": hashlib.sha256(manifest.read_bytes()).hexdigest()})
+            elif "Safely uninstall" in prompt:
+                target = root / ".agents" / "skills" / "healthy"
+                (target / "references" / "guide.md").unlink()
+                (target / "LICENSE.txt").unlink()
+                (root / ".agents" / ".skill-installs" / "healthy.json").unlink()
+                message = json.dumps({"operation": "uninstall", "status": "UNINSTALLED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": None})
+            else:
+                manifest = install_payload(root, "receipt-v3")
+                message = json.dumps({"operation": "install", "status": "INSTALLED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": hashlib.sha256(manifest.read_bytes()).hexdigest()})
+            events = [
+                {"skill_loads": ["skill-creator"], "item": {"type": "command_execution", "command": "fixture operation"}},
+                {"item": {"type": "agent_message", "text": message}},
+            ]
+            stdout = "\n".join(json.dumps(event) for event in events)
+            return subprocess.CompletedProcess(command, 0, stdout, "")
+
+        with module._fixture(skill_dir, True, case) as fixture:
+            trial = module._trial_metadata(skill_dir, case, "with_skill")
+            with patch.object(module.subprocess, "run", side_effect=fake_run):
+                result = module._run_owned_lifecycle(
+                    case, "fake-codex", "gpt-6-luna", "max", 30,
+                    fixture, fixture, {}, trial, {},
+                )
+        with module._fixture(skill_dir, True, case) as fixture:
+            trial = module._trial_metadata(skill_dir, case, "with_skill")
+            with patch.object(module.subprocess, "run", side_effect=fake_run), patch.object(module, "_runtime_activation", return_value=None):
+                no_activation = module._run_owned_lifecycle(
+                    case, "fake-codex", "gpt-6-luna", "max", 30,
+                    fixture, fixture, {}, trial, {},
+                )
+        self.assertTrue(module._owned_lifecycle_snapshots_ok(case, result["lifecycle_evidence"]), result["lifecycle_evidence"])
+        self.assertTrue(module._lifecycle_stage_reports_ok(case, result["lifecycle_evidence"], "fixture-backend", result["lifecycle_evidence"]["source_revisions"]), result["lifecycle_evidence"])
+        self.assertEqual(result["lifecycle_evidence"]["source_revisions"][0], result["final_report"]["installation"]["source"]["revision"])
+        self.assertEqual(result["status"], "PASS", result.get("reason"))
+        self.assertEqual(len(calls), 10)
+        self.assertEqual(set(result["lifecycle_evidence"]["snapshots"]), set(module.LIFECYCLE_SNAPSHOT_STAGES))
+        self.assertTrue(result["installation_observed"])
+        self.assertTrue(result["lifecycle_evidence"]["stage_reports"])
+        self.assertTrue(module._recomputed_record(result, case)["installation_observed"])
+        self.assertNotEqual(no_activation["status"], "PASS")
+        self.assertFalse(no_activation["runtime_observed"])
 
     def test_install_fixture_ref_resolves_to_a_real_commit_and_package_closure(self):
         module = load_module()
@@ -1012,12 +1187,12 @@ class EvalContractTests(unittest.TestCase):
 
     def test_owned_lifecycle_trace_markers_require_distinct_ordered_process_events(self):
         module = load_module()
-        markers = ["initial_install", "same_revision", "final_reinstall"]
-        case = {"id": "install-owned-lifecycle", "trace_markers": markers}
-        events = [{"item": {"type": "command_execution", "command": marker}} for marker in markers]
+        case = {"id": "install-owned-lifecycle"}
+        stages = ["after_initial_install", "after_same_revision", "after_changed_revision", "after_local_edit", "after_uninstall", "neighbor_preserved", "after_final_reinstall"]
+        events = [{"runner_stage": stage} for stage in stages]
         self.assertTrue(module._trace_matches(case, events))
         self.assertFalse(module._trace_matches(case, [events[0], events[2], events[1]]))
-        self.assertFalse(module._trace_matches(case, [{"item": {"type": "command_execution", "command": " ".join(markers)}}]))
+        self.assertFalse(module._trace_matches(case, [{"item": {"type": "command_execution", "command": " ".join(stages)}}]))
 
     def test_runtime_prompt_does_not_leak_case_expected_disposition(self):
         module = load_module()
