@@ -16,7 +16,7 @@ not infer selection or activation from the final text.
 
 ## Required cases
 
-Use `gpt-5.6-luna` with medium reasoning for representative generative runs.
+Use `gpt-6-luna` with medium reasoning for representative generative runs.
 Use about five repetitions while debugging and ten admission repetitions for:
 
 - HR-01: correct role against built-in and custom sibling collisions;

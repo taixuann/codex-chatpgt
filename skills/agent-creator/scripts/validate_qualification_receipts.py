@@ -13,7 +13,7 @@ from pathlib import Path
 CASES = ("HR-01", "HR-02", "HR-03")
 PARTITIONS = ("direct", "indirect", "noisy", "context_heavy", "near_sibling")
 EXCLUSION_CATEGORIES = ("NO_PROMPT_PROVIDED", "NONCOMPLIANT_TRACE", "PROCESS_FAILURE", "USAGE_LIMIT")
-MODEL = "gpt-5.6-luna"
+MODEL = "gpt-6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
 

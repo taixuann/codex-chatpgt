@@ -22,7 +22,7 @@ qualification_boundary:
     - parent_acceptance
     - draft_pr_publication
     - stop_verification
-criteria_manifest_fingerprint: 78b6fc1a6e0d47f8d6e812deb4e72b849d6513a7711a9dfc8a6ce0a322c2b32c
+criteria_manifest_fingerprint: a70d2ec7b270387ed813c8188fa3c01e21665024077253622a41a94e1724f1d0
 criteria_manifest:
   - {id: 107-AC-01, current_requirement: A real stable GitHub Issue remains the source of intent, scope, and acceptance; a short launch prompt does not become a second authority.}
   - {id: 107-AC-02, current_requirement: Upstream-first G0 records candidate provenance, license, reproduction, and one explicit disposition before local adaptation.}
@@ -77,7 +77,7 @@ criteria_manifest:
   - {id: 113-AC-26, current_requirement: Deterministic tests cover fresh, resume, interruption, failure, fallback, scope, context, and hygiene behavior without requiring a live provider.}
   - {id: 113-AC-27, current_requirement: The harness returns runtime truth only and cannot own Issue acceptance, Athena verdicts, Draft PR publication, merge, or closure.}
   - {id: 113-AC-28, current_requirement: harness-worker is the single reusable backend-mechanics boundary; issue-execution remains the lifecycle owner and Prometheus remains the native parent fallback.}
-  - {id: 114-AC-01, current_requirement: Athena default review uses a fresh read-only gpt-5.6-luna session at max effort.}
+  - {id: 114-AC-01, current_requirement: Athena default review uses a fresh read-only gpt-6-luna session at max effort.}
   - {id: 114-AC-02, current_requirement: gpt-6-astra astra-light low is an explicit premium override only; no automatic Astra escalation., superseded: Astra-mandatory default}
   - {id: 114-AC-03, current_requirement: Luna provider identity is not acceptance-critical when model, effort, fresh context, and read-only boundaries are observed.}
   - {id: 114-AC-04, current_requirement: Formal review creates a fresh disposable read-only native reviewer session and does not reuse executor or producer context.}

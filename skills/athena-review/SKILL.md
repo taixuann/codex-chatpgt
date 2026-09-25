@@ -128,7 +128,7 @@ The repository cannot prove that it owns a host secret. The attestation is
 therefore only a host-observed, non-trusted Codex-app record containing the
 native thread ID, host ID, `fresh_context: true`, `read_only: true`,
 `producer_transcript: false`, and an observed `runtime` record.
-The default route records `profile: luna-max`, `model: gpt-5.6-luna`, and
+The default route records `profile: luna-max`, `model: gpt-6-luna`, and
 `reasoning_effort: max`; Astra Light (`profile: astra-light`,
 `model: gpt-6-astra`, `reasoning_effort: low`) is accepted only when explicitly
 requested. Provider identity may be `NOT_ASSESSED`. It must not contain a

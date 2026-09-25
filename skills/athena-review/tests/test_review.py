@@ -71,7 +71,7 @@ class ReviewTests(unittest.TestCase):
             review.normalize(self.packet(), invalid, reviewer_session_id=REVIEWER_ID, reviewer_attestation=self.attestation())
 
     def attestation(self, reviewer_id: str = REVIEWER_ID) -> dict:
-        return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-5.6-luna", "reasoning_effort": "max", "provider": "openai"}}
+        return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-6-luna", "reasoning_effort": "max", "provider": "openai"}}
 
     def test_formal_result_rejects_unqualified_runtime_attestation(self) -> None:
         attestation = self.attestation()

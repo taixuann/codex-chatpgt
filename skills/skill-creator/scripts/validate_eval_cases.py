@@ -45,9 +45,9 @@ ACTION_DISPOSITIONS = {
 EVALUATION_DISPOSITIONS = {"PASS", "REJECT", "SIMPLIFY"}
 NECESSITY_STATES = {"CHECKED", "NOT_AVAILABLE", "NOT_RELEVANT"}
 ORIGIN_TYPES = {"observed_failure", "user_requirement", "upstream_change", "model_change", "architecture_contract"}
-EXPECTED_CASE_COUNT = 30
+EXPECTED_CASE_COUNT = 31
 EXPECTED_ROUTING_CASE_COUNT = 12
-EXPECTED_LIFECYCLE_CASE_COUNT = 18
+EXPECTED_LIFECYCLE_CASE_COUNT = 19
 BINDING_VERSION = 1
 SNAPSHOT_DIR_PREFIX = "\0dir/"
 SNAPSHOT_CONTENT_PREFIX = "\0content/"
@@ -58,7 +58,7 @@ EXPECTED_PARTITIONS = {
         "route-explicit-positive", "route-implicit-positive", "route-contextual-positive",
         "route-explicit-negative", "route-adjacent-negative", "route-sibling-negative",
         "create-local-upstream", "create-multimode-one-skill", "update-bounded", "evaluate-good",
-        "install-healthy-copy",
+        "install-healthy-copy", "install-owned-lifecycle",
     }),
     "regression": frozenset({
         "create-no-skill", "update-substantive", "audit-upstream-drift", "audit-retire",
@@ -110,6 +110,19 @@ def load_cases(path: Path) -> dict:
     if not isinstance(data, dict):
         raise ValueError("evaluation file must contain a mapping")
     return data
+
+
+def _cases_for_stage(data: dict, stage: str, case_ids: set[str] | None) -> list[dict]:
+    stage_ids = {
+        "smoke": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative"},
+        "lifecycle": {
+            "route-explicit-positive", "route-implicit-positive", "route-explicit-negative",
+            "create-local-upstream", "update-bounded", "audit-overlap", "evaluate-good",
+            "install-owned-lifecycle",
+        },
+        "full": {case["id"] for case in data["cases"]},
+    }[stage]
+    return [case for case in data["cases"] if case["id"] in stage_ids and (not case_ids or case["id"] in case_ids)]
 
 
 def validate(path: Path) -> list[str]:
@@ -335,8 +348,18 @@ def _process_observed(events: list[dict]) -> bool:
 
 
 def _trace_matches(case: dict, events: list[dict]) -> bool:
-    for marker in case.get("trace_markers", []):
-        if not any(marker.lower() in _process_payload(event) for event in events):
+    markers = case.get("trace_markers", [])
+    payloads = [_process_payload(event) for event in events]
+    if case.get("id") == "install-owned-lifecycle":
+        cursor = -1
+        for marker in markers:
+            match = next((index for index in range(cursor + 1, len(payloads)) if marker.lower() in payloads[index]), None)
+            if match is None:
+                return False
+            cursor = match
+        return True
+    for marker in markers:
+        if not any(marker.lower() in payload for payload in payloads):
             return False
     return True
 
@@ -388,14 +411,15 @@ def _cost_metrics(events: list[dict], changed_paths: set[str]) -> dict:
     }
 
 
+def _snapshot_path_excluded(relative: Path) -> bool:
+    return bool(
+        {".codex-home", ".git", "__pycache__"}.intersection(relative.parts)
+        or relative.suffix == ".pyc"
+    )
+
+
 def _snapshot(root: Path) -> dict[str, str]:
     entries: dict[str, str] = {}
-
-    def ignored(relative: Path) -> bool:
-        return bool(
-            {".codex-home", ".git", "__pycache__"}.intersection(relative.parts)
-            or relative.suffix == ".pyc"
-        )
 
     def fingerprint(path: Path) -> str:
         mode = path.lstat().st_mode
@@ -414,7 +438,7 @@ def _snapshot(root: Path) -> dict[str, str]:
     def visit(directory: Path) -> None:
         for path in sorted(directory.iterdir(), key=lambda item: item.name):
             relative = path.relative_to(root)
-            if ignored(relative):
+            if _snapshot_path_excluded(relative):
                 continue
             key = f"{SNAPSHOT_DIR_PREFIX}{relative.as_posix()}" if path.is_dir() and not path.is_symlink() else relative.as_posix()
             entries[key] = fingerprint(path)
@@ -489,7 +513,21 @@ def _candidate_worktree_matches(skill_dir: Path, candidate: str) -> bool:
             ["git", "status", "--porcelain=v1", "--untracked-files=all", "--", package],
             cwd=repository_root, text=True, capture_output=True, env=_subprocess_env(), check=False,
         )
-        return status.returncode == 0 and not status.stdout
+        if status.returncode != 0 or status.stdout:
+            return False
+        ignored = subprocess.run(
+            ["git", "ls-files", "--others", "--ignored", "--exclude-standard", "-z", "--", package],
+            cwd=repository_root, capture_output=True, env=_subprocess_env(), check=False,
+        )
+        if ignored.returncode != 0:
+            return False
+        for raw_path in ignored.stdout.split(b"\0"):
+            if not raw_path:
+                continue
+            relative = Path(os.fsdecode(raw_path))
+            if not _snapshot_path_excluded(relative):
+                return False
+        return True
     except (OSError, subprocess.CalledProcessError, ValueError):
         return False
 
@@ -736,6 +774,7 @@ def _install_evidence_ok(
     report: dict,
     before: dict[str, str] | None = None,
     after: dict[str, str] | None = None,
+    expected_trial_id: str | None = None,
 ) -> tuple[bool, str]:
     """Recompute the minimum source, payload, validation, task, and ownership evidence for INSTALL."""
     if case.get("kind") != "INSTALL":
@@ -762,6 +801,15 @@ def _install_evidence_ok(
     audit, validation, real_task, ownership = (evidence.get(key) for key in ("audit", "validation", "real_task", "ownership"))
     if not all(isinstance(item, dict) for item in (source, target, payload, audit, validation, real_task, ownership)):
         return False, "install receipt is missing source, target, payload, audit, validation, real-task, or ownership sections"
+    backend = evidence.get("backend")
+    if not isinstance(backend, dict) or not all(
+        isinstance(backend.get(key), str) and backend[key].strip()
+        for key in ("identity", "version", "state_identity")
+    ):
+        return False, "backend identity, version, and observed state identity are required"
+    native_revision = backend.get("native_revision")
+    if native_revision is not None and (not isinstance(native_revision, str) or not re.fullmatch(r"[0-9a-f]{40}", native_revision)):
+        return False, "backend native revision must be an immutable 40-character commit or null"
     if not all(isinstance(source.get(key), str) and source[key].strip() for key in ("repository", "requested_ref", "path", "license")):
         return False, "source identity requires repository, requested ref, path, and license"
     if not isinstance(source.get("revision"), str) or not re.fullmatch(r"[0-9a-f]{40}", source["revision"]):
@@ -845,6 +893,13 @@ def _install_evidence_ok(
                 or adapted_files[relative]["installed_sha256"] != installed_content
             ):
                 return False, f"adaptation receipt hashes do not match source and installed contents: {relative}"
+        state_paths = [
+            effect["path"] for effect in case.get("side_effects", [])
+            if isinstance(effect, dict) and isinstance(effect.get("path"), str)
+            and "/.skill-installs/" in f"/{effect['path']}"
+        ]
+        if len(state_paths) != 1 or backend.get("state_identity") != after.get(f"{SNAPSHOT_CONTENT_PREFIX}{state_paths[0]}"):
+            return False, "backend state identity must match the observed install-state manifest bytes"
         actual_source = _content_tree_sha256(before, source_fixture)
         actual_selected = _content_tree_sha256(before, source_fixture, package_files)
         actual_installed = _content_tree_sha256(after, target_prefix, package_files)
@@ -871,6 +926,67 @@ def _install_evidence_ok(
         return False, "post-install validation and a real-task smoke must both pass"
     if not isinstance(ownership.get("receipt_id"), str) or not ownership["receipt_id"].strip() or not isinstance(ownership.get("uninstall"), str) or len(ownership["uninstall"].strip()) < 12:
         return False, "ownership identity and safe uninstall mechanism are required"
+    if not isinstance(ownership.get("update_behavior"), str) or len(ownership["update_behavior"].strip()) < 12:
+        return False, "ownership must document same/changed-revision reinstall behavior"
+    if native_revision is None:
+        if before is None or after is None:
+            return False, "composite provenance requires runner-observed source and installed snapshots"
+        binding = evidence.get("composite_provenance")
+        if not isinstance(binding, dict) or binding.get("verified") is not True or (
+            binding.get("source_revision") != source["revision"]
+            or binding.get("selected_sha256") != payload["selected_sha256"]
+            or binding.get("installed_sha256") != payload["installed_sha256"]
+        ):
+            return False, "a null backend revision requires verified composite source-to-installed provenance"
+    if case.get("id") == "install-owned-lifecycle":
+        lifecycle = evidence.get("owned_lifecycle")
+        if not isinstance(lifecycle, dict) or not isinstance(lifecycle.get("trial_id"), str) or not re.fullmatch(
+            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", lifecycle["trial_id"]
+        ):
+            return False, "owned lifecycle requires a well-formed runner trial identity"
+        if not isinstance(expected_trial_id, str) or lifecycle["trial_id"] != expected_trial_id:
+            return False, "owned lifecycle trial identity does not match the runner-generated trial"
+        if lifecycle.get("source_revision") != source["revision"] or lifecycle.get("selected_sha256") != payload["selected_sha256"] or lifecycle.get("receipt_id") != ownership["receipt_id"]:
+            return False, "owned lifecycle identity must bind the source, selected payload, and ownership receipt"
+        expected_steps = {"initial_install", "same_revision", "changed_revision", "local_edit_preserved", "safe_uninstall", "neighbor_preserved", "final_reinstall"}
+        steps = lifecycle.get("steps")
+        if not isinstance(steps, dict) or any(steps.get(step) != "PASS" for step in expected_steps):
+            return False, "owned lifecycle must pass install, same/changed revision, edit preservation, uninstall, and neighbor preservation"
+        snapshots = lifecycle.get("snapshots")
+        if not isinstance(snapshots, dict) or not all(isinstance(snapshots.get(key), dict) for key in ("after_install", "after_same_revision", "after_changed_revision", "after_local_edit", "after_uninstall", "after_final_reinstall")):
+            return False, "owned lifecycle requires before/after state snapshots for each ownership transition"
+        installed_file_hashes = {item["path"]: item["installed_sha256"] for item in payload.get("files", []) if isinstance(item, dict) and isinstance(item.get("path"), str)}
+        initial, same, changed, edited, uninstalled, final = (snapshots[key] for key in ("after_install", "after_same_revision", "after_changed_revision", "after_local_edit", "after_uninstall", "after_final_reinstall"))
+        if final.get("source_revision") != source["revision"] or final.get("owned_files") != installed_file_hashes:
+            return False, "final reinstall snapshot must match the pinned source and observed installed payload"
+        if initial.get("owned_files") != installed_file_hashes or same.get("owned_files") != installed_file_hashes:
+            return False, "initial install and same-revision snapshots must match the receipt-owned installed payload"
+        changed_files = changed.get("owned_files")
+        if not isinstance(changed_files, dict) or set(changed_files) != set(installed_file_hashes) or changed.get("source_revision") == source["revision"] or not re.fullmatch(r"[0-9a-f]{40}", str(changed.get("source_revision", ""))) or changed_files == installed_file_hashes:
+            return False, "changed-revision snapshot must bind a different immutable revision and changed owned bytes"
+        edited_files = edited.get("owned_files")
+        if not isinstance(edited_files, dict) or set(edited_files) != set(installed_file_hashes) or edited_files == changed_files:
+            return False, "local-edit snapshot must record the modified owned payload preserved before uninstall"
+        modified_paths = lifecycle.get("locally_modified_paths")
+        if not isinstance(modified_paths, list) or not modified_paths or len(set(modified_paths)) != len(modified_paths) or any(path not in installed_file_hashes for path in modified_paths):
+            return False, "owned lifecycle must identify at least one locally modified receipt-owned path"
+        if any(edited_files[path] == changed_files[path] for path in modified_paths):
+            return False, "local-edit snapshot must show changed bytes for every locally modified path"
+        if any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in changed_files.values()) or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in edited_files.values()):
+            return False, "changed-revision and local-edit snapshots must contain SHA-256 values"
+        preserved_modified = {path: edited_files[path] for path in modified_paths}
+        neighbor_path = lifecycle.get("neighbor_path")
+        target_prefix = target["path"].rstrip("/")
+        if not isinstance(neighbor_path, str) or not _safe_relative_posix_path(neighbor_path) or neighbor_path == target_prefix or neighbor_path.startswith(f"{target_prefix}/") or target_prefix.startswith(f"{neighbor_path.rstrip('/')}/"):
+            return False, "neighbor canary must be a safe path outside the installed target"
+        if uninstalled.get("owned_files") != {} or uninstalled.get("preserved_modified_files") != preserved_modified or uninstalled.get("neighbor_hash") != lifecycle.get("neighbor_hash") or not isinstance(lifecycle.get("neighbor_hash"), str) or not re.fullmatch(r"[0-9a-f]{64}", lifecycle["neighbor_hash"]):
+            return False, "safe uninstall must remove unchanged owned files while preserving local edits and the neighbor canary"
+        if before is not None and after is not None:
+            neighbor_key = f"{SNAPSHOT_CONTENT_PREFIX}{neighbor_path}"
+            if before.get(neighbor_key) != lifecycle["neighbor_hash"] or after.get(neighbor_key) != lifecycle["neighbor_hash"]:
+                return False, "neighbor canary must match its baseline and remain byte-identical in the actual fixture snapshots"
+        if lifecycle.get("terminal_state") not in TRIAL_TERMINAL_STATES or lifecycle.get("terminal_state") == "CLEANUP_BLOCKED":
+            return False, "owned lifecycle must end CLEANED or PRESERVED_FOR_REVIEW"
     if case.get("id") == "install-zero-adaptation" and adaptation != "none":
         return False, "the clean control must install without manufacturing an adaptation"
     return True, "source-bound install lifecycle evidence observed"
@@ -1013,7 +1129,8 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
         "_resolved_revision": case.get("source_revision"),
         "_resolved_license": case.get("source_license"),
     }
-    install_ok, install_reason = _install_evidence_ok(install_case, report, before, after)
+    trial = item.get("trial") if isinstance(item.get("trial"), dict) else {}
+    install_ok, install_reason = _install_evidence_ok(install_case, report, before, after, trial.get("trial_id"))
     runtime_evidence = {
         "skill_discovery": "NOT_ASSESSED",
         "explicit_invocation": "NOT_REQUESTED",
@@ -1075,10 +1192,10 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
             "---\nname: candidate-skill\ndescription: Candidate evaluation fixture.\n---\n\nCandidate content.\n",
             encoding="utf-8",
         )
-    elif case_id in {"install-healthy-copy", "install-zero-adaptation"}:
+    elif case_id in {"install-healthy-copy", "install-zero-adaptation", "install-owned-lifecycle"}:
         source = fixture_root / case["source_fixture"]
         (source / "references").mkdir(parents=True, exist_ok=True)
-        skill_name = "healthy" if case_id == "install-healthy-copy" else "clean-control"
+        skill_name = "healthy" if case_id in {"install-healthy-copy", "install-owned-lifecycle"} else "clean-control"
         (source / "SKILL.md").write_text(
             f"---\nname: {skill_name}\ndescription: A maintained, portable fixture skill.\n---\n\nUse the included guide faithfully.\n",
             encoding="utf-8",
@@ -1100,6 +1217,10 @@ def _seed_case(fixture_root: Path, case: dict) -> None:
         subprocess.run(["git", "commit", "--quiet", "-m", "fixture source"], cwd=source, check=True, env=commit_env)
         subprocess.run(["git", "tag", "--", case["source_ref"]], cwd=source, check=True, env=_subprocess_env())
         case["_resolved_revision"] = _git_revision(source, case["source_ref"])
+        if case_id == "install-owned-lifecycle":
+            canary = fixture_root / ".fixture-data" / "neighbor-canary.txt"
+            canary.parent.mkdir(parents=True, exist_ok=True)
+            canary.write_text("unowned neighbor canary\n", encoding="utf-8")
     elif case_id == "install-collision-refused":
         target = skills_root / "existing-owned-skill"
         target.mkdir(parents=True, exist_ok=True)
@@ -1192,7 +1313,7 @@ def _timeout_class(output: str) -> str:
     return "TURN_TIMEOUT"
 
 
-def _runtime_prompt(case: dict, operation_root: Path) -> str:
+def _runtime_prompt(case: dict, operation_root: Path, trial_id: str | None = None) -> str:
     if case["kind"] in {"routing", "ACTION"}:
         if case["kind"] == "ACTION":
             result_key = "selected_workflow"
@@ -1238,10 +1359,23 @@ def _runtime_prompt(case: dict, operation_root: Path) -> str:
                 "for INSTALLED, source {repository, requested_ref, revision, path, license}, target "
                 "{runtime, scope, path, mode}, payload {source_sha256, selected_sha256, installed_sha256, adaptation, "
                 "files [{path, source_sha256, installed_sha256}] with exactly one entry per package_files path and no extras}, "
-                "audit {status, backend}, validation {status}, real_task {status}, and ownership {receipt_id, uninstall}; "
+                "backend {identity, version, state_identity, native_revision}, audit {status, backend}, validation {status}, "
+                "where state_identity is the SHA-256 of the actual install-state manifest bytes in the fixture and native_revision is a 40-character immutable backend commit or null; "
+                "real_task {status}, and ownership {receipt_id, update_behavior, uninstall}; if native_revision is null, "
+                "include verified composite_provenance binding source revision, selected hash, and installed hash; "
                 "when adaptation is none, selected_sha256 must equal installed_sha256; otherwise adaptation must contain a reason and files [{path, source_sha256, installed_sha256}]. For BLOCKED, document the unchanged unmanaged-target "
                 "collision. For ROUTE, select CREATE or UPDATE, explain the material redesign, and make no mutation."
             )
+            if case.get("id") == "install-owned-lifecycle":
+                task += (
+                    f" For this case also include owned_lifecycle with the runner-provided trial_id {trial_id}, source_revision, selected_sha256, "
+                    "receipt_id, PASS steps initial_install/same_revision/changed_revision/local_edit_preserved/safe_uninstall/"
+                    "neighbor_preserved/final_reinstall, snapshots after_install/after_same_revision/after_changed_revision/"
+                    "after_local_edit/after_uninstall/after_final_reinstall, locally_modified_paths, and terminal_state CLEANED or PRESERVED_FOR_REVIEW. The initial and "
+                    "same-revision owned_files maps must equal payload.files; changed revision must use a different immutable "
+                    "revision and different payload hashes; uninstall must leave no unchanged owned files and preserve the exact "
+                    "locally edited hashes plus neighbor_hash."
+                )
     return (
         f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
         "For apply_patch or file-change operations, use paths relative to this working directory; "
@@ -1270,7 +1404,7 @@ def _run_once(
     )
     with _fixture(skill_dir, with_skill, case) as fixture:
         operation_root = fixture / "project" if case["id"] == "audit-localize" else fixture
-        prompt = _runtime_prompt(case, operation_root)
+        prompt = _runtime_prompt(case, operation_root, trial.get("trial_id"))
         base = {
             "case_id": case["id"],
             "kind": case["kind"],
@@ -1333,7 +1467,7 @@ def _run_once(
         changed_paths = _changed_paths(before_snapshot, after_snapshot)
         artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot, with_skill)
         necessity_ok, necessity_reason = _necessity_ok(case, report)
-        install_ok, install_reason = _install_evidence_ok(case, report, before_snapshot, after_snapshot)
+        install_ok, install_reason = _install_evidence_ok(case, report, before_snapshot, after_snapshot, trial.get("trial_id"))
         coexistence_fixture = (((fixture / "project") if case["id"] == "audit-localize" else fixture) / ".fixture-coexistence").is_file()
         side_effect_free = not changed_paths
         runtime_evidence = {
@@ -1753,12 +1887,7 @@ def run(path: Path, skill_dir: Path, runtime: str, model: str, reasoning_effort:
         "base_identity": evidence_binding.get("base_head"),
         "test_fingerprint": evidence_binding.get("cases_sha256") or _trial_fingerprint(data["cases"]),
     }
-    stage_ids = {
-        "smoke": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative"},
-        "lifecycle": {"route-explicit-positive", "route-implicit-positive", "route-explicit-negative", "create-local-upstream", "update-bounded", "audit-overlap", "evaluate-good"},
-        "full": {case["id"] for case in data["cases"]},
-    }[stage]
-    cases = [case for case in data["cases"] if case["id"] in stage_ids and (not case_ids or case["id"] in case_ids)]
+    cases = _cases_for_stage(data, stage, case_ids)
     action_cases = _selected_action_cases(data, stage, case_ids)
     if candidate_ref is not None and evidence_binding.get("candidate_head") is None:
         preflight = {
@@ -1905,7 +2034,7 @@ def main() -> int:
     parser.add_argument("--skill-dir", type=Path, default=Path(__file__).parents[1])
     parser.add_argument("--case-id", action="append")
     parser.add_argument("--runtime", default="codex")
-    parser.add_argument("--model", default="gpt-5.6-luna")
+    parser.add_argument("--model", default="gpt-6-luna")
     parser.add_argument("--reasoning-effort", default="medium")
     parser.add_argument("--timeout", type=int, default=60)
     parser.add_argument("--stage", choices=("smoke", "lifecycle", "full"), default="full")

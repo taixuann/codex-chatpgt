@@ -46,17 +46,17 @@ jobs:
 
       - name: Validate retained agent adapters
         run: >-
-          python -c "import glob,pathlib,tomllib; paths=sorted(glob.glob('agents/*.toml')); names=[pathlib.Path(p).stem for p in paths]; assert names == ['athena', 'franky', 'prometheus'], names; [tomllib.load(open(p, 'rb')) for p in paths]"
+          python -c "import glob,pathlib,tomllib; paths=sorted(glob.glob('agents/*.toml')); names=[pathlib.Path(p).stem for p in paths]; assert names == ['athena', 'franky', 'prometheus'], names; roles=[tomllib.load(open(p, 'rb')) for p in paths]; assert all(role.get('model') == 'gpt-6-luna' for role in roles), [(role['name'], role.get('model')) for role in roles]"
 
       - name: Validate Athena model policy and generic review boundary
         run: |
           python - <<'PY'
           import pathlib, tomllib
           athena = tomllib.loads(pathlib.Path('agents/athena.toml').read_text())
-          assert athena.get('model') == 'gpt-5.6-luna'
+          assert athena.get('model') == 'gpt-6-luna'
           assert athena.get('model_reasoning_effort') == 'max'
           assert athena.get('sandbox_mode') == 'read-only'
-          assert 'Luna Max' in athena['developer_instructions']
+          assert 'GPT-6 Luna Max' in athena['developer_instructions']
           source = pathlib.Path('skills/athena-review/scripts/review.py').read_text()
           assert 'COUPLED_CRITERIA' not in source
           assert 'validate_criteria_scope' not in source

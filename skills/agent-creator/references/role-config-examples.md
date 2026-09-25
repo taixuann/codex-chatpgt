@@ -5,7 +5,7 @@ Use the smallest standalone adapter that expresses a real runtime boundary.
 ```toml
 name = "example-role"
 description = "Route bounded work here when this role's context or permission boundary is required; do not use it for ordinary parent work or reusable procedures."
-model = "gpt-5.6-luna"
+model = "gpt-6-luna"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """

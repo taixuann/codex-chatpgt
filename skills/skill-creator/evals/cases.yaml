@@ -112,3 +112,26 @@ cases:
       - {operation: created, path: .agents/skills/clean-control/LICENSE.txt}
       - {operation: created, path: .agents/.skill-installs/clean-control.json}
     prompt: "Install the clean-control source into the unoccupied project target by exact copy, resolve fixture-clean-v1 to its actual Git commit, verify source and installed payload content hashes, run one real guide-based task, and write the report as JSON. Compute each payload digest as SHA-256 over compact UTF-8 JSON encoding of sorted [relative POSIX path, lowercase raw-file SHA-256] pairs with no insignificant spaces; source_sha256 covers all regular source files, selected_sha256 covers package_files, and installed_sha256 covers the same paths at target. Include exactly one payload.files entry per package_files path with source_sha256 and installed_sha256, and no extra paths; plus top-level disposition INSTALL_EXISTING and installation status INSTALLED, workspace_changed true, source (repository, requested_ref, immutable revision, path, license), target (runtime, scope, exact path, mode), payload (source_sha256, selected_sha256, installed_sha256, adaptation none, files), audit (status PASS, named backend), validation (status PASS), real_task (status PASS), and ownership (receipt_id, safe uninstall mechanism). Return INSTALL_EXISTING and adaptation none; a zero-edit faithful install is the intended success."
+  - id: install-owned-lifecycle
+    kind: INSTALL
+    partition: must_pass
+    gate: G4_BEHAVIOR
+    gates: [G4_BEHAVIOR, G5_COEXISTENCE]
+    expected: INSTALL_EXISTING
+    installation_outcome: INSTALLED
+    origin: {type: architecture_contract, source: issue-123/owned-install-lifecycle}
+    trace_markers: [initial_install, same_revision, changed_revision, local_edit_preserved, safe_uninstall, neighbor_preserved, final_reinstall]
+    source_fixture: .fixture-sources/healthy
+    source_repository: fixture/healthy
+    source_ref: fixture-v1
+    source_revision: d6f5e671b8c7d0a28ef4a32aaa4124d93a9b0b6f
+    source_license: MIT
+    package_files: [SKILL.md, references/guide.md, LICENSE.txt]
+    artifact: created
+    artifact_path: .evaluation/install-owned-lifecycle.json
+    side_effects:
+      - {operation: created, path: .agents/skills/healthy/SKILL.md}
+      - {operation: created, path: .agents/skills/healthy/references/guide.md}
+      - {operation: created, path: .agents/skills/healthy/LICENSE.txt}
+      - {operation: created, path: .agents/.skill-installs/healthy.json}
+    prompt: "In the isolated fixture, perform an owned-install lifecycle against the exact source and package. Run each transition as a separate tool/process operation in this order: initial install, same-revision no-op, changed-revision update, local edit, safe uninstall, neighbor-preservation check, and final reinstall. Capture the ownership receipt and path/hash snapshot after every operation. Install once and capture the ownership receipt and path/hash snapshot; repeat the same revision and record idempotent behavior; install a changed source revision and record changed file hashes; locally edit one owned file and prove safe update/uninstall preserves it; uninstall only unchanged receipt-owned files while preserving the edited file and the pre-seeded unowned neighbor canary at .fixture-data/neighbor-canary.txt; then reinstall the pinned source for the final installed-payload receipt and allow workspace cleanup. Return ordinary INSTALL evidence plus owned_lifecycle with the exact runner-provided trial_id, exact source revision, selected_sha256, receipt_id, neighbor_path, locally_modified_paths, PASS for initial_install, same_revision, changed_revision, local_edit_preserved, safe_uninstall, neighbor_preserved, and final_reinstall; snapshots.after_install and snapshots.after_same_revision must contain identical owned_files path-to-hash maps matching payload.files; snapshots.after_changed_revision must bind a different 40-character source_revision and changed owned_files hashes; snapshots.after_local_edit must contain edited owned_files hashes; snapshots.after_uninstall must have empty unchanged owned_files, preserve the edited hashes under preserved_modified_files, and retain the unchanged 64-character neighbor_hash; snapshots.after_final_reinstall must bind the pinned source revision and exactly match the final installed payload; terminal_state must be CLEANED or PRESERVED_FOR_REVIEW. Preserve unrelated files and do not claim behavior without a recorded snapshot."

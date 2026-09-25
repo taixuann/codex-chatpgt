@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -37,7 +38,51 @@ def load_initializer():
 
 
 class EvalContractTests(unittest.TestCase):
-    def test_install_is_a_behavioral_case_kind_with_four_canonical_cases(self):
+    def test_ignored_skill_content_invalidates_candidate_binding(self):
+        module = load_module()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            skill = root / "skills" / "skill-creator"
+            skill.mkdir(parents=True)
+            (root / ".gitignore").write_text("**/*token*\n**/*.pyc\n**/__pycache__/\n**/.codex-home/\n", encoding="utf-8")
+            (skill / "SKILL.md").write_text("candidate\n", encoding="utf-8")
+            subprocess.run(["git", "init", "--quiet"], cwd=root, check=True)
+            subprocess.run(["git", "add", ".gitignore", "skills/skill-creator/SKILL.md"], cwd=root, check=True)
+            subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "--quiet", "-m", "candidate"], cwd=root, check=True)
+            candidate = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+            ignored = skill / "private-token.txt"
+            ignored.write_text("untracked candidate input\n", encoding="utf-8")
+
+            self.assertIn("\0content/private-token.txt", module._snapshot(skill))
+            self.assertFalse(module._candidate_worktree_matches(skill, candidate))
+
+            ignored.unlink()
+            cache_files = [
+                skill / "__pycache__" / "compiled.pyc",
+                skill / ".codex-home" / "runtime.json",
+                skill / "module.pyc",
+            ]
+            for cache_file in cache_files:
+                cache_file.parent.mkdir(parents=True, exist_ok=True)
+                cache_file.write_text("runtime cache\n", encoding="utf-8")
+                self.assertEqual(
+                    subprocess.run(
+                        ["git", "check-ignore", "--quiet", str(cache_file.relative_to(root))],
+                        cwd=root,
+                        check=False,
+                    ).returncode,
+                    0,
+                )
+            snapshot = module._snapshot(skill)
+            for relative in (
+                "__pycache__/compiled.pyc",
+                ".codex-home/runtime.json",
+                "module.pyc",
+            ):
+                self.assertNotIn(f"\0content/{relative}", snapshot)
+            self.assertTrue(module._candidate_worktree_matches(skill, candidate))
+
+    def test_install_is_a_behavioral_case_kind_with_canonical_cases(self):
         module = load_module()
         self.assertIn("INSTALL", module.KINDS)
         cases = module.load_cases(SCRIPT.parents[1] / "evals" / "cases.yaml")["cases"]
@@ -47,6 +92,7 @@ class EvalContractTests(unittest.TestCase):
             "install-collision-refused",
             "install-redesign-routed",
             "install-zero-adaptation",
+            "install-owned-lifecycle",
         })
         self.assertEqual(install_cases["install-healthy-copy"]["installation_outcome"], "INSTALLED")
         self.assertEqual(install_cases["install-collision-refused"]["installation_outcome"], "BLOCKED")
@@ -60,6 +106,12 @@ class EvalContractTests(unittest.TestCase):
         self.assertEqual([case["id"] for case in selected], ["explicit-install"])
         self.assertEqual(module._selected_action_cases(data, "smoke", None), [])
 
+    def test_lifecycle_stage_includes_the_owned_install_trial(self):
+        module = load_module()
+        data = module.load_cases(SCRIPT.parents[1] / "evals" / "cases.yaml")
+        selected = module._cases_for_stage(data, "lifecycle", {"install-owned-lifecycle"})
+        self.assertEqual([case["id"] for case in selected], ["install-owned-lifecycle"])
+
     def test_install_receipt_requires_source_payload_runtime_validation_and_ownership(self):
         module = load_module()
         case = {"kind": "INSTALL", "installation_outcome": "INSTALLED"}
@@ -69,14 +121,120 @@ class EvalContractTests(unittest.TestCase):
             "workspace_changed": True,
             "source": {"repository": "owner/skill", "requested_ref": "v1.0", "revision": "1" * 40, "path": "skill", "license": "MIT"},
             "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/skill", "mode": "copy"},
-            "payload": {"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest, "adaptation": "none"},
+            "payload": {"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest, "adaptation": "none", "files": [{"path": "SKILL.md", "source_sha256": digest, "installed_sha256": digest}]},
+            "backend": {"identity": "Agentport", "version": "0.2.0", "state_identity": "state-001", "native_revision": "2" * 40},
             "audit": {"status": "PASS", "backend": "skills-lint 1.0"},
             "validation": {"status": "PASS"},
             "real_task": {"status": "PASS"},
-            "ownership": {"receipt_id": "install-001", "uninstall": "remove only receipt-owned unchanged files"},
+            "ownership": {"receipt_id": "install-001", "update_behavior": "same revision is a no-op; changed revision is explicit reinstall", "uninstall": "remove only receipt-owned unchanged files"},
         }}
         self.assertTrue(module._install_evidence_ok(case, report)[0])
+        for invalid_revision in ("x", "unknown"):
+            report["installation"]["backend"]["native_revision"] = invalid_revision
+            self.assertFalse(module._install_evidence_ok(case, report)[0])
+        report["installation"]["backend"]["native_revision"] = "2" * 40
         report["installation"]["payload"]["installed_sha256"] = "b" * 64
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+
+    def test_install_receipt_requires_backend_and_composite_provenance_when_backend_revision_is_null(self):
+        module = load_module()
+        source_hash = hashlib.sha256(b"skill").hexdigest()
+        manifest_hash = hashlib.sha256(b"manifest").hexdigest()
+        case = {
+            "id": "install-healthy-copy", "kind": "INSTALL", "installation_outcome": "INSTALLED",
+            "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md"],
+            "source_repository": "owner/skill", "source_ref": "v1", "source_license": "MIT",
+            "_resolved_revision": "1" * 40, "_resolved_license": "MIT",
+            "side_effects": [{"path": ".agents/skills/skill/SKILL.md"}, {"path": ".agents/.skill-installs/skill.json"}],
+        }
+        before = {".fixture-sources/healthy/SKILL.md": "skill", "\0content/.fixture-sources/healthy/SKILL.md": source_hash}
+        after = {
+            **before,
+            ".agents/skills/skill/SKILL.md": "skill", "\0content/.agents/skills/skill/SKILL.md": source_hash,
+            ".agents/.skill-installs/skill.json": "manifest", "\0content/.agents/.skill-installs/skill.json": manifest_hash,
+        }
+        digest = module._content_tree_sha256(before, ".fixture-sources/healthy", ["SKILL.md"])
+        report = {"installation": {
+            "status": "INSTALLED", "workspace_changed": True,
+            "source": {"repository": "owner/skill", "requested_ref": "v1", "revision": "1" * 40, "path": ".fixture-sources/healthy", "license": "MIT"},
+            "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/skill", "mode": "copy"},
+            "payload": {"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest, "adaptation": "none", "files": [{"path": "SKILL.md", "source_sha256": source_hash, "installed_sha256": source_hash}]},
+            "backend": {"identity": "Agentport", "version": "0.2.0", "state_identity": manifest_hash, "native_revision": None},
+            "composite_provenance": {"verified": True, "source_revision": "1" * 40, "selected_sha256": digest, "installed_sha256": digest},
+            "audit": {"status": "PASS", "backend": "skills-lint 1.0"}, "validation": {"status": "PASS"},
+            "real_task": {"status": "PASS"},
+            "ownership": {"receipt_id": "receipt", "update_behavior": "same revision is no-op; changed revision is explicit reinstall", "uninstall": "remove receipt-owned unchanged files"},
+        }}
+        self.assertTrue(module._install_evidence_ok(case, report, before, after)[0])
+        report["installation"].pop("composite_provenance")
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        report["installation"]["composite_provenance"] = {"verified": True, "source_revision": "2" * 40, "selected_sha256": digest, "installed_sha256": digest}
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        report["installation"]["composite_provenance"]["source_revision"] = "1" * 40
+        report["installation"]["backend"].pop("state_identity")
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+
+    def test_owned_install_lifecycle_requires_fresh_identity_and_all_preservation_steps(self):
+        module = load_module()
+        case = {"id": "install-owned-lifecycle", "kind": "INSTALL", "installation_outcome": "INSTALLED"}
+        digest = "a" * 64
+        report = {"installation": {
+            "status": "INSTALLED", "workspace_changed": True,
+            "source": {"repository": "owner/skill", "requested_ref": "v1", "revision": "1" * 40, "path": "skill", "license": "MIT"},
+            "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/skill", "mode": "copy"},
+            "payload": {"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest, "adaptation": "none", "files": [{"path": "SKILL.md", "source_sha256": digest, "installed_sha256": digest}]},
+            "backend": {"identity": "Agentport", "version": "0.2.0", "state_identity": "state-001", "native_revision": "2" * 40},
+            "audit": {"status": "PASS", "backend": "skills-lint 1.0"}, "validation": {"status": "PASS"},
+            "real_task": {"status": "PASS"},
+            "ownership": {"receipt_id": "receipt", "update_behavior": "same revision is no-op; changed revision is explicit reinstall", "uninstall": "remove receipt-owned unchanged files"},
+            "owned_lifecycle": {
+                "trial_id": str(uuid.uuid4()), "source_revision": "1" * 40, "selected_sha256": digest, "receipt_id": "receipt",
+                "locally_modified_paths": ["SKILL.md"],
+                "neighbor_path": ".fixture-data/neighbor-canary.txt",
+                "steps": {key: "PASS" for key in ("initial_install", "same_revision", "changed_revision", "local_edit_preserved", "safe_uninstall", "neighbor_preserved")},
+                "neighbor_hash": "b" * 64,
+                "snapshots": {
+                    "after_install": {"owned_files": {"SKILL.md": digest}},
+                    "after_same_revision": {"owned_files": {"SKILL.md": digest}},
+                    "after_changed_revision": {"source_revision": "2" * 40, "owned_files": {"SKILL.md": "c" * 64}},
+                    "after_local_edit": {"owned_files": {"SKILL.md": "d" * 64}},
+                    "after_uninstall": {"owned_files": {}, "preserved_modified_files": {"SKILL.md": "d" * 64}, "neighbor_hash": "b" * 64},
+                    "after_final_reinstall": {"source_revision": "1" * 40, "owned_files": {"SKILL.md": digest}},
+                },
+                "terminal_state": "CLEANED",
+            },
+        }}
+        report["installation"]["owned_lifecycle"]["steps"]["final_reinstall"] = "PASS"
+        trial_id = report["installation"]["owned_lifecycle"]["trial_id"]
+        self.assertTrue(module._install_evidence_ok(case, report, expected_trial_id=trial_id)[0])
+        self.assertFalse(module._install_evidence_ok(case, report, expected_trial_id=str(uuid.uuid4()))[0])
+        report["installation"]["owned_lifecycle"]["snapshots"]["after_final_reinstall"]["owned_files"]["SKILL.md"] = "b" * 64
+        self.assertFalse(module._install_evidence_ok(case, report, expected_trial_id=trial_id)[0])
+        report["installation"]["owned_lifecycle"]["snapshots"]["after_final_reinstall"]["owned_files"]["SKILL.md"] = digest
+        report["installation"]["owned_lifecycle"]["steps"]["local_edit_preserved"] = "NOT_ASSESSED"
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        report["installation"]["owned_lifecycle"]["steps"]["local_edit_preserved"] = "PASS"
+        report["installation"]["owned_lifecycle"]["trial_id"] = "reused"
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        report["installation"]["owned_lifecycle"]["trial_id"] = str(uuid.uuid4())
+        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["neighbor_hash"] = "c" * 64
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["neighbor_hash"] = "b" * 64
+        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"].pop("preserved_modified_files")
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["preserved_modified_files"] = {"SKILL.md": "c" * 64}
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["preserved_modified_files"] = {"SKILL.md": "d" * 64}
+        lifecycle = report["installation"]["owned_lifecycle"]
+        lifecycle["snapshots"]["after_uninstall"]["owned_files"] = {"unchanged.txt": "e" * 64}
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        lifecycle["snapshots"]["after_uninstall"]["owned_files"] = {}
+        lifecycle["snapshots"].pop("after_uninstall")
+        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        lifecycle["snapshots"]["after_uninstall"] = {
+            "owned_files": {}, "preserved_modified_files": {"SKILL.md": "d" * 64}, "neighbor_hash": "b" * 64,
+        }
+        report["installation"]["owned_lifecycle"]["neighbor_path"] = ".agents/skills/skill/SKILL.md"
         self.assertFalse(module._install_evidence_ok(case, report)[0])
 
     def test_install_fixture_ref_resolves_to_a_real_commit_and_package_closure(self):
@@ -112,7 +270,7 @@ class EvalContractTests(unittest.TestCase):
         case = {
             "id": "install-healthy-copy", "kind": "INSTALL", "installation_outcome": "INSTALLED",
             "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md"],
-            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
+            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}, {"path": ".agents/.skill-installs/healthy.json"}],
             "_resolved_revision": "1" * 40, "_resolved_license": "MIT",
         }
         content_hash = hashlib.sha256(b"source").hexdigest()
@@ -122,8 +280,9 @@ class EvalContractTests(unittest.TestCase):
             "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/healthy", "mode": "copy"},
             "payload": {"source_sha256": "a" * 64, "selected_sha256": "a" * 64, "installed_sha256": "a" * 64, "adaptation": "none",
                 "files": [{"path": "SKILL.md", "source_sha256": content_hash, "installed_sha256": content_hash}]},
+            "backend": {"identity": "fixture", "version": "1", "state_identity": "fixture-state", "native_revision": "3" * 40},
             "audit": {"status": "PASS", "backend": "fixture"}, "validation": {"status": "PASS"},
-            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "uninstall": "remove receipt-owned unchanged file"},
+            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "update_behavior": "same revision no-op; changed revision reinstall", "uninstall": "remove receipt-owned unchanged file"},
         }}
         before = {
             ".fixture-sources/healthy/SKILL.md": "snapshot:source",
@@ -133,11 +292,17 @@ class EvalContractTests(unittest.TestCase):
             **before,
             ".agents/skills/healthy/SKILL.md": "snapshot:source",
             "\0content/.agents/skills/healthy/SKILL.md": content_hash,
+            ".agents/.skill-installs/healthy.json": "manifest",
+            "\0content/.agents/.skill-installs/healthy.json": hashlib.sha256(b"manifest").hexdigest(),
         }
+        report["installation"]["backend"]["state_identity"] = after["\0content/.agents/.skill-installs/healthy.json"]
         digest = module._content_tree_sha256(before, ".fixture-sources/healthy", ["SKILL.md"])
         report["installation"]["payload"].update({"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest})
         ok, reason = module._install_evidence_ok(case, report, before, after)
         self.assertTrue(ok, reason)
+        report["installation"]["backend"]["state_identity"] = "unbound-state"
+        self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
+        report["installation"]["backend"]["state_identity"] = after["\0content/.agents/.skill-installs/healthy.json"]
         after[".agents/skills/healthy/SKILL.md"] = "sha256:changed"
         self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
         after[".agents/skills/healthy/SKILL.md"] = "sha256:source"
@@ -155,7 +320,7 @@ class EvalContractTests(unittest.TestCase):
         case = {
             "id": "install-healthy-copy", "kind": "INSTALL", "installation_outcome": "INSTALLED",
             "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md"],
-            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
+            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}, {"path": ".agents/.skill-installs/healthy.json"}],
             "source_repository": "fixture/healthy", "source_ref": "fixture-v1", "source_license": "MIT",
             "_resolved_revision": "1" * 40, "_resolved_license": "MIT",
         }
@@ -168,6 +333,8 @@ class EvalContractTests(unittest.TestCase):
             **before,
             ".agents/skills/healthy/SKILL.md": "snapshot:source",
             "\0content/.agents/skills/healthy/SKILL.md": source,
+            ".agents/.skill-installs/healthy.json": "manifest",
+            "\0content/.agents/.skill-installs/healthy.json": hashlib.sha256(b"manifest").hexdigest(),
         }
         digest = module._content_tree_sha256(before, ".fixture-sources/healthy", ["SKILL.md"])
         report = {"installation": {
@@ -176,8 +343,9 @@ class EvalContractTests(unittest.TestCase):
             "target": {"runtime": "codex", "scope": "project", "path": ".agents/skills/healthy", "mode": "copy"},
             "payload": {"source_sha256": digest, "selected_sha256": digest, "installed_sha256": digest, "adaptation": "none",
                 "files": [{"path": "SKILL.md", "source_sha256": source, "installed_sha256": source}]},
+            "backend": {"identity": "fixture", "version": "1", "state_identity": after["\0content/.agents/.skill-installs/healthy.json"], "native_revision": "3" * 40},
             "audit": {"status": "PASS", "backend": "fixture"}, "validation": {"status": "PASS"},
-            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "uninstall": "remove receipt-owned unchanged files"},
+            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "update_behavior": "same revision no-op; changed revision reinstall", "uninstall": "remove receipt-owned unchanged files"},
         }}
         self.assertTrue(module._install_evidence_ok(case, report, before, after)[0])
         case["_resolved_license"] = "GPL-3.0-only"
@@ -210,7 +378,7 @@ class EvalContractTests(unittest.TestCase):
         case = {
             "id": "install-healthy-copy", "kind": "INSTALL", "installation_outcome": "INSTALLED",
             "source_fixture": ".fixture-sources/healthy", "package_files": ["SKILL.md", "references/guide.md"],
-            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}],
+            "side_effects": [{"path": ".agents/skills/healthy/SKILL.md"}, {"path": ".agents/.skill-installs/healthy.json"}],
             "source_repository": "owner/skill", "source_ref": "v1", "source_license": "MIT",
             "_resolved_revision": "1" * 40, "_resolved_license": "MIT",
         }
@@ -229,6 +397,8 @@ class EvalContractTests(unittest.TestCase):
             ".agents/skills/healthy/references/guide.md": "guide",
             "\0content/.agents/skills/healthy/SKILL.md": installed_hash,
             "\0content/.agents/skills/healthy/references/guide.md": guide_hash,
+            ".agents/.skill-installs/healthy.json": "manifest",
+            "\0content/.agents/.skill-installs/healthy.json": hashlib.sha256(b"manifest").hexdigest(),
         }
         report = {"installation": {
             "status": "INSTALLED", "workspace_changed": True,
@@ -242,8 +412,9 @@ class EvalContractTests(unittest.TestCase):
                     {"path": "references/guide.md", "source_sha256": guide_hash, "installed_sha256": guide_hash},
                 ],
                 "adaptation": {"reason": "Adjust one documented runtime compatibility token.", "files": [{"path": "SKILL.md", "source_sha256": source_hash, "installed_sha256": installed_hash}]}},
+            "backend": {"identity": "fixture", "version": "1", "state_identity": after["\0content/.agents/.skill-installs/healthy.json"], "native_revision": "3" * 40},
             "audit": {"status": "PASS", "backend": "fixture"}, "validation": {"status": "PASS"},
-            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "uninstall": "remove receipt-owned unchanged file"},
+            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "receipt", "update_behavior": "same revision no-op; changed revision reinstall", "uninstall": "remove receipt-owned unchanged file"},
         }}
         ok, reason = module._install_evidence_ok(case, report, before, after)
         self.assertTrue(ok, reason)
@@ -324,7 +495,7 @@ class EvalContractTests(unittest.TestCase):
             cases_path,
             SCRIPT.parents[1],
             "definitely-not-a-codex-runtime",
-            "gpt-5.6-luna",
+            "gpt-6-luna",
             "medium",
             1,
             None,
@@ -495,6 +666,7 @@ class EvalContractTests(unittest.TestCase):
             trial.counter = iter(range(1, 1000))
             results = []
             for case in cases:
+                with_skill_trial = trial("with_skill")
                 routing = case["kind"] == "routing"
                 expected = "none" if case.get("expected") == "none" else case["expected"]
                 contract = {}
@@ -503,7 +675,13 @@ class EvalContractTests(unittest.TestCase):
                     before_snapshot = {}
                     after_snapshot = {}
                 else:
-                    trace_events = [{"skill_loads": ["skill-creator"], "item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}]
+                    if case.get("id") == "install-owned-lifecycle":
+                        trace_events = [{"skill_loads": ["skill-creator"]}, *(
+                            {"item": {"type": "command_execution", "command": marker}}
+                            for marker in case.get("trace_markers", [])
+                        )]
+                    else:
+                        trace_events = [{"skill_loads": ["skill-creator"], "item": {"type": "command_execution", "command": " ".join(case.get("trace_markers", []))}}]
                     contract = module._artifact_contract(case)
                     if contract.get("operation") == "modified":
                         before_snapshot = {contract["path"]: "old"}
@@ -531,6 +709,13 @@ class EvalContractTests(unittest.TestCase):
                             after_snapshot[f"\0content/{installed_path}"] = digest
                         for effect in case["side_effects"]:
                             after_snapshot.setdefault(effect["path"], f"owned:{effect['path']}")
+                            if "/.skill-installs/" in f"/{effect['path']}":
+                                after_snapshot[f"\0content/{effect['path']}"] = hashlib.sha256(f"owned:{effect['path']}".encode()).hexdigest()
+                        if case["id"] == "install-owned-lifecycle":
+                            canary_path = ".fixture-data/neighbor-canary.txt"
+                            canary_hash = hashlib.sha256(b"unowned neighbor canary\n").hexdigest()
+                            before_snapshot[f"\0content/{canary_path}"] = canary_hash
+                            after_snapshot[f"\0content/{canary_path}"] = canary_hash
                     if "G5_COEXISTENCE" in case.get("gates", [case["gate"]]):
                         for path in module.COEXISTENCE_PATHS.get(case["id"], set()):
                             before_snapshot[path] = "fixture"
@@ -560,9 +745,38 @@ class EvalContractTests(unittest.TestCase):
                                 } for relative in case["package_files"]],
                                 "adaptation": "none",
                             },
+                            "backend": {
+                                "identity": "fixture", "version": "1",
+                                "state_identity": next((after_snapshot.get(f"\0content/{effect['path']}") for effect in case["side_effects"] if "/.skill-installs/" in f"/{effect['path']}"), "fixture-state"),
+                                "native_revision": "3" * 40,
+                            },
                             "audit": {"status": "PASS", "backend": "fixture"}, "validation": {"status": "PASS"},
-                            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "fixture-001", "uninstall": "remove only receipt-owned files"},
+                            "real_task": {"status": "PASS"}, "ownership": {"receipt_id": "fixture-001", "update_behavior": "same revision no-op; changed revision reinstall", "uninstall": "remove only receipt-owned files"},
                         }}
+                        if case["id"] == "install-owned-lifecycle":
+                            installed_files = {item["path"]: item["installed_sha256"] for item in final_report["installation"]["payload"]["files"]}
+                            changed_files = {path: hashlib.sha256(f"changed:{path}".encode()).hexdigest() for path in installed_files}
+                            edited_files = {path: hashlib.sha256(f"edited:{path}".encode()).hexdigest() for path in installed_files}
+                            neighbor_hash = hashlib.sha256(b"unowned neighbor canary\n").hexdigest()
+                            final_report["installation"]["owned_lifecycle"] = {
+                                "trial_id": with_skill_trial["trial_id"],
+                                "source_revision": case["source_revision"],
+                                "selected_sha256": final_report["installation"]["payload"]["selected_sha256"],
+                                "receipt_id": "fixture-001",
+                                "locally_modified_paths": sorted(installed_files),
+                                "neighbor_path": ".fixture-data/neighbor-canary.txt",
+                                "steps": {step: "PASS" for step in ("initial_install", "same_revision", "changed_revision", "local_edit_preserved", "safe_uninstall", "neighbor_preserved", "final_reinstall")},
+                                "neighbor_hash": neighbor_hash,
+                                "snapshots": {
+                                    "after_install": {"owned_files": installed_files},
+                                    "after_same_revision": {"owned_files": installed_files},
+                                    "after_changed_revision": {"source_revision": "4" * 40, "owned_files": changed_files},
+                                    "after_local_edit": {"owned_files": edited_files},
+                                    "after_uninstall": {"owned_files": {}, "preserved_modified_files": edited_files, "neighbor_hash": neighbor_hash},
+                                    "after_final_reinstall": {"source_revision": case["source_revision"], "owned_files": installed_files},
+                                },
+                                "terminal_state": "CLEANED",
+                            }
                     elif case["installation_outcome"] == "BLOCKED":
                         final_report = {"disposition": expected, "installation": {"status": "BLOCKED", "workspace_changed": False, "collision": "unmanaged target preserved"}}
                     else:
@@ -592,9 +806,9 @@ class EvalContractTests(unittest.TestCase):
                     "after_snapshot": after_snapshot,
                     "final_report": final_report,
                     **({"source_revision_resolved": case.get("_resolved_revision"), "source_license_resolved": case.get("_resolved_license")} if case["kind"] == "INSTALL" and case["installation_outcome"] == "INSTALLED" else {}),
-                    "installation_observed": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[0],
-                    "installation_reason": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[1],
-                    "trial": trial("with_skill"),
+                    "installation_observed": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot, with_skill_trial["trial_id"])[0],
+                    "installation_reason": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot, with_skill_trial["trial_id"])[1],
+                    "trial": with_skill_trial,
                 })
             gates = {gate: "PASS" for gate in module.GATES}
             gates["G7_INDEPENDENT_REVIEW"] = "NOT_ASSESSED"
@@ -822,6 +1036,15 @@ class EvalContractTests(unittest.TestCase):
         self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "command": "git clone source"}}]))
         self.assertTrue(module._trace_matches(case, [{"item": {"type": "command_execution", "aggregated_output": "git clone source"}}]))
 
+    def test_owned_lifecycle_trace_markers_require_distinct_ordered_process_events(self):
+        module = load_module()
+        markers = ["initial_install", "same_revision", "final_reinstall"]
+        case = {"id": "install-owned-lifecycle", "trace_markers": markers}
+        events = [{"item": {"type": "command_execution", "command": marker}} for marker in markers]
+        self.assertTrue(module._trace_matches(case, events))
+        self.assertFalse(module._trace_matches(case, [events[0], events[2], events[1]]))
+        self.assertFalse(module._trace_matches(case, [{"item": {"type": "command_execution", "command": " ".join(markers)}}]))
+
     def test_runtime_prompt_does_not_leak_case_expected_disposition(self):
         module = load_module()
         case = {
@@ -986,7 +1209,7 @@ class EvalContractTests(unittest.TestCase):
             cases_path,
             SCRIPT.parents[1],
             "definitely-not-a-codex-runtime",
-            "gpt-5.6-luna",
+            "gpt-6-luna",
             "medium",
             1,
             None,

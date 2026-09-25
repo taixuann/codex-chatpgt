@@ -209,7 +209,7 @@ def observed_reviewer_id(value: Any) -> bool:
 
 def valid_reviewer_attestation(value: Any, reviewer_session_id: str | None, review_route: str = "luna-max") -> bool:
     runtime = value.get("runtime") if isinstance(value, dict) else None
-    expected = {"luna-max": ("luna-max", "gpt-5.6-luna", "max"), "astra-light": ("astra-light", "gpt-6-astra", "low")}.get(review_route)
+    expected = {"luna-max": ("luna-max", "gpt-6-luna", "max"), "astra-light": ("astra-light", "gpt-6-astra", "low")}.get(review_route)
     if expected is None:
         return False
     return (
