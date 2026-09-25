@@ -774,7 +774,6 @@ def _install_evidence_ok(
     report: dict,
     before: dict[str, str] | None = None,
     after: dict[str, str] | None = None,
-    expected_trial_id: str | None = None,
 ) -> tuple[bool, str]:
     """Recompute the minimum source, payload, validation, task, and ownership evidence for INSTALL."""
     if case.get("kind") != "INSTALL":
@@ -939,54 +938,7 @@ def _install_evidence_ok(
         ):
             return False, "a null backend revision requires verified composite source-to-installed provenance"
     if case.get("id") == "install-owned-lifecycle":
-        lifecycle = evidence.get("owned_lifecycle")
-        if not isinstance(lifecycle, dict) or not isinstance(lifecycle.get("trial_id"), str) or not re.fullmatch(
-            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", lifecycle["trial_id"]
-        ):
-            return False, "owned lifecycle requires a well-formed runner trial identity"
-        if not isinstance(expected_trial_id, str) or lifecycle["trial_id"] != expected_trial_id:
-            return False, "owned lifecycle trial identity does not match the runner-generated trial"
-        if lifecycle.get("source_revision") != source["revision"] or lifecycle.get("selected_sha256") != payload["selected_sha256"] or lifecycle.get("receipt_id") != ownership["receipt_id"]:
-            return False, "owned lifecycle identity must bind the source, selected payload, and ownership receipt"
-        expected_steps = {"initial_install", "same_revision", "changed_revision", "local_edit_preserved", "safe_uninstall", "neighbor_preserved", "final_reinstall"}
-        steps = lifecycle.get("steps")
-        if not isinstance(steps, dict) or any(steps.get(step) != "PASS" for step in expected_steps):
-            return False, "owned lifecycle must pass install, same/changed revision, edit preservation, uninstall, and neighbor preservation"
-        snapshots = lifecycle.get("snapshots")
-        if not isinstance(snapshots, dict) or not all(isinstance(snapshots.get(key), dict) for key in ("after_install", "after_same_revision", "after_changed_revision", "after_local_edit", "after_uninstall", "after_final_reinstall")):
-            return False, "owned lifecycle requires before/after state snapshots for each ownership transition"
-        installed_file_hashes = {item["path"]: item["installed_sha256"] for item in payload.get("files", []) if isinstance(item, dict) and isinstance(item.get("path"), str)}
-        initial, same, changed, edited, uninstalled, final = (snapshots[key] for key in ("after_install", "after_same_revision", "after_changed_revision", "after_local_edit", "after_uninstall", "after_final_reinstall"))
-        if final.get("source_revision") != source["revision"] or final.get("owned_files") != installed_file_hashes:
-            return False, "final reinstall snapshot must match the pinned source and observed installed payload"
-        if initial.get("owned_files") != installed_file_hashes or same.get("owned_files") != installed_file_hashes:
-            return False, "initial install and same-revision snapshots must match the receipt-owned installed payload"
-        changed_files = changed.get("owned_files")
-        if not isinstance(changed_files, dict) or set(changed_files) != set(installed_file_hashes) or changed.get("source_revision") == source["revision"] or not re.fullmatch(r"[0-9a-f]{40}", str(changed.get("source_revision", ""))) or changed_files == installed_file_hashes:
-            return False, "changed-revision snapshot must bind a different immutable revision and changed owned bytes"
-        edited_files = edited.get("owned_files")
-        if not isinstance(edited_files, dict) or set(edited_files) != set(installed_file_hashes) or edited_files == changed_files:
-            return False, "local-edit snapshot must record the modified owned payload preserved before uninstall"
-        modified_paths = lifecycle.get("locally_modified_paths")
-        if not isinstance(modified_paths, list) or not modified_paths or len(set(modified_paths)) != len(modified_paths) or any(path not in installed_file_hashes for path in modified_paths):
-            return False, "owned lifecycle must identify at least one locally modified receipt-owned path"
-        if any(edited_files[path] == changed_files[path] for path in modified_paths):
-            return False, "local-edit snapshot must show changed bytes for every locally modified path"
-        if any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in changed_files.values()) or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) for value in edited_files.values()):
-            return False, "changed-revision and local-edit snapshots must contain SHA-256 values"
-        preserved_modified = {path: edited_files[path] for path in modified_paths}
-        neighbor_path = lifecycle.get("neighbor_path")
-        target_prefix = target["path"].rstrip("/")
-        if not isinstance(neighbor_path, str) or not _safe_relative_posix_path(neighbor_path) or neighbor_path == target_prefix or neighbor_path.startswith(f"{target_prefix}/") or target_prefix.startswith(f"{neighbor_path.rstrip('/')}/"):
-            return False, "neighbor canary must be a safe path outside the installed target"
-        if uninstalled.get("owned_files") != {} or uninstalled.get("preserved_modified_files") != preserved_modified or uninstalled.get("neighbor_hash") != lifecycle.get("neighbor_hash") or not isinstance(lifecycle.get("neighbor_hash"), str) or not re.fullmatch(r"[0-9a-f]{64}", lifecycle["neighbor_hash"]):
-            return False, "safe uninstall must remove unchanged owned files while preserving local edits and the neighbor canary"
-        if before is not None and after is not None:
-            neighbor_key = f"{SNAPSHOT_CONTENT_PREFIX}{neighbor_path}"
-            if before.get(neighbor_key) != lifecycle["neighbor_hash"] or after.get(neighbor_key) != lifecycle["neighbor_hash"]:
-                return False, "neighbor canary must match its baseline and remain byte-identical in the actual fixture snapshots"
-        if lifecycle.get("terminal_state") not in TRIAL_TERMINAL_STATES or lifecycle.get("terminal_state") == "CLEANUP_BLOCKED":
-            return False, "owned lifecycle must end CLEANED or PRESERVED_FOR_REVIEW"
+        return False, "owned lifecycle transitions are NOT_ASSESSED: the runner does not capture each intermediate backend state"
     if case.get("id") == "install-zero-adaptation" and adaptation != "none":
         return False, "the clean control must install without manufacturing an adaptation"
     return True, "source-bound install lifecycle evidence observed"
@@ -1129,8 +1081,7 @@ def _recomputed_record(item: dict, case: dict) -> dict | None:
         "_resolved_revision": case.get("source_revision"),
         "_resolved_license": case.get("source_license"),
     }
-    trial = item.get("trial") if isinstance(item.get("trial"), dict) else {}
-    install_ok, install_reason = _install_evidence_ok(install_case, report, before, after, trial.get("trial_id"))
+    install_ok, install_reason = _install_evidence_ok(install_case, report, before, after)
     runtime_evidence = {
         "skill_discovery": "NOT_ASSESSED",
         "explicit_invocation": "NOT_REQUESTED",
@@ -1313,7 +1264,7 @@ def _timeout_class(output: str) -> str:
     return "TURN_TIMEOUT"
 
 
-def _runtime_prompt(case: dict, operation_root: Path, trial_id: str | None = None) -> str:
+def _runtime_prompt(case: dict, operation_root: Path) -> str:
     if case["kind"] in {"routing", "ACTION"}:
         if case["kind"] == "ACTION":
             result_key = "selected_workflow"
@@ -1368,13 +1319,9 @@ def _runtime_prompt(case: dict, operation_root: Path, trial_id: str | None = Non
             )
             if case.get("id") == "install-owned-lifecycle":
                 task += (
-                    f" For this case also include owned_lifecycle with the runner-provided trial_id {trial_id}, source_revision, selected_sha256, "
-                    "receipt_id, PASS steps initial_install/same_revision/changed_revision/local_edit_preserved/safe_uninstall/"
-                    "neighbor_preserved/final_reinstall, snapshots after_install/after_same_revision/after_changed_revision/"
-                    "after_local_edit/after_uninstall/after_final_reinstall, locally_modified_paths, and terminal_state CLEANED or PRESERVED_FOR_REVIEW. The initial and "
-                    "same-revision owned_files maps must equal payload.files; changed revision must use a different immutable "
-                    "revision and different payload hashes; uninstall must leave no unchanged owned files and preserve the exact "
-                    "locally edited hashes plus neighbor_hash."
+                    " This case exercises the install lifecycle, but the current evaluator does not independently capture "
+                    "intermediate backend states. Do not claim those transitions as independently observed or provide "
+                    "model-authored snapshots as proof; the evaluator will report lifecycle behavior NOT_ASSESSED."
                 )
     return (
         f"The isolated working directory is {operation_root}. Keep every read and write inside it. "
@@ -1404,7 +1351,7 @@ def _run_once(
     )
     with _fixture(skill_dir, with_skill, case) as fixture:
         operation_root = fixture / "project" if case["id"] == "audit-localize" else fixture
-        prompt = _runtime_prompt(case, operation_root, trial.get("trial_id"))
+        prompt = _runtime_prompt(case, operation_root)
         base = {
             "case_id": case["id"],
             "kind": case["kind"],
@@ -1467,7 +1414,7 @@ def _run_once(
         changed_paths = _changed_paths(before_snapshot, after_snapshot)
         artifact_ok, artifact_reason = _artifact_ok(case, before_snapshot, after_snapshot, with_skill)
         necessity_ok, necessity_reason = _necessity_ok(case, report)
-        install_ok, install_reason = _install_evidence_ok(case, report, before_snapshot, after_snapshot, trial.get("trial_id"))
+        install_ok, install_reason = _install_evidence_ok(case, report, before_snapshot, after_snapshot)
         coexistence_fixture = (((fixture / "project") if case["id"] == "audit-localize" else fixture) / ".fixture-coexistence").is_file()
         side_effect_free = not changed_paths
         runtime_evidence = {
@@ -1500,7 +1447,8 @@ def _run_once(
         elif case["kind"] in {"CREATE", "UPDATE", "AUDIT"} and with_skill and not necessity_ok:
             status, reason = "FAIL", necessity_reason
         elif case["kind"] == "INSTALL" and with_skill and not install_ok:
-            status, reason = "FAIL", install_reason
+            status = "NOT_ASSESSED" if case.get("id") == "install-owned-lifecycle" else "FAIL"
+            reason = install_reason
         elif with_skill and "G5_COEXISTENCE" in _case_gates(case) and not coexistence_fixture:
             status, reason = "FAIL", "coexistence fixture evidence is missing"
         elif case["kind"] not in {"routing", "ACTION"} and not (process_observed and trace_matches and artifact_ok):

@@ -174,7 +174,7 @@ class EvalContractTests(unittest.TestCase):
         report["installation"]["backend"].pop("state_identity")
         self.assertFalse(module._install_evidence_ok(case, report, before, after)[0])
 
-    def test_owned_install_lifecycle_requires_fresh_identity_and_all_preservation_steps(self):
+    def test_owned_lifecycle_report_is_not_independent_transition_evidence(self):
         module = load_module()
         case = {"id": "install-owned-lifecycle", "kind": "INSTALL", "installation_outcome": "INSTALLED"}
         digest = "a" * 64
@@ -204,38 +204,10 @@ class EvalContractTests(unittest.TestCase):
                 "terminal_state": "CLEANED",
             },
         }}
-        report["installation"]["owned_lifecycle"]["steps"]["final_reinstall"] = "PASS"
-        trial_id = report["installation"]["owned_lifecycle"]["trial_id"]
-        self.assertTrue(module._install_evidence_ok(case, report, expected_trial_id=trial_id)[0])
-        self.assertFalse(module._install_evidence_ok(case, report, expected_trial_id=str(uuid.uuid4()))[0])
-        report["installation"]["owned_lifecycle"]["snapshots"]["after_final_reinstall"]["owned_files"]["SKILL.md"] = "b" * 64
-        self.assertFalse(module._install_evidence_ok(case, report, expected_trial_id=trial_id)[0])
-        report["installation"]["owned_lifecycle"]["snapshots"]["after_final_reinstall"]["owned_files"]["SKILL.md"] = digest
-        report["installation"]["owned_lifecycle"]["steps"]["local_edit_preserved"] = "NOT_ASSESSED"
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
-        report["installation"]["owned_lifecycle"]["steps"]["local_edit_preserved"] = "PASS"
-        report["installation"]["owned_lifecycle"]["trial_id"] = "reused"
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
-        report["installation"]["owned_lifecycle"]["trial_id"] = str(uuid.uuid4())
-        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["neighbor_hash"] = "c" * 64
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
-        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["neighbor_hash"] = "b" * 64
-        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"].pop("preserved_modified_files")
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
-        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["preserved_modified_files"] = {"SKILL.md": "c" * 64}
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
-        report["installation"]["owned_lifecycle"]["snapshots"]["after_uninstall"]["preserved_modified_files"] = {"SKILL.md": "d" * 64}
-        lifecycle = report["installation"]["owned_lifecycle"]
-        lifecycle["snapshots"]["after_uninstall"]["owned_files"] = {"unchanged.txt": "e" * 64}
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
-        lifecycle["snapshots"]["after_uninstall"]["owned_files"] = {}
-        lifecycle["snapshots"].pop("after_uninstall")
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
-        lifecycle["snapshots"]["after_uninstall"] = {
-            "owned_files": {}, "preserved_modified_files": {"SKILL.md": "d" * 64}, "neighbor_hash": "b" * 64,
-        }
-        report["installation"]["owned_lifecycle"]["neighbor_path"] = ".agents/skills/skill/SKILL.md"
-        self.assertFalse(module._install_evidence_ok(case, report)[0])
+        observed, reason = module._install_evidence_ok(case, report)
+        self.assertFalse(observed)
+        self.assertIn("NOT_ASSESSED", reason)
+        self.assertIn("does not capture each intermediate backend state", reason)
 
     def test_install_fixture_ref_resolves_to_a_real_commit_and_package_closure(self):
         module = load_module()
@@ -635,7 +607,7 @@ class EvalContractTests(unittest.TestCase):
             after.write_text(json.dumps({"results": [{"partition": "held_out", "status": "PASS"}]}), encoding="utf-8")
             self.assertEqual(module._compare(before, after)["status"], "REJECT")
 
-    def test_compare_accepts_non_regressing_held_out_candidate(self):
+    def test_compare_rejects_unassessed_lifecycle_transition_claims(self):
         module = load_module()
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -790,10 +762,10 @@ class EvalContractTests(unittest.TestCase):
                     "partition": case["partition"],
                     "gate": case["gate"],
                     "gates": case.get("gates", [case["gate"]]),
-                    "status": "PASS",
+                    "status": "NOT_ASSESSED" if case.get("id") == "install-owned-lifecycle" else "PASS",
                     "observed": expected,
                     "activation": "unloaded" if expected == "none" else "loaded",
-                    "runtime_evidence": {"skill_discovery": "NOT_ASSESSED", "explicit_invocation": "NOT_REQUESTED", "implicit_activation": "unloaded" if expected == "none" else "loaded", "behavior": "OBSERVED"},
+                    "runtime_evidence": {"skill_discovery": "NOT_ASSESSED", "explicit_invocation": "NOT_REQUESTED", "implicit_activation": "unloaded" if expected == "none" else "loaded", "behavior": "NOT_ASSESSED" if case.get("id") == "install-owned-lifecycle" else "OBSERVED"},
                     "process_observed": not routing,
                     "trace_matches": True,
                     "artifact_ok": True,
@@ -806,11 +778,13 @@ class EvalContractTests(unittest.TestCase):
                     "after_snapshot": after_snapshot,
                     "final_report": final_report,
                     **({"source_revision_resolved": case.get("_resolved_revision"), "source_license_resolved": case.get("_resolved_license")} if case["kind"] == "INSTALL" and case["installation_outcome"] == "INSTALLED" else {}),
-                    "installation_observed": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot, with_skill_trial["trial_id"])[0],
-                    "installation_reason": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot, with_skill_trial["trial_id"])[1],
+                    "installation_observed": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[0],
+                    "installation_reason": module._install_evidence_ok(case, final_report, before_snapshot, after_snapshot)[1],
                     "trial": with_skill_trial,
                 })
             gates = {gate: "PASS" for gate in module.GATES}
+            gates["G4_BEHAVIOR"] = "NOT_ASSESSED"
+            gates["G5_COEXISTENCE"] = "NOT_ASSESSED"
             gates["G7_INDEPENDENT_REVIEW"] = "NOT_ASSESSED"
             baseline_results = []
             paired = []
@@ -901,7 +875,7 @@ class EvalContractTests(unittest.TestCase):
             before.write_text(json.dumps(payload), encoding="utf-8")
             after.write_text(json.dumps(payload), encoding="utf-8")
             comparison = module._compare(before, after, cases_path)
-            self.assertEqual(comparison["status"], "PASS", comparison)
+            self.assertEqual(comparison["status"], "REJECT", comparison)
             invalid_install = json.loads(json.dumps(payload))
             install_case = next(case for case in module.load_cases(cases_path)["cases"] if case["id"] == "install-healthy-copy")
             install_record = next(item for item in invalid_install["results"] if item["case_id"] == "install-healthy-copy")
