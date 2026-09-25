@@ -947,10 +947,11 @@ def _install_evidence_ok(
         revisions = lifecycle_evidence.get("source_revisions") if isinstance(lifecycle_evidence, dict) else None
         if (
             not _owned_lifecycle_snapshots_ok(case, lifecycle_evidence)
+            or not _lifecycle_processes_ok(lifecycle_evidence)
             or not isinstance(revisions, list) or not revisions or revisions[0] != source["revision"]
             or not _lifecycle_stage_reports_ok(case, lifecycle_evidence, backend["identity"], revisions)
         ):
-            return False, "owned lifecycle transitions are NOT_ASSESSED: runner-owned intermediate state snapshots are incomplete or inconsistent"
+            return False, "owned lifecycle transitions are NOT_ASSESSED: runner-owned intermediate state snapshots and process evidence are incomplete or inconsistent"
     if case.get("id") == "install-zero-adaptation" and adaptation != "none":
         return False, "the clean control must install without manufacturing an adaptation"
     return True, "source-bound install lifecycle evidence observed"
@@ -960,6 +961,25 @@ LIFECYCLE_SNAPSHOT_STAGES = (
     "after_initial_install", "after_same_revision", "after_changed_revision",
     "after_local_edit", "after_uninstall", "after_final_reinstall",
 )
+LIFECYCLE_PROCESS_STAGES = (
+    "after_initial_install", "after_same_revision", "after_changed_revision",
+    "after_uninstall", "after_final_reinstall",
+)
+
+
+def _lifecycle_processes_ok(evidence: dict) -> bool:
+    processes = evidence.get("processes")
+    return bool(
+        isinstance(processes, list)
+        and len(processes) == len(LIFECYCLE_PROCESS_STAGES)
+        and all(
+            isinstance(row, dict)
+            and row.get("stage") == stage
+            and row.get("returncode") == 0
+            and row.get("process_observed") is True
+            for row, stage in zip(processes, LIFECYCLE_PROCESS_STAGES)
+        )
+    )
 
 
 def _owned_lifecycle_snapshots_ok(case: dict, evidence: dict | None) -> bool:
@@ -1025,6 +1045,23 @@ def _owned_lifecycle_snapshots_ok(case: dict, evidence: dict | None) -> bool:
     initial_payload = owned(initial)
     changed_payload = owned(changed)
     expected_files = set(package_files)
+    expected_directories = {
+        parent.as_posix()
+        for relative in expected_files
+        for parent in PurePosixPath(relative).parents
+        if parent.as_posix() != "."
+    }
+    target_directory_prefix = f"{SNAPSHOT_DIR_PREFIX}{target.rstrip('/')}/"
+    target_entry_prefix = f"{target.rstrip('/')}/"
+    for state in states:
+        for path in state:
+            if path.startswith(target_directory_prefix):
+                if path[len(target_directory_prefix):] not in expected_directories:
+                    return False
+            elif path.startswith(target_entry_prefix):
+                # Regular files also have raw fingerprint keys; only reject entries without content bytes.
+                if f"{SNAPSHOT_CONTENT_PREFIX}{path}" not in state:
+                    return False
     revision_hashes = evidence.get("source_revision_hashes")
     if not isinstance(revision_hashes, dict) or any(
         not isinstance(revision_hashes.get(revision), dict)
@@ -1689,6 +1726,7 @@ def _run_owned_lifecycle(case, runtime, model, reasoning_effort, timeout, fixtur
     install_ok, install_reason = _install_evidence_ok(case, report, before, after, {
         "snapshots": snapshots,
         "stage_reports": stage_reports,
+        "processes": process_rows,
         "source_revisions": [case.get("_resolved_revision"), changed_revision],
         "source_revision_hashes": {case.get("_resolved_revision"): initial_hashes, changed_revision: changed_hashes},
         "edited_path": edited_path,
@@ -1854,6 +1892,8 @@ def _run_once(
             status, reason = _routing_status(case, activation, observed)
         elif activation is None:
             status, reason = "NOT_ASSESSED", "runtime did not expose a skill-load signal"
+        elif activation != "loaded":
+            status, reason = "FAIL", "runtime explicitly reported the skill unloaded"
         elif observed != case["expected"]:
             status, reason = "FAIL", f"expected {case['expected']}, observed {observed!r}"
         elif case["kind"] in {"CREATE", "UPDATE", "AUDIT"} and with_skill and not necessity_ok:

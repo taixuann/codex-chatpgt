@@ -261,6 +261,13 @@ class EvalContractTests(unittest.TestCase):
         self.assertFalse(module._owned_lifecycle_snapshots_ok(case, None))
         self.assertTrue(module._owned_lifecycle_snapshots_ok(case, evidence))
         self.assertTrue(module._lifecycle_stage_reports_ok(case, evidence, "fixture-backend", evidence["source_revisions"]))
+        for extra in (
+            f"{module.SNAPSHOT_DIR_PREFIX}.agents/skills/healthy/unexpected",
+            ".agents/skills/healthy/unexpected-link",
+        ):
+            evidence["snapshots"]["after_changed_revision"][extra] = "e" * 64
+            self.assertFalse(module._owned_lifecycle_snapshots_ok(case, evidence), extra)
+            evidence["snapshots"]["after_changed_revision"].pop(extra)
         evidence["snapshots"]["after_changed_revision"][f"{prefix}.agents/.skill-installs/unrelated.json"] = "e" * 64
         self.assertFalse(module._owned_lifecycle_snapshots_ok(case, evidence))
         evidence["snapshots"]["after_changed_revision"][f"{prefix}.agents/.skill-installs/unrelated.json"] = "d" * 64
@@ -272,6 +279,18 @@ class EvalContractTests(unittest.TestCase):
         evidence["stage_reports"]["after_changed_revision"]["source_revision"] = "2" * 40
         evidence["snapshots"]["after_uninstall"].pop(f"{prefix}.agents/skills/healthy/SKILL.md")
         self.assertFalse(module._owned_lifecycle_snapshots_ok(case, evidence))
+
+    def test_lifecycle_recomputation_requires_each_successful_observed_process(self):
+        module = load_module()
+        evidence = {"processes": [
+            {"stage": stage, "returncode": 0, "process_observed": True}
+            for stage in module.LIFECYCLE_PROCESS_STAGES
+        ]}
+        self.assertTrue(module._lifecycle_processes_ok(evidence))
+        evidence["processes"][2]["process_observed"] = False
+        self.assertFalse(module._lifecycle_processes_ok(evidence))
+        evidence["processes"].pop()
+        self.assertFalse(module._lifecycle_processes_ok(evidence))
 
     def test_runner_refuses_local_edit_through_a_fixture_symlink(self):
         module = load_module()
@@ -381,6 +400,9 @@ class EvalContractTests(unittest.TestCase):
         self.assertTrue(result["installation_observed"])
         self.assertTrue(result["lifecycle_evidence"]["stage_reports"])
         self.assertTrue(module._recomputed_record(result, case)["installation_observed"])
+        incomplete = json.loads(json.dumps(result))
+        incomplete["lifecycle_evidence"].pop("processes")
+        self.assertFalse(module._recomputed_record(incomplete, case)["installation_observed"])
         self.assertNotEqual(no_activation["status"], "PASS")
         self.assertFalse(no_activation["runtime_observed"])
 
@@ -1177,6 +1199,25 @@ class EvalContractTests(unittest.TestCase):
         self.assertEqual(module._routing_status(positive, "unloaded", "skill-creator")[0], "FAIL")
         self.assertEqual(module._routing_status(negative, "unloaded", "none")[0], "PASS")
         self.assertEqual(module._routing_status(negative, "loaded", "none")[0], "FAIL")
+
+    def test_nonrouting_run_rejects_explicitly_unloaded_skill(self):
+        module = load_module()
+        case = {"id": "audit-overlap", "kind": "AUDIT", "gate": "G4_BEHAVIOR", "expected": "HEALTHY", "prompt": "Review this fixture."}
+        process = subprocess.CompletedProcess([], 0, "runtime output", "")
+        with (
+            patch.object(module.subprocess, "run", return_value=process),
+            patch.object(module, "_events", return_value=[]),
+            patch.object(module, "_final_text", return_value="{}"),
+            patch.object(module, "_json_object", return_value={"disposition": "HEALTHY"}),
+            patch.object(module, "_runtime_activation", return_value="unloaded"),
+            patch.object(module, "_process_observed", return_value=True),
+            patch.object(module, "_trace_matches", return_value=True),
+            patch.object(module, "_artifact_ok", return_value=(True, "ok")),
+            patch.object(module, "_necessity_ok", return_value=(True, "ok")),
+            patch.object(module, "_install_evidence_ok", return_value=(True, "ok")),
+        ):
+            result = module._run_once(case, sys.executable, "gpt-6-luna", "max", 10, SCRIPT.parents[1], True)
+        self.assertEqual(result["status"], "FAIL")
 
     def test_trace_markers_are_bound_to_process_payloads(self):
         module = load_module()

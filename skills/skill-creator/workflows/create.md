@@ -57,4 +57,4 @@ Run a small realistic manual probe before the full portfolio. Select changed beh
 
 Freeze the exact candidate and report baseline/candidate revisions, Build Map, Case Map, Evidence Ledger, deviations, cleanup proof, deterministic/static/probe/evaluation results, terminal WORK and separate GOAL status, remaining NOT_ASSESSED or NOT_ASSESSED_WITH_IMPACT, technical disposition, and awaiting_parent_decision.
 
-For taixuann/research-projects#74, the real CREATE target is .agents/skills/manuscript/ with actions init, write, review, figures, package, and publish. Consume promoted results/, never exploratory runs/; use Supervisor-Skills only as donor evidence. If the target checkout has overlapping dirty work or unavailable runtime, do not mutate it.
+When CREATE requires an external target checkout, do not mutate it if overlapping dirty work or an unavailable runtime makes the target state unsafe to establish.
