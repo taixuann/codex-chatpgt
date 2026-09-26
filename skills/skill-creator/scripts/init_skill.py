@@ -198,14 +198,15 @@ def init_skill(skill_name, path, resources, include_examples, interface_override
         print(f"[ERROR] Error creating SKILL.md: {e}")
         return None
 
-    # Create agents/openai.yaml
-    try:
-        result = write_openai_yaml(skill_dir, skill_name, interface_overrides)
-        if not result:
+    # Create runtime metadata only when an explicit consumer contract is supplied.
+    if interface_overrides:
+        try:
+            result = write_openai_yaml(skill_dir, skill_name, interface_overrides)
+            if not result:
+                return None
+        except Exception as e:
+            print(f"[ERROR] Error creating agents/openai.yaml: {e}")
             return None
-    except Exception as e:
-        print(f"[ERROR] Error creating agents/openai.yaml: {e}")
-        return None
 
     # Create resource directories if requested
     if resources:
@@ -232,7 +233,10 @@ def init_skill(skill_name, path, resources, include_examples, interface_override
         print(
             "2. Create resource directories only if needed (scripts/, references/, assets/)"
         )
-    print("3. Update agents/openai.yaml if the UI metadata should differ")
+    if interface_overrides:
+        print("3. Update agents/openai.yaml only if the demonstrated consumer contract changes")
+    else:
+        print("3. Add runtime metadata only when a target consumer is demonstrated")
     print("4. Run the validator when ready to check the skill structure")
     print(
         "5. Consider independent forward-testing only when complexity or risk warrants it"

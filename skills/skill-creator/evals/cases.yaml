@@ -10,6 +10,13 @@ gates:
   - {id: G5_COEXISTENCE, evidence: sibling/capability/placement checks}
   - {id: G6_EFFICIENCY, evidence: paired necessity and cost measurements}
   - {id: G7_INDEPENDENT_REVIEW, evidence: fresh exact-revision review}
+action_cases:
+  - {id: explicit-create, action: create, expected: workflows/create.md, prompt: "Create a reusable skill for a repeated evidence-backed workflow."}
+  - {id: explicit-update, action: update, expected: workflows/update.md, prompt: "Update the existing skill for this observed routing failure and compare before and after."}
+  - {id: explicit-install, action: install, expected: workflows/install.md, prompt: "Install this existing skill faithfully; do not redesign or edit its behavior."}
+  - {id: explicit-audit, action: audit, expected: workflows/audit.md, prompt: "Audit whether this skill is still necessary, healthy, and correctly placed; do not apply changes."}
+  - {id: unknown-action, action: migrate, expected: fail-closed, prompt: "Run the unsupported migrate action."}
+  - {id: ambiguous-lifecycle, action: none, expected: clarify-or-no-route, prompt: "This skill may need work; decide what to do."}
 cases:
   - {id: route-explicit-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Create a Codex skill for a repeated document transformation with provenance and validation."}
   - {id: route-implicit-positive, kind: routing, polarity: positive, partition: must_pass, gate: G3_ROUTING, expected: skill-creator, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "This procedure keeps recurring across repositories; should it become a skill, and where should it live?"}
@@ -19,21 +26,112 @@ cases:
   - {id: route-explicit-negative, kind: routing, polarity: negative, partition: must_pass, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Use $pdf to rotate this PDF; do not create or modify a skill."}
   - {id: route-adjacent-negative, kind: routing, polarity: negative, partition: must_pass, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Fix the failing parser implementation and add a unit test."}
   - {id: route-sibling-negative, kind: routing, polarity: negative, partition: must_pass, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Use the existing PDF skill to rotate this PDF; do not create or modify a skill."}
-  - {id: route-agents-negative, kind: routing, polarity: negative, partition: held_out, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Add one repository-wide invariant to AGENTS.md; this is policy maintenance, not a new skill."}
+  - {id: route-agents-negative, kind: routing, polarity: negative, partition: held_out, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Add one repository-wide invariant to AGENTS.md; this is policy audit, not a new skill."}
   - {id: route-script-negative, kind: routing, polarity: negative, partition: held_out, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Write one short shell command for this one-off cleanup and do not package it as a reusable capability."}
   - {id: route-native-negative, kind: routing, polarity: negative, partition: held_out, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "Use the platform's native date input; no reusable skill or procedure is needed."}
   - {id: route-noisy-negative, kind: routing, polarity: negative, partition: held_out, gate: G3_ROUTING, expected: none, origin: {type: architecture_contract, source: issue-103/routing-contract}, prompt: "The build is red after a dependency update. Diagnose the code, patch the implementation, and run tests; avoid changing skills or repository guidance."}
-  - {id: create-local-upstream, kind: CREATE, partition: must_pass, gate: G0_NECESSITY, gates: [G0_NECESSITY, G4_BEHAVIOR], expected: CLONE_AND_ADAPT, origin: {type: user_requirement, source: issue-103/create-contract}, trace_markers: [necessity, provenance, clone, validation], artifact: created, artifact_path: .agents/skills/generated-skill/SKILL.md, prompt: "First compare native behavior, AGENTS guidance, scripts, existing skills, and maintained upstream candidates. Only if a reusable capability is justified, adapt a maintained upstream baseline into .agents/skills/generated-skill/SKILL.md and preserve provenance."}
-  - {id: create-multimode-one-skill, kind: CREATE, partition: must_pass, gate: G0_NECESSITY, gates: [G0_NECESSITY, G4_BEHAVIOR], expected: CLONE_AND_ADAPT, origin: {type: user_requirement, source: issue-103/create-contract}, trace_markers: [necessity, provenance, modes, validation], artifact: created, artifact_path: .agents/skills/generated-multimode/SKILL.md, prompt: "First decide whether one progressively disclosed skill is necessary and whether an existing/local/upstream capability can be reused. If justified, support create, update, maintain, and evaluate behavior without subskills at .agents/skills/generated-multimode/SKILL.md."}
+  - {id: create-local-upstream, kind: CREATE, partition: must_pass, gate: G0_NECESSITY, gates: [G0_NECESSITY, G4_BEHAVIOR], expected: REFERENCE_AND_ADAPT, origin: {type: user_requirement, source: issue-103/create-contract}, trace_markers: [necessity, provenance, donor, validation], artifact: created, artifact_path: .agents/skills/generated-skill/SKILL.md, prompt: "First compare native behavior, AGENTS guidance, scripts, existing skills, and maintained upstream candidates. If a suitable maintained skill is independently installable, route to INSTALL instead. Only if the material is maintained donor/reference-only and not independently installable as the requested target skill, adapt it under CREATE as .agents/skills/generated-skill/SKILL.md, preserve provenance, and validate the adaptation."}
+  - {id: create-multimode-one-skill, kind: CREATE, partition: must_pass, gate: G0_NECESSITY, gates: [G0_NECESSITY, G4_BEHAVIOR], expected: CLONE_AND_ADAPT, origin: {type: user_requirement, source: issue-103/create-contract}, trace_markers: [necessity, provenance, modes, validation], artifact: created, artifact_path: .agents/skills/generated-multimode/SKILL.md, prompt: "First decide whether one progressively disclosed skill is necessary and whether an existing/local/upstream capability can be reused. If justified, support CREATE, INSTALL, UPDATE, and AUDIT as peer actions at .agents/skills/generated-multimode/SKILL.md; EVALUATE is a shared capability, not a peer action, and MAINTAIN is retired."}
   - {id: create-no-skill, kind: CREATE, partition: regression, gate: G0_NECESSITY, expected: REJECT, origin: {type: user_requirement, source: issue-103/necessity-contract}, trace_markers: [necessity, reject], prompt: "The task needs one shell command only; compare native behavior, scripts, and existing guidance, then reject unnecessary skill creation."}
   - {id: update-bounded, kind: UPDATE, partition: must_pass, gate: G0_NECESSITY, gates: [G0_NECESSITY, G4_BEHAVIOR], expected: UPDATE_EXISTING, origin: {type: user_requirement, source: issue-103/update-contract}, trace_markers: [necessity, before, provenance], artifact: modified, artifact_path: .agents/skills/existing-skill/SKILL.md, prompt: "First decide whether this bounded change is necessary and whether existing guidance already suffices. If justified, tighten .agents/skills/existing-skill/SKILL.md while preserving its name and provenance. Record the before state first."}
   - {id: update-substantive, kind: UPDATE, partition: regression, gate: G0_NECESSITY, gates: [G0_NECESSITY, G4_BEHAVIOR, G6_EFFICIENCY], paired: true, expected: UPDATE_EXISTING, origin: {type: observed_failure, source: issue-103/update-regression-contract}, trace_markers: [necessity, baseline, regression, held-out], artifact: modified, artifact_path: .agents/skills/existing-skill/SKILL.md, prompt: "First establish the target failure and why an update is necessary rather than deletion or reuse. Then change .agents/skills/existing-skill/SKILL.md materially and rerun baseline, candidate, regression, and held-out evidence."}
-  - {id: maintain-upstream-drift, kind: MAINTAIN, partition: regression, gate: G0_NECESSITY, gates: [G0_NECESSITY, G2_PROVENANCE], expected: CLONE_AND_ADAPT, origin: {type: upstream_change, source: issue-103/upstream-drift-contract}, trace_markers: [necessity, drift, provenance], artifact: modified, artifact_path: .agents/skills/existing-skill/references/provenance.md, prompt: "First decide whether maintenance is necessary or whether the skill should remain unchanged/retire. If justified, compare upstream drift before updating .agents/skills/existing-skill/references/provenance.md."}
-  - {id: maintain-overlap, kind: MAINTAIN, partition: held_out, gate: G0_NECESSITY, gates: [G0_NECESSITY, G5_COEXISTENCE, G6_EFFICIENCY], paired: true, expected: MERGE, artifact: created, artifact_path: .evaluation/maintain-overlap.json, side_effects: [{operation: deleted, path: .agents/skills/overlap-skill/SKILL.md}], origin: {type: architecture_contract, source: issue-103/coexistence-contract}, trace_markers: [collision, merge, pdf], prompt: "First decide whether a maintenance change is necessary. For two active skills with overlapping triggers, choose a single owner and record the merge disposition."}
-  - {id: maintain-localize, kind: MAINTAIN, partition: held_out, gate: G0_NECESSITY, gates: [G0_NECESSITY, G5_COEXISTENCE], expected: LOCALIZE, origin: {type: architecture_contract, source: issue-103/placement-contract}, trace_markers: [necessity, placement, localize, domain-workflow], prompt: "First decide whether global maintenance is necessary. For a domain-specific global skill used by one repository, move it local-first and record the placement decision."}
-  - {id: maintain-retire, kind: MAINTAIN, partition: regression, gate: G0_NECESSITY, gates: [G0_NECESSITY, G5_COEXISTENCE], expected: RETIRE, origin: {type: architecture_contract, source: issue-103/retirement-contract}, trace_markers: [necessity, usage, retire], prompt: "First decide whether the stale global skill still earns active status. If not, remove it from active discovery and record the retirement."}
+  - {id: audit-upstream-drift, kind: AUDIT, partition: regression, gate: G0_NECESSITY, gates: [G0_NECESSITY, G2_PROVENANCE], expected: UPDATE_NEEDED, origin: {type: upstream_change, source: issue-103/upstream-drift-contract}, trace_markers: [necessity, drift, provenance], artifact: created, artifact_path: .evaluation/audit-upstream-drift.json, prompt: "Inspect upstream drift read-only and report whether an UPDATE_NEEDED disposition is justified; do not modify the skill."}
+  - {id: audit-overlap, kind: AUDIT, partition: held_out, gate: G0_NECESSITY, gates: [G0_NECESSITY, G5_COEXISTENCE, G6_EFFICIENCY], paired: true, expected: MERGE, artifact: created, artifact_path: .evaluation/audit-overlap.json, origin: {type: architecture_contract, source: issue-103/coexistence-contract}, trace_markers: [collision, merge, pdf], prompt: "Audit two active skills with overlapping triggers read-only, choose a single-owner MERGE disposition, and record the recommendation."}
+  - {id: audit-localize, kind: AUDIT, partition: held_out, gate: G0_NECESSITY, gates: [G0_NECESSITY, G5_COEXISTENCE], expected: LOCALIZE, artifact: created, artifact_path: .evaluation/audit-localize.json, origin: {type: architecture_contract, source: issue-103/placement-contract}, trace_markers: [necessity, placement, localize, domain-workflow], prompt: "Audit a domain-specific global skill read-only and report a LOCALIZE recommendation without moving files."}
+  - {id: audit-retire, kind: AUDIT, partition: regression, gate: G0_NECESSITY, gates: [G0_NECESSITY, G5_COEXISTENCE], expected: RETIRE, artifact: created, artifact_path: .evaluation/audit-retire.json, origin: {type: architecture_contract, source: issue-103/retirement-contract}, trace_markers: [necessity, usage, retire], prompt: "Audit a stale unused skill read-only and report a RETIRE recommendation without removing it."}
   - {id: evaluate-good, kind: EVALUATE, partition: must_pass, gate: G1_STRUCTURE, gates: [G1_STRUCTURE, G6_EFFICIENCY], paired: true, expected: PASS, origin: {type: architecture_contract, source: issue-103/evaluate-contract}, trace_markers: [structure, routing, provenance, review], prompt: "Evaluate the fixture skill with valid structure, bounded routing, provenance, and complete process evidence; write the evaluation report in the fixture."}
   - {id: evaluate-broad-description, kind: EVALUATE, partition: regression, gate: G3_ROUTING, expected: REJECT, origin: {type: observed_failure, source: issue-103/routing-regression-contract}, trace_markers: [routing, reject], prompt: "Evaluate the fixture skill whose description attracts every coding request and write the rejection evidence in the fixture."}
   - {id: evaluate-sibling-collision, kind: EVALUATE, partition: held_out, gate: G5_COEXISTENCE, expected: REJECT, origin: {type: architecture_contract, source: issue-103/coexistence-contract}, trace_markers: [collision, reject, pdf], prompt: "Evaluate the isolated skill that steals a sibling's trigger in the active catalog and write the rejection evidence in the fixture."}
   - {id: evaluate-decorative-resources, kind: EVALUATE, partition: regression, gate: G1_STRUCTURE, expected: SIMPLIFY, origin: {type: architecture_contract, source: issue-103/resource-contract}, trace_markers: [resource, simplify], prompt: "Evaluate the fixture skill containing unused scripts and decorative references and write the simplification evidence in the fixture."}
   - {id: evaluate-skipped-process, kind: EVALUATE, partition: held_out, gate: G2_PROVENANCE, expected: REJECT, origin: {type: observed_failure, source: issue-103/process-regression-contract}, trace_markers: [provenance, reject], prompt: "The output looks correct, but the required provenance search was skipped; write the rejection evidence in the fixture."}
+  - id: install-healthy-copy
+    kind: INSTALL
+    partition: must_pass
+    gate: G2_PROVENANCE
+    gates: [G2_PROVENANCE, G4_BEHAVIOR]
+    expected: INSTALL_EXISTING
+    installation_outcome: INSTALLED
+    origin: {type: user_requirement, source: issue-121/install-contract}
+    trace_markers: [inspect, license, copy, verify]
+    source_fixture: .fixture-sources/healthy
+    source_repository: fixture/healthy
+    source_ref: fixture-v1
+    source_revision: d6f5e671b8c7d0a28ef4a32aaa4124d93a9b0b6f
+    source_license: MIT
+    package_files: [SKILL.md, references/guide.md, LICENSE.txt]
+    artifact: created
+    artifact_path: .evaluation/install-healthy-copy.json
+    side_effects:
+      - {operation: created, path: .agents/skills/healthy/SKILL.md}
+      - {operation: created, path: .agents/skills/healthy/references/guide.md}
+      - {operation: created, path: .agents/skills/healthy/LICENSE.txt}
+      - {operation: created, path: .agents/.skill-installs/healthy.json}
+    prompt: "Inspect the provided source and license, audit its consumed links, copy every declared package file unchanged into the unoccupied project skill target using the fixture backend, run a real task that applies its guide, and write the report as JSON. Resolve fixture-v1 to its actual Git commit. Compute each payload digest as SHA-256 over compact UTF-8 JSON encoding of sorted [relative POSIX path, lowercase raw-file SHA-256] pairs with no insignificant spaces; source_sha256 covers all regular source files, selected_sha256 covers package_files, and installed_sha256 covers the same paths at target. Include payload.files with each package path and source_sha256/installed_sha256, exactly once with no extra paths. Include top-level disposition INSTALL_EXISTING and installation status INSTALLED, workspace_changed true, source (repository, requested_ref, immutable revision, path, license), target (runtime, scope, exact path, mode), payload (source_sha256, selected_sha256, installed_sha256, adaptation none, files), audit (status PASS, named backend), validation (status PASS), real_task (status PASS), and ownership (receipt_id, safe uninstall mechanism). Return INSTALL_EXISTING; do not manufacture edits."
+  - id: install-collision-refused
+    kind: INSTALL
+    partition: regression
+    gate: G4_BEHAVIOR
+    gates: [G4_BEHAVIOR, G5_COEXISTENCE]
+    expected: BLOCKED
+    installation_outcome: BLOCKED
+    origin: {type: observed_failure, source: issue-121/install-ownership-contract}
+    trace_markers: [collision, preserve]
+    artifact: none
+    prompt: "The requested target already exists without a matching backend ownership receipt. Inspect the collision and neighbor canary, leave every file unchanged, and return BLOCKED with the concrete collision reason."
+  - id: install-redesign-routed
+    kind: INSTALL
+    partition: regression
+    gate: G0_NECESSITY
+    gates: [G0_NECESSITY, G4_BEHAVIOR]
+    expected: REJECT
+    installation_outcome: ROUTE
+    origin: {type: architecture_contract, source: issue-121/install-create-update-boundary}
+    trace_markers: [redesign, create]
+    artifact: none
+    prompt: "The source would require material action/workflow redesign to meet the request. Inspect the source, do not install or edit it, and route to CREATE or UPDATE with a substantive reason."
+  - id: install-zero-adaptation
+    kind: INSTALL
+    partition: held_out
+    gate: G4_BEHAVIOR
+    gates: [G4_BEHAVIOR, G6_EFFICIENCY]
+    expected: INSTALL_EXISTING
+    installation_outcome: INSTALLED
+    origin: {type: architecture_contract, source: issue-121/zero-adaptation-install-contract}
+    trace_markers: [inspect, copy, verify, unchanged]
+    source_fixture: .fixture-sources/clean
+    source_repository: fixture/clean
+    source_ref: fixture-clean-v1
+    source_revision: 7aa3031e646fe7c00807800db0714fbbc46d76a3
+    source_license: MIT
+    package_files: [SKILL.md, references/guide.md, LICENSE.txt]
+    artifact: created
+    artifact_path: .evaluation/install-zero-adaptation.json
+    side_effects:
+      - {operation: created, path: .agents/skills/clean-control/SKILL.md}
+      - {operation: created, path: .agents/skills/clean-control/references/guide.md}
+      - {operation: created, path: .agents/skills/clean-control/LICENSE.txt}
+      - {operation: created, path: .agents/.skill-installs/clean-control.json}
+    prompt: "Install the clean-control source into the unoccupied project target by exact copy, resolve fixture-clean-v1 to its actual Git commit, verify source and installed payload content hashes, run one real guide-based task, and write the report as JSON. Compute each payload digest as SHA-256 over compact UTF-8 JSON encoding of sorted [relative POSIX path, lowercase raw-file SHA-256] pairs with no insignificant spaces; source_sha256 covers all regular source files, selected_sha256 covers package_files, and installed_sha256 covers the same paths at target. Include exactly one payload.files entry per package_files path with source_sha256 and installed_sha256, and no extra paths; plus top-level disposition INSTALL_EXISTING and installation status INSTALLED, workspace_changed true, source (repository, requested_ref, immutable revision, path, license), target (runtime, scope, exact path, mode), payload (source_sha256, selected_sha256, installed_sha256, adaptation none, files), audit (status PASS, named backend), validation (status PASS), real_task (status PASS), and ownership (receipt_id, safe uninstall mechanism). Return INSTALL_EXISTING and adaptation none; a zero-edit faithful install is the intended success."
+  - id: install-owned-lifecycle
+    kind: INSTALL
+    partition: must_pass
+    gate: G4_BEHAVIOR
+    gates: [G4_BEHAVIOR, G5_COEXISTENCE]
+    expected: INSTALL_EXISTING
+    installation_outcome: INSTALLED
+    origin: {type: architecture_contract, source: issue-123/owned-install-lifecycle}
+    trace_markers: [initial_install, same_revision, changed_revision, local_edit_refused, local_edit_preserved, safe_uninstall, neighbor_preserved, clean_uninstall, final_reinstall]
+    source_fixture: .fixture-sources/healthy
+    source_repository: fixture/healthy
+    source_ref: fixture-v1
+    source_revision: d6f5e671b8c7d0a28ef4a32aaa4124d93a9b0b6f
+    source_license: MIT
+    package_files: [SKILL.md, references/guide.md, LICENSE.txt]
+    artifact: created
+    artifact_path: .evaluation/install-owned-lifecycle.json
+    side_effects:
+      - {operation: created, path: .agents/skills/healthy/SKILL.md}
+      - {operation: created, path: .agents/skills/healthy/references/guide.md}
+      - {operation: created, path: .agents/skills/healthy/LICENSE.txt}
+      - {operation: created, path: .agents/install-state.json}
+    prompt: "In the isolated fixture, exercise an owned-install lifecycle against the exact source and package: initial install, same-revision retry, changed-revision update, local edit, reinstall attempt while the edit remains (refuse safely without mutation), safe uninstall preserving the edit, explicit cleanup of the preserved edit, clean-uninstall verification, neighbor-preservation check, and final reinstall. Preserve unrelated files and report ordinary INSTALL receipt evidence. The evaluator runs each backend transition in a separate process and captures filesystem state itself; do not fabricate transition snapshots or claim runner observations."

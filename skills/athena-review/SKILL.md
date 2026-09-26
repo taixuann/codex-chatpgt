@@ -36,6 +36,33 @@ The caller supplies the complete locked `criteria_manifest` and its
 `criteria_revision`/fingerprint; this generic Skill does not know or hard-code
 any repository, Issue, or campaign criterion set.
 
+## Review contract and rubric references
+
+The packet may include a `review_contract` with a revision and a list of
+references. Each reference has a stable ID, kind, locator, and content
+fingerprint; caller-provided references are subordinate to the Issue,
+criteria manifest, exact snapshot, and this review contract. Missing,
+unfingerprinted, duplicate, or contradictory references make the packet
+`NOT_REVIEWABLE`. The normalized result records the contract fingerprint, so a
+rubric or reference mutation makes the review stale.
+
+### Packet dimension contract
+
+`review_attempt.axis` selects the review question; `review_contract` selects
+subordinate criteria references. They are independent packet dimensions:
+
+| route | axis | contract use | terminal? |
+|---|---|---|---|
+| diagnostic quality/design/package review | `work` | optional caller reference(s) | no |
+| diagnostic mixed review | `joint` | optional caller reference(s) | no |
+| terminal quality review | `work` | locked Issue criteria and evidence | yes, only as WORK |
+| terminal completion review | `goal` | locked Issue criteria and evidence | yes, only as separate GOAL |
+
+Caller references may explain a rubric, design, authoring, package, or project
+dimension, but never replace Issue authority, the locked criteria manifest,
+the exact candidate/base, or the evidence snapshot. Missing or incompatible
+contract evidence remains `NOT_REVIEWABLE` / `insufficient_evidence`.
+
 ## Reviewability and freshness
 
 Return `NOT_REVIEWABLE` / `insufficient_evidence` when exact candidate/base,
@@ -101,7 +128,7 @@ The repository cannot prove that it owns a host secret. The attestation is
 therefore only a host-observed, non-trusted Codex-app record containing the
 native thread ID, host ID, `fresh_context: true`, `read_only: true`,
 `producer_transcript: false`, and an observed `runtime` record.
-The default route records `profile: luna-max`, `model: gpt-5.6-luna`, and
+The default route records `profile: luna-max`, `model: gpt-6-luna`, and
 `reasoning_effort: max`; Astra Light (`profile: astra-light`,
 `model: gpt-6-astra`, `reasoning_effort: low`) is accepted only when explicitly
 requested. Provider identity may be `NOT_ASSESSED`. It must not contain a

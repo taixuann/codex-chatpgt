@@ -15,7 +15,7 @@ import tomllib
 from pathlib import Path
 
 
-MODEL = "gpt-5.6-luna"
+MODEL = "gpt-6-luna"
 REASONING = "medium"
 CLI = "codex-cli 0.149.1"
 # Qualification receipts are external evidence. Never allow a stale receipt to

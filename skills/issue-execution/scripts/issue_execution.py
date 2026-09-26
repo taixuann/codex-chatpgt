@@ -118,6 +118,10 @@ def is_git_metadata_path(path: str | Path) -> bool:
     return ".git" in Path(path).parts
 
 
+def _git_env() -> dict[str, str]:
+    return {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+
+
 def git_worktree_identity(repo: str) -> dict[str, str]:
     root = canonical(repo)
     if not Path(root).is_dir():
@@ -129,7 +133,7 @@ def git_worktree_identity(repo: str) -> dict[str, str]:
         "git_common_dir": ("--git-common-dir",),
         "inside_worktree": ("--is-inside-work-tree",),
     }.items():
-        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True)
+        result = subprocess.run(["git", "-C", root, "rev-parse", *args], text=True, capture_output=True, env=_git_env())
         if result.returncode:
             raise ValueError("repository root is not a Git worktree")
         value = result.stdout.strip()
@@ -205,7 +209,7 @@ def observed_reviewer_id(value: Any) -> bool:
 
 def valid_reviewer_attestation(value: Any, reviewer_session_id: str | None, review_route: str = "luna-max") -> bool:
     runtime = value.get("runtime") if isinstance(value, dict) else None
-    expected = {"luna-max": ("luna-max", "gpt-5.6-luna", "max"), "astra-light": ("astra-light", "gpt-6-astra", "low")}.get(review_route)
+    expected = {"luna-max": ("luna-max", "gpt-6-luna", "max"), "astra-light": ("astra-light", "gpt-6-astra", "low")}.get(review_route)
     if expected is None:
         return False
     return (
@@ -282,30 +286,32 @@ def workspace_fingerprint(repo: str, excluded: list[str] | None = None) -> str:
     root = Path(canonical(repo))
     excluded_roots = [Path(canonical(item)) for item in (excluded or [])]
     files: dict[str, str] = {"@root": hashlib.sha256(str(root.stat().st_mode).encode()).hexdigest()}
-    for directory, names, entries in os.walk(root):
-        names[:] = [name for name in names if name != ".git"]
-        directory_path = Path(directory)
-        if any(directory_path == item or item in directory_path.parents for item in excluded_roots):
-            names[:] = []
+    paths = git_nul(repo, "ls-files", "--cached", "--others", "--exclude-standard")
+    paths.extend(git_nul(repo, "ls-files", "--others", "--exclude-standard", "--directory"))
+    for relative in paths:
+        relative = relative.rstrip("/")
+        if not relative:
             continue
-        for name in names:
-            target = directory_path / name
-            if any(target == item or item in target.parents for item in excluded_roots):
-                continue
-            relative = target.relative_to(root).as_posix()
-            if target.is_symlink():
-                files[f"@entry/{relative}"] = hashlib.sha256(str(target.lstat().st_mode).encode() + b"\0" + os.readlink(target).encode()).hexdigest()
-            else:
-                files[f"@dir/{relative}"] = hashlib.sha256(str(target.stat().st_mode).encode()).hexdigest()
-        for name in entries:
-            if name == ".git":
-                continue
-            target = Path(directory) / name
-            if any(target == item or item in target.parents for item in excluded_roots):
-                continue
-            relative = target.relative_to(root).as_posix()
+        target = root / relative
+        if any(target == item or item in target.parents for item in excluded_roots):
+            continue
+        directory = target.parent
+        while directory != root and root in directory.parents:
+            if not any(directory == item or item in directory.parents for item in excluded_roots):
+                directory_relative = directory.relative_to(root).as_posix()
+                files[f"@dir/{directory_relative}"] = hashlib.sha256(str(directory.lstat().st_mode).encode()).hexdigest()
+            directory = directory.parent
+        if not target.exists() and not target.is_symlink():
+            continue
+        if target.is_symlink():
             mode = target.lstat().st_mode
             files[relative] = hashlib.sha256(str(mode).encode() + b"\0" + filesystem_payload(target)).hexdigest()
+            continue
+        if target.is_dir():
+            files[f"@dir/{relative}"] = hashlib.sha256(str(target.lstat().st_mode).encode()).hexdigest()
+            continue
+        mode = target.lstat().st_mode
+        files[relative] = hashlib.sha256(str(mode).encode() + b"\0" + filesystem_payload(target)).hexdigest()
     return digest(files)
 
 
@@ -345,14 +351,21 @@ def workspace_manifest(repo: str, excluded: list[str] | None = None) -> dict[str
 
 
 def git(repo: str, *args: str) -> str:
-    result = subprocess.run(["git", "-C", repo, *args], text=True, capture_output=True)
+    result = subprocess.run(["git", "-C", repo, *args], text=True, capture_output=True, env=_git_env())
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or f"git failed: {args}")
     return result.stdout.strip()
 
 
+def git_nul(repo: str, *args: str) -> list[str]:
+    result = subprocess.run(["git", "-C", repo, *args, "-z"], capture_output=True, env=_git_env())
+    if result.returncode:
+        raise RuntimeError(os.fsdecode(result.stderr).strip() or f"git failed: {args}")
+    return [os.fsdecode(item) for item in result.stdout.split(b"\0") if item]
+
+
 def git_status_records(repo: str) -> list[dict[str, str]]:
-    result = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "-z"], text=True, capture_output=True)
+    result = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "-z"], text=True, capture_output=True, env=_git_env())
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or "cannot inspect Git status")
     parts = [part for part in result.stdout.split("\0") if part]
@@ -397,7 +410,7 @@ def baseline(repo: str, excluded: list[str] | None = None) -> dict[str, Any]:
     manifest = workspace_manifest(repo, excluded)
     root = Path(canonical(repo))
     workspace_files = [path for path in manifest if (root / path).is_file() or (root / path).is_symlink()]
-    value = {"repo_root": canonical(repo), "head": git(repo, "rev-parse", "HEAD"), "branch": git(repo, "branch", "--show-current"), "status": render_status_records(records), "status_records": records, "workspace_manifest": manifest, "workspace_files": sorted(workspace_files), "tracked_files": git(repo, "ls-files").splitlines(), "excluded_paths": sorted(canonical(item) for item in (excluded or [])), "workspace_fingerprint": workspace_fingerprint(repo, excluded)}
+    value = {"repo_root": canonical(repo), "head": git(repo, "rev-parse", "HEAD"), "branch": git(repo, "branch", "--show-current"), "status": render_status_records(records), "status_records": records, "workspace_manifest": manifest, "workspace_files": sorted(workspace_files), "tracked_files": git_nul(repo, "ls-files"), "excluded_paths": sorted(canonical(item) for item in (excluded or [])), "workspace_fingerprint": workspace_fingerprint(repo, excluded)}
     value["fingerprint"] = digest(value)
     return value
 
@@ -655,19 +668,28 @@ def validate_receipt(request: dict[str, Any], receipt: dict[str, Any]) -> None:
 
 
 def changed_files(repo: str, base: str) -> list[str]:
-    names = git(repo, "diff", "--name-only", f"{base}..HEAD").splitlines()
-    names.extend(git(repo, "diff", "--name-only").splitlines())
-    names.extend(git(repo, "diff", "--cached", "--name-only").splitlines())
-    names.extend(git(repo, "ls-files", "--others", "--exclude-standard").splitlines())
+    names = git_nul(repo, "diff", "--name-only", f"{base}..HEAD")
+    names.extend(git_nul(repo, "diff", "--name-only"))
+    names.extend(git_nul(repo, "diff", "--cached", "--name-only"))
+    names.extend(git_nul(repo, "ls-files", "--others", "--exclude-standard"))
     return sorted(set(names))
 
 
 def committed_changed_files(repo: str, base: str, candidate: str) -> list[str]:
-    return sorted(set(git(repo, "diff", "--name-only", f"{base}..{candidate}").splitlines()))
+    paths: list[str] = []
+    fields = git_nul(repo, "diff", "--no-renames", "--name-status", f"{base}..{candidate}")
+    index = 0
+    while index < len(fields):
+        status = fields[index]
+        index += 1
+        count = 2 if status[:1] in {"C", "R"} else 1
+        paths.extend(fields[index:index + count])
+        index += count
+    return sorted(set(paths))
 
 
 def is_ancestor(repo: str, base: str, candidate: str) -> bool:
-    return subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", base, candidate], capture_output=True).returncode == 0
+    return subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", base, candidate], capture_output=True, env=_git_env()).returncode == 0
 
 
 def classify_commit_history(repo: str, base: str, candidate: str) -> dict[str, Any]:
@@ -816,7 +838,7 @@ def reconcile(repo: str, base: str, ledger: dict[str, Any], baseline: dict[str, 
     actual_all = set(changed_files(repo, base))
     baseline_manifest = (baseline or {}).get("workspace_manifest") or {}
     current_manifest = workspace_manifest(repo, (baseline or {}).get("excluded_paths") or None)
-    committed = set(git(repo, "diff", "--name-only", f"{base}..HEAD").splitlines())
+    committed = set(git_nul(repo, "diff", "--name-only", f"{base}..HEAD"))
     if baseline is not None:
         actual_all.update({path for path in baseline_manifest.keys() | current_manifest.keys() if baseline_manifest.get(path) != current_manifest.get(path)})
     tracked = set((baseline or {}).get("tracked_files", []))

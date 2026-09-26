@@ -26,7 +26,7 @@ REVIEWER_ID = "22222222-2222-2222-2222-222222222222"
 
 
 def reviewer_attestation(reviewer_id: str = REVIEWER_ID) -> dict:
-    return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-5.6-luna", "reasoning_effort": "max", "provider": "openai"}}
+    return {"source": "codex_app", "verification": "host_observed_not_assessed", "host_id": "local", "thread_id": reviewer_id, "fresh_context": True, "read_only": True, "producer_transcript": False, "runtime": {"profile": "luna-max", "model": "gpt-6-luna", "reasoning_effort": "max", "provider": "openai"}}
 
 
 def git(repo: Path, *args: str) -> str:
@@ -90,6 +90,110 @@ class KernelTests(unittest.TestCase):
         noisy = issue_execution.classify_commit_history(str(self.repo), self.base, noisy_head)
         self.assertEqual(noisy["status"], "fail")
         self.assertEqual(noisy["violations"][0]["type"], "repeated_history_noise")
+
+    def test_committed_changed_files_preserves_rename_endpoints(self) -> None:
+        new_path = self.repo / "new.md"
+        subprocess.run(["git", "-C", str(self.repo), "mv", "README.md", "new.md"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "rename source"], check=True)
+        candidate = git(self.repo, "rev-parse", "HEAD")
+        self.assertEqual(issue_execution.committed_changed_files(str(self.repo), self.base, candidate), ["README.md", "new.md"])
+
+    def test_workspace_fingerprint_ignores_ignored_runtime_state(self) -> None:
+        (self.repo / ".gitignore").write_text("runtime.sqlite\n")
+        (self.repo / "tracked").mkdir()
+        (self.repo / "tracked" / "file.txt").write_text("stable")
+        subprocess.run(["git", "-C", str(self.repo), "add", ".gitignore"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "add", "tracked"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "ignore runtime state"], check=True)
+        before = issue_execution.workspace_fingerprint(str(self.repo))
+        (self.repo / "runtime.sqlite").write_bytes(b"volatile-1")
+        after = issue_execution.workspace_fingerprint(str(self.repo))
+        self.assertEqual(before, after)
+        original_mode = (self.repo / "tracked").stat().st_mode & 0o777
+        (self.repo / "tracked").chmod(0o700 if original_mode != 0o700 else 0o755)
+        try:
+            self.assertNotEqual(before, issue_execution.workspace_fingerprint(str(self.repo)))
+        finally:
+            (self.repo / "tracked").chmod(original_mode)
+        newline_file = self.repo / "line\nname.txt"
+        newline_file.write_text("one")
+        subprocess.run(["git", "-C", str(self.repo), "add", str(newline_file.name)], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "newline path"], check=True)
+        before_newline = issue_execution.workspace_fingerprint(str(self.repo))
+        newline_file.write_text("two")
+        self.assertNotEqual(before_newline, issue_execution.workspace_fingerprint(str(self.repo)))
+        (self.repo / "other").mkdir()
+        link = self.repo / "directory-link"
+        link.symlink_to(self.repo / "tracked", target_is_directory=True)
+        before_link = issue_execution.workspace_fingerprint(str(self.repo))
+        link.unlink()
+        link.symlink_to(self.repo / "other", target_is_directory=True)
+        self.assertNotEqual(before_link, issue_execution.workspace_fingerprint(str(self.repo)))
+        empty = self.repo / "empty"
+        empty.mkdir()
+        before_empty = issue_execution.workspace_fingerprint(str(self.repo))
+        empty.chmod(0o700)
+        try:
+            self.assertNotEqual(before_empty, issue_execution.workspace_fingerprint(str(self.repo)))
+        finally:
+            empty.chmod(0o755)
+
+    def test_git_nul_preserves_leading_whitespace_in_paths(self) -> None:
+        path = self.repo / " leading.txt"
+        path.write_text("path\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", str(path)], check=True)
+        self.assertIn(" leading.txt", issue_execution.git_nul(str(self.repo), "ls-files"))
+
+    def test_reconcile_preserves_newline_filename_as_one_committed_path(self) -> None:
+        path = self.repo / "line\nname.txt"
+        path.write_text("before\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", path.name], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "newline baseline"], check=True)
+        base = git(self.repo, "rev-parse", "HEAD")
+        trusted = issue_execution.baseline(str(self.repo))
+        path.write_text("after\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", path.name], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "commit", "-qm", "newline candidate"], check=True)
+        ledger = {
+            "repository": "fixture/repo",
+            "issue": 107,
+            "allowed_paths": [path.name],
+            "criteria": [{"id": "AC-1"}],
+            "tasks": [{"id": "T1", "objective": "reconcile newline path", "status": "done", "dependencies": [], "criteria": ["AC-1"]}],
+            "files": [{"path": path.name, "task": "T1", "disposition": "MODIFIED", "evidence": "newline path remains one Git path", "criteria": ["AC-1"]}],
+            "supporting_documents": [{"disposition": "NOT_APPLICABLE", "reason": "fixture"}],
+        }
+        original_git = issue_execution.git
+
+        def reject_newline_diff(repo: str, *args: str) -> str:
+            if args[:2] == ("diff", "--name-only"):
+                raise AssertionError("reconcile must use git_nul for path extraction")
+            return original_git(repo, *args)
+
+        with patch.object(issue_execution, "git", side_effect=reject_newline_diff):
+            issue_execution.reconcile(str(self.repo), base, ledger, trusted, expected_repository="fixture/repo", expected_issue=107)
+
+    def test_workspace_fingerprint_preserves_leading_newline_filename(self) -> None:
+        path = self.repo / "\nname.txt"
+        path.write_text("before\n")
+        subprocess.run(["git", "-C", str(self.repo), "add", "--", path.name], check=True)
+        original_git = issue_execution.git
+
+        def reject_nul_git(repo: str, *args: str) -> str:
+            if "-z" in args:
+                raise AssertionError("workspace_fingerprint must use git_nul for path extraction")
+            return original_git(repo, *args)
+
+        with patch.object(issue_execution, "git", side_effect=reject_nul_git):
+            before = issue_execution.workspace_fingerprint(str(self.repo))
+            path.write_text("after\n")
+            after = issue_execution.workspace_fingerprint(str(self.repo))
+        self.assertNotEqual(before, after)
+
+    def test_git_helpers_ignore_inherited_git_redirects(self) -> None:
+        with patch.dict(os.environ, {"GIT_DIR": str(self.repo / "evil.git"), "GIT_WORK_TREE": str(self.tmp.name)}):
+            identity = issue_execution.git_worktree_identity(str(self.repo))
+            self.assertEqual(identity["top_level"], str(self.repo.resolve()))
 
     def request(self, mode: str, policy: str = "resume_or_start") -> dict:
         request = {

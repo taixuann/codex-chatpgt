@@ -22,7 +22,7 @@ import time
 from typing import Any
 
 
-MODEL = "gpt-5.6-luna"
+MODEL = "gpt-6-luna"
 REASONING = "medium"
 SKILL_NAME = "agent-creator"
 
@@ -85,7 +85,7 @@ def make_fixture(role_name: str = "probe-reviewer", role_scope: str = "user", al
     (agents / f"{role_name}.toml").write_text(
         f"""name = \"{role_name}\"
 description = \"Use only for the isolated read-only probe fixture; not ordinary implementation.\"
-model = \"gpt-5.6-luna\"
+model = \"gpt-6-luna\"
 model_reasoning_effort = \"medium\"
 sandbox_mode = \"read-only\"
 developer_instructions = \"Read only probe.txt, report its marker, do not edit files. {nested}\"

@@ -21,6 +21,8 @@ FINDING_EVIDENCE_PRIORITY = {"refuted": 0, "not_assessed": 1, "plausible_unverif
 FINDING_SEVERITY_PRIORITY = {"minor": 0, "material": 1, "major": 2, "blocker": 3, "critical": 4}
 REVIEW_AXES = {"work", "goal", "joint"}
 EXTERNAL_RESEARCH_STATES = {"used", "NOT_ASSESSED"}
+REVIEW_REFERENCE_KINDS = {"default", "caller", "design", "authoring", "package", "project"}
+REVIEW_REFERENCE_FINGERPRINT = re.compile(r"^[0-9a-f]{64}$")
 
 
 def observed_reviewer_id(value: Any) -> bool:
@@ -46,7 +48,9 @@ def review_attempt(packet: dict[str, Any], reviewer_session_id: str) -> dict[str
     label = f"athena:{repo_slug}:{target}:{candidate[:7]}:{spec['axis']}:r{spec['round']}"
     criteria_fingerprint = fp(packet.get("criteria"))
     evidence_fingerprint = fp(packet.get("evidence"))
-    review_id = "athena-" + fp({"label": label, "criteria": criteria_fingerprint, "evidence": evidence_fingerprint})[:16]
+    contract = packet.get("review_contract") or {"revision": "athena-review:v1", "references": []}
+    contract_fingerprint = packet.get("review_contract_fingerprint") or fp(contract)
+    review_id = "athena-" + fp({"label": label, "criteria": criteria_fingerprint, "evidence": evidence_fingerprint, "review_contract": contract_fingerprint})[:16]
     if "display_label" in spec and spec["display_label"] != label:
         raise ValueError("review_attempt display_label is not deterministic")
     if "review_id" in spec and spec["review_id"] != review_id:
@@ -79,7 +83,7 @@ def write_new(path: str | Path, value: dict[str, Any]) -> None:
 
 def valid_reviewer_attestation(value: Any, reviewer_session_id: str | None, review_route: str = "luna-max") -> bool:
     runtime = value.get("runtime") if isinstance(value, dict) else None
-    expected = {"luna-max": ("luna-max", "gpt-5.6-luna", "max"), "astra-light": ("astra-light", "gpt-6-astra", "low")}.get(review_route)
+    expected = {"luna-max": ("luna-max", "gpt-6-luna", "max"), "astra-light": ("astra-light", "gpt-6-astra", "low")}.get(review_route)
     if expected is None:
         return False
     # Normal review output can only carry a host observation.  Trust is a
@@ -136,6 +140,39 @@ def validate_criteria_manifest(packet: dict[str, Any]) -> None:
         snapshot = fp({"authority": packet["authority"], "authority_amendments": packet["authority_amendments"]})
         if packet.get("authority_snapshot_fingerprint") != snapshot or packet.get("criteria_revision") != f"live-authority-{snapshot}":
             raise ValueError("semantic criteria are not bound to the authority snapshot")
+
+
+def validate_review_contract(packet: dict[str, Any]) -> dict[str, Any]:
+    """Validate subordinate rubric/reference inputs without elevating authority."""
+    contract = packet.get("review_contract")
+    if contract is None:
+        contract = {"revision": "athena-review:v1", "references": []}
+    if not isinstance(contract, dict) or not isinstance(contract.get("revision"), str) or not contract["revision"].strip() or not isinstance(contract.get("references"), list):
+        raise ValueError("review contract must contain a revision and reference list")
+    for reference in contract["references"]:
+        if not isinstance(reference, dict) or not isinstance(reference.get("id"), str) or not reference["id"].strip() or reference.get("kind") not in REVIEW_REFERENCE_KINDS or not isinstance(reference.get("locator"), str) or not reference["locator"].strip() or not isinstance(reference.get("fingerprint"), str) or not REVIEW_REFERENCE_FINGERPRINT.fullmatch(reference["fingerprint"]):
+            raise ValueError("review contract reference fingerprint or metadata is invalid")
+        if reference.get("authority", "subordinate") != "subordinate":
+            raise ValueError("review contract references remain subordinate to Issue authority")
+    ids = [reference["id"] for reference in contract["references"]]
+    if len(ids) != len(set(ids)):
+        raise ValueError("review contract reference ids must be unique")
+    locator_pairs = [
+        (reference["locator"], reference["fingerprint"])
+        for reference in contract["references"]
+    ]
+    if len(locator_pairs) != len(set(locator_pairs)):
+        raise ValueError("review contract references are duplicate at one locator")
+    fingerprints_by_locator: dict[str, set[str]] = {}
+    for reference in contract["references"]:
+        fingerprints_by_locator.setdefault(reference["locator"], set()).add(reference["fingerprint"])
+    if any(len(fingerprints) > 1 for fingerprints in fingerprints_by_locator.values()):
+        raise ValueError("review contract references contradict at the same locator")
+    expected = fp(contract)
+    supplied = packet.get("review_contract_fingerprint", expected)
+    if supplied != expected:
+        raise ValueError("review contract fingerprint does not match references")
+    return contract
 
 
 def load(path: str) -> dict[str, Any]:
@@ -224,6 +261,7 @@ def supporting_documents_clear(value: Any) -> bool:
 
 def validate_result(result: dict[str, Any], packet: dict[str, Any], candidate: str) -> None:
     validate_criteria_manifest(packet)
+    contract = validate_review_contract(packet)
     snapshot = result.get("snapshot") or {}
     if snapshot.get("criteria_revision") != packet.get("criteria_revision") or snapshot.get("criteria_manifest_fingerprint") != packet.get("criteria_manifest_fingerprint") or snapshot.get("review_route", "luna-max") != packet.get("review_route", "luna-max"):
         raise ValueError("review snapshot is not bound to the locked criteria manifest")
@@ -256,6 +294,7 @@ def validate_result(result: dict[str, Any], packet: dict[str, Any], candidate: s
         or snapshot.get("base_ref") != expected_base.get("ref")
         or snapshot.get("base_head") != expected_base.get("head")
         or snapshot.get("criteria_fingerprint") != fp(packet.get("criteria"))
+        or snapshot.get("review_contract_fingerprint") != fp(contract)
         or snapshot.get("rubric_ref") != expected_rubric
         or snapshot.get("authority_fingerprint") != fp(packet.get("authority"))
         or snapshot.get("workspace_fingerprint") != packet.get("workspace_fingerprint")
@@ -303,6 +342,7 @@ def normalize(packet: dict[str, Any], supplied: dict[str, Any], *, reviewer_sess
     if missing:
         raise ValueError(f"packet missing: {sorted(missing)}")
     validate_criteria_manifest(packet)
+    contract = validate_review_contract(packet)
     exact_commit = re.compile(r"^[0-9a-f]{40}$")
     if not exact_commit.fullmatch(str(packet["candidate"].get("head", ""))) or not packet["base"].get("ref") or not exact_commit.fullmatch(str(packet["base"].get("head", ""))):
         raise ValueError("exact base and candidate are required")
@@ -359,7 +399,7 @@ def normalize(packet: dict[str, Any], supplied: dict[str, Any], *, reviewer_sess
     external_research = supplied.get("external_research")
     if not valid_external_research(external_research):
         raise ValueError("external_research must be bounded, source-backed, and include a proposed repair")
-    snapshot = {"candidate_head": packet["candidate"]["head"], "base_ref": packet["base"]["ref"], "base_head": packet["base"]["head"], "criteria_fingerprint": fp(packet["criteria"]), "rubric_ref": packet.get("rubric_ref", "athena-review:v1"), "authority_fingerprint": fp(packet["authority"]), "workspace_fingerprint": packet["workspace_fingerprint"], "evidence_fingerprint": fp(packet["evidence"]), "validation_fingerprint": fp(packet["validation"]), "supporting_documents_fingerprint": fp(packet["supporting_documents"]), "changed_files_fingerprint": fp(sorted(packet["changed_files"])), "repo_binding_fingerprint": fp(packet["repo_binding"]), "review_route": review_route, "review_attempt": attempt, "reviewer_session_id": reviewer_session_id, "reviewer_identity_source": "host_observed_not_assessed", "reviewer_attestation": reviewer_attestation, "fresh_context": True, "read_only": True, **({"external_research_fingerprint": fp(external_research)} if external_research is not None else {})}
+    snapshot = {"candidate_head": packet["candidate"]["head"], "base_ref": packet["base"]["ref"], "base_head": packet["base"]["head"], "criteria_fingerprint": fp(packet["criteria"]), "review_contract_fingerprint": fp(contract), "rubric_ref": packet.get("rubric_ref", "athena-review:v1"), "authority_fingerprint": fp(packet["authority"]), "workspace_fingerprint": packet["workspace_fingerprint"], "evidence_fingerprint": fp(packet["evidence"]), "validation_fingerprint": fp(packet["validation"]), "supporting_documents_fingerprint": fp(packet["supporting_documents"]), "changed_files_fingerprint": fp(sorted(packet["changed_files"])), "repo_binding_fingerprint": fp(packet["repo_binding"]), "review_route": review_route, "review_attempt": attempt, "reviewer_session_id": reviewer_session_id, "reviewer_identity_source": "host_observed_not_assessed", "reviewer_attestation": reviewer_attestation, "fresh_context": True, "read_only": True, **({"external_research_fingerprint": fp(external_research)} if external_research is not None else {})}
     if "criteria_manifest" in packet:
         snapshot["criteria_revision"] = packet["criteria_revision"]
         snapshot["criteria_manifest_fingerprint"] = packet["criteria_manifest_fingerprint"]
