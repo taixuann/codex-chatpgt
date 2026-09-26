@@ -120,7 +120,7 @@ cases:
     expected: INSTALL_EXISTING
     installation_outcome: INSTALLED
     origin: {type: architecture_contract, source: issue-123/owned-install-lifecycle}
-    trace_markers: [initial_install, same_revision, changed_revision, local_edit_preserved, safe_uninstall, neighbor_preserved, final_reinstall]
+    trace_markers: [initial_install, same_revision, changed_revision, local_edit_refused, local_edit_preserved, safe_uninstall, neighbor_preserved, clean_uninstall, final_reinstall]
     source_fixture: .fixture-sources/healthy
     source_repository: fixture/healthy
     source_ref: fixture-v1
@@ -134,4 +134,4 @@ cases:
       - {operation: created, path: .agents/skills/healthy/references/guide.md}
       - {operation: created, path: .agents/skills/healthy/LICENSE.txt}
       - {operation: created, path: .agents/.skill-installs/healthy.json}
-    prompt: "In the isolated fixture, exercise an owned-install lifecycle against the exact source and package: initial install, same-revision retry, changed-revision update, local edit, safe uninstall, neighbor-preservation check, and final reinstall. Preserve unrelated files and report ordinary INSTALL receipt evidence. The evaluator runs each lifecycle transition in a separate process and captures filesystem state itself; do not fabricate transition snapshots or claim runner observations."
+    prompt: "In the isolated fixture, exercise an owned-install lifecycle against the exact source and package: initial install, same-revision retry, changed-revision update, local edit, reinstall attempt while the edit remains (refuse safely without mutation), safe uninstall preserving the edit, explicit cleanup of the preserved edit, clean-uninstall verification, neighbor-preservation check, and final reinstall. Preserve unrelated files and report ordinary INSTALL receipt evidence. The evaluator runs each backend transition in a separate process and captures filesystem state itself; do not fabricate transition snapshots or claim runner observations."

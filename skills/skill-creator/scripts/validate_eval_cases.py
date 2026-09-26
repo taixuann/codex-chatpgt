@@ -353,7 +353,8 @@ def _trace_matches(case: dict, events: list[dict]) -> bool:
         observed = [event.get("runner_stage") for event in events if isinstance(event, dict) and event.get("runner_stage")]
         expected = [
             "after_initial_install", "after_same_revision", "after_changed_revision",
-            "after_local_edit", "after_uninstall", "neighbor_preserved", "after_final_reinstall",
+            "after_local_edit", "after_reinstall_with_local_edit", "after_uninstall",
+            "neighbor_preserved", "after_clean_uninstall", "after_final_reinstall",
         ]
         cursor = -1
         for stage in expected:
@@ -791,6 +792,8 @@ def _install_evidence_ok(
     if outcome == "BLOCKED":
         if evidence.get("workspace_changed") is not False or not isinstance(evidence.get("collision"), str) or len(evidence["collision"].strip()) < 10:
             return False, "blocked install must document the preserved collision and no workspace mutation"
+        if (before is None) != (after is None) or (before is not None and before != after):
+            return False, "blocked install collision receipt must prove before/after fixture identity is unchanged"
         return True, "unmanaged collision was preserved"
     if outcome == "ROUTE":
         if evidence.get("workspace_changed") is not False or evidence.get("route") not in {"CREATE", "UPDATE"}:
@@ -959,11 +962,12 @@ def _install_evidence_ok(
 
 LIFECYCLE_SNAPSHOT_STAGES = (
     "after_initial_install", "after_same_revision", "after_changed_revision",
-    "after_local_edit", "after_uninstall", "after_final_reinstall",
+    "after_local_edit", "after_reinstall_with_local_edit", "after_uninstall",
+    "after_clean_uninstall", "after_final_reinstall",
 )
 LIFECYCLE_PROCESS_STAGES = (
     "after_initial_install", "after_same_revision", "after_changed_revision",
-    "after_uninstall", "after_final_reinstall",
+    "after_reinstall_with_local_edit", "after_uninstall", "after_final_reinstall",
 )
 
 
@@ -1041,7 +1045,7 @@ def _owned_lifecycle_snapshots_ok(case: dict, evidence: dict | None) -> bool:
             for path in changed_paths
         )
 
-    initial, same, changed, edited, uninstalled, final = states
+    initial, same, changed, edited, refused, uninstalled, clean, final = states
     initial_payload = owned(initial)
     changed_payload = owned(changed)
     expected_files = set(package_files)
@@ -1070,7 +1074,10 @@ def _owned_lifecycle_snapshots_ok(case: dict, evidence: dict | None) -> bool:
         for revision in source_revisions
     ):
         return False
-    for state, revision in zip(states, (source_revisions[0], source_revisions[0], source_revisions[1], source_revisions[1], source_revisions[1], source_revisions[1])):
+    for state, revision in zip(states, (
+        source_revisions[0], source_revisions[0], source_revisions[1], source_revisions[1],
+        source_revisions[1], source_revisions[1], source_revisions[1], source_revisions[1],
+    )):
         if payload(state, source_prefix) != revision_hashes[revision]:
             return False
     expected_initial = revision_hashes[source_revisions[0]]
@@ -1087,13 +1094,18 @@ def _owned_lifecycle_snapshots_ok(case: dict, evidence: dict | None) -> bool:
         or not only_expected_changes(initial, same, set())
         or not only_expected_changes(same, changed, {source_root.rstrip("/"), target.rstrip("/")}, {manifest})
         or not only_expected_changes(changed, edited, {target.rstrip("/")})
-        or not only_expected_changes(edited, uninstalled, {target.rstrip("/")}, {manifest})
-        or not only_expected_changes(uninstalled, final, {target.rstrip("/")}, {manifest})
+        or not only_expected_changes(edited, refused, {target.rstrip("/")})
+        or not only_expected_changes(refused, uninstalled, {target.rstrip("/")}, {manifest})
+        or not only_expected_changes(uninstalled, clean, {target.rstrip("/")})
+        or not only_expected_changes(clean, final, {target.rstrip("/")}, {manifest})
         or set(owned(edited)) != expected_files
         or any(owned(edited).get(path) != changed_payload.get(path) for path in expected_files if path != edited_path)
         or owned(edited).get(edited_path) in {None, changed_payload.get(edited_path)}
+        or owned(refused) != owned(edited)
         or owned(uninstalled) != {edited_path: owned(edited).get(edited_path)}
         or f"{SNAPSHOT_CONTENT_PREFIX}{manifest}" in uninstalled
+        or owned(clean)
+        or f"{SNAPSHOT_CONTENT_PREFIX}{manifest}" in clean
         or set(owned(final)) != expected_files
         or any(owned(final).get(path) != expected_changed.get(path) for path in expected_files)
         or owned(final) != changed_payload
@@ -1150,22 +1162,28 @@ def _lifecycle_stage_reports_ok(case: dict, evidence: dict, backend: str, revisi
     expectations = {
         "after_same_revision": ("install", {"NO_OP", "UNCHANGED"}, revisions[0]),
         "after_changed_revision": ("update", {"UPDATED", "REINSTALLED"}, revisions[1]),
+        "after_reinstall_with_local_edit": ("install", {"REFUSED", "BLOCKED"}, revisions[1]),
         "after_uninstall": ("uninstall", {"UNINSTALLED", "REMOVED"}, revisions[1]),
         "after_final_reinstall": ("install", {"INSTALLED", "REINSTALLED"}, revisions[1]),
     }
-    return bool(
-        isinstance(reports, dict)
-        and all(
-            isinstance(reports.get(stage), dict)
-            and reports[stage].get("operation") == operation
-            and reports[stage].get("status") in statuses
-            and reports[stage].get("backend") == backend
-            and reports[stage].get("source_revision") == revision
-            and reports[stage].get("target") == target
-            and reports[stage].get("state_identity") == snapshots[stage].get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}")
-            for stage, (operation, statuses, revision) in expectations.items()
-        )
-    )
+    for stage, (operation, statuses, revision) in expectations.items():
+        report = reports.get(stage)
+        if not (
+            isinstance(report, dict)
+            and report.get("operation") == operation
+            and report.get("status") in statuses
+            and report.get("backend") == backend
+            and report.get("source_revision") == revision
+            and report.get("target") == target
+        ):
+            return False
+        expected_identity = snapshots[stage].get(f"{SNAPSHOT_CONTENT_PREFIX}{manifest}")
+        if stage == "after_uninstall":
+            if report.get("state_identity") is not None:
+                return False
+        elif report.get("state_identity") != expected_identity:
+            return False
+    return True
 
 
 def _safe_relative_posix_path(value: str) -> bool:
@@ -1581,6 +1599,11 @@ def _lifecycle_prompt(operation_root: Path, stage: str, source_ref: str = "fixtu
             "now differs from the installed revision. Use the selected backend and preserve unrelated files. "
             "Return JSON with operation=update, status=UPDATED or REINSTALLED, backend (the exact receipt identity), target (the receipt target path), source_revision (the resolved commit SHA), and state_identity (SHA-256 of the actual receipt manifest bytes)."
         ),
+        "after_reinstall_with_local_edit": (
+            f"Attempt to reinstall fixture/healthy from the changed immutable ref {source_ref} while the user-owned local edit is still present. "
+            "Refuse safely because reinstall would overwrite the local edit: do not change the edited file, any other owned file, the receipt, or the unowned neighbor. "
+            "Return JSON with operation=install, status=REFUSED or BLOCKED, backend (the exact receipt identity), target (the receipt target path), source_revision (the resolved commit SHA), and state_identity (the unchanged SHA-256 of the actual receipt manifest bytes)."
+        ),
         "after_uninstall": (
             "Safely uninstall only this backend receipt's installation. Verify its owned payload before removing files; "
             "preserve any locally edited file and the unowned neighbor canary. Do not reinstall in this step. "
@@ -1707,12 +1730,32 @@ def _run_owned_lifecycle(case, runtime, model, reasoning_effort, timeout, fixtur
     snapshots["after_local_edit"] = _snapshot(operation_root)
     events.append({"runner_stage": "after_local_edit"})
 
+    refused, error = run_stage(
+        "after_reinstall_with_local_edit",
+        _lifecycle_prompt(operation_root, "after_reinstall_with_local_edit", "fixture-v2"),
+    )
+    if error or refused is None or refused[0].returncode != 0:
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": f"local-edit reinstall refusal process failed: {error or 'nonzero exit'}"}, trial)
+    stage_reports["after_reinstall_with_local_edit"] = refused[1]
+    snapshots["after_reinstall_with_local_edit"] = _snapshot(operation_root)
+    events.append({"runner_stage": "after_reinstall_with_local_edit"})
+
     uninstalled, error = run_stage("after_uninstall", _lifecycle_prompt(operation_root, "after_uninstall"))
     if error or uninstalled is None or uninstalled[0].returncode != 0:
         return _trial_result({**base, "status": "NOT_ASSESSED", "reason": f"safe-uninstall lifecycle process failed: {error or 'nonzero exit'}"}, trial)
     stage_reports["after_uninstall"] = uninstalled[1]
     snapshots["after_uninstall"] = _snapshot(operation_root)
     events.extend([{"runner_stage": "after_uninstall"}, {"runner_stage": "neighbor_preserved"}])
+
+    preserved_edit = fixture / next(
+        effect["path"].removesuffix("/SKILL.md") for effect in case["side_effects"]
+        if effect["path"].endswith("/SKILL.md")
+    ) / edited_path
+    if not _confined_regular_file(operation_root, preserved_edit):
+        return _trial_result({**base, "status": "NOT_ASSESSED", "reason": "safe uninstall did not leave the edited file available for explicit cleanup"}, trial)
+    preserved_edit.unlink()
+    snapshots["after_clean_uninstall"] = _snapshot(operation_root)
+    events.append({"runner_stage": "after_clean_uninstall"})
 
     final, error = run_stage("after_final_reinstall", _lifecycle_prompt(operation_root, "after_final_reinstall", "fixture-v2"))
     if error or final is None or final[0].returncode != 0:
@@ -1743,7 +1786,7 @@ def _run_owned_lifecycle(case, runtime, model, reasoning_effort, timeout, fixtur
     trace_matches = _trace_matches(case, events)
     status = "PASS" if (
         initial_process.returncode == 0 and artifact_ok and install_ok and trace_matches
-        and activation == "loaded" and len(process_rows) == 5
+        and activation == "loaded" and len(process_rows) == len(LIFECYCLE_PROCESS_STAGES)
         and all(row["returncode"] == 0 and row["process_observed"] for row in process_rows)
     ) else "NOT_ASSESSED"
     reason = "runner observed each owned INSTALL lifecycle transition" if status == "PASS" else (

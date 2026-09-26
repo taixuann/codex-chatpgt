@@ -238,9 +238,13 @@ class EvalContractTests(unittest.TestCase):
 
         initial = state(old, old, "1" * 64)
         changed = state(new, new, "2" * 64)
+        edited_state = state(new, new, "2" * 64, edited)
+        refused = dict(edited_state)
         uninstalled = state(new, new, "2" * 64, edited)
         uninstalled.pop(f"{prefix}.agents/.skill-installs/healthy.json")
         uninstalled.pop(f"{prefix}.agents/skills/healthy/references/guide.md")
+        clean = dict(uninstalled)
+        clean.pop(f"{prefix}.agents/skills/healthy/SKILL.md")
         evidence = {
             "source_revisions": ["1" * 40, "2" * 40], "edited_path": "SKILL.md",
             "source_revision_hashes": {
@@ -250,12 +254,13 @@ class EvalContractTests(unittest.TestCase):
             "stage_reports": {
                 "after_same_revision": {"operation": "install", "status": "NO_OP", "backend": "fixture-backend", "source_revision": "1" * 40, "target": ".agents/skills/healthy", "state_identity": "1" * 64},
                 "after_changed_revision": {"operation": "update", "status": "UPDATED", "backend": "fixture-backend", "source_revision": "2" * 40, "target": ".agents/skills/healthy", "state_identity": "2" * 64},
+                "after_reinstall_with_local_edit": {"operation": "install", "status": "REFUSED", "backend": "fixture-backend", "source_revision": "2" * 40, "target": ".agents/skills/healthy", "state_identity": "2" * 64},
                 "after_uninstall": {"operation": "uninstall", "status": "UNINSTALLED", "backend": "fixture-backend", "source_revision": "2" * 40, "target": ".agents/skills/healthy", "state_identity": None},
                 "after_final_reinstall": {"operation": "install", "status": "INSTALLED", "backend": "fixture-backend", "source_revision": "2" * 40, "target": ".agents/skills/healthy", "state_identity": "3" * 64},
             },
             "snapshots": dict(zip(module.LIFECYCLE_SNAPSHOT_STAGES, (
-                initial, dict(initial), changed, state(new, new, "2" * 64, edited),
-                uninstalled, state(new, new, "3" * 64),
+                initial, dict(initial), changed, edited_state, refused,
+                uninstalled, clean, state(new, new, "3" * 64),
             ))),
         }
         self.assertFalse(module._owned_lifecycle_snapshots_ok(case, None))
@@ -307,7 +312,7 @@ class EvalContractTests(unittest.TestCase):
             regular.write_text("owned", encoding="utf-8")
             self.assertTrue(module._confined_regular_file(fixture, regular))
 
-    def test_owned_lifecycle_runner_invokes_five_processes_and_observes_states(self):
+    def test_owned_lifecycle_runner_refuses_edit_then_reinstalls_clean_target(self):
         module = load_module()
         cases_path = SCRIPT.parents[1] / "evals" / "cases.yaml"
         case = next(item for item in module.load_cases(cases_path)["cases"] if item["id"] == "install-owned-lifecycle")
@@ -361,6 +366,9 @@ class EvalContractTests(unittest.TestCase):
             elif "whose immutable commit" in prompt:
                 manifest = install_payload(root, "receipt-v2")
                 message = json.dumps({"operation": "update", "status": "UPDATED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": hashlib.sha256(manifest.read_bytes()).hexdigest()})
+            elif "while the user-owned local edit is still present" in prompt:
+                identity = hashlib.sha256((root / ".agents/.skill-installs/healthy.json").read_bytes()).hexdigest()
+                message = json.dumps({"operation": "install", "status": "REFUSED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": identity})
             elif "Safely uninstall" in prompt:
                 target = root / ".agents" / "skills" / "healthy"
                 (target / "references" / "guide.md").unlink()
@@ -395,7 +403,7 @@ class EvalContractTests(unittest.TestCase):
         self.assertTrue(module._lifecycle_stage_reports_ok(case, result["lifecycle_evidence"], "fixture-backend", result["lifecycle_evidence"]["source_revisions"]), result["lifecycle_evidence"])
         self.assertEqual(result["lifecycle_evidence"]["source_revisions"][0], result["final_report"]["installation"]["source"]["revision"])
         self.assertEqual(result["status"], "PASS", result.get("reason"))
-        self.assertEqual(len(calls), 10)
+        self.assertEqual(len(calls), 12)
         self.assertEqual(set(result["lifecycle_evidence"]["snapshots"]), set(module.LIFECYCLE_SNAPSHOT_STAGES))
         self.assertTrue(result["installation_observed"])
         self.assertTrue(result["lifecycle_evidence"]["stage_reports"])
@@ -597,9 +605,20 @@ class EvalContractTests(unittest.TestCase):
 
     def test_install_collision_and_redesign_must_preserve_the_fixture(self):
         module = load_module()
+        collision_before = {".agents/skills/healthy/SKILL.md": "owned", "\0content/.agents/skills/healthy/SKILL.md": "hash"}
         self.assertTrue(module._install_evidence_ok(
             {"kind": "INSTALL", "installation_outcome": "BLOCKED"},
             {"installation": {"status": "BLOCKED", "workspace_changed": False, "collision": "unmanaged target preserved"}},
+            collision_before,
+            dict(collision_before),
+        )[0])
+        collision_after = dict(collision_before)
+        collision_after["\0content/.agents/skills/healthy/SKILL.md"] = "changed"
+        self.assertFalse(module._install_evidence_ok(
+            {"kind": "INSTALL", "installation_outcome": "BLOCKED"},
+            {"installation": {"status": "BLOCKED", "workspace_changed": False, "collision": "unmanaged target preserved"}},
+            collision_before,
+            collision_after,
         )[0])
         self.assertTrue(module._install_evidence_ok(
             {"kind": "INSTALL", "installation_outcome": "ROUTE"},
@@ -1229,7 +1248,7 @@ class EvalContractTests(unittest.TestCase):
     def test_owned_lifecycle_trace_markers_require_distinct_ordered_process_events(self):
         module = load_module()
         case = {"id": "install-owned-lifecycle"}
-        stages = ["after_initial_install", "after_same_revision", "after_changed_revision", "after_local_edit", "after_uninstall", "neighbor_preserved", "after_final_reinstall"]
+        stages = ["after_initial_install", "after_same_revision", "after_changed_revision", "after_local_edit", "after_reinstall_with_local_edit", "after_uninstall", "neighbor_preserved", "after_clean_uninstall", "after_final_reinstall"]
         events = [{"runner_stage": stage} for stage in stages]
         self.assertTrue(module._trace_matches(case, events))
         self.assertFalse(module._trace_matches(case, [events[0], events[2], events[1]]))
