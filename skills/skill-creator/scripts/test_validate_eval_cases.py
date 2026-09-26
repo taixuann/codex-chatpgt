@@ -217,7 +217,7 @@ class EvalContractTests(unittest.TestCase):
             "side_effects": [
                 {"path": ".agents/skills/healthy/SKILL.md"},
                 {"path": ".agents/skills/healthy/references/guide.md"},
-                {"path": ".agents/.skill-installs/healthy.json"},
+                {"path": ".agents/install-state.json"},
             ],
         }
         prefix = module.SNAPSHOT_CONTENT_PREFIX
@@ -228,7 +228,7 @@ class EvalContractTests(unittest.TestCase):
         def state(source_hash, target_hash, manifest_hash, edited_hash=None):
             result = {
                 f"{prefix}.fixture-data/neighbor-canary.txt": neighbor,
-                f"{prefix}.agents/.skill-installs/healthy.json": manifest_hash,
+                f"{prefix}.agents/install-state.json": manifest_hash,
                 f"{prefix}.agents/.skill-installs/unrelated.json": "d" * 64,
             }
             for path in paths:
@@ -241,7 +241,7 @@ class EvalContractTests(unittest.TestCase):
         edited_state = state(new, new, "2" * 64, edited)
         refused = dict(edited_state)
         uninstalled = state(new, new, "2" * 64, edited)
-        uninstalled.pop(f"{prefix}.agents/.skill-installs/healthy.json")
+        uninstalled.pop(f"{prefix}.agents/install-state.json")
         uninstalled.pop(f"{prefix}.agents/skills/healthy/references/guide.md")
         clean = dict(uninstalled)
         clean.pop(f"{prefix}.agents/skills/healthy/SKILL.md")
@@ -327,7 +327,7 @@ class EvalContractTests(unittest.TestCase):
                 destination = target / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 destination.write_bytes((source / relative).read_bytes())
-            manifest = root / ".agents" / ".skill-installs" / "healthy.json"
+            manifest = root / ".agents" / "install-state.json"
             manifest.parent.mkdir(parents=True, exist_ok=True)
             manifest.write_text(revision, encoding="utf-8")
             return manifest
@@ -338,6 +338,7 @@ class EvalContractTests(unittest.TestCase):
             calls.append(command)
             root = Path(command[command.index("--cd") + 1])
             prompt = command[-1]
+            manifest_path = root / ".agents" / "install-state.json"
             if "initial installation" in prompt:
                 source = root / case["source_fixture"]
                 source_before = module._snapshot(root)
@@ -361,19 +362,19 @@ class EvalContractTests(unittest.TestCase):
                 }}
                 message = json.dumps(report)
             elif "same immutable ref" in prompt:
-                identity = hashlib.sha256((root / ".agents/.skill-installs/healthy.json").read_bytes()).hexdigest()
+                identity = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
                 message = json.dumps({"operation": "install", "status": "NO_OP", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": case["_resolved_revision"], "state_identity": identity})
             elif "whose immutable commit" in prompt:
                 manifest = install_payload(root, "receipt-v2")
                 message = json.dumps({"operation": "update", "status": "UPDATED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": hashlib.sha256(manifest.read_bytes()).hexdigest()})
             elif "while the user-owned local edit is still present" in prompt:
-                identity = hashlib.sha256((root / ".agents/.skill-installs/healthy.json").read_bytes()).hexdigest()
+                identity = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
                 message = json.dumps({"operation": "install", "status": "REFUSED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": identity})
             elif "Safely uninstall" in prompt:
                 target = root / ".agents" / "skills" / "healthy"
                 (target / "references" / "guide.md").unlink()
                 (target / "LICENSE.txt").unlink()
-                (root / ".agents" / ".skill-installs" / "healthy.json").unlink()
+                manifest_path.unlink()
                 message = json.dumps({"operation": "uninstall", "status": "UNINSTALLED", "backend": "fixture-backend", "target": ".agents/skills/healthy", "source_revision": module._git_revision(root / case["source_fixture"], "fixture-v2"), "state_identity": None})
             else:
                 manifest = install_payload(root, "receipt-v3")

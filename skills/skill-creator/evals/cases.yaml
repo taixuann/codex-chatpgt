@@ -133,5 +133,5 @@ cases:
       - {operation: created, path: .agents/skills/healthy/SKILL.md}
       - {operation: created, path: .agents/skills/healthy/references/guide.md}
       - {operation: created, path: .agents/skills/healthy/LICENSE.txt}
-      - {operation: created, path: .agents/.skill-installs/healthy.json}
+      - {operation: created, path: .agents/install-state.json}
     prompt: "In the isolated fixture, exercise an owned-install lifecycle against the exact source and package: initial install, same-revision retry, changed-revision update, local edit, reinstall attempt while the edit remains (refuse safely without mutation), safe uninstall preserving the edit, explicit cleanup of the preserved edit, clean-uninstall verification, neighbor-preservation check, and final reinstall. Preserve unrelated files and report ordinary INSTALL receipt evidence. The evaluator runs each backend transition in a separate process and captures filesystem state itself; do not fabricate transition snapshots or claim runner observations."

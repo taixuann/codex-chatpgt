@@ -904,7 +904,7 @@ def _install_evidence_ok(
         state_paths = [
             effect["path"] for effect in case.get("side_effects", [])
             if isinstance(effect, dict) and isinstance(effect.get("path"), str)
-            and "/.skill-installs/" in f"/{effect['path']}"
+            and ("/.skill-installs/" in f"/{effect['path']}" or effect["path"].endswith("/install-state.json"))
         ]
         if len(state_paths) != 1 or backend.get("state_identity") != after.get(f"{SNAPSHOT_CONTENT_PREFIX}{state_paths[0]}"):
             return False, "backend state identity must match the observed install-state manifest bytes"
@@ -1005,7 +1005,7 @@ def _owned_lifecycle_snapshots_ok(case: dict, evidence: dict | None) -> bool:
     manifest = next((
         effect["path"] for effect in case.get("side_effects", [])
         if isinstance(effect, dict) and isinstance(effect.get("path"), str)
-        and "/.skill-installs/" in f"/{effect['path']}"
+        and ("/.skill-installs/" in f"/{effect['path']}" or effect["path"].endswith("/install-state.json"))
     ), None)
     if (
         not isinstance(package_files, list) or not package_files
@@ -1155,7 +1155,7 @@ def _lifecycle_stage_reports_ok(case: dict, evidence: dict, backend: str, revisi
     manifest = next((
         effect["path"] for effect in case.get("side_effects", [])
         if isinstance(effect, dict) and isinstance(effect.get("path"), str)
-        and "/.skill-installs/" in f"/{effect['path']}"
+        and ("/.skill-installs/" in f"/{effect['path']}" or effect["path"].endswith("/install-state.json"))
     ), None)
     if not isinstance(reports, dict) or not isinstance(snapshots, dict) or not target or not manifest:
         return False
